@@ -1,0 +1,11 @@
+Copia aquí los dos archivos del design system (tal cual, sin renombrar):
+
+  - styles.css   (desde la raíz del proyecto)
+  - app.js       (desde la raíz del proyecto)
+
+Quedaría así:
+  okstation-child/assets/okstation/styles.css
+  okstation-child/assets/okstation/app.js
+
+functions.php ya los encola desde esta ruta y versiona por fecha
+de archivo (cache-busting automático al actualizar).

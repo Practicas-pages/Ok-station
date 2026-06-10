@@ -1,0 +1,24 @@
+# ── Sistema operativo ──
+Thumbs.db
+ehthumbs.db
+desktop.ini
+.DS_Store
+
+# ── Editores ──
+.vscode/
+.idea/
+*.code-workspace
+
+# ── Claude Code (local) ──
+.claude/
+
+# ── Backend: NUNCA subir credenciales ──
+backend/api/config.php
+backend/.env
+
+# ── Estado local del componente image-slot ──
+.image-slots.state.json
+.thumbnail
+
+# Nota: serve.ps1 se mantiene en el repo a propósito (servidor de
+# preview local para equipos sin Node/Python). Bórralo de producción.

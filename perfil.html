@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="es-MX">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Mi perfil — OK.station</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="assets/auth.css">
+</head>
+<body class="auth-page" data-requires-auth>
+
+  <header class="auth-top">
+    <a href="index.html" class="logo"><span class="logo__ok">OK</span><span class="logo__dot">.</span><span class="logo__station">station</span></a>
+    <button type="button" id="btn-logout" class="auth-back">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      Cerrar sesión
+    </button>
+  </header>
+
+  <main class="auth-main" id="profile-page" style="align-items:flex-start">
+    <div class="wrap" style="width:100%">
+      <div class="profile-grid">
+
+        <!-- Columna lateral -->
+        <aside class="profile-side">
+          <div class="profile-avatar" id="profile-avatar" aria-hidden="true">U</div>
+          <h2 data-user-name>Usuario</h2>
+          <p data-user-email>—</p>
+          <nav class="profile-nav" aria-label="Secciones del perfil">
+            <a href="#info">Información personal</a>
+            <a href="#password">Cambiar contraseña</a>
+            <!-- Fase 2: historial de pedidos -->
+            <a href="#" aria-disabled="true" title="Disponible en la siguiente fase">Mis pedidos (próximamente)</a>
+          </nav>
+        </aside>
+
+        <!-- Contenido -->
+        <div>
+          <!-- Información personal -->
+          <section class="profile-panel" id="info">
+            <h3>Información personal</h3>
+            <div class="auth-alert" id="profile-alert" role="alert" hidden></div>
+            <form id="profile-form" novalidate>
+              <div class="auth-field">
+                <label for="pf-name">Nombre completo</label>
+                <input type="text" id="pf-name" name="full_name" autocomplete="name" required>
+              </div>
+              <div class="auth-row">
+                <div class="auth-field">
+                  <label for="pf-email">Correo electrónico</label>
+                  <input type="email" id="pf-email" name="email" autocomplete="email" disabled data-user-email-input>
+                  <span class="auth-field__hint">El correo no se puede cambiar.</span>
+                </div>
+                <div class="auth-field">
+                  <label for="pf-phone">Teléfono / WhatsApp</label>
+                  <input type="tel" id="pf-phone" name="phone" autocomplete="tel" inputmode="tel" required>
+                </div>
+              </div>
+              <div class="auth-field">
+                <label for="pf-address">Dirección <span class="auth-field__hint">(opcional)</span></label>
+                <input type="text" id="pf-address" name="address" autocomplete="street-address">
+              </div>
+              <button type="submit" class="btn btn--primary">Guardar cambios</button>
+            </form>
+          </section>
+
+          <!-- Cambiar contraseña -->
+          <section class="profile-panel" id="password">
+            <h3>Cambiar contraseña</h3>
+            <div class="auth-alert" id="password-alert" role="alert" hidden></div>
+            <form id="password-form" novalidate>
+              <div class="auth-field">
+                <label for="cp-current">Contraseña actual</label>
+                <input type="password" id="cp-current" name="current_password" autocomplete="current-password" required>
+              </div>
+              <div class="auth-row">
+                <div class="auth-field">
+                  <label for="cp-new">Nueva contraseña</label>
+                  <input type="password" id="cp-new" name="new_password" autocomplete="new-password" required>
+                  <span class="auth-field__hint">Mínimo 8 caracteres, con letras y números.</span>
+                </div>
+                <div class="auth-field">
+                  <label for="cp-new2">Confirmar nueva</label>
+                  <input type="password" id="cp-new2" name="new_password_confirm" autocomplete="new-password" required>
+                </div>
+              </div>
+              <button type="submit" class="btn btn--primary">Actualizar contraseña</button>
+            </form>
+          </section>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script src="assets/auth.js" defer></script>
+</body>
+</html>

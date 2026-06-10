@@ -1,0 +1,19 @@
+# OK.station — robots.txt
+User-agent: *
+Allow: /
+
+# Áreas privadas / no indexables (también llevan <meta robots noindex>)
+Disallow: /cuenta.html
+Disallow: /recuperar.html
+Disallow: /restablecer.html
+Disallow: /perfil.html
+Disallow: /admin.html
+
+# Backend (API y código): no debe rastrearse
+Disallow: /backend/
+
+# Recursos que sí conviene permitir para el render (Core Web Vitals)
+Allow: /styles.css
+Allow: /assets/
+
+Sitemap: https://okstation.mx/sitemap.xml

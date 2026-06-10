@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="es-MX">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Recuperar contraseña — OK.station</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="assets/auth.css">
+</head>
+<body class="auth-page">
+
+  <header class="auth-top">
+    <a href="index.html" class="logo"><span class="logo__ok">OK</span><span class="logo__dot">.</span><span class="logo__station">station</span></a>
+    <a href="cuenta.html" class="auth-back">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+      Volver a iniciar sesión
+    </a>
+  </header>
+
+  <main class="auth-main">
+    <div class="auth-card">
+      <div class="auth-head">
+        <h1>Recupera tu contraseña</h1>
+        <p>Escribe tu correo y te enviaremos un enlace para crear una nueva.</p>
+      </div>
+      <div class="auth-alert" id="forgot-alert" role="alert" hidden></div>
+      <form id="form-forgot" novalidate>
+        <div class="auth-field">
+          <label for="forgot-email">Correo electrónico</label>
+          <input type="email" id="forgot-email" name="email" autocomplete="email" required placeholder="tucorreo@ejemplo.com">
+        </div>
+        <button type="submit" class="btn btn--primary btn--block">Enviar enlace</button>
+      </form>
+      <p class="auth-foot">¿Ya la recordaste? <a href="cuenta.html">Inicia sesión</a></p>
+    </div>
+  </main>
+
+  <script src="assets/auth.js" defer></script>
+</body>
+</html>

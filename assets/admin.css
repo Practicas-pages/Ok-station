@@ -1,0 +1,208 @@
+/* ============================================================
+   OK.station — Panel administrativo (estética SaaS: Stripe/Linear)
+   Reutiliza los design tokens de styles.css.
+   ============================================================ */
+.admin {
+  display: grid;
+  grid-template-columns: 256px 1fr;
+  min-height: 100vh;
+  background: #F7F8FB;
+}
+
+/* ── Sidebar ── */
+.admin-sidebar {
+  background: #fff;
+  border-right: 1px solid var(--border-light);
+  display: flex;
+  flex-direction: column;
+  padding: var(--space-5) var(--space-4);
+  position: sticky;
+  top: 0;
+  height: 100vh;
+}
+.admin-sidebar__logo { font-size: 1.4rem; margin: 4px 8px var(--space-6); }
+.admin-nav { display: flex; flex-direction: column; gap: 3px; }
+.admin-nav__item {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  width: 100%;
+  padding: 10px 12px;
+  border: none;
+  background: none;
+  border-radius: var(--radius-sm);
+  font-family: inherit;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  cursor: pointer;
+  text-align: left;
+  transition: background var(--transition-fast), color var(--transition-fast);
+}
+.admin-nav__item svg { width: 18px; height: 18px; flex-shrink: 0; }
+.admin-nav__item:hover { background: var(--surface-page); color: var(--text-primary); }
+.admin-nav__item.is-active { background: var(--brand-blue-light); color: var(--brand-blue); font-weight: 600; }
+.admin-nav__item:focus-visible { outline: 2px solid var(--brand-blue); outline-offset: 1px; }
+.admin-nav__badge {
+  margin-left: auto;
+  font-size: 0.7rem;
+  font-weight: 700;
+  background: var(--brand-blue);
+  color: #fff;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: var(--radius-full);
+  display: inline-grid;
+  place-items: center;
+}
+.admin-sidebar__foot { margin-top: auto; padding-top: var(--space-4); border-top: 1px solid var(--border-light); }
+
+/* ── Main ── */
+.admin-main { display: flex; flex-direction: column; min-width: 0; }
+.admin-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  height: 64px;
+  padding: 0 clamp(16px, 3vw, 32px);
+  background: rgba(247,248,251,0.85);
+  backdrop-filter: saturate(160%) blur(12px);
+  border-bottom: 1px solid var(--border-light);
+}
+.admin-topbar__title { font-size: 1.15rem; font-weight: 700; letter-spacing: -0.02em; color: var(--text-primary); }
+.admin-topbar__user { margin-left: auto; display: flex; align-items: center; gap: var(--space-4); }
+.admin-user { display: flex; align-items: center; gap: 10px; }
+.admin-user__avatar {
+  width: 36px; height: 36px; border-radius: 50%;
+  background: var(--grad-brand); color: #fff;
+  display: grid; place-items: center; font-weight: 700; font-size: 0.9rem;
+}
+.admin-user__meta { display: flex; flex-direction: column; line-height: 1.2; }
+.admin-user__meta b { font-size: 0.82rem; color: var(--text-primary); }
+.admin-user__meta span { font-size: 0.7rem; color: var(--text-muted); text-transform: capitalize; }
+.admin-burger { display: none; width: 40px; height: 40px; border: 1px solid var(--border-light); border-radius: var(--radius-sm); background: #fff; color: var(--text-primary); }
+.admin-burger svg { width: 20px; height: 20px; margin: 0 auto; }
+
+.admin-content { padding: clamp(18px, 3vw, 32px); display: flex; flex-direction: column; gap: var(--space-5); }
+
+/* ── Tarjetas de estadística ── */
+.stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--space-4); }
+.stat-card {
+  background: #fff;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  padding: var(--space-5);
+  box-shadow: var(--shadow-xs);
+}
+.stat-card__top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+.stat-card__label { font-size: 0.78rem; color: var(--text-muted); font-weight: 500; }
+.stat-card__icon { width: 36px; height: 36px; border-radius: var(--radius-sm); display: grid; place-items: center; }
+.stat-card__icon svg { width: 18px; height: 18px; }
+.stat-card__value { font-size: 1.7rem; font-weight: 800; letter-spacing: -0.03em; color: var(--text-primary); line-height: 1; }
+.stat-card__delta { font-size: 0.75rem; font-weight: 600; margin-top: 8px; display: inline-flex; align-items: center; gap: 3px; }
+.stat-card__delta.up { color: var(--color-success); }
+.stat-card__delta.down { color: var(--color-error); }
+
+/* ── Tarjetas / columnas ── */
+.admin-cols { display: grid; grid-template-columns: 1.4fr 1fr; gap: var(--space-4); }
+.admin-card {
+  background: #fff;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-xs);
+  overflow: hidden;
+}
+.admin-card__head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 20px; border-bottom: 1px solid var(--border-light);
+}
+.admin-card__head h3 { font-size: 0.95rem; font-weight: 700; color: var(--text-primary); }
+.admin-card__hint { font-size: 0.72rem; color: var(--text-muted); }
+.admin-link { background: none; border: none; font: inherit; font-size: 0.8rem; font-weight: 600; color: var(--brand-blue); cursor: pointer; }
+
+/* ── Gráfica de barras (SVG) ── */
+.chart { padding: 18px 20px; }
+.chart svg { width: 100%; height: 200px; overflow: visible; }
+.chart .bar { fill: url(#barGrad); transition: opacity .15s; }
+.chart .bar:hover { opacity: .8; }
+.chart .axis { font-size: 10px; fill: var(--text-muted); }
+
+/* ── Lista de barras horizontales ── */
+.barlist { padding: 18px 20px; display: flex; flex-direction: column; gap: 14px; }
+.barlist__row { display: grid; grid-template-columns: 1fr; gap: 6px; }
+.barlist__top { display: flex; justify-content: space-between; font-size: 0.8rem; }
+.barlist__top b { color: var(--text-primary); font-weight: 600; }
+.barlist__top span { color: var(--text-muted); }
+.barlist__track { height: 8px; border-radius: var(--radius-full); background: var(--surface-page); overflow: hidden; }
+.barlist__fill { height: 100%; border-radius: var(--radius-full); background: var(--grad-blue); }
+
+/* ── Tabla ── */
+.table-wrap { overflow-x: auto; }
+.admin-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+.admin-table th {
+  text-align: left; padding: 12px 20px; font-size: 0.72rem; text-transform: uppercase;
+  letter-spacing: 0.04em; color: var(--text-muted); font-weight: 600;
+  border-bottom: 1px solid var(--border-light); white-space: nowrap; background: #FBFCFE;
+}
+.admin-table td { padding: 13px 20px; border-bottom: 1px solid var(--border-light); color: var(--text-secondary); white-space: nowrap; }
+.admin-table tr:last-child td { border-bottom: none; }
+.admin-table tr:hover td { background: #FBFCFE; }
+.admin-table b { color: var(--text-primary); font-weight: 600; }
+.admin-table .mono { font-variant-numeric: tabular-nums; font-weight: 600; color: var(--text-primary); }
+
+/* ── Badges de estado ── */
+.badge { display: inline-flex; align-items: center; gap: 5px; font-size: 0.72rem; font-weight: 600; padding: 3px 10px; border-radius: var(--radius-full); white-space: nowrap; }
+.badge::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+.badge--recibido     { background: #EEF2FF; color: #4338CA; }
+.badge--en_revision  { background: #FEF3C7; color: #B45309; }
+.badge--en_produccion{ background: #E0F2FE; color: #0369A1; }
+.badge--listo        { background: #DCFCE7; color: #15803D; }
+.badge--entregado    { background: #ECFDF5; color: #047857; }
+.badge--cancelado    { background: #FEE2E2; color: #B91C1C; }
+.badge--pendiente    { background: #FEF3C7; color: #B45309; }
+.badge--aprobada     { background: #DCFCE7; color: #15803D; }
+.badge--oculta       { background: #F1F5F9; color: #64748B; }
+
+/* Selector de estado dentro de la tabla */
+.status-select {
+  font-family: inherit; font-size: 0.78rem; font-weight: 600;
+  padding: 6px 10px; border-radius: var(--radius-sm);
+  border: 1.5px solid var(--border-light); background: #fff; color: var(--text-primary); cursor: pointer;
+}
+.status-select:focus-visible { outline: 2px solid var(--brand-blue); }
+
+.admin-btn-sm { font-size: 0.76rem; font-weight: 600; padding: 6px 12px; border-radius: var(--radius-sm); border: 1px solid var(--border-light); background: #fff; color: var(--text-secondary); cursor: pointer; transition: all var(--transition-fast); }
+.admin-btn-sm:hover { border-color: var(--brand-blue); color: var(--brand-blue); }
+
+/* ── Toolbar / filtros ── */
+.admin-toolbar { display: flex; align-items: center; gap: var(--space-3); flex-wrap: wrap; }
+.admin-filters { display: flex; gap: 7px; flex-wrap: wrap; }
+.admin-stars { color: #F59E0B; letter-spacing: 1px; }
+
+/* ── Banner demo ── */
+.admin-demo {
+  position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%);
+  background: var(--text-primary); color: #fff; font-size: 0.78rem; font-weight: 500;
+  padding: 9px 18px; border-radius: var(--radius-full); box-shadow: var(--shadow-lg); z-index: 40;
+}
+
+/* ── Responsive ── */
+.admin-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 25; }
+@media (max-width: 1024px) {
+  .admin-cols { grid-template-columns: 1fr; }
+  .stat-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 768px) {
+  .admin { grid-template-columns: 1fr; }
+  .admin-sidebar {
+    position: fixed; left: 0; top: 0; z-index: 30; width: 256px;
+    transform: translateX(-100%); transition: transform var(--transition-base);
+  }
+  .admin.is-nav-open .admin-sidebar { transform: translateX(0); }
+  .admin-burger { display: grid; }
+  .admin-user__meta { display: none; }
+}

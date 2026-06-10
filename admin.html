@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="es-MX">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Panel · OK.station</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="assets/admin.css">
+</head>
+<body class="admin">
+
+  <!-- Sidebar -->
+  <aside class="admin-sidebar" id="admin-sidebar">
+    <a href="index.html" class="logo admin-sidebar__logo"><span class="logo__ok">OK</span><span class="logo__dot">.</span><span class="logo__station">station</span></a>
+    <nav class="admin-nav" aria-label="Navegación del panel">
+      <button class="admin-nav__item is-active" data-view="dashboard">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>
+        Dashboard
+      </button>
+      <button class="admin-nav__item" data-view="pedidos">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 2h9l5 5v13a2 2 0 01-2 2H6a2 2 0 01-2-2V4a2 2 0 012-2z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="13" y2="17"/></svg>
+        Pedidos
+        <span class="admin-nav__badge" id="nav-pedidos-count">0</span>
+      </button>
+      <button class="admin-nav__item" data-view="usuarios">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+        Usuarios
+      </button>
+      <button class="admin-nav__item" data-view="servicios">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>
+        Servicios
+      </button>
+      <button class="admin-nav__item" data-view="resenas">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+        Reseñas
+        <span class="admin-nav__badge" id="nav-resenas-count">0</span>
+      </button>
+    </nav>
+    <div class="admin-sidebar__foot">
+      <a href="index.html" class="admin-nav__item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3"/></svg>
+        Ver sitio
+      </a>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <div class="admin-main">
+    <header class="admin-topbar">
+      <button class="admin-burger" id="admin-burger" aria-label="Abrir menú">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </button>
+      <h1 class="admin-topbar__title" id="admin-title">Dashboard</h1>
+      <div class="admin-topbar__user">
+        <div class="admin-user">
+          <span class="admin-user__avatar" id="admin-user-avatar">A</span>
+          <span class="admin-user__meta"><b id="admin-user-name">Administrador</b><span id="admin-user-role">administrador</span></span>
+        </div>
+        <button class="btn btn--light btn--sm" id="admin-logout">Salir</button>
+      </div>
+    </header>
+
+    <div class="admin-content">
+
+      <!-- DASHBOARD -->
+      <section data-view="dashboard">
+        <div class="stat-grid" id="stat-grid"></div>
+        <div class="admin-cols">
+          <div class="admin-card">
+            <div class="admin-card__head"><h3>Ventas (últimos 7 días)</h3><span class="admin-card__hint">MXN</span></div>
+            <div id="chart-sales" class="chart"></div>
+          </div>
+          <div class="admin-card">
+            <div class="admin-card__head"><h3>Servicios más solicitados</h3></div>
+            <div id="chart-services" class="barlist"></div>
+          </div>
+        </div>
+        <div class="admin-card">
+          <div class="admin-card__head"><h3>Pedidos recientes</h3><button class="admin-link" data-goto="pedidos">Ver todos →</button></div>
+          <div class="table-wrap"><table class="admin-table" id="recent-orders"></table></div>
+        </div>
+      </section>
+
+      <!-- PEDIDOS -->
+      <section data-view="pedidos" hidden>
+        <div class="admin-toolbar">
+          <div class="admin-filters" id="order-filters">
+            <button class="chip is-selected" data-status="">Todos</button>
+            <button class="chip" data-status="recibido">Recibidos</button>
+            <button class="chip" data-status="en_revision">En revisión</button>
+            <button class="chip" data-status="en_produccion">En producción</button>
+            <button class="chip" data-status="listo">Listos</button>
+            <button class="chip" data-status="entregado">Entregados</button>
+            <button class="chip" data-status="cancelado">Cancelados</button>
+          </div>
+        </div>
+        <div class="admin-card">
+          <div class="table-wrap"><table class="admin-table" id="orders-table"></table></div>
+        </div>
+      </section>
+
+      <!-- USUARIOS / SERVICIOS / RESEÑAS (estructura lista, datos simulados) -->
+      <section data-view="usuarios" hidden>
+        <div class="admin-card"><div class="table-wrap"><table class="admin-table" id="users-table"></table></div></div>
+      </section>
+
+      <section data-view="servicios" hidden>
+        <div class="admin-card"><div class="table-wrap"><table class="admin-table" id="services-table"></table></div></div>
+      </section>
+
+      <section data-view="resenas" hidden>
+        <div class="admin-card"><div class="table-wrap"><table class="admin-table" id="reviews-table"></table></div></div>
+      </section>
+
+    </div>
+  </div>
+
+  <div class="admin-demo" id="admin-demo">Modo demostración · datos simulados (listo para conectar a CloudPanel)</div>
+  <div class="admin-overlay" id="admin-overlay" hidden></div>
+
+  <script src="assets/admin.js" defer></script>
+</body>
+</html>

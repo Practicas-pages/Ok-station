@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  OK.station — sitemap. La página es one-page; las rutas privadas
+  (cuenta, perfil, admin) se excluyen a propósito (noindex).
+  Al crear páginas dedicadas (/impresion-de-fotos, /impresion-de-documentos,
+  /servicios, /nosotros, /contacto) agrégalas aquí.
+-->
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://okstation.mx/</loc>
+    <lastmod>2026-06-10</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+</urlset>

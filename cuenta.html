@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="es-MX">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Tu cuenta — OK.station</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="assets/auth.css">
+</head>
+<body class="auth-page">
+
+  <header class="auth-top">
+    <a href="index.html" class="logo"><span class="logo__ok">OK</span><span class="logo__dot">.</span><span class="logo__station">station</span></a>
+    <a href="index.html" class="auth-back">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+      Volver al sitio
+    </a>
+  </header>
+
+  <main class="auth-main">
+    <div class="auth-card">
+      <div class="auth-head">
+        <h1>Tu cuenta OK.station</h1>
+        <p>Accede para subir archivos, configurar tus impresiones y seguir tus pedidos.</p>
+      </div>
+
+      <div class="auth-tabs" role="tablist" aria-label="Acceso o registro">
+        <button type="button" class="auth-tab is-active" data-tab="login" role="tab" aria-selected="true">Iniciar sesión</button>
+        <button type="button" class="auth-tab" data-tab="register" role="tab" aria-selected="false">Crear cuenta</button>
+      </div>
+
+      <!-- LOGIN -->
+      <section id="panel-login" role="tabpanel">
+        <div class="auth-alert" id="login-alert" role="alert" hidden></div>
+        <form id="form-login" novalidate>
+          <div class="auth-field">
+            <label for="login-email">Correo electrónico</label>
+            <input type="email" id="login-email" name="email" autocomplete="email" required placeholder="tucorreo@ejemplo.com">
+          </div>
+          <div class="auth-field">
+            <label for="login-pass">Contraseña</label>
+            <input type="password" id="login-pass" name="password" autocomplete="current-password" required placeholder="Tu contraseña">
+          </div>
+          <button type="submit" class="btn btn--primary btn--block">Iniciar sesión</button>
+          <p class="auth-foot"><a href="recuperar.html">¿Olvidaste tu contraseña?</a></p>
+        </form>
+      </section>
+
+      <!-- REGISTRO -->
+      <section id="panel-register" role="tabpanel" hidden>
+        <div class="auth-alert" id="register-alert" role="alert" hidden></div>
+        <form id="form-register" novalidate>
+          <div class="auth-field">
+            <label for="reg-name">Nombre completo</label>
+            <input type="text" id="reg-name" name="full_name" autocomplete="name" required placeholder="Ej. María González">
+          </div>
+          <div class="auth-row">
+            <div class="auth-field">
+              <label for="reg-email">Correo electrónico</label>
+              <input type="email" id="reg-email" name="email" autocomplete="email" required placeholder="tucorreo@ejemplo.com">
+            </div>
+            <div class="auth-field">
+              <label for="reg-phone">Teléfono / WhatsApp</label>
+              <input type="tel" id="reg-phone" name="phone" autocomplete="tel" inputmode="tel" required placeholder="664 000 0000">
+            </div>
+          </div>
+          <div class="auth-field">
+            <label for="reg-address">Dirección <span class="auth-field__hint">(opcional)</span></label>
+            <input type="text" id="reg-address" name="address" autocomplete="street-address" placeholder="Calle, número, colonia, ciudad">
+          </div>
+          <div class="auth-row">
+            <div class="auth-field">
+              <label for="reg-pass">Contraseña</label>
+              <input type="password" id="reg-pass" name="password" autocomplete="new-password" required placeholder="Mínimo 8 caracteres">
+              <span class="auth-field__hint">Mínimo 8 caracteres, con letras y números.</span>
+            </div>
+            <div class="auth-field">
+              <label for="reg-pass2">Confirmar contraseña</label>
+              <input type="password" id="reg-pass2" name="password_confirm" autocomplete="new-password" required placeholder="Repite tu contraseña">
+            </div>
+          </div>
+          <button type="submit" class="btn btn--primary btn--block">Crear cuenta</button>
+        </form>
+      </section>
+    </div>
+  </main>
+
+  <script src="assets/auth.js" defer></script>
+</body>
+</html>
