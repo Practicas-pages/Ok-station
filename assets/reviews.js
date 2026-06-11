@@ -7,7 +7,7 @@
 (function () {
   "use strict";
 
-  var DEMO = true;                       // false → API real
+  var DEMO = false;                      // PRODUCCIÓN: usa el API real (/backend/api/reviews/*)
   var API = "/backend/api/reviews";
   var LS = "okstation.reviews.demo";
 

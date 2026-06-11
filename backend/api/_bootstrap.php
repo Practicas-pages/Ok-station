@@ -27,6 +27,13 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') === 'OPTIONS') {
     exit;
 }
 
+/* ── Guard de configuración crítica: JWT_SECRET ── */
+if (empty($CONFIG['jwt_secret']) || strlen((string) $CONFIG['jwt_secret']) < 32) {
+    http_response_code(500);
+    echo json_encode(['ok' => false, 'error' => 'Configuración incompleta: define un JWT_SECRET de 32+ caracteres en backend/.env.']);
+    exit;
+}
+
 /* ── Respuestas JSON ── */
 function respond($data, int $code = 200): void {
     http_response_code($code);

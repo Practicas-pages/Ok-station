@@ -1,10 +1,14 @@
+# ============================================================
+# OK.station — .gitignore (estándar de seguridad empresarial)
+# ============================================================
+
 # ── Sistema operativo ──
+.DS_Store
 Thumbs.db
 ehthumbs.db
 desktop.ini
-.DS_Store
 
-# ── Editores ──
+# ── Editores / IDE ──
 .vscode/
 .idea/
 *.code-workspace
@@ -12,13 +16,57 @@ desktop.ini
 # ── Claude Code (local) ──
 .claude/
 
-# ── Backend: NUNCA subir credenciales ──
-backend/api/config.php
-backend/.env
+# ── Dependencias ──
+vendor/
+node_modules/
 
-# ── Estado local del componente image-slot ──
+# ── SECRETOS Y CONFIGURACIÓN (NUNCA al repositorio) ──
+.env
+.env.*
+!.env.example
+backend/.env
+backend/.env.*
+!backend/.env.example
+backend/api/config.php
+config.php
+config.prod.php
+config.production.php
+credentials.json
+service-account.json
+firebase-admin.json
+*.key
+*.pem
+*.p12
+id_rsa
+id_rsa.pub
+
+# ── Datos de clientes / archivos generados (no son código) ──
+backend/storage/uploads/
+backend/storage/tickets/
+storage/
+uploads/
+tickets/
+backups/
+cache/
+tmp/
+sessions/
+logs/
+*.log
+
+# ── Dumps / respaldos de BD ──
+# (Las migraciones, schema.sql y seed.sql SÍ se versionan: son código fuente.)
+*.dump
+*.sql.gz
+db_*.sql
+backup_*.sql
+dump_*.sql
+
+# ── Empaquetados ──
+*.zip
+*.tar.gz
+*.rar
+
+# ── Estado local / preview ──
 .image-slots.state.json
 .thumbnail
-
-# Nota: serve.ps1 se mantiene en el repo a propósito (servidor de
-# preview local para equipos sin Node/Python). Bórralo de producción.
+# serve.ps1 se mantiene a propósito (servidor de preview local).

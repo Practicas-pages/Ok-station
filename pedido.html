@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="es-MX">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Haz tu pedido — OK.station</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="assets/order.css">
+</head>
+<body class="order-page" data-requires-auth>
+
+  <header class="auth-top">
+    <a href="index.html" class="logo"><span class="logo__ok">OK</span><span class="logo__dot">.</span><span class="logo__station">station</span></a>
+    <a href="perfil.html" class="auth-back">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      Mi cuenta
+    </a>
+  </header>
+
+  <main class="order-main">
+    <div class="order-wrap">
+
+      <!-- Configurador -->
+      <div id="order-builder">
+        <div class="order-head">
+          <h1>Haz tu pedido de impresión</h1>
+          <p>Sube tus archivos (PDF o imágenes), configura cada uno por separado y envíanos el pedido.</p>
+        </div>
+
+        <div class="order-grid">
+          <div>
+            <div class="order-drop" id="order-drop" role="button" tabindex="0" aria-label="Subir archivos">
+              <div class="order-drop__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></div>
+              <h3>Arrastra tus archivos aquí</h3>
+              <p>PDF · JPG · PNG · WEBP — varios a la vez</p>
+            </div>
+            <input type="file" id="order-input" accept="application/pdf,image/*" multiple hidden>
+            <div class="order-files" id="order-files"></div>
+          </div>
+
+          <aside class="order-summary">
+            <h3>Resumen del pedido</h3>
+            <div class="order-alert order-alert--error" id="order-alert" hidden></div>
+            <div class="order-summary__line"><span>Archivos</span><b id="sum-files">0</b></div>
+            <div class="order-summary__line"><span>Copias totales</span><b id="sum-copies">0</b></div>
+            <div class="order-summary__line"><span>Subtotal</span><b id="sum-subtotal">$0</b></div>
+            <div class="order-summary__line"><span>IVA (16%)</span><b id="sum-tax">$0</b></div>
+            <div class="order-summary__total"><span>Total</span><b id="sum-total">$0</b></div>
+            <label for="order-comments" class="order-note">Indicaciones especiales (opcional)</label>
+            <textarea id="order-comments" maxlength="1000" placeholder="Colores específicos, fecha límite, instrucciones de acabado…"></textarea>
+            <p class="order-note">El total es un estimado; confirmamos el precio final al revisar tus archivos.</p>
+            <button class="btn btn--primary btn--block" id="order-submit" disabled>Enviar pedido</button>
+          </aside>
+        </div>
+      </div>
+
+      <!-- Confirmación (oculta hasta crear el pedido) -->
+      <div id="order-confirm" hidden>
+        <div class="order-done">
+          <div class="order-done__check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <h2>¡Pedido recibido!</h2>
+          <p class="code" id="confirm-code">OKS-0000</p>
+          <p>Generamos tu ticket con código QR. Te avisaremos por la plataforma cuando esté listo.</p>
+          <div class="order-done__actions">
+            <a class="btn btn--primary" id="confirm-ticket" href="#" target="_blank" rel="noopener">Descargar ticket PDF</a>
+            <a class="btn btn--light" href="perfil.html">Ver mis pedidos</a>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- Librerías para el ticket PDF + QR -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" defer></script>
+  <script src="assets/order.js" defer></script>
+</body>
+</html>

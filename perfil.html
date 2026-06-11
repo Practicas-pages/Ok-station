@@ -10,6 +10,7 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap">
   <link rel="stylesheet" href="styles.css">
   <link rel="stylesheet" href="assets/auth.css">
+  <link rel="stylesheet" href="assets/order.css">
 </head>
 <body class="auth-page" data-requires-auth>
 
@@ -33,8 +34,7 @@
           <nav class="profile-nav" aria-label="Secciones del perfil">
             <a href="#info">Información personal</a>
             <a href="#password">Cambiar contraseña</a>
-            <!-- Fase 2: historial de pedidos -->
-            <a href="#" aria-disabled="true" title="Disponible en la siguiente fase">Mis pedidos (próximamente)</a>
+            <a href="#pedidos">Mis pedidos</a>
           </nav>
         </aside>
 
@@ -91,11 +91,19 @@
               <button type="submit" class="btn btn--primary">Actualizar contraseña</button>
             </form>
           </section>
+
+          <!-- Mis pedidos (historial) -->
+          <section class="profile-panel" id="pedidos">
+            <h3>Mis pedidos</h3>
+            <a class="btn btn--primary btn--sm" href="pedido.html" style="margin-bottom:16px">+ Haz un pedido nuevo</a>
+            <div class="orders-list" id="orders-history"></div>
+          </section>
         </div>
       </div>
     </div>
   </main>
 
   <script src="assets/auth.js" defer></script>
+  <script src="assets/orders-history.js" defer></script>
 </body>
 </html>

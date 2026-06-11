@@ -1,5 +1,6 @@
 <?php
 require __DIR__ . '/_bootstrap.php';
+require __DIR__ . '/lib/Mailer.php';
 only_method('POST');
 
 $b     = body();
@@ -24,12 +25,12 @@ if ($u) {
 
     $link = rtrim($CONFIG['app_url'], '/') . '/restablecer.html?token=' . $token;
 
-    // Intento de envío por correo (CloudPanel: configura SMTP o usa PHPMailer).
-    @mail(
+    // Envío por SMTP (configurado en .env). Si falla, no se revela al cliente.
+    $mailer = new Mailer($CONFIG['smtp'] ?? []);
+    $mailer->send(
         $email,
         'Restablece tu contraseña — OK.station',
-        "Hola,\n\nPara restablecer tu contraseña entra aquí (válido 1 hora):\n$link\n\nSi no lo solicitaste, ignora este mensaje.\n\nOK.station",
-        "From: no-reply@okstation.mx\r\nContent-Type: text/plain; charset=utf-8"
+        "Hola,\n\nPara restablecer tu contraseña entra aquí (válido 1 hora):\n$link\n\nSi no lo solicitaste, ignora este mensaje.\n\nOK.station"
     );
 
     // En desarrollo devolvemos el enlace para poder probar sin correo configurado.

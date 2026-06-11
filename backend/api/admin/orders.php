@@ -12,9 +12,17 @@ $user = require_permission('orders.view');
 
 $status = $_GET['status'] ?? null;
 $valid  = ['recibido', 'en_revision', 'en_produccion', 'listo', 'entregado', 'cancelado'];
-$conds  = ($status && in_array($status, $valid, true)) ? ['status' => $status] : [];
 
-$orders = Order::where($conds, 'created_at DESC');
+$sql = "SELECT o.id, o.code, o.status, o.total, DATE(o.created_at) AS date, u.full_name AS client,
+               (SELECT COUNT(*) FROM order_items oi WHERE oi.order_id = o.id) AS items
+        FROM orders o JOIN users u ON u.id = o.user_id";
+$params = [];
+if ($status && in_array($status, $valid, true)) { $sql .= " WHERE o.status = ?"; $params[] = $status; }
+$sql .= " ORDER BY o.created_at DESC LIMIT 200";
+
+$st = db()->prepare($sql);
+$st->execute($params);
+$orders = $st->fetchAll();
 
 log_activity((int) $user['id'], 'orders.view', 'orders', null, ['status' => $status]);
 

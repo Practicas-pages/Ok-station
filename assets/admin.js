@@ -6,7 +6,7 @@
 (function () {
   "use strict";
 
-  var DEMO = true;                  // false → usa el API real (admin/*.php)
+  var DEMO = false;                 // PRODUCCIÓN: usa el API real (admin/*.php)
   var API_BASE = "/backend/api";
 
   /* ── Sesión (compartida con auth.js) ── */
@@ -73,21 +73,24 @@
     ]
   };
 
+  function apiGet(p) { return fetch(API_BASE + p, { headers: { Authorization: "Bearer " + token() } }).then(function (r) { return r.json(); }); }
+  function apiPost(p, body) { return fetch(API_BASE + p, { method: "POST", headers: { "Content-Type": "application/json", Authorization: "Bearer " + token() }, body: JSON.stringify(body) }).then(function (r) { return r.json(); }); }
+
   var DataSource = {
-    dashboard: function () { return Promise.resolve(MOCK); },
+    dashboard: function () { return DEMO ? Promise.resolve(MOCK) : apiGet("/admin/dashboard.php"); },
     orders: function (status) {
-      if (DEMO) {
-        var list = MOCK.orders.filter(function (o) { return !status || o.status === status; });
-        return Promise.resolve(list);
-      }
-      var url = API_BASE + "/admin/orders.php" + (status ? "?status=" + status : "");
-      return fetch(url, { headers: { Authorization: "Bearer " + token() } }).then(function (r) { return r.json(); }).then(function (j) { return j.orders || []; });
+      if (DEMO) return Promise.resolve(MOCK.orders.filter(function (o) { return !status || o.status === status; }));
+      return apiGet("/admin/orders.php" + (status ? "?status=" + status : "")).then(function (j) { return j.orders || []; });
     },
-    updateStatus: function (code, status) {
-      var o = MOCK.orders.find(function (x) { return x.code === code; });
-      if (o) o.status = status;
-      return Promise.resolve(true); // En real: PUT /admin/order-status.php
-    }
+    updateStatus: function (id, status) {
+      if (DEMO) { var o = MOCK.orders.find(function (x) { return String(x.id) === String(id); }); if (o) o.status = status; return Promise.resolve({ ok: true }); }
+      return apiPost("/admin/order-status.php", { id: id, status: status });
+    },
+    users:    function () { return DEMO ? Promise.resolve(MOCK.users)    : apiGet("/admin/users.php").then(function (j) { return j.users || []; }); },
+    services: function () { return DEMO ? Promise.resolve(MOCK.services) : apiGet("/admin/services.php").then(function (j) { return j.services || []; }); },
+    reviews:  function () { return DEMO ? Promise.resolve(MOCK.reviews)  : apiGet("/admin/reviews.php").then(function (j) { return j.reviews || []; }); },
+    moderateReview: function (id, action) { return DEMO ? Promise.resolve({ ok: true }) : apiPost("/admin/review-moderate.php", { id: id, action: action }); },
+    toggleUser: function (id, active) { return DEMO ? Promise.resolve({ ok: true }) : apiPost("/admin/user-toggle.php", { id: id, active: active }); }
   };
 
   /* ============================================================
@@ -155,7 +158,8 @@
   }
 
   function renderServiceBars(list) {
-    var max = Math.max.apply(null, list.map(function (s) { return s.count; }));
+    if (!list || !list.length) { $("#chart-services").innerHTML = '<p style="color:var(--text-muted);font-size:0.85rem;padding:18px 20px">Sin datos suficientes aún.</p>'; return; }
+    var max = Math.max.apply(null, list.map(function (s) { return s.count; })) || 1;
     $("#chart-services").innerHTML = list.map(function (s) {
       var pct = Math.round((s.count / max) * 100);
       return '<div class="barlist__row"><div class="barlist__top"><b>' + esc(s.name) + '</b><span>' + s.count + '</span></div>' +
@@ -167,7 +171,7 @@
     var head = '<thead><tr><th>Folio</th><th>Cliente</th><th>Archivos</th><th>Total</th><th>Estado</th><th>Fecha</th><th></th></tr></thead>';
     var body = list.map(function (o) {
       var statusCell = withSelect
-        ? '<select class="status-select" data-code="' + o.code + '">' + Object.keys(STATUS).map(function (k) {
+        ? '<select class="status-select" data-id="' + (o.id || o.code) + '">' + Object.keys(STATUS).map(function (k) {
             return '<option value="' + k + '"' + (k === o.status ? " selected" : "") + '>' + STATUS[k] + '</option>';
           }).join("") + '</select>'
         : badge(o.status);
@@ -181,7 +185,7 @@
   function bindStatusSelects(scope) {
     $$(".status-select", scope).forEach(function (sel) {
       sel.addEventListener("change", function () {
-        DataSource.updateStatus(sel.dataset.code, sel.value).then(function () {
+        DataSource.updateStatus(sel.dataset.id, sel.value).then(function () {
           loadDashboardCounts();
         });
       });
@@ -202,41 +206,64 @@
   }
   function renderUsers() {
     var head = '<thead><tr><th>Nombre</th><th>Correo</th><th>Teléfono</th><th>Pedidos</th><th>Estado</th><th>Alta</th><th></th></tr></thead>';
-    var body = MOCK.users.map(function (u) {
-      return '<tr><td><b>' + esc(u.name) + '</b></td><td>' + esc(u.email) + '</td><td>' + esc(u.phone) + '</td><td>' + u.orders + '</td>' +
-        '<td><span class="badge badge--' + (u.active ? "listo" : "cancelado") + '">' + (u.active ? "Activo" : "Inactivo") + '</span></td>' +
-        '<td>' + esc(u.joined) + '</td><td><button class="admin-btn-sm">' + (u.active ? "Desactivar" : "Reactivar") + '</button></td></tr>';
-    }).join("");
-    $("#users-table").innerHTML = head + '<tbody>' + body + '</tbody>';
+    DataSource.users().then(function (list) {
+      var body = list.map(function (u) {
+        var active = +u.active ? 1 : 0;
+        return '<tr><td><b>' + esc(u.name) + '</b></td><td>' + esc(u.email) + '</td><td>' + esc(u.phone) + '</td><td>' + (u.orders || 0) + '</td>' +
+          '<td><span class="badge badge--' + (active ? "listo" : "cancelado") + '">' + (active ? "Activo" : "Inactivo") + '</span></td>' +
+          '<td>' + esc(u.joined) + '</td><td><button class="admin-btn-sm" data-utoggle="' + esc(u.id) + '" data-active="' + (active ? 0 : 1) + '">' + (active ? "Desactivar" : "Reactivar") + '</button></td></tr>';
+      }).join("");
+      var t = $("#users-table"); t.innerHTML = head + '<tbody>' + body + '</tbody>';
+      $$("[data-utoggle]", t).forEach(function (b) {
+        b.addEventListener("click", function () { DataSource.toggleUser(b.dataset.utoggle, +b.dataset.active).then(renderUsers); });
+      });
+    });
   }
   function renderServices() {
     var head = '<thead><tr><th>Servicio</th><th>Categoría</th><th>Precio</th><th>Unidad</th><th>Estado</th><th></th></tr></thead>';
-    var body = MOCK.services.map(function (s) {
-      return '<tr><td><b>' + esc(s.name) + '</b></td><td>' + esc(s.category) + '</td><td class="mono">' + mxn(s.price) + '</td><td>' + esc(s.unit) + '</td>' +
-        '<td><span class="badge badge--' + (s.active ? "listo" : "oculta") + '">' + (s.active ? "Activo" : "Inactivo") + '</span></td>' +
-        '<td><button class="admin-btn-sm">Editar</button></td></tr>';
-    }).join("");
-    $("#services-table").innerHTML = head + '<tbody>' + body + '</tbody>';
+    DataSource.services().then(function (list) {
+      var body = list.map(function (s) {
+        var active = +s.active ? 1 : 0;
+        return '<tr><td><b>' + esc(s.name) + '</b></td><td>' + esc(s.category) + '</td><td class="mono">' + mxn(parseFloat(s.price) || 0) + '</td><td>' + esc(s.unit) + '</td>' +
+          '<td><span class="badge badge--' + (active ? "listo" : "oculta") + '">' + (active ? "Activo" : "Inactivo") + '</span></td>' +
+          '<td><button class="admin-btn-sm" disabled title="Edición de servicios: próxima fase">Editar</button></td></tr>';
+      }).join("");
+      $("#services-table").innerHTML = head + '<tbody>' + body + '</tbody>';
+    });
   }
   function renderReviews() {
     var STR = { pendiente: "Pendiente", aprobada: "Aprobada", oculta: "Oculta" };
     var head = '<thead><tr><th>Cliente</th><th>Calificación</th><th>Comentario</th><th>Estado</th><th>Fecha</th><th></th></tr></thead>';
-    var body = MOCK.reviews.map(function (r) {
-      var stars = "★★★★★".slice(0, r.rating) + "☆☆☆☆☆".slice(0, 5 - r.rating);
-      return '<tr><td><b>' + esc(r.name) + '</b></td><td><span class="admin-stars">' + stars + '</span></td>' +
-        '<td>' + esc(r.comment) + '</td><td>' + badge(r.status, STR) + '</td><td>' + esc(r.date) + '</td>' +
-        '<td><button class="admin-btn-sm">' + (r.status === "aprobada" ? "Ocultar" : "Aprobar") + '</button></td></tr>';
-    }).join("");
-    $("#reviews-table").innerHTML = head + '<tbody>' + body + '</tbody>';
+    DataSource.reviews().then(function (list) {
+      var body = list.map(function (r) {
+        var stars = "★★★★★".slice(0, r.rating) + "☆☆☆☆☆".slice(0, 5 - r.rating);
+        var act = r.status === "aprobada" ? "hide" : "approve";
+        var actLabel = r.status === "aprobada" ? "Ocultar" : "Aprobar";
+        return '<tr><td><b>' + esc(r.name) + '</b></td><td><span class="admin-stars">' + stars + '</span></td>' +
+          '<td>' + esc(r.comment) + '</td><td>' + badge(r.status, STR) + '</td><td>' + esc(r.date) + '</td>' +
+          '<td><button class="admin-btn-sm" data-rmod="' + esc(r.id) + '" data-act="' + act + '">' + actLabel + '</button> ' +
+          '<button class="admin-btn-sm" data-rmod="' + esc(r.id) + '" data-act="delete">Eliminar</button></td></tr>';
+      }).join("");
+      var t = $("#reviews-table"); t.innerHTML = head + '<tbody>' + body + '</tbody>';
+      $$("[data-rmod]", t).forEach(function (b) {
+        b.addEventListener("click", function () {
+          if (b.dataset.act === "delete" && !window.confirm("¿Eliminar esta reseña?")) return;
+          DataSource.moderateReview(b.dataset.rmod, b.dataset.act).then(function () { renderReviews(); loadDashboardCounts(); });
+        });
+      });
+    });
   }
 
   function loadDashboardCounts() {
-    DataSource.orders("").then(function (all) {
-      var pend = all.filter(function (o) { return o.status === "recibido" || o.status === "en_revision"; }).length;
-      $("#nav-pedidos-count").textContent = all.length;
+    DataSource.dashboard().then(function (d) {
+      if (d && d.nav) {
+        $("#nav-pedidos-count").textContent = d.nav.pedidos;
+        $("#nav-resenas-count").textContent = d.nav.resenas;
+      } else {
+        $("#nav-pedidos-count").textContent = (MOCK.orders || []).length;
+        $("#nav-resenas-count").textContent = (MOCK.reviews || []).filter(function (r) { return r.status === "pendiente"; }).length;
+      }
     });
-    var pendRev = MOCK.reviews.filter(function (r) { return r.status === "pendiente"; }).length;
-    $("#nav-resenas-count").textContent = pendRev;
   }
 
   /* ============================================================

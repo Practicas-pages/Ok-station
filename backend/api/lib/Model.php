@@ -86,6 +86,25 @@ final class User extends Model {
     }
 }
 final class Role    extends Model { protected static $table = 'roles'; }
-final class Order   extends Model { protected static $table = 'orders'; }
 final class Review  extends Model { protected static $table = 'reviews'; }
 final class Service extends Model { protected static $table = 'services'; }
+final class Category extends Model { protected static $table = 'categories'; }
+final class UploadedFile extends Model { protected static $table = 'uploaded_files'; }
+final class Notification extends Model { protected static $table = 'notifications'; }
+
+final class Order extends Model {
+    protected static $table = 'orders';
+    /** Relación orders 1—M order_items (con datos del archivo). */
+    public static function items(int $orderId): array {
+        $st = db()->prepare(
+            'SELECT oi.*, uf.original_name, uf.stored_path, uf.pages, uf.mime_type, uf.size_bytes
+             FROM order_items oi
+             LEFT JOIN uploaded_files uf ON uf.id = oi.uploaded_file_id
+             WHERE oi.order_id = ? ORDER BY oi.id'
+        );
+        $st->execute([$orderId]);
+        return $st->fetchAll();
+    }
+}
+
+final class OrderItem extends Model { protected static $table = 'order_items'; }
