@@ -12,6 +12,12 @@ function load_env(string $path): void {
         if ($pos === false) continue;
         $k = trim(substr($line, 0, $pos));
         $v = trim(substr($line, $pos + 1));
+        // Quitar comentario en línea (espacio + #), salvo valores entre comillas.
+        if ($v !== '' && $v[0] !== '"' && $v[0] !== "'") {
+            $v = preg_replace('/\s+#.*$/', '', $v);
+            if (isset($v[0]) && $v[0] === '#') $v = '';
+            $v = trim($v);
+        }
         if (strlen($v) >= 2 && ($v[0] === '"' || $v[0] === "'")) {
             $v = substr($v, 1, -1);
         }
