@@ -3881,3 +3881,8 @@ body {
 .acct__admin { color: var(--brand-blue) !important; font-weight: 600; }
 #acct-logout { color: var(--color-error) !important; }
 @media (max-width: 768px) { .acct__name { display: none; } }
+
+/* Descongestionar la barra: en pantallas medianas, el teléfono ya está en
+   WhatsApp y el footer → se oculta para dar aire a cuenta + WhatsApp. */
+@media (max-width: 1100px) { .nav__tel { display: none; } }
+.nav__actions { gap: var(--space-2); }

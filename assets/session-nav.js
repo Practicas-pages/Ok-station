@@ -15,8 +15,9 @@
   var u = user();
   if (!token() || !u) return; // sin sesión → se queda el botón "Cuenta"
 
+  // [hidden] no basta porque .btn fija display:flex → ocultamos también por estilo.
   var login = document.getElementById("acct-login");
-  if (login) login.hidden = true;
+  if (login) { login.hidden = true; login.style.display = "none"; }
 
   var roles = u.roles || [];
   var isStaff = roles.indexOf("administrador") >= 0 || roles.indexOf("empleado") >= 0;
