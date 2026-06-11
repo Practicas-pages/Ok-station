@@ -269,14 +269,52 @@
 
   /* ── Init ── */
   function init() {
-    if (!enforceGuard()) return;
-    initAuthTabs();
-    initLogin();
-    initRegister();
-    initForgot();
-    initReset();
-    initProfile();
+
+  // ==========================================
+  // MODO MANTENIMIENTO
+  // ==========================================
+
+  const MAINTENANCE_MODE = false;
+
+  if (MAINTENANCE_MODE) {
+
+    const currentPage =
+      window.location.pathname.split("/").pop();
+
+    const allowedPages = [
+      "",
+      "maintenance.html",
+      "cuenta.html",
+      "recuperar.html",
+      "restablecer.html"
+    ];
+
+    const user = cachedUser();
+
+    const roles = (user && user.roles) || [];
+
+    const isAdmin =
+      roles.includes("administrador");
+
+    if (!isAdmin && !allowedPages.includes(currentPage)) {
+      window.location.href = "maintenance.html";
+      return;
+    }
   }
+
+  // ==========================================
+  // CÓDIGO ORIGINAL
+  // ==========================================
+
+  if (!enforceGuard()) return;
+
+  initAuthTabs();
+  initLogin();
+  initRegister();
+  initForgot();
+  initReset();
+  initProfile();
+}
 
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
   else init();

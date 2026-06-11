@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>OK.station - Mantenimiento</title>
+
+<style>
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:'Poppins',sans-serif;
+}
+
+body{
+    min-height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    background:linear-gradient(135deg,#066CFF,#8B3DFF);
+    padding:20px;
+}
+
+.card{
+    max-width:650px;
+    width:100%;
+    background:white;
+    border-radius:24px;
+    padding:50px;
+    text-align:center;
+    box-shadow:0 20px 50px rgba(0,0,0,.2);
+}
+
+.logo{
+    font-size:42px;
+    font-weight:800;
+    margin-bottom:20px;
+}
+
+.logo .ok{
+    color:#066CFF;
+}
+
+.logo .dot{
+    color:#8B3DFF;
+}
+
+h1{
+    font-size:32px;
+    margin-bottom:15px;
+    color:#1F2937;
+}
+
+p{
+    font-size:18px;
+    color:#6B7280;
+    line-height:1.7;
+    margin-bottom:25px;
+}
+
+.status{
+    display:inline-block;
+    background:#FEF3C7;
+    color:#92400E;
+    padding:10px 18px;
+    border-radius:999px;
+    font-weight:600;
+    margin-bottom:25px;
+}
+
+.btn{
+    display:inline-block;
+    padding:14px 28px;
+    border-radius:12px;
+    text-decoration:none;
+    background:#066CFF;
+    color:white;
+    font-weight:600;
+    transition:.3s;
+}
+
+.btn:hover{
+    transform:translateY(-2px);
+}
+
+.footer{
+    margin-top:25px;
+    color:#9CA3AF;
+    font-size:14px;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="card">
+
+    <div class="logo">
+        <span class="ok">OK</span><span class="dot">.</span>station
+    </div>
+
+    <div class="status">
+        🚧 Sitio en mantenimiento
+    </div>
+
+    <h1>Estamos realizando mejoras</h1>
+
+    <p>
+        Nuestro equipo se encuentra trabajando para mejorar la experiencia
+        de OK.station.
+        El acceso temporalmente está disponible únicamente para administradores.
+    </p>
+
+    <a href="cuenta.html" class="btn">
+        Iniciar sesión como administrador
+    </a>
+
+    <div class="footer">
+        OK.station © 2026
+    </div>
+
+</div>
+
+</body>
+</html>
