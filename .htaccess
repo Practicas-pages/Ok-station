@@ -1,0 +1,187 @@
+# ==============================================================
+# OK.station — Apache .htaccess
+# URLs limpias + redirecciones 301 + seguridad + SEO
+# Requiere: mod_rewrite habilitado (AllowOverride All)
+# ==============================================================
+
+Options -Indexes
+Options +FollowSymLinks
+
+# --------------------------------------------------------------
+# 1. ACTIVAR MOD_REWRITE
+# --------------------------------------------------------------
+RewriteEngine On
+
+# Usa el dominio canónico (ajusta si usas www)
+# RewriteCond %{HTTP_HOST} ^www\.okstation\.mx$ [NC]
+# RewriteRule ^ https://okstation.mx%{REQUEST_URI} [R=301,L]
+
+# Forzar HTTPS (descomenta cuando tengas SSL activo)
+# RewriteCond %{HTTPS} off
+# RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L]
+
+# --------------------------------------------------------------
+# 2. REDIRECCIONES 301 — rutas con .html → rutas limpias
+#    Estas van PRIMERO para evitar loops
+# --------------------------------------------------------------
+RewriteCond %{THE_REQUEST} \s/+index\.html[\s?] [NC]
+RewriteRule ^ / [R=301,L]
+
+RewriteCond %{THE_REQUEST} \s/+clientes\.html[\s?] [NC]
+RewriteRule ^ /clientes [R=301,L]
+
+RewriteCond %{THE_REQUEST} \s/+contacto\.html[\s?] [NC]
+RewriteRule ^ /contacto [R=301,L]
+
+RewriteCond %{THE_REQUEST} \s/+productos\.html[\s?] [NC]
+RewriteRule ^ /productos [R=301,L]
+
+RewriteCond %{THE_REQUEST} \s/+servicios\.html[\s?] [NC]
+RewriteRule ^ /servicios [R=301,L]
+
+RewriteCond %{THE_REQUEST} \s/+nosotros\.html[\s?] [NC]
+RewriteRule ^ /nosotros [R=301,L]
+
+RewriteCond %{THE_REQUEST} \s/+faq\.html[\s?] [NC]
+RewriteRule ^ /faq [R=301,L]
+
+RewriteCond %{THE_REQUEST} \s/+citas\.html[\s?] [NC]
+RewriteRule ^ /citas [R=301,L]
+
+# Patrón genérico: cualquier *.html no listada arriba
+# (seguridad extra: bloquea acceso directo a .html)
+RewriteCond %{THE_REQUEST} \s/+(.+)\.html[\s?] [NC]
+RewriteRule ^ /%1 [R=301,L]
+
+# --------------------------------------------------------------
+# 3. URLS LIMPIAS — sirve archivo .html sin mostrarlo en la URL
+# --------------------------------------------------------------
+
+# No reescribir si el archivo existe literalmente
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
+
+# Reescribe /ruta → /ruta.html si el archivo existe
+RewriteCond %{REQUEST_FILENAME}.html -f
+RewriteRule ^([^/]+)/?$ $1.html [L]
+
+# Para rutas en subdirectorios (máximo 2 niveles)
+RewriteCond %{REQUEST_FILENAME}.html -f
+RewriteRule ^([^/]+)/([^/]+)/?$ $1/$2.html [L]
+
+# --------------------------------------------------------------
+# 4. PÁGINA 404 PERSONALIZADA
+# --------------------------------------------------------------
+ErrorDocument 404 /404.html
+ErrorDocument 403 /403.html
+ErrorDocument 500 /500.html
+
+# --------------------------------------------------------------
+# 5. CABECERAS DE SEGURIDAD
+# --------------------------------------------------------------
+<IfModule mod_headers.c>
+    # Evita clickjacking
+    Header always set X-Frame-Options "SAMEORIGIN"
+    # Evita MIME sniffing
+    Header always set X-Content-Type-Options "nosniff"
+    # XSS Protection (navegadores legacy)
+    Header always set X-XSS-Protection "1; mode=block"
+    # Referrer Policy
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+    # Permissions Policy
+    Header always set Permissions-Policy "camera=(), microphone=(), geolocation=()"
+    # HSTS (solo activa cuando tengas SSL estable)
+    # Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+    # CSP básico (ajusta según tus fuentes)
+    Header always set Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://www.google.com https://maps.googleapis.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https://maps.gstatic.com https://maps.googleapis.com; frame-src https://www.google.com https://maps.google.com; connect-src 'self'"
+</IfModule>
+
+# --------------------------------------------------------------
+# 6. CACHÉ DE ASSETS ESTÁTICOS (Core Web Vitals)
+# --------------------------------------------------------------
+<IfModule mod_expires.c>
+    ExpiresActive On
+    # HTML — sin caché (siempre fresco)
+    ExpiresByType text/html                  "access plus 0 seconds"
+    # CSS y JS — 1 año (usa fingerprinting/versioning)
+    ExpiresByType text/css                   "access plus 1 year"
+    ExpiresByType application/javascript     "access plus 1 year"
+    ExpiresByType text/javascript            "access plus 1 year"
+    # Imágenes
+    ExpiresByType image/webp                 "access plus 1 year"
+    ExpiresByType image/png                  "access plus 1 year"
+    ExpiresByType image/jpeg                 "access plus 1 year"
+    ExpiresByType image/gif                  "access plus 1 year"
+    ExpiresByType image/svg+xml              "access plus 1 year"
+    ExpiresByType image/x-icon              "access plus 1 year"
+    # Fuentes
+    ExpiresByType font/woff2                 "access plus 1 year"
+    ExpiresByType font/woff                  "access plus 1 year"
+    ExpiresByType application/font-woff      "access plus 1 year"
+    # JSON / XML
+    ExpiresByType application/json           "access plus 0 seconds"
+    ExpiresByType application/xml            "access plus 0 seconds"
+    ExpiresByType text/xml                   "access plus 0 seconds"
+    # Sitemap y robots
+    ExpiresByType application/x-web-app-manifest+json "access plus 0 seconds"
+</IfModule>
+
+# Cache-Control headers explícitos
+<IfModule mod_headers.c>
+    <FilesMatch "\.(css|js|webp|png|jpg|jpeg|gif|svg|ico|woff2|woff)$">
+        Header append Cache-Control "public, immutable"
+    </FilesMatch>
+    <FilesMatch "\.(html|htm)$">
+        Header set Cache-Control "no-cache, no-store, must-revalidate"
+        Header set Pragma "no-cache"
+        Header set Expires "0"
+    </FilesMatch>
+</IfModule>
+
+# --------------------------------------------------------------
+# 7. COMPRESIÓN GZIP (mejora velocidad de carga)
+# --------------------------------------------------------------
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/html
+    AddOutputFilterByType DEFLATE text/css
+    AddOutputFilterByType DEFLATE text/javascript
+    AddOutputFilterByType DEFLATE application/javascript
+    AddOutputFilterByType DEFLATE application/json
+    AddOutputFilterByType DEFLATE image/svg+xml
+    AddOutputFilterByType DEFLATE font/woff2
+    AddOutputFilterByType DEFLATE font/woff
+    # No comprimir imágenes ya comprimidas
+    SetEnvIfNoCase Request_URI \.(?:gif|jpe?g|png|webp|gz|zip)$ no-gzip
+</IfModule>
+
+# --------------------------------------------------------------
+# 8. TIPOS MIME CORRECTOS
+# --------------------------------------------------------------
+<IfModule mod_mime.c>
+    AddType image/webp                      .webp
+    AddType font/woff2                      .woff2
+    AddType font/woff                       .woff
+    AddType application/manifest+json       .webmanifest
+    AddType application/json                .json
+    AddType text/javascript                 .js
+</IfModule>
+
+# --------------------------------------------------------------
+# 9. PROTECCIÓN DE ARCHIVOS SENSIBLES
+# --------------------------------------------------------------
+<FilesMatch "(^#.*#|\.(bak|conf|dist|fla|inc|ini|log|psd|sh|sql|sw[op])|~)$">
+    Order Allow,Deny
+    Deny from all
+    Satisfy All
+</FilesMatch>
+
+# Bloquear acceso directo a archivos de sistema
+<FilesMatch "^(composer\.(json|lock)|package(-lock)?\.json|yarn\.lock|\.env.*|Dockerfile|Makefile)$">
+    Order Allow,Deny
+    Deny from all
+</FilesMatch>
+
+# Bloquear archivos ocultos (excepto .well-known para SSL)
+RewriteRule "(^|/)\." - [F]
+RewriteRule "^\.well-known/" - [L]

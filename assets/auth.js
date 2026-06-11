@@ -259,6 +259,12 @@
       if (f.phone) f.phone.value = u.phone || "";
       if (f.address) f.address.value = u.address || "";
     }
+    /* Acceso al panel solo para staff (oculto para clientes) */
+    var adminLink = qs("#profile-admin-link");
+    if (adminLink) {
+      var roles = (u && u.roles) || [];
+      adminLink.hidden = !(roles.indexOf("administrador") >= 0 || roles.indexOf("empleado") >= 0);
+    }
   }
 
   /* ── Init ── */
