@@ -114,7 +114,9 @@
   function renderUserChip() {
     var u = cachedUser();
     var name = (u && u.full_name) || "Administrador";
-    var role = (u && u.roles && u.roles[0]) || "administrador";
+    var roles = (u && u.roles) || [];
+    var role = roles.indexOf("administrador") >= 0 ? "administrador"
+             : (roles.indexOf("empleado") >= 0 ? "empleado" : (roles[0] || "usuario"));
     $("#admin-user-name").textContent = name;
     $("#admin-user-role").textContent = role;
     $("#admin-user-avatar").textContent = name.trim().charAt(0).toUpperCase();

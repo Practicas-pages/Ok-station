@@ -3845,3 +3845,39 @@ body {
     }
   }
 }
+
+
+/* ============================================================
+   30. MENÚ DE SESIÓN EN EL HEADER (avatar + dropdown)
+   ============================================================ */
+.acct { position: relative; display: inline-flex; }
+.acct__btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 5px 10px 5px 6px;
+  border: 1px solid var(--border-light); background: #fff;
+  border-radius: var(--radius-full); cursor: pointer; font-family: inherit;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+.acct__btn:hover { border-color: var(--border-medium); box-shadow: var(--shadow-sm); }
+.acct__btn:focus-visible { outline: 3px solid var(--brand-cyan); outline-offset: 2px; }
+.acct__avatar { width: 30px; height: 30px; border-radius: 50%; background: var(--grad-brand); color: #fff; display: grid; place-items: center; font-weight: 700; font-size: 0.8rem; flex-shrink: 0; }
+.acct__name { font-size: 0.85rem; font-weight: 600; color: var(--text-primary); }
+.acct__caret { width: 15px; height: 15px; color: var(--text-muted); }
+.acct__menu {
+  position: absolute; right: 0; top: calc(100% + 8px);
+  min-width: 220px; background: #fff;
+  border: 1px solid var(--border-light); border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg); padding: 6px; z-index: 120;
+}
+.acct__head { padding: 8px 10px 10px; border-bottom: 1px solid var(--border-light); margin-bottom: 6px; }
+.acct__head b { display: block; font-size: 0.85rem; color: var(--text-primary); }
+.acct__head span { font-size: 0.74rem; color: var(--text-muted); word-break: break-all; }
+.acct__menu a, .acct__menu button {
+  display: block; width: 100%; text-align: left;
+  padding: 9px 10px; border: none; background: none; font-family: inherit;
+  font-size: 0.85rem; color: var(--text-secondary); border-radius: var(--radius-sm); cursor: pointer;
+}
+.acct__menu a:hover, .acct__menu button:hover { background: var(--surface-page); color: var(--text-primary); }
+.acct__admin { color: var(--brand-blue) !important; font-weight: 600; }
+#acct-logout { color: var(--color-error) !important; }
+@media (max-width: 768px) { .acct__name { display: none; } }
