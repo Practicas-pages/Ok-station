@@ -2990,858 +2990,389 @@ h1, h2, h3, h4, h5, h6 {
 
 
 /* ============================================================
-   20. MEJORAS RESPONSIVE — Safe-area (iPhone) + Ultrawide / 4K
-   Cubre el rango completo 320px → 2560px+ y dispositivos con notch.
-   Bloque aditivo: no altera ninguna regla previa.
+   RESPONSIVE PATCH v2.1 — Mobile & Tablet
+   Adiciones puras. No modifica ninguna regla anterior.
+   Breakpoints: 480px · 600px · 768px (extensión) · 1024px (extensión)
    ============================================================ */
 
-/* Respeta el notch y la barra de gestos del iPhone (incluye apaisado).
-   Solo añade margen donde el sistema reporta un inset; en el resto no afecta. */
-@supports (padding: max(0px)) {
-  .wrap {
-    padding-left: max(clamp(16px, 4vw, 40px), env(safe-area-inset-left));
-    padding-right: max(clamp(16px, 4vw, 40px), env(safe-area-inset-right));
+
+/* ──────────────────────────────────────────────────────────
+   TABLET: max-width 1024px — extensiones al bloque existente
+   Cubre casos no contemplados en el breakpoint LG original
+   ────────────────────────────────────────────────────────── */
+@media (max-width: 1024px) {
+
+  /* Hero: panel secundario ocupa todo el ancho en tablet portrait */
+  .hero__grid {
+    grid-template-columns: 1fr;
+    gap: var(--space-10);
   }
 
+  /* Panel del hero deja de ser columna derecha → bloque propio */
+  .hero__panel {
+    max-width: 540px;
+    margin: 0 auto;
+    width: 100%;
+  }
+
+  /* Proceso de 3 pasos → 2 columnas en tablet */
+  .process-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  /* Galería: quita altura fija en filas, permite que fluya */
+  .store-gallery {
+    grid-template-rows: auto;
+  }
+
+  .store-gallery__item--main {
+    min-height: 280px;
+  }
+
+  .store-gallery__item {
+    min-height: 200px;
+  }
+
+  /* Footer en tablet: 2 columnas */
+  .footer-top {
+    grid-template-columns: 1fr 1fr;
+    row-gap: var(--space-8);
+  }
+}
+
+
+/* ──────────────────────────────────────────────────────────
+   TABLET PORTRAIT: max-width 768px — extensiones al bloque MD
+   Solo añade lo que falta; no duplica lo ya definido
+   ────────────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+
+  /* ── Overflow global ── */
+  body {
+    overflow-x: hidden;
+  }
+
+  /* ── Section padding reducido ── */
+  :root {
+    --section-pad: clamp(48px, 10vw, 72px);
+  }
+
+  /* ── Header bar (banda morada superior) ── */
+  .header-bar {
+    font-size: 0.75rem;
+    padding: 6px var(--space-4);
+    line-height: 1.5;
+  }
+
+  /* ── Hero: ajustes que faltan en el bloque existente ── */
+  .hero {
+    min-height: auto;
+    padding: clamp(40px, 10vw, 64px) 0 clamp(40px, 8vw, 56px);
+  }
+
+  .hero__panel {
+    max-width: 100%;
+  }
+
+  .hero__title {
+    font-size: clamp(2rem, 8.5vw, 2.8rem);
+  }
+
+  /* ── Quick grid en hero panel ── */
+  .quick-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-2);
+  }
+
+  .quick-card {
+    padding: var(--space-3);
+  }
+
+  .quick-card__title {
+    font-size: 0.8125rem;
+  }
+
+  .quick-card__desc {
+    display: none;
+  }
+
+  /* ── Sección de servicios ── */
+  .services-grid {
+    gap: var(--space-4);
+  }
+
+  /* ── Citas: panel interno ── */
+  .cita-panel {
+    padding: var(--space-5) var(--space-4) var(--space-5);
+  }
+
+  .cita-step__title {
+    font-size: 1.15rem;
+  }
+
+  /* tramite-btn: full-width con layout horizontal en mobile */
+  .tramite-btn {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+    padding: var(--space-4) var(--space-4);
+  }
+
+  .tramite-btn__icon {
+    width: 44px;
+    height: 44px;
+    flex-shrink: 0;
+    margin-bottom: 0;
+  }
+
+  .tramite-btn b {
+    font-size: 0.875rem;
+  }
+
+  /* Slots de horario */
+  .time-slot {
+    padding: 11px 6px;
+    font-size: 0.8125rem;
+  }
+
+  /* ── Fotos: dropzone más compacto en mobile ── */
+  .dropzone {
+    padding: var(--space-10) var(--space-5);
+  }
+
+  .dropzone h4 {
+    font-size: 1.1rem;
+  }
+
+  .dropzone p {
+    font-size: 0.875rem;
+  }
+
+  .dropzone__formats {
+    font-size: 0.75rem;
+  }
+
+  /* Photo config: chips más pequeños */
+  .chip {
+    padding: 7px 11px;
+    font-size: 0.8125rem;
+  }
+
+  /* Total de fotos */
+  .photo-total__price-num {
+    font-size: 1.75rem;
+  }
+
+  /* ── Testimonios ── */
+  .testimonios-grid {
+    gap: var(--space-4);
+  }
+
+  .rating-summary {
+    flex-direction: column;
+    text-align: center;
+    align-items: center;
+  }
+
+  /* ── FAQ ── */
+  .faq-list {
+    max-width: 100%;
+  }
+
+  .faq-question {
+    padding: 15px 16px;
+    font-size: 0.9rem;
+  }
+
+  .faq-answer__inner {
+    padding: 0 16px 16px;
+  }
+
+  /* ── Galería del local ── */
+  .store-gallery {
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: auto;
+    gap: var(--space-2);
+  }
+
+  .store-gallery__item--main {
+    grid-column: span 2;
+    min-height: 240px;
+    grid-row: auto;
+  }
+
+  .store-gallery__item {
+    min-height: 160px;
+  }
+
+  /* ── Contacto CTA ── */
+  .contact-cta {
+    padding: clamp(24px, 6vw, 36px);
+  }
+
+  .contact-cta h3 {
+    font-size: clamp(1.3rem, 5vw, 1.75rem);
+  }
+
+  .contact-cta p {
+    font-size: 0.9375rem;
+    margin-bottom: var(--space-6);
+    max-width: 100%;
+  }
+
+  /* ── Info cards (dirección, teléfono, email) ── */
+  .info-card {
+    padding: var(--space-4);
+    gap: var(--space-3);
+  }
+
+  .info-card__title {
+    font-size: 0.9rem;
+  }
+
+  .info-card__detail {
+    font-size: 0.8125rem;
+  }
+
+  /* Mapa un poco más alto en mobile para ser usable */
+  .map-wrap iframe {
+    height: 200px;
+  }
+
+  /* ── Footer ── */
+  .footer-top {
+    grid-template-columns: 1fr;
+    gap: var(--space-8);
+  }
+
+  .footer-bottom {
+    flex-direction: column;
+    text-align: center;
+    gap: var(--space-2);
+  }
+
+  /* ── Botones táctiles: mínimo 44px de área táctil ── */
+  .btn {
+    min-height: 44px;
+  }
+
+  .qty-btn {
+    width: 44px;
+    height: 44px;
+  }
+
+  .faq-icon {
+    width: 32px;
+    height: 32px;
+    flex-shrink: 0;
+  }
+
+  /* ── Scroll top y WA: no se pisen ── */
   .wa-fab {
-    right: max(28px, env(safe-area-inset-right));
-    bottom: max(28px, env(safe-area-inset-bottom));
+    bottom: 20px;
+    right: 20px;
+    width: 52px;
+    height: 52px;
   }
 
   .scroll-top {
-    bottom: max(28px, env(safe-area-inset-bottom));
-  }
-}
-
-/* Monitores grandes: ampliamos el contenedor y escalamos la base (rem)
-   para aprovechar el ancho sin estirar la línea de lectura. */
-@media (min-width: 1920px) {
-  :root { --max-width: 1560px; }
-  html { font-size: 17px; }
-}
-
-@media (min-width: 2560px) {
-  :root { --max-width: 1720px; }
-  html { font-size: 18px; }
-}
-
-
-/* ============================================================
-   21. FONDOS ANIMADOS (Brand gradients)
-   Usa los gradientes oficiales del Brand Book OK Dock
-   (Púrpura-Azul-Cyan · Azul-Cyan · Naranja-Púrpura) SOLO como
-   fondo, tal como exige el manual. Animaciones por GPU
-   (transform/opacity) y background-position lento.
-   Bloque aditivo: no altera reglas previas.
-   ============================================================ */
-
-/* ── Aurora ambiental de toda la página ──
-   Capa fija detrás del contenido. Las secciones transparentes
-   (.section sin fondo) la dejan ver; las opacas la cubren. */
-body::before {
-  content: "";
-  position: fixed;
-  inset: -20%;
-  z-index: -1;
-  pointer-events: none;
-  background:
-    radial-gradient(circle at 20% 25%, rgba(156, 29, 255, 0.12), transparent 45%),
-    radial-gradient(circle at 82% 30%, rgba(6, 108, 255, 0.12), transparent 45%),
-    radial-gradient(circle at 55% 92%, rgba(0, 198, 255, 0.10), transparent 45%),
-    radial-gradient(circle at 90% 85%, rgba(255, 124, 25, 0.07), transparent 40%);
-  will-change: transform;
-  animation: aurora-float 30s ease-in-out infinite alternate;
-}
-
-@keyframes aurora-float {
-  0%   { transform: translate3d(0, 0, 0) rotate(0deg) scale(1); }
-  100% { transform: translate3d(-2.5%, 2%, 0) rotate(4deg) scale(1.12); }
-}
-
-/* ── Hero: aurora viva (blobs de marca con desplazamiento) ── */
-.hero__bg::before,
-.hero__bg::after {
-  content: "";
-  position: absolute;
-  border-radius: 50%;
-  filter: blur(64px);
-  opacity: 0.55;
-  pointer-events: none;
-  mix-blend-mode: screen;
-  will-change: transform;
-}
-
-/* Blob púrpura (arriba-izquierda) */
-.hero__bg::before {
-  width: 52vw;
-  height: 52vw;
-  max-width: 720px;
-  max-height: 720px;
-  top: -12%;
-  left: -6%;
-  background: radial-gradient(circle, rgba(156, 29, 255, 0.65) 0%, transparent 70%);
-  animation: blob-drift-a 20s ease-in-out infinite;
-}
-
-/* Blob cyan (abajo-derecha) */
-.hero__bg::after {
-  width: 46vw;
-  height: 46vw;
-  max-width: 640px;
-  max-height: 640px;
-  bottom: -16%;
-  right: -6%;
-  background: radial-gradient(circle, rgba(0, 198, 255, 0.60) 0%, transparent 70%);
-  animation: blob-drift-b 24s ease-in-out infinite;
-}
-
-/* Acento naranja del gradiente oficial Naranja-Púrpura */
-.hero::after {
-  content: "";
-  position: absolute;
-  z-index: 0;
-  top: 35%;
-  right: 18%;
-  width: 30vw;
-  height: 30vw;
-  max-width: 420px;
-  max-height: 420px;
-  border-radius: 50%;
-  filter: blur(70px);
-  opacity: 0.30;
-  pointer-events: none;
-  mix-blend-mode: screen;
-  background: radial-gradient(circle, rgba(255, 124, 25, 0.55) 0%, transparent 70%);
-  will-change: transform;
-  animation: blob-drift-c 26s ease-in-out infinite;
-}
-
-@keyframes blob-drift-a {
-  0%, 100% { transform: translate(0, 0) scale(1); }
-  50%      { transform: translate(7vw, 5vh) scale(1.15); }
-}
-@keyframes blob-drift-b {
-  0%, 100% { transform: translate(0, 0) scale(1); }
-  50%      { transform: translate(-6vw, -4vh) scale(1.12); }
-}
-@keyframes blob-drift-c {
-  0%, 100% { transform: translate(0, 0) scale(1); }
-  50%      { transform: translate(-5vw, 6vh) scale(1.2); }
-}
-
-/* ── Secciones oscuras: brillo de marca en movimiento ── */
-.citas-section,
-.site-footer {
-  position: relative;
-}
-.citas-section > .wrap,
-.site-footer > .wrap {
-  position: relative;
-  z-index: 1;
-}
-.citas-section::before,
-.site-footer::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-  background:
-    radial-gradient(60% 80% at 12% 18%, rgba(156, 29, 255, 0.20), transparent 60%),
-    radial-gradient(55% 75% at 88% 28%, rgba(6, 108, 255, 0.22), transparent 60%),
-    radial-gradient(55% 70% at 60% 100%, rgba(0, 198, 255, 0.16), transparent 60%);
-  background-size: 170% 170%;
-  animation: glow-pan 26s ease-in-out infinite alternate;
-}
-
-/* ── Secciones claras alternas (.section--alt): tinte suave ── */
-.section--alt {
-  position: relative;
-}
-.section--alt > .wrap {
-  position: relative;
-  z-index: 1;
-}
-.section--alt::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-  background:
-    radial-gradient(55% 75% at 15% 15%, rgba(156, 29, 255, 0.08), transparent 60%),
-    radial-gradient(55% 75% at 85% 25%, rgba(6, 108, 255, 0.09), transparent 60%),
-    radial-gradient(50% 70% at 55% 100%, rgba(0, 198, 255, 0.07), transparent 60%);
-  background-size: 170% 170%;
-  animation: glow-pan 28s ease-in-out infinite alternate;
-}
-
-@keyframes glow-pan {
-  0%   { background-position: 0% 0%, 100% 0%, 50% 100%; }
-  100% { background-position: 28% 18%, 72% 12%, 42% 82%; }
-}
-
-/* ── Respeto a usuarios con movimiento reducido ──
-   Se congela una aurora estática agradable (sin animación). */
-@media (prefers-reduced-motion: reduce) {
-  body::before,
-  .hero__bg::before,
-  .hero__bg::after,
-  .hero::after,
-  .citas-section::before,
-  .site-footer::before,
-  .section--alt::before {
-    animation: none !important;
+    bottom: 20px;
+    right: 82px;
+    width: 38px;
+    height: 38px;
   }
 }
 
 
-/* ============================================================
-   22. BANDA DE MARCA (full-bleed + SWISH)
-   Banda de gradiente oficial Púrpura-Azul-Cyan con la forma
-   complementaria "SWISH" del Brand Book. Gradiente animado.
-   ============================================================ */
-.brand-band {
-  position: relative;
-  overflow: hidden;
-  isolation: isolate;
-  padding: clamp(64px, 9vw, 120px) 0;
-  background: linear-gradient(180deg, #FFFFFF 0%, #F5F3FF 60%, #EFF3FF 100%);
-  border-top: 1px solid var(--border-light);
-  border-bottom: 1px solid var(--border-light);
-}
+/* ──────────────────────────────────────────────────────────
+   MOBILE: max-width 600px — ajustes intermedios
+   Cubre la brecha entre 480 y 768 donde algunos grids
+   todavía están en 2 columnas y quedan apretados
+   ────────────────────────────────────────────────────────── */
+@media (max-width: 600px) {
 
-@keyframes brand-band-pan {
-  0%   { background-position: 0% 50%; }
-  100% { background-position: 100% 50%; }
-}
+  /* Servicios 1 columna desde 600px */
+  .services-grid {
+    grid-template-columns: 1fr;
+  }
 
-.brand-band__swish {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 0;
-  opacity: 0.14;
-  pointer-events: none;
-  will-change: transform;
-  animation: swish-float 14s ease-in-out infinite alternate;
-}
+  /* Testimonios 1 columna desde 600px */
+  .testimonios-grid {
+    grid-template-columns: 1fr;
+  }
 
-@keyframes swish-float {
-  0%   { transform: translate3d(0, 0, 0) scale(1); }
-  100% { transform: translate3d(-2%, -4%, 0) scale(1.06); }
-}
+  /* Galería: columna única con altura fija cómoda */
+  .store-gallery {
+    grid-template-columns: 1fr;
+    border-radius: var(--radius-md);
+  }
 
-.brand-band__inner {
-  position: relative;
-  z-index: 1;
-  max-width: 760px;
-  margin: 0 auto;
-  text-align: center;
-}
+  .store-gallery__item--main {
+    grid-column: auto;
+    min-height: 220px;
+  }
 
-.brand-band__title {
-  color: var(--text-primary);
-  font-size: clamp(2.1rem, 5vw, 3.6rem);
-  font-weight: 800;
-  letter-spacing: -0.04em;
-  line-height: 1.08;
-  margin-bottom: var(--space-5);
-}
+  .store-gallery__item {
+    min-height: 160px;
+  }
 
-/* Resaltado elegante (Stripe/Linear): solo las palabras clave en gradiente */
-.brand-band__accent {
-  background: linear-gradient(95deg, #9C1DFF 0%, #066CFF 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  -webkit-text-fill-color: transparent;
-}
+  /* Process steps: 1 columna */
+  .process-grid {
+    grid-template-columns: 1fr;
+  }
 
-.brand-band__lead {
-  color: var(--text-secondary);
-  font-size: clamp(1rem, 1.8vw, 1.18rem);
-  line-height: 1.65;
-  margin: 0 auto var(--space-8);
-  max-width: 620px;
-}
+  /* Contacto: CTA button full-width */
+  .contact-cta .btn {
+    width: 100%;
+    justify-content: center;
+  }
 
-@media (prefers-reduced-motion: reduce) {
-  .brand-band,
-  .brand-band__swish {
-    animation: none !important;
+  /* Footer: social links centrados */
+  .footer-social {
+    justify-content: flex-start;
+    flex-wrap: wrap;
   }
 }
 
 
-/* ============================================================
-   23. ACCIONES RÁPIDAS (rediseño premium)
-   Card destacada para "Imprime tus fotos" + rail de acciones
-   secundarias que en móvil se convierte en carrusel deslizable.
-   ============================================================ */
-.quick {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-4);
-}
+/* ──────────────────────────────────────────────────────────
+   SMALL MOBILE: max-width 380px — extensión al bloque existente
+   ────────────────────────────────────────────────────────── */
+@media (max-width: 380px) {
 
-/* ── Card destacada ── */
-.quick__featured {
-  position: relative;
-  display: flex;
-  align-items: center;
-  gap: var(--space-4);
-  padding: 18px 20px;
-  border-radius: var(--radius-lg);
-  background: var(--grad-blue); /* Azul-Cyan oficial */
-  color: #fff;
-  overflow: hidden;
-  isolation: isolate;
-  box-shadow: var(--shadow-brand);
-  transition: transform var(--transition-spring), box-shadow var(--transition-base);
-}
-.quick__featured::after {
-  /* brillo diagonal sutil que se desliza en hover */
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  background: linear-gradient(115deg, transparent 40%, rgba(255,255,255,0.22) 50%, transparent 60%);
-  transform: translateX(-120%);
-  transition: transform 0.7s ease;
-}
-.quick__featured:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 20px 50px rgba(6,108,255,0.42);
-}
-.quick__featured:hover::after { transform: translateX(120%); }
-.quick__featured:focus-visible { outline: 3px solid var(--brand-cyan); outline-offset: 3px; }
-
-.quick__badge {
-  align-self: flex-start;
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 0.6rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  padding: 4px 9px;
-  margin-bottom: 7px;
-  border-radius: var(--radius-full);
-  background: rgba(255,255,255,0.22);
-  color: #fff;
-  backdrop-filter: blur(4px);
-}
-.quick__badge svg { width: 11px; height: 11px; }
-
-.quick__featured-icon {
-  width: 54px;
-  height: 54px;
-  flex-shrink: 0;
-  border-radius: var(--radius-md);
-  background: rgba(255,255,255,0.20);
-  display: grid;
-  place-items: center;
-  transition: transform var(--transition-spring);
-}
-.quick__featured:hover .quick__featured-icon { transform: scale(1.08) rotate(-4deg); }
-.quick__featured-icon svg { width: 28px; height: 28px; color: #fff; }
-
-.quick__featured-text b {
-  display: block;
-  font-size: 1.05rem;
-  font-weight: 700;
-  line-height: 1.2;
-  margin-bottom: 3px;
-}
-.quick__featured-text span {
-  font-size: 0.78rem;
-  color: rgba(255,255,255,0.85);
-  line-height: 1.45;
-  display: block;
-  max-width: 30ch;
-}
-.quick__featured-arrow {
-  margin-left: auto;
-  flex-shrink: 0;
-  width: 34px;
-  height: 34px;
-  border-radius: 50%;
-  background: rgba(255,255,255,0.18);
-  display: grid;
-  place-items: center;
-  transition: background var(--transition-base), transform var(--transition-base);
-}
-.quick__featured-arrow svg { width: 17px; height: 17px; color: #fff; }
-.quick__featured:hover .quick__featured-arrow {
-  background: rgba(255,255,255,0.3);
-  transform: translateX(3px);
-}
-
-/* ── Rail de acciones secundarias ── */
-.quick__rail {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: var(--space-3);
-}
-.quick__card {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  padding: 15px 14px;
-  border-radius: var(--radius-md);
-  background: rgba(255,255,255,0.07);
-  border: 1px solid rgba(255,255,255,0.12);
-  color: #fff;
-  text-decoration: none;
-  transition: background var(--transition-base), border-color var(--transition-base), transform var(--transition-spring);
-}
-.quick__card:hover {
-  background: rgba(255,255,255,0.14);
-  border-color: rgba(255,255,255,0.28);
-  transform: translateY(-3px);
-}
-.quick__card:focus-visible { outline: 3px solid var(--brand-cyan); outline-offset: 2px; }
-.quick__card-icon {
-  width: 38px;
-  height: 38px;
-  border-radius: var(--radius-sm);
-  background: rgba(255,255,255,0.12);
-  display: grid;
-  place-items: center;
-  transition: transform var(--transition-spring);
-}
-.quick__card:hover .quick__card-icon { transform: scale(1.1); }
-.quick__card-icon svg { width: 19px; height: 19px; color: #fff; }
-.quick__card b { font-size: 0.8rem; font-weight: 600; line-height: 1.25; }
-.quick__card span { font-size: 0.68rem; color: rgba(255,255,255,0.6); line-height: 1.35; }
-
-/* ── Móvil: carrusel deslizable con scroll-snap ── */
-@media (max-width: 768px) {
-  .quick__rail {
-    display: flex;
-    grid-template-columns: none;
-    overflow-x: auto;
-    scroll-snap-type: x mandatory;
-    gap: var(--space-3);
-    margin: 0 calc(var(--space-4) * -1);
-    padding: 4px var(--space-4) var(--space-2);
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
+  /* Chips en columna si no caben */
+  .chip-row {
+    gap: var(--space-1);
   }
-  .quick__rail::-webkit-scrollbar { display: none; }
-  .quick__card {
-    scroll-snap-align: start;
-    flex: 0 0 64%;
+
+  .chip {
+    font-size: 0.75rem;
+    padding: 6px 10px;
+  }
+
+  /* tramite-btn más compacto */
+  .tramite-btn__icon {
+    width: 36px;
+    height: 36px;
+  }
+
+  .tramite-btn b {
+    font-size: 0.8125rem;
+  }
+
+  /* Info cards: icono + texto se apilan si muy estrecho */
+  .info-card {
     flex-direction: row;
-    align-items: center;
+    align-items: flex-start;
   }
-  .quick__card-icon { flex-shrink: 0; }
-}
 
-@media (prefers-reduced-motion: reduce) {
-  .quick__featured::after { transition: none; }
-}
+  /* Botones de acción en citas: stack total */
+  .cita-nav {
+    gap: var(--space-2);
+  }
 
-
-/* ============================================================
-   24. TEMA UNIFICADO — Gradiente de marca en TODA la página
-   Sin secciones negras ni blancas planas: las antes oscuras pasan a
-   gradiente profundo púrpura-azul; las claras a un lavado tintado.
-   Paleta del Brand Book OK Dock (Púrpura #9C1DFF · Azul #066CFF · Cyan #00C6FF).
-   ============================================================ */
-
-/* Base neutra y calmada (blanco/gris). El color de marca vive en los ACENTOS. */
-body {
-  background: #F6F7FB;
-}
-
-/* Bloques de contenido limpios (blanco) → descanso visual y mejor contraste */
-.section { background: #FFFFFF; }
-
-/* ── Secciones antes oscuras → gradiente profundo de marca ── */
-.hero {
-  background: linear-gradient(120deg, #3C0E9E 0%, #1A37B4 52%, #0E5CE6 100%);
-}
-/* Overlay del hero: glows de marca y oscurecido más ligero (look vibrante) */
-.hero__bg-overlay {
-  background:
-    radial-gradient(ellipse 60% 60% at 82% 45%, rgba(0,198,255,0.34) 0%, transparent 62%),
-    radial-gradient(ellipse 55% 70% at 16% 30%, rgba(156,29,255,0.42) 0%, transparent 60%),
-    linear-gradient(150deg, rgba(40,12,110,0.42) 0%, rgba(10,38,140,0.50) 100%);
-}
-
-.citas-section {
-  background: linear-gradient(160deg, #2E0E86 0%, #16267F 55%, #0E2E9E 100%);
-}
-
-.site-footer {
-  background: linear-gradient(160deg, #230B5E 0%, #142A7E 58%, #0B2E9E 100%);
-}
-
-/* ── Secciones alternas → gris muy suave (descanso visual, bloque diferenciado) ── */
-.section--alt {
-  background: #F1F3FA;
-}
-
-/* ── Cohesión dentro del wizard de citas (sin cajas negras) ── */
-.citas-section .cita-layout {
-  background: rgba(12, 18, 52, 0.34);
-  border-color: rgba(255, 255, 255, 0.12);
-  -webkit-backdrop-filter: blur(10px);
-  backdrop-filter: blur(10px);
-}
-.citas-section .field input,
-.citas-section .field select,
-.citas-section .field textarea,
-.citas-section .time-slot,
-.citas-section .tramite-btn {
-  background: rgba(255, 255, 255, 0.07);
-  border-color: rgba(255, 255, 255, 0.18);
-}
-.citas-section .cita-summary {
-  background: rgba(255, 255, 255, 0.06);
-  border-color: rgba(255, 255, 255, 0.16);
-}
-
-/* El subtítulo del encabezado (componente claro) debe ser legible sobre el gradiente */
-.citas-section .section-head .text-lead,
-.citas-section .section-head p {
-  color: rgba(255, 255, 255, 0.78);
-}
-
-/* Las tarjetas blancas (servicios, testimonios, fotos, contacto, FAQ)
-   se mantienen blancas para legibilidad: ahora "flotan" sobre el
-   gradiente, dando el look premium y cohesivo deseado. */
-
-
-/* ============================================================
-   25. RESEÑAS INTERACTIVAS (agregar / editar / eliminar)
-   ============================================================ */
-.reviews-bar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-5);
-  flex-wrap: wrap;
-  margin-bottom: var(--space-6);
-}
-.reviews-bar .rating-summary { margin-bottom: 0; flex: 1 1 320px; }
-
-.reviews-empty {
-  text-align: center;
-  color: var(--text-muted);
-  padding: var(--space-10) var(--space-4);
-  font-size: 0.95rem;
-}
-
-/* Estrellas vacías (para ratings < 5) */
-.stars svg.is-empty { fill: #D4DAE8; color: #D4DAE8; }
-
-/* Fila superior de la tarjeta: estrellas + acciones */
-.testimonio-card__top {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-3);
-}
-.testimonio-card__actions { display: flex; gap: 6px; }
-.review-act {
-  width: 30px; height: 30px;
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--border-light);
-  background: #fff;
-  color: var(--text-muted);
-  display: grid; place-items: center;
-  cursor: pointer;
-  transition: border-color var(--transition-fast), color var(--transition-fast), background var(--transition-fast);
-}
-.review-act svg { width: 15px; height: 15px; }
-.review-act:hover { border-color: var(--brand-blue); color: var(--brand-blue); background: var(--brand-blue-light); }
-.review-act--danger:hover { border-color: var(--color-error); color: var(--color-error); background: rgba(220,38,38,0.07); }
-.review-act:focus-visible { outline: 2px solid var(--brand-cyan); outline-offset: 1px; }
-.testimonio-card.is-mine { border-color: var(--brand-blue-light); }
-
-/* Formulario de reseña */
-.review-form {
-  background: var(--surface-card);
-  border: 1px solid var(--border-light);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-md);
-  padding: clamp(20px, 3vw, 28px);
-  margin-bottom: var(--space-6);
-}
-.review-form__head { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; margin-bottom: var(--space-4); }
-.review-form__head b { font-size: 1.05rem; color: var(--text-primary); font-weight: 700; }
-.review-form__head span { font-size: 0.8rem; color: var(--text-muted); }
-
-.star-input { display: flex; gap: 4px; margin-bottom: var(--space-4); }
-.star-input__btn { background: none; border: none; cursor: pointer; padding: 2px; line-height: 0; }
-.star-input__btn svg { width: 30px; height: 30px; fill: #D4DAE8; transition: fill 0.12s, transform 0.12s; }
-.star-input__btn.is-on svg { fill: #F59E0B; }
-.star-input__btn:hover svg { transform: scale(1.14); }
-.star-input__btn:focus-visible { outline: 2px solid var(--brand-cyan); outline-offset: 2px; border-radius: 4px; }
-
-.review-textarea {
-  width: 100%;
-  border: 1.5px solid var(--border-medium);
-  border-radius: var(--radius-sm);
-  padding: 12px 14px;
-  font-family: inherit;
-  font-size: 0.9rem;
-  line-height: 1.55;
-  color: var(--text-primary);
-  resize: vertical;
-  min-height: 92px;
-}
-.review-textarea:focus { outline: none; border-color: var(--brand-blue); box-shadow: 0 0 0 3px rgba(6,108,255,0.15); }
-
-.review-form__foot { display: flex; align-items: center; justify-content: space-between; gap: var(--space-4); margin-top: var(--space-3); flex-wrap: wrap; }
-.review-form__btns { display: flex; gap: 8px; }
-.review-counter { font-size: 0.75rem; color: var(--text-muted); font-variant-numeric: tabular-nums; }
-
-.review-cancel { background: #fff; color: var(--text-secondary); border: 1px solid var(--border-light); }
-.review-cancel:hover { border-color: var(--border-medium); color: var(--text-primary); background: var(--surface-page); transform: none; box-shadow: none; }
-
-.review-alert {
-  margin-top: 12px;
-  background: rgba(220,38,38,0.08);
-  color: #B91C1C;
-  border: 1px solid rgba(220,38,38,0.2);
-  border-radius: var(--radius-sm);
-  padding: 10px 14px;
-  font-size: 0.85rem;
-}
-
-
-/* ============================================================
-   26. MÓDULO DE FOTOS UNIFICADO + AJUSTE DE SERVICIOS
-   Toda la experiencia de impresión en UN solo contenedor; menos
-   espacios muertos en las tarjetas de servicio.
-   ============================================================ */
-.photo-studio {
-  display: grid;
-  grid-template-columns: 1.35fr 1fr;
-  background: var(--surface-card);
-  border: 1px solid var(--border-light);
-  border-radius: var(--radius-xl);
-  box-shadow: var(--shadow-md);
-  overflow: hidden;
-}
-.photo-studio__main {
-  padding: clamp(20px, 3vw, 30px);
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-5);
-}
-/* La zona de arrastre pasa a ser interna (punteada) y rellena el alto */
-.photo-studio .dropzone {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  min-height: 240px;
-  background: var(--surface-page);
-  border: 2px dashed var(--border-medium);
-  border-radius: var(--radius-lg);
-  padding: clamp(28px, 4vw, 44px) var(--space-6);
-}
-.photo-studio .dropzone:hover,
-.photo-studio .dropzone.is-dragging {
-  background: var(--brand-blue-light);
-  border-color: var(--brand-blue);
-  transform: none;
-}
-/* Mini-pasos: dan contexto y eliminan el hueco bajo la zona de carga */
-.photo-steps { display: grid; gap: 10px; margin: 0; padding: 0; list-style: none; }
-.photo-steps li { display: flex; align-items: center; gap: 11px; font-size: 0.85rem; color: var(--text-secondary); }
-.photo-steps li span {
-  width: 26px; height: 26px; flex-shrink: 0;
-  border-radius: 50%;
-  background: var(--brand-blue-light);
-  color: var(--brand-blue);
-  display: grid; place-items: center;
-  font-weight: 700; font-size: 0.8rem;
-}
-/* La configuración deja de ser una tarjeta aparte: panel dentro del módulo */
-.photo-studio .photo-config {
-  position: static;
-  top: auto;
-  background: #FBFCFE;
-  border: none;
-  border-left: 1px solid var(--border-light);
-  border-radius: 0;
-  box-shadow: none;
-  padding: clamp(22px, 3vw, 30px);
-}
-
-@media (max-width: 768px) {
-  .photo-studio { grid-template-columns: 1fr; }
-  .photo-studio .photo-config { border-left: none; border-top: 1px solid var(--border-light); }
-  .photo-studio .dropzone { min-height: 200px; }
-}
-
-/* ── Servicios: tarjetas a la altura de su contenido (sin huecos forzados) ── */
-.services-grid { align-items: start; }
-.service-card { padding: clamp(20px, 2.4vw, 26px); }
-.service-icon { width: 52px; height: 52px; margin-bottom: var(--space-4); }
-.service-icon svg { width: 26px; height: 26px; }
-.service-card h3 { font-size: 1.12rem; margin-bottom: var(--space-2); }
-.service-card p { font-size: 0.875rem; }
-.service-tags { margin-top: var(--space-4); }
-.service-link { margin-top: var(--space-4); }
-
-
-/* ============================================================
-   27. LENGUAJE VISUAL UNIFICADO (estilo "manifiesto")
-   Resaltado de palabra clave en gradiente azul-púrpura dentro de
-   cada título + onda suave de marca como textura de fondo.
-   ============================================================ */
-
-/* Resaltado para secciones CLARAS (texto oscuro) */
-.hl {
-  background: linear-gradient(95deg, #9C1DFF 0%, #066CFF 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  -webkit-text-fill-color: transparent;
-}
-/* Resaltado para secciones OSCURAS (cyan que contrasta sobre gradiente) */
-.hl--cyan {
-  background: linear-gradient(95deg, #00C6FF 0%, #6BA8FF 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  -webkit-text-fill-color: transparent;
-}
-
-/* Onda suave (eco del manifiesto) como textura sutil en TODAS las secciones */
-.section { position: relative; }
-.section > .wrap { position: relative; z-index: 1; }
-.section::after,
-.section--alt::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 320' preserveAspectRatio='none'%3E%3Cpath d='M-40 180 C 300 40 620 300 960 170 S 1480 60 1620 190' fill='none' stroke='%239C1DFF' stroke-width='80' stroke-linecap='round'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: center;
-  background-size: 135% auto;
-  opacity: 0.045;
-}
-.section--alt::after { opacity: 0.055; }
-
-
-/* ============================================================
-   28. HERO EN ESTILO CLARO (manifiesto): poco azul, fondo claro + swish
-   ============================================================ */
-.hero {
-  background: linear-gradient(180deg, #FFFFFF 0%, #F5F4FF 55%, #EDF1FF 100%);
-}
-/* Quitar blobs vibrantes (eran para fondo oscuro) */
-.hero__bg::before,
-.hero__bg::after,
-.hero::after { display: none; }
-
-/* Overlay claro: blobs pastel + onda suave */
-.hero__bg-overlay {
-  background:
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 360' preserveAspectRatio='none'%3E%3Cpath d='M-40 210 C 320 70 640 330 980 200 S 1480 80 1620 220' fill='none' stroke='%239C1DFF' stroke-opacity='0.45' stroke-width='72' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat center 80% / 135% auto,
-    radial-gradient(46% 56% at 82% 20%, rgba(6, 108, 255, 0.08), transparent 62%),
-    radial-gradient(42% 56% at 12% 30%, rgba(156, 29, 255, 0.09), transparent 62%);
-}
-
-/* Texto oscuro */
-.hero__copy { color: var(--text-primary); }
-.hero__eyebrow {
-  color: var(--brand-blue);
-  background: rgba(6, 108, 255, 0.08);
-  border-color: rgba(6, 108, 255, 0.18);
-}
-.hero__title { color: var(--text-primary); }
-.hero__lead { color: var(--text-secondary); }
-.hero__stats { border-top-color: var(--border-light); }
-.hero__stat span { color: var(--text-muted); }
-
-/* Panel → tarjeta blanca */
-.hero__panel {
-  background: #fff;
-  border: 1px solid var(--border-light);
-  box-shadow: var(--shadow-lg);
-  -webkit-backdrop-filter: none;
-  backdrop-filter: none;
-}
-.hero__panel::before { display: none; }
-.hero__panel-title { color: var(--text-primary); }
-.hero__panel-sub { color: var(--text-muted); }
-
-/* Tarjetas secundarias del acceso rápido → claras */
-.quick__card {
-  background: var(--surface-page);
-  border-color: var(--border-light);
-  color: var(--text-primary);
-}
-.quick__card:hover {
-  background: #fff;
-  border-color: var(--border-medium);
-  box-shadow: var(--shadow-sm);
-}
-.quick__card-icon { background: var(--brand-blue-light); }
-.quick__card-icon svg { color: var(--brand-blue); }
-.quick__card b { color: var(--text-primary); }
-.quick__card span { color: var(--text-muted); }
-/* La card destacada conserva su gradiente como único acento fuerte */
-
-/* Aviso de horario → claro */
-.hero__hours {
-  background: rgba(22, 163, 74, 0.08);
-  border-color: rgba(22, 163, 74, 0.22);
-  color: var(--text-secondary);
-}
-.hero__hours strong { color: #15803D; }
-
-/* Indicador de scroll → tenue */
-.hero__scroll { color: var(--text-faint); }
-
-
-/* ============================================================
-   29. DINAMISMO — la onda de marca se mueve con el scroll
-   Animaciones ligadas al scroll (CSS scroll-driven, sin JS).
-   Compositor-only (background-position) → fluido y eficiente.
-   Degrada a estático y respeta prefers-reduced-motion.
-   ============================================================ */
-
-/* La onda de Citas (sección oscura) más visible para que luzca al moverse */
-.citas-section::after { opacity: 0.14; }
-
-@media (prefers-reduced-motion: no-preference) {
-  @supports (animation-timeline: view()) {
-    /* La onda de cada sección deriva horizontalmente conforme entra/sale del viewport */
-    .section::after {
-      animation: wave-scroll linear both;
-      animation-timeline: view();
-      animation-range: entry 0% exit 100%;
-      will-change: background-position;
-    }
-    @keyframes wave-scroll {
-      from { background-position: 16% center; }
-      to   { background-position: 84% center; }
-    }
-
-    /* El gradiente de los blobs ambientales del hero también deriva al hacer scroll */
-    .hero__bg-overlay {
-      animation: hero-drift linear both;
-      animation-timeline: view();
-      animation-range: cover 0% exit 100%;
-    }
-    @keyframes hero-drift {
-      from { background-position: center 80%, 82% 20%, 12% 30%; }
-      to   { background-position: center 50%, 92% 8%,  4% 42%; }
-    }
+  /* WA flotante y scroll-top: solo WA visible para no aglomerar */
+  .scroll-top {
+    display: none;
   }
 }
