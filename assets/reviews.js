@@ -216,11 +216,18 @@
 
   function load() {
     Data.list().then(function (res) {
+      if (res && res.ok === false) { showReviewsError(res.error || "No se pudieron cargar las reseñas."); return; }
       var list = (res && res.reviews) || [];
       renderSummary(list);
       renderGrid(list);
       renderAction();
-    });
+    }).catch(function () { showReviewsError("No se pudieron cargar las reseñas. Revisa la conexión."); });
+  }
+  function showReviewsError(msg) {
+    var g = $("#reviews-grid"); if (g) g.innerHTML = "";
+    var s = $("#reviews-summary"); if (s) s.hidden = true;
+    var e = $("#reviews-empty"); if (e) { e.hidden = false; e.textContent = msg; e.style.color = "var(--color-error)"; }
+    renderAction();
   }
 
   function init() { if ($("#reviews-grid")) load(); }

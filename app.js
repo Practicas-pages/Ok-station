@@ -666,6 +666,8 @@
     function renderThumbs() {
       if (!thumbsContainer) return;
 
+      if (dropzone) dropzone.classList.toggle("has-files", files.length > 0);
+
       if (!files.length) {
         thumbsContainer.innerHTML = "";
         thumbsContainer.style.display = "none";

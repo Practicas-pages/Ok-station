@@ -26,7 +26,8 @@
 
   <!-- ===================== SEO BÁSICO ===================== -->
   <title>OK.station — Copias, impresiones, fotos y trámites en Tijuana</title>
-  <meta name="description" content="Materializa tus ideas en Centro Comercial Otay, Tijuana. Copias a color y B/N, impresión de fotografías hasta gran formato, fotos para trámites, enmicado, engargolado y agenda de citas para pasaporte, visa y SENTRI.">
+  <meta name="google-site-verification" content="uis2T8GTomeaSjoapDq4vGg4Sl6CQRIkcQEBQqo36Lg" />
+  <meta name="description" content="Materializa tus ideas en Centro Comercial Otay, Tijuana. Copias a color y B/N, impresión de fotografías hasta gran formato, fotos para trámites, enmicado, engargolado y agenda de citas para pasaporte, visa y SENTRI. Visítanos en Centro Comercial Otay, Tijuana. ¡Escríbenos hoy!">
   <meta name="keywords" content="centro de impresión Tijuana, impresiones a color, impresiones blanco y negro, impresión de documentos, impresión de fotografías, copias Tijuana, escaneos, digitalización de documentos, impresiones urgentes, impresión profesional, impresión de planos, papelería, servicios empresariales, servicios estudiantiles, fotos para pasaporte, citas visa americana, cita SENTRI, enmicado, engargolado, OK.station, OK Dock">
   <meta name="author" content="OK.station — OK Dock">
   <meta name="robots" content="index, follow, max-image-preview:large">
@@ -520,13 +521,17 @@
       <div class="photo-studio reveal">
         <div class="photo-studio__main">
           <div class="dropzone" id="dropzone">
-            <div class="dropzone__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></div>
-            <h4>Arrastra tus fotos aquí</h4>
-            <p>o haz clic para seleccionarlas desde tu dispositivo</p>
-            <div class="dropzone__formats"><span>JPG</span><span>PNG</span><span>WEBP</span><span>varias a la vez</span></div>
+            <div class="dropzone__empty">
+              <div class="dropzone__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></div>
+              <h4>Arrastra tus fotos aquí</h4>
+              <p>o haz clic para seleccionarlas desde tu dispositivo</p>
+              <div class="dropzone__formats"><span>JPG</span><span>PNG</span><span>WEBP</span><span>varias a la vez</span></div>
+            </div>
+            <!-- Vista previa de las fotos subidas (dentro del recuadro) -->
+            <div class="thumbs-grid" id="thumbs" style="display:none"></div>
+            <p class="dropzone__more">+ Toca aquí para agregar más fotos</p>
           </div>
           <input type="file" id="foto-input" accept="image/*" multiple hidden>
-          <div class="thumbs-grid" id="thumbs" style="display:none"></div>
           <ul class="photo-steps" aria-label="Cómo funciona">
             <li><span>1</span> Sube tus fotos (varias a la vez)</li>
             <li><span>2</span> Elige tamaño, acabado y cantidad</li>

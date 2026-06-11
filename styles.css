@@ -3886,3 +3886,34 @@ body {
    WhatsApp y el footer → se oculta para dar aire a cuenta + WhatsApp. */
 @media (max-width: 1100px) { .nav__tel { display: none; } }
 .nav__actions { gap: var(--space-2); }
+
+
+/* ============================================================
+   31. VISTA PREVIA DE FOTOS DENTRO DEL RECUADRO (#fotos)
+   Al subir, las miniaturas llenan el dropzone como galería.
+   ============================================================ */
+.dropzone__more { display: none; }
+.dropzone.has-files {
+  justify-content: flex-start;
+  align-items: stretch;
+  padding: clamp(14px, 2.4vw, 20px);
+}
+.dropzone.has-files .dropzone__empty { display: none; }
+.dropzone.has-files .dropzone__more {
+  display: block;
+  margin-top: var(--space-4);
+  text-align: center;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--brand-blue);
+}
+/* La rejilla de miniaturas llena el ancho dentro del recuadro y es responsiva */
+.dropzone .thumbs-grid {
+  width: 100%;
+  margin-top: 0;
+  grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+  gap: var(--space-3);
+}
+@media (max-width: 480px) {
+  .dropzone .thumbs-grid { grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); }
+}

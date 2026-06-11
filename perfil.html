@@ -16,10 +16,16 @@
 
   <header class="auth-top">
     <a href="index.html" class="logo"><span class="logo__ok">OK</span><span class="logo__dot">.</span><span class="logo__station">station</span></a>
-    <button type="button" id="btn-logout" class="auth-back">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-      Cerrar sesión
-    </button>
+    <div style="display:flex;align-items:center;gap:10px">
+      <a href="index.html" class="btn btn--light btn--sm" aria-label="Ir al inicio del sitio">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10.5L12 3l9 7.5"/><path d="M5 9.5V20a1 1 0 001 1h12a1 1 0 001-1V9.5"/><path d="M10 21v-6h4v6"/></svg>
+        Inicio
+      </a>
+      <button type="button" id="btn-logout" class="auth-back">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        Cerrar sesión
+      </button>
+    </div>
   </header>
 
   <main class="auth-main" id="profile-page" style="align-items:flex-start">
@@ -31,8 +37,7 @@
           <div class="profile-avatar" id="profile-avatar" aria-hidden="true">U</div>
           <h2 data-user-name>Usuario</h2>
           <p data-user-email>—</p>
-          <nav class="profile-nav" aria-label="Secciones del perfil">
-            <a href="#info">Información personal</a>
+          <nav class="profile-nav" aria-label="Navegación de la cuenta">
             <a href="#password">Cambiar contraseña</a>
             <a href="#pedidos">Mis pedidos</a>
             <!-- Solo visible para empleado/administrador (lo activa auth.js según el rol) -->
