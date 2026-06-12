@@ -734,68 +734,187 @@
   </section>
 
   <!-- ============================ VISÍTANOS ============================ -->
-  <section class="section" id="visitanos" aria-labelledby="visitanos-title">
-    <div class="wrap">
-      <div class="section-head section-head--center reveal">
-        <span class="eyebrow">Ven a visitarnos</span>
-        <h2 class="text-h2" id="visitanos-title">Estamos en <span class="hl">Centro Comercial Otay</span></h2>
-        <p class="text-lead">Atención personal, precio justo y siempre con una sonrisa. Te esperamos.</p>
-      </div>
+  <!-- ============================================================
+     OK.station — Sección "Estamos en Centro Comercial Otay"
+     ============================================================
+     INSTRUCCIONES DE INTEGRACIÓN:
+     Reemplaza el bloque completo <section ... id="visitanos">
+     hasta su </section> en index.html con este snippet.
 
-      <!-- EDITAR: reemplaza los placeholders por fotos reales del local.
-           Sustituye cada .store-gallery__placeholder por:
-           <img src="uploads/tu-foto.jpg" alt="Descripción real de la foto" loading="lazy" decoding="async" width="800" height="600"> -->
-      <div class="store-gallery reveal">
-        <div class="store-gallery__item store-gallery__item--main">
-          <div class="store-gallery__placeholder"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="M21 15l-3.086-3.086a2 2 0 00-2.828 0L6 21"/></svg>Fachada OK.station</div>
-        </div>
-        <div class="store-gallery__item">
-          <div class="store-gallery__placeholder"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="M21 15l-3.086-3.086a2 2 0 00-2.828 0L6 21"/></svg>Consumibles</div>
-        </div>
-        <div class="store-gallery__item">
-          <div class="store-gallery__placeholder"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="M21 15l-3.086-3.086a2 2 0 00-2.828 0L6 21"/></svg>Fotografías impresas</div>
-        </div>
-        <div class="store-gallery__item">
-          <div class="store-gallery__placeholder"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="M21 15l-3.086-3.086a2 2 0 00-2.828 0L6 21"/></svg>Papelería</div>
-        </div>
-        <div class="store-gallery__item">
-          <div class="store-gallery__placeholder"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="M21 15l-3.086-3.086a2 2 0 00-2.828 0L6 21"/></svg>Equipo de impresión</div>
-        </div>
-      </div>
+     IMÁGENES — copia los archivos WebP a:
+       assets/img/DSC02087.webp              (interior fachada OK.station)
+       assets/img/DSC02096.webp              (consumibles — estante HP)
+       assets/img/AdobeStock_193108210.webp  (fotografías impresas)
+       assets/img/AdobeStock_2020029065.webp (papelería / trámites)
+       assets/img/AdobeStock_618706344.webp  (equipo de impresión)
 
-      <div class="contact-grid reveal">
-        <div class="contact-cta">
-          <h3>¿Tienes dudas? Escríbenos ahora.</h3>
-          <p>Somos ese amigo que te escucha y asesora. Respuesta rápida, trato personal, siempre con una sonrisa.</p>
-          <a class="btn btn--wa btn--lg" href="https://wa.me/5216641044896" target="_blank" rel="noopener" style="align-self:flex-start">
-            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M.057 24l1.687-6.163a11.867 11.867 0 01-1.587-5.945C.16 5.335 5.495 0 12.05 0a11.82 11.82 0 018.413 3.488 11.82 11.82 0 013.48 8.414c-.003 6.557-5.338 11.892-11.893 11.892a11.9 11.9 0 01-5.688-1.448L.057 24zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884a9.86 9.86 0 001.51 5.26l-.999 3.648 3.978-1.040zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.017-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.247-.694.247-1.29.173-1.414z"/></svg>
-            WhatsApp: (664) 104-4896
-          </a>
-        </div>
+     DIMENSIONES REALES:
+       DSC02087.webp              4912 × 2760 px
+       DSC02096.webp              4912 × 2760 px
+       AdobeStock_193108210.webp  5764 × 3843 px
+       AdobeStock_2020029065.webp 2944 × 1648 px
+       AdobeStock_618706344.webp  5760 × 3840 px
+     ============================================================ -->
 
-        <div class="contact-cards">
-          <div class="map-wrap">
-            <iframe loading="lazy" referrerpolicy="no-referrer-when-downgrade" src="https://www.google.com/maps?q=Otay+Centro+Comercial,+Carretera+Aeropuerto+1900,+Tijuana&output=embed" title="Mapa de ubicación de OK.station en Centro Comercial Otay, Tijuana"></iframe>
-          </div>
-          <div class="info-card">
-            <span class="info-card__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg></span>
-            <div><b>Centro Comercial Otay</b><span>Local G-03 · Carretera Aeropuerto 1900 · Tijuana, B.C.</span></div>
-          </div>
-          <div class="info-card">
-            <span class="info-card__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg></span>
-            <div><b>(664) 104-4896</b><span>(664) 719-4117 · Llamada o WhatsApp</span></div>
-          </div>
-          <div class="info-card">
-            <span class="info-card__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M22 7l-10 5L2 7"/></svg></span>
-            <div><b>station@okdock.mx</b><span>Cotizaciones y consultas por email</span></div>
-          </div>
-        </div>
-      </div>
+<section class="section" id="visitanos">
+  <div class="wrap">
+
+    <!-- Encabezado de sección -->
+    <div class="section-head reveal">
+      <span class="eyebrow">Ven a visitarnos</span>
+      <h2 class="text-h2">Estamos en Centro Comercial Otay</h2>
+      <p class="text-lead">Atención personal, precio justo y siempre con una sonrisa. Te esperamos.</p>
     </div>
-  </section>
 
-</main>
+    <!-- ════════════════════════════════════════════════════════
+         GALERÍA DE FOTOS DEL LOCAL
+         Grid desktop: columnas 1.5fr 1fr 1fr / filas 240px 200px
+         La imagen principal (--main) ocupa las 2 filas del lado izq.
+         ════════════════════════════════════════════════════════ -->
+    <div class="store-gallery reveal" role="region" aria-label="Fotografías del local OK.station en Tijuana">
 
+      <!-- ── Imagen principal: interior OK.station ── -->
+      <div class="store-gallery__item store-gallery__item--main">
+        <img
+          src="assets/img/DSC02087.webp"
+          alt="Interior de OK.station en Centro Comercial Otay, Tijuana — consumibles, papelería y soluciones digitales"
+          width="4912"
+          height="2760"
+          loading="lazy"
+          decoding="async"
+        >
+      </div>
+
+      <!-- ── Imagen pequeña 1: consumibles ── -->
+      <div class="store-gallery__item">
+        <img
+          src="assets/img/DSC02096.webp"
+          alt="Consumibles HP — tintas y cartuchos originales a la venta en OK.station Tijuana"
+          width="4912"
+          height="2760"
+          loading="lazy"
+          decoding="async"
+        >
+      </div>
+
+      <!-- ── Imagen pequeña 2: fotografías impresas ── -->
+      <div class="store-gallery__item">
+        <img
+          src="assets/img/AdobeStock_193108210.webp"
+          alt="Impresión de fotografías en OK.station Tijuana — fotos 10×15, 20×30 y gran formato"
+          width="5764"
+          height="3843"
+          loading="lazy"
+          decoding="async"
+        >
+      </div>
+
+      <!-- ── Imagen pequeña 3: papelería y trámites ── -->
+      <div class="store-gallery__item">
+        <img
+          src="assets/img/AdobeStock_2020029065.webp"
+          alt="Servicio de papelería y gestión de trámites en OK.station, Centro Comercial Otay, Tijuana"
+          width="2944"
+          height="1648"
+          loading="lazy"
+          decoding="async"
+        >
+      </div>
+
+      <!-- ── Imagen pequeña 4: equipo de impresión ── -->
+      <div class="store-gallery__item">
+        <img
+          src="assets/img/AdobeStock_618706344.webp"
+          alt="Equipo profesional de impresión y copiado en OK.station, Tijuana, Baja California"
+          width="5760"
+          height="3840"
+          loading="lazy"
+          decoding="async"
+        >
+      </div>
+
+    </div><!-- /store-gallery -->
+
+
+    <!-- Contacto y mapa -->
+    <div class="contact-grid reveal">
+
+      <div class="contact-cta">
+        <h3>¿Tienes dudas? Escríbenos ahora.</h3>
+        <p>Somos ese amigo que te escucha y asesora. Respuesta rápida, trato personal, siempre con una sonrisa.</p>
+        <a
+          class="btn btn--wa"
+          href="https://wa.me/5216641044896"
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="Abrir chat de WhatsApp con OK.station"
+        >
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path d="M.057 24l1.687-6.163A11.867 11.867 0 01.16 11.892C.163 5.335 5.495 0 12.05 0a11.817 11.817 0 018.413 3.488 11.816 11.816 0 013.48 8.414c-.003 6.557-5.338 11.892-11.893 11.892a11.9 11.9 0 01-5.688-1.448L.057 24zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884a9.86 9.86 0 001.51 5.26l-.999 3.648 3.978-1.04zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.017-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.247-.694.247-1.29.173-1.414z"/>
+          </svg>
+          WhatsApp: (664) 104-4896
+        </a>
+      </div>
+
+      <div class="contact-cards">
+
+        <div class="map-wrap">
+          <iframe
+            loading="lazy"
+            referrerpolicy="no-referrer-when-downgrade"
+            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3364.9!2d-116.9758!3d32.5027!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMzLCsDMwJzA5LjciTiAxMTbCsDU4JzMyLjkiVw!5e0!3m2!1ses!2smx!4v1"
+            title="Ubicación de OK.station en Centro Comercial Otay, Tijuana, Baja California"
+            width="100%"
+            height="220"
+            style="border:0;"
+            allowfullscreen=""
+            aria-label="Mapa de Google con la ubicación de OK.station en Tijuana"
+          ></iframe>
+        </div>
+
+        <address class="info-card" style="font-style:normal;">
+          <span class="info-card__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/>
+              <circle cx="12" cy="10" r="3"/>
+            </svg>
+          </span>
+          <div>
+            <b class="info-card__title">Centro Comercial Otay</b>
+            <span class="info-card__detail">Local G-03 · Carretera Aeropuerto 1900 · Tijuana, B.C.</span>
+          </div>
+        </address>
+
+        <a class="info-card" href="tel:6641044896" aria-label="Llamar al (664) 104-4896">
+          <span class="info-card__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/>
+            </svg>
+          </span>
+          <div>
+            <b class="info-card__title">(664) 104-4896</b>
+            <span class="info-card__detail">(664) 719-4117 · Llamada o WhatsApp</span>
+          </div>
+        </a>
+
+        <a class="info-card" href="mailto:station@okdock.mx" aria-label="Enviar email a station@okdock.mx">
+          <span class="info-card__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="2" y="4" width="20" height="16" rx="2"/>
+              <path d="M22 7l-10 5L2 7"/>
+            </svg>
+          </span>
+          <div>
+            <b class="info-card__title">station@okdock.mx</b>
+            <span class="info-card__detail">Cotizaciones y consultas por email</span>
+          </div>
+        </a>
+
+      </div><!-- /contact-cards -->
+    </div><!-- /contact-grid -->
+
+  </div><!-- /wrap -->
+</section>
 <!-- ============================ FOOTER ============================ -->
 <footer class="site-footer">
   <div class="wrap">
