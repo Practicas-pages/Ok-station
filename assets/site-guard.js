@@ -64,7 +64,7 @@
 
   /* ── Guardar la URL a la que quería ir el usuario ── */
   try {
-    sessionStorage.setItem('oks_intended_url', window.location.href);
+    sessionStorage.setItem('oks_intended', window.location.href);
   } catch (_) {}
 
   /* ── Leer token ── */

@@ -1031,113 +1031,102 @@
 
   <script>
   /* ============================================================
-     OK.station — Maintenance Guard v2
-     Lógica de autenticación JWT para la pantalla de mantenimiento.
+     OK.station — Maintenance Guard v2.1
+     ============================================================
+     ENDPOINT REAL: POST backend/api/login.php
+     BODY:          { "email": "...", "password": "..." }
+     RESPUESTA OK:  { "ok": true, "token": "...", "user": { ... } }
 
-     FLUJO:
-     1. Al cargar: verificar si hay JWT válido en localStorage.
-     2. Si hay JWT: decodificar, leer rol.
-        - rol admin/empleado → mostrar panel-granted
-        - rol cliente        → mostrar panel-blocked
-     3. Si NO hay JWT: mostrar formulario (panel-login).
-     4. Al enviar el form: llamar a la API real del backend.
-     5. Si login OK: guardar JWT, re-evaluar rol.
-     6. Si acceso concedido: redirigir al sitio real.
-
-     CONFIGURA:
-       API_BASE  → URL de tu backend PHP
-       JWT_KEY   → clave del JWT en localStorage (la que usa tu app)
-       ADMIN_ROLES → roles que tienen acceso al sitio
-  ============================================================ */
+     FLUJO COMPLETO:
+     1. Carga → leer token en localStorage.
+     2. Token válido + rol permitido → panel-granted → redirect.
+     3. Token válido + rol cliente   → panel-blocked.
+     4. Sin token / expirado         → formulario de login.
+     5. Submit → POST backend/api/login.php.
+     6. Respuesta ok:true → guardar token + leer user.role.
+     7. Intentar GET backend/api/me.php para obtener rol fresco.
+     8. Decidir: admin/empleado → acceso | cliente → bloqueado.
+     ============================================================ */
   (function () {
     'use strict';
 
     /* ──────────────────────────────────────────────────────────
-       CONFIGURACIÓN — adapta estos valores a tu proyecto
+       CONFIGURACIÓN — valores exactos del backend real
        ────────────────────────────────────────────────────────── */
     var CONFIG = {
-      /* URL base de tu API PHP.
-         Si tu API está en /api/ en el mismo dominio: '/api'
-         Si está en otro dominio: 'https://api.okstation.mx' */
-      API_BASE: '/api',
+      /* Endpoint de login REAL del proyecto */
+      LOGIN_URL: 'backend/api/login.php',
 
-      /* Endpoint de login de tu API existente.
-         Cambia a la ruta real: '/auth/login', '/user/login', etc. */
-      LOGIN_ENDPOINT: '/auth/login',
+      /* Endpoint para obtener el usuario autenticado.
+         Se intenta en orden; el primero que responda 200 gana.
+         Si ninguno responde, se usa el payload del JWT y el
+         objeto user que devolvió el login. */
+      ME_URLS: [
+        'backend/api/me.php',
+        'backend/api/user.php',
+        'backend/api/profile.php',
+        'backend/api/usuario.php',
+      ],
 
-      /* Clave bajo la que tu app guarda el JWT en localStorage.
-         Busca en tu código algo como: localStorage.setItem('token', ...)
-         o localStorage.setItem('okstation_token', ...) */
-      JWT_KEY: 'okstation_token',
+      /* Clave del token en localStorage — usa la misma que el
+         resto de tu aplicación. Cámbiala si tu app usa otra. */
+      TOKEN_KEY: 'okstation_token',
 
-      /* Clave alternativa (algunos sistemas usan 'access_token') */
-      JWT_KEY_ALT: 'access_token',
+      /* Roles con acceso completo al sitio en mantenimiento */
+      ACCESS_ROLES: ['admin', 'administrador', 'administrator',
+                     'superadmin', 'empleado', 'employee', 'staff'],
 
-      /* Roles con acceso completo durante mantenimiento */
-      ADMIN_ROLES: ['admin', 'administrator', 'superadmin', 'empleado', 'employee', 'staff'],
+      /* Redirect destino tras acceso concedido */
+      SITE_URL: 'index.html',
 
-      /* Rol de cliente (bloqueado durante mantenimiento) */
-      CLIENT_ROLES: ['cliente', 'client', 'customer', 'user'],
-
-      /* URL a la que redirigir tras acceso concedido */
-      SITE_URL: '/',
-
-      /* Tiempo de espera tras acceso concedido antes de redirigir (ms) */
+      /* ms de espera animada antes del redirect */
       REDIRECT_DELAY: 1400,
     };
 
     /* ──────────────────────────────────────────────────────────
        REFERENCIAS DOM
        ────────────────────────────────────────────────────────── */
-    var panelLogin   = document.getElementById('panel-login');
-    var panelBlocked = document.getElementById('panel-blocked');
-    var panelGranted = document.getElementById('panel-granted');
-    var loginAlert   = document.getElementById('login-alert');
-    var loginAlertMsg= document.getElementById('login-alert-msg');
-    var identifierEl = document.getElementById('login-identifier');
-    var passwordEl   = document.getElementById('login-password');
-    var btnLogin     = document.getElementById('btn-login');
-    var btnEnter     = document.getElementById('btn-enter');
-    var btnLogoutBlocked = document.getElementById('btn-logout-blocked');
-    var btnLogoutGranted = document.getElementById('btn-logout-granted');
-    var pwToggle     = document.getElementById('pw-toggle');
+    var panelLogin      = document.getElementById('panel-login');
+    var panelBlocked    = document.getElementById('panel-blocked');
+    var panelGranted    = document.getElementById('panel-granted');
+    var loginAlert      = document.getElementById('login-alert');
+    var loginAlertMsg   = document.getElementById('login-alert-msg');
+    var identifierInput = document.getElementById('login-identifier');
+    var passwordInput   = document.getElementById('login-password');
+    var btnLogin        = document.getElementById('btn-login');
+    var btnEnter        = document.getElementById('btn-enter');
+    var btnLogoutBlocked= document.getElementById('btn-logout-blocked');
+    var btnLogoutGranted= document.getElementById('btn-logout-granted');
+    var pwToggle        = document.getElementById('pw-toggle');
 
     /* ──────────────────────────────────────────────────────────
-       UTILIDADES JWT
+       ALMACENAMIENTO DEL TOKEN
        ────────────────────────────────────────────────────────── */
-    function getStoredToken() {
-      try {
-        return localStorage.getItem(CONFIG.JWT_KEY)
-            || localStorage.getItem(CONFIG.JWT_KEY_ALT)
-            || sessionStorage.getItem(CONFIG.JWT_KEY)
-            || sessionStorage.getItem(CONFIG.JWT_KEY_ALT)
-            || null;
-      } catch (_) { return null; }
-    }
-
-    function removeStoredToken() {
-      try {
-        localStorage.removeItem(CONFIG.JWT_KEY);
-        localStorage.removeItem(CONFIG.JWT_KEY_ALT);
-        sessionStorage.removeItem(CONFIG.JWT_KEY);
-        sessionStorage.removeItem(CONFIG.JWT_KEY_ALT);
-      } catch (_) {}
+    function getToken() {
+      try { return localStorage.getItem(CONFIG.TOKEN_KEY) || null; }
+      catch (_) { return null; }
     }
 
     function saveToken(token) {
-      try { localStorage.setItem(CONFIG.JWT_KEY, token); } catch (_) {}
+      try { localStorage.setItem(CONFIG.TOKEN_KEY, token); }
+      catch (_) {}
     }
 
-    /* Decodificar payload del JWT sin verificar firma (es cliente) */
-    function decodeJwtPayload(token) {
+    function clearToken() {
+      try { localStorage.removeItem(CONFIG.TOKEN_KEY); }
+      catch (_) {}
+    }
+
+    /* ──────────────────────────────────────────────────────────
+       DECODIFICACIÓN JWT (sin verificar firma — solo lectura)
+       ────────────────────────────────────────────────────────── */
+    function decodeToken(token) {
       try {
         var parts = token.split('.');
         if (parts.length !== 3) return null;
-        /* Base64url → Base64 estándar */
-        var base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
-        /* Padding */
-        while (base64.length % 4) { base64 += '='; }
-        var json = atob(base64);
+        var b64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+        while (b64.length % 4) b64 += '=';
+        var json = atob(b64);
         return JSON.parse(decodeURIComponent(
           json.split('').map(function (c) {
             return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
@@ -1146,310 +1135,372 @@
       } catch (_) { return null; }
     }
 
-    /* Verificar si el token está expirado */
-    function isTokenExpired(payload) {
+    function tokenExpired(payload) {
       if (!payload || !payload.exp) return false;
       return Math.floor(Date.now() / 1000) > payload.exp;
     }
 
-    /* Extraer el rol del payload.
-       Adapta los nombres de campo según tu API:
-       payload.role | payload.roles[0] | payload.user.role | payload.data.role */
-    function extractRole(payload) {
-      if (!payload) return null;
-      /* Intenta múltiples rutas posibles en el payload */
-      return payload.role
-          || payload.rol
-          || (payload.roles && payload.roles[0])
-          || (payload.user && (payload.user.role || payload.user.rol))
-          || (payload.data && (payload.data.role || payload.data.rol))
-          || null;
+    /* ──────────────────────────────────────────────────────────
+       EXTRACCIÓN DE ROL Y NOMBRE
+       Lee desde múltiples rutas posibles del objeto user/payload
+       porque distintos backends estructuran su JWT diferente.
+       ────────────────────────────────────────────────────────── */
+    function extractRole(obj) {
+      if (!obj) return null;
+      /* Rutas directas */
+      if (obj.role)  return obj.role;
+      if (obj.rol)   return obj.rol;
+      /* Array de roles → primer elemento */
+      if (Array.isArray(obj.roles) && obj.roles.length) return obj.roles[0];
+      /* Anidado en .user */
+      if (obj.user)  return extractRole(obj.user);
+      /* Anidado en .data */
+      if (obj.data)  return extractRole(obj.data);
+      return null;
     }
 
-    function extractName(payload) {
-      if (!payload) return '';
-      return payload.name
-          || payload.nombre
-          || payload.email
-          || (payload.user && (payload.user.name || payload.user.nombre || payload.user.email))
-          || (payload.data && (payload.data.name || payload.data.nombre))
-          || 'Usuario';
+    function extractName(obj) {
+      if (!obj) return 'Usuario';
+      var direct = obj.name || obj.nombre || obj.fullname || obj.full_name || obj.email;
+      if (direct) return direct;
+      if (obj.user)  return extractName(obj.user);
+      if (obj.data)  return extractName(obj.data);
+      return 'Usuario';
     }
 
-    function getRoleLabel(role) {
-      if (!role) return '';
-      var r = role.toLowerCase();
-      if (r === 'admin' || r === 'administrator' || r === 'superadmin') return 'Administrador';
-      if (r === 'empleado' || r === 'employee' || r === 'staff') return 'Empleado';
-      if (r === 'cliente' || r === 'client' || r === 'customer') return 'Cliente';
-      return role;
-    }
-
-    function isAdminRole(role) {
+    function hasAccess(role) {
       if (!role) return false;
-      return CONFIG.ADMIN_ROLES.indexOf(role.toLowerCase()) > -1;
+      var r = role.toLowerCase().trim();
+      return CONFIG.ACCESS_ROLES.some(function (a) { return a === r; });
+    }
+
+    function roleLabel(role) {
+      if (!role) return 'Usuario';
+      var r = role.toLowerCase().trim();
+      if (r === 'admin' || r === 'administrador' || r === 'administrator' || r === 'superadmin')
+        return 'Administrador';
+      if (r === 'empleado' || r === 'employee' || r === 'staff')
+        return 'Empleado';
+      if (r === 'cliente' || r === 'client' || r === 'customer')
+        return 'Cliente';
+      return role.charAt(0).toUpperCase() + role.slice(1);
+    }
+
+    function roleBadgeClass(role) {
+      if (!role) return 'role-badge--admin';
+      var r = role.toLowerCase().trim();
+      if (r === 'empleado' || r === 'employee' || r === 'staff') return 'role-badge--empleado';
+      if (r === 'cliente'  || r === 'client'   || r === 'customer') return 'role-badge--cliente';
+      return 'role-badge--admin';
     }
 
     /* ──────────────────────────────────────────────────────────
        CONTROL DE PANELES
        ────────────────────────────────────────────────────────── */
-    function showLogin() {
-      panelLogin.style.display   = '';
-      panelBlocked.style.display = 'none';
-      panelGranted.style.display = 'none';
+    function showPanel(panel) {
+      [panelLogin, panelBlocked, panelGranted].forEach(function (p) {
+        if (p) p.style.display = 'none';
+      });
+      if (panel) panel.style.display = 'block';
     }
 
-    function showBlocked(payload) {
-      panelLogin.style.display   = 'none';
-      panelBlocked.style.display = 'block';
-      panelGranted.style.display = 'none';
-
-      var name  = extractName(payload);
-      var role  = extractRole(payload);
+    function renderBlocked(userObj) {
+      var name  = extractName(userObj);
       var first = name.split(' ')[0];
-      var init  = name.charAt(0).toUpperCase() || '?';
+      var init  = (name.charAt(0) || '?').toUpperCase();
 
-      var avatarEl  = document.getElementById('blocked-avatar');
-      var nameEl    = document.getElementById('blocked-name');
-      var firstEl   = document.getElementById('blocked-first-name');
-      if (avatarEl)  avatarEl.textContent  = init;
-      if (nameEl)    nameEl.textContent    = name;
-      if (firstEl)   firstEl.textContent   = first;
+      setText('blocked-avatar', init);
+      setText('blocked-name', name);
+      setText('blocked-first-name', first);
+      showPanel(panelBlocked);
     }
 
-    function showGranted(payload) {
-      panelLogin.style.display   = 'none';
-      panelBlocked.style.display = 'none';
-      panelGranted.style.display = 'block';
+    function renderGranted(userObj, role) {
+      var name = extractName(userObj);
+      var init = (name.charAt(0) || '?').toUpperCase();
 
-      var name  = extractName(payload);
-      var role  = extractRole(payload);
-      var init  = name.charAt(0).toUpperCase() || '?';
+      setText('granted-avatar', init);
+      setText('granted-name', name);
 
-      var avatarEl   = document.getElementById('granted-avatar');
-      var nameEl     = document.getElementById('granted-name');
-      var badgeEl    = document.getElementById('granted-role-badge');
-      if (avatarEl)  avatarEl.textContent  = init;
-      if (nameEl)    nameEl.textContent    = name;
-      if (badgeEl) {
-        badgeEl.textContent = getRoleLabel(role);
-        badgeEl.className   = 'role-badge ' +
-          (isAdminRole(role) ? (role.toLowerCase().includes('empl') || role.toLowerCase().includes('staff')
-            ? 'role-badge--empleado' : 'role-badge--admin') : 'role-badge--admin');
+      var badge = document.getElementById('granted-role-badge');
+      if (badge) {
+        badge.textContent = roleLabel(role);
+        badge.className   = 'role-badge ' + roleBadgeClass(role);
       }
+      showPanel(panelGranted);
+    }
+
+    function setText(id, text) {
+      var el = document.getElementById(id);
+      if (el) el.textContent = text;
     }
 
     /* ──────────────────────────────────────────────────────────
-       EVALUACIÓN INICIAL — ¿hay JWT en localStorage?
+       OBTENER USUARIO DESDE EL BACKEND (rol fresco)
+       Intenta los endpoints de me.php en orden.
+       Si ninguno responde, usa el objeto user del login.
        ────────────────────────────────────────────────────────── */
-    function evaluateStoredToken() {
-      var token = getStoredToken();
-      if (!token) { showLogin(); return; }
+    async function fetchCurrentUser(token) {
+      var headers = {
+        'Accept': 'application/json',
+        'Authorization': 'Bearer ' + token,
+      };
+      for (var i = 0; i < CONFIG.ME_URLS.length; i++) {
+        try {
+          var res = await fetch(CONFIG.ME_URLS[i], {
+            method: 'GET',
+            headers: headers,
+            credentials: 'include',
+          });
+          if (res.ok) {
+            var data = await res.json();
+            /* Aceptar cualquier respuesta que tenga rol o user con rol */
+            var role = extractRole(data);
+            if (role) return data;
+          }
+        } catch (_) { /* ignorar errores de red por endpoint inaccesible */ }
+      }
+      return null; /* ningún endpoint respondió */
+    }
 
-      var payload = decodeJwtPayload(token);
-      if (!payload || isTokenExpired(payload)) {
-        removeStoredToken();
-        showLogin();
+    /* ──────────────────────────────────────────────────────────
+       EVALUACIÓN INICIAL — token en localStorage
+       ────────────────────────────────────────────────────────── */
+    async function evaluateSession() {
+      var token = getToken();
+      if (!token) { showPanel(panelLogin); return; }
+
+      /* Decodificar para verificar expiración */
+      var payload = decodeToken(token);
+      if (payload && tokenExpired(payload)) {
+        clearToken();
+        showPanel(panelLogin);
         return;
       }
 
-      var role = extractRole(payload);
-      if (isAdminRole(role)) {
-        showGranted(payload);
-        /* Si hay token válido de admin, auto-redirigir después de un breve delay */
-        setTimeout(function () { redirectToSite(); }, 800);
+      /* Intentar obtener el rol fresco del backend */
+      var freshUser = await fetchCurrentUser(token);
+      var userObj   = freshUser || payload || {};
+      var role      = extractRole(userObj);
+
+      if (!role && payload) role = extractRole(payload);
+
+      if (hasAccess(role)) {
+        renderGranted(userObj, role);
+        setTimeout(redirectToSite, 800);
+      } else if (role) {
+        renderBlocked(userObj);
       } else {
-        showBlocked(payload);
+        /* Sin rol determinable: pedir login de nuevo */
+        clearToken();
+        showPanel(panelLogin);
       }
     }
 
     /* ──────────────────────────────────────────────────────────
-       LOGIN — llama a la API real del backend
+       LOGIN — POST backend/api/login.php
+       Body: { "email": "...", "password": "..." }
+       OK:   { "ok": true, "token": "...", "user": { ... } }
        ────────────────────────────────────────────────────────── */
-    function setLoginLoading(loading) {
-      if (loading) {
-        btnLogin.classList.add('btn-login--loading');
-      } else {
-        btnLogin.classList.remove('btn-login--loading');
-      }
+    function setLoading(on) {
+      if (!btnLogin) return;
+      if (on) btnLogin.classList.add('btn-login--loading');
+      else    btnLogin.classList.remove('btn-login--loading');
     }
 
     function showError(msg) {
+      if (!loginAlertMsg || !loginAlert) return;
       loginAlertMsg.textContent = msg;
       loginAlert.classList.add('is-visible');
+      loginAlert.setAttribute('aria-hidden', 'false');
       loginAlert.focus();
     }
 
     function hideError() {
+      if (!loginAlert) return;
       loginAlert.classList.remove('is-visible');
+      loginAlert.setAttribute('aria-hidden', 'true');
     }
 
     async function doLogin() {
-      var identifier = identifierEl ? identifierEl.value.trim() : '';
-      var password   = passwordEl   ? passwordEl.value          : '';
+      var email    = identifierInput ? identifierInput.value.trim() : '';
+      var password = passwordInput   ? passwordInput.value          : '';
 
-      if (!identifier || !password) {
-        showError('Por favor ingresa tu usuario y contraseña.');
+      if (!email || !password) {
+        showError('Ingresa tu correo y contraseña.');
+        return;
+      }
+      if (email.length > 254 || password.length > 256) {
+        showError('Datos incorrectos.');
         return;
       }
 
       hideError();
-      setLoginLoading(true);
+      setLoading(true);
 
       try {
-        var response = await fetch(CONFIG.API_BASE + CONFIG.LOGIN_ENDPOINT, {
+        /* ── Llamada al backend REAL ── */
+        var res = await fetch(CONFIG.LOGIN_URL, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
             'Accept':       'application/json',
           },
+          /* Body exacto que espera backend/api/login.php */
           body: JSON.stringify({
-            /* Adapta los nombres de campo a los que usa tu API:
-               email/username/identifier + password/pass/contrasena */
-            email:    identifier,
-            username: identifier,
+            email:    email,
             password: password,
           }),
-          credentials: 'include', /* Para cookies de sesión si las usa tu backend */
+          credentials: 'include',
         });
 
         var data;
-        try { data = await response.json(); } catch (_) { data = {}; }
+        try { data = await res.json(); } catch (_) { data = {}; }
 
-        if (!response.ok) {
-          /* Usa el mensaje de error de la API si existe */
+        /* ── Verificar respuesta ── */
+        /* El backend devuelve { ok: true, token: '...', user: {...} }
+           o un HTTP 4xx / { ok: false, message: '...' } */
+        var loginOk = res.ok && (data.ok === true || data.ok === 1 || !!data.token);
+
+        if (!loginOk) {
           var errMsg = data.message
                     || data.error
                     || data.msg
-                    || (response.status === 401 ? 'Credenciales incorrectas.' : 'Error al iniciar sesión.')
-                    || 'Error al iniciar sesión. Intenta de nuevo.';
+                    || (res.status === 401 || res.status === 400
+                        ? 'Correo o contraseña incorrectos.'
+                        : 'Error al iniciar sesión. Intenta de nuevo.');
           showError(errMsg);
-          setLoginLoading(false);
+          setLoading(false);
           return;
         }
 
-        /* Extraer el JWT de la respuesta.
-           Adapta según lo que devuelve tu API:
-           data.token | data.access_token | data.jwt | data.data.token */
+        /* ── Token extraído de la respuesta del login ── */
         var token = data.token
                  || data.access_token
                  || data.jwt
-                 || (data.data && (data.data.token || data.data.access_token))
                  || null;
 
         if (!token) {
           showError('Respuesta inesperada del servidor. Contacta al administrador.');
-          setLoginLoading(false);
+          setLoading(false);
           return;
         }
 
-        /* Guardar token y evaluar rol */
+        /* ── Guardar token ── */
         saveToken(token);
-        var payload = decodeJwtPayload(token);
-        var role    = extractRole(payload);
 
-        setLoginLoading(false);
+        /* ── Obtener rol del usuario ──
+           Prioridad: data.user (respuesta del login) > backend me.php > JWT payload */
+        var loginUser  = data.user || null;
+        var freshUser  = await fetchCurrentUser(token);
+        var userObj    = freshUser || loginUser || decodeToken(token) || {};
+        var role       = extractRole(userObj);
 
-        if (isAdminRole(role)) {
-          showGranted(payload);
-          setTimeout(function () { redirectToSite(); }, CONFIG.REDIRECT_DELAY);
+        /* Fallback: role dentro del propio data de login */
+        if (!role) role = extractRole(data);
+
+        setLoading(false);
+
+        if (hasAccess(role)) {
+          renderGranted(userObj, role);
+          setTimeout(redirectToSite, CONFIG.REDIRECT_DELAY);
+        } else if (role) {
+          renderBlocked(userObj);
         } else {
-          showBlocked(payload);
+          /* No se pudo determinar el rol */
+          showError('No se pudo determinar tu rol. Contacta al administrador.');
         }
 
-      } catch (networkError) {
-        console.error('[OKStation Maintenance] Network error:', networkError);
-        showError('No se pudo conectar al servidor. Verifica tu conexión e intenta de nuevo.');
-        setLoginLoading(false);
+      } catch (netErr) {
+        console.error('[OKStation Guard] Error de red:', netErr);
+        showError('No se pudo conectar al servidor. Verifica tu conexión.');
+        setLoading(false);
       }
     }
 
+    /* ──────────────────────────────────────────────────────────
+       REDIRECT AL SITIO REAL
+       ────────────────────────────────────────────────────────── */
     function redirectToSite() {
-      /* Recuperar la URL a la que quería ir el usuario */
       var intended = '';
-      try { intended = sessionStorage.getItem('oks_intended_url') || ''; } catch (_) {}
-      try { sessionStorage.removeItem('oks_intended_url'); } catch (_) {}
+      try { intended = sessionStorage.getItem('oks_intended') || ''; } catch (_) {}
+      try { sessionStorage.removeItem('oks_intended'); } catch (_) {}
 
-      /* Evitar redirigir a maintenance.html de nuevo */
-      if (!intended || intended.includes('maintenance') || intended === window.location.pathname) {
+      /* Evitar loop de mantenimiento */
+      if (!intended
+          || intended.includes('maintenance')
+          || intended.includes('login')) {
         intended = CONFIG.SITE_URL;
       }
 
       window.location.href = intended;
     }
 
+    /* ──────────────────────────────────────────────────────────
+       LOGOUT
+       ────────────────────────────────────────────────────────── */
     function doLogout() {
-      removeStoredToken();
-      /* Notificar al backend si tiene endpoint de logout */
+      clearToken();
+      /* Llamar logout del backend si existe (no crítico) */
       try {
-        fetch(CONFIG.API_BASE + '/auth/logout', {
+        fetch('backend/api/logout.php', {
           method: 'POST',
           credentials: 'include',
-          headers: { 'Accept': 'application/json' }
+          headers: { 'Accept': 'application/json' },
         }).catch(function () {});
       } catch (_) {}
-      showLogin();
-      if (identifierEl) identifierEl.focus();
+      showPanel(panelLogin);
+      hideError();
+      if (identifierInput) { identifierInput.value = ''; identifierInput.focus(); }
+      if (passwordInput)   { passwordInput.value   = ''; }
     }
 
     /* ──────────────────────────────────────────────────────────
        EVENT LISTENERS
        ────────────────────────────────────────────────────────── */
-    if (btnLogin) {
-      btnLogin.addEventListener('click', doLogin);
-    }
+    if (btnLogin) btnLogin.addEventListener('click', doLogin);
 
-    /* Enter en los campos dispara login */
-    [identifierEl, passwordEl].forEach(function (el) {
+    [identifierInput, passwordInput].forEach(function (el) {
       if (!el) return;
       el.addEventListener('keydown', function (e) {
         if (e.key === 'Enter') { e.preventDefault(); doLogin(); }
       });
     });
 
-    /* Ir al sitio (panel-granted) */
-    if (btnEnter) {
-      btnEnter.addEventListener('click', redirectToSite);
-    }
+    if (btnEnter)         btnEnter.addEventListener('click', redirectToSite);
+    if (btnLogoutBlocked) btnLogoutBlocked.addEventListener('click', doLogout);
+    if (btnLogoutGranted) btnLogoutGranted.addEventListener('click', doLogout);
 
-    /* Logout desde panel bloqueado */
-    if (btnLogoutBlocked) {
-      btnLogoutBlocked.addEventListener('click', doLogout);
-    }
-
-    /* Logout desde panel concedido */
-    if (btnLogoutGranted) {
-      btnLogoutGranted.addEventListener('click', doLogout);
-    }
-
-    /* Toggle de contraseña */
-    if (pwToggle && passwordEl) {
+    if (pwToggle && passwordInput) {
       pwToggle.addEventListener('click', function () {
-        var show = passwordEl.type === 'password';
-        passwordEl.type = show ? 'text' : 'password';
+        var show = passwordInput.type === 'password';
+        passwordInput.type = show ? 'text' : 'password';
         pwToggle.classList.toggle('is-visible', show);
         pwToggle.setAttribute('aria-label', show ? 'Ocultar contraseña' : 'Mostrar contraseña');
-        passwordEl.focus();
+        passwordInput.focus();
       });
     }
 
     /* ──────────────────────────────────────────────────────────
        INICIALIZACIÓN
        ────────────────────────────────────────────────────────── */
-    document.addEventListener('DOMContentLoaded', function () {
-      evaluateStoredToken();
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', init);
+    } else {
+      init();
+    }
 
-      /* Foco automático */
-      if (identifierEl) {
-        setTimeout(function () { identifierEl.focus(); }, 100);
-      }
-    });
+    function init() {
+      evaluateSession();
+      if (identifierInput) setTimeout(function () { identifierInput.focus(); }, 120);
+    }
 
-    /* Exponer para debugging en consola durante desarrollo */
+    /* Debug en consola durante desarrollo */
     window._OKSMaint = {
-      getToken: getStoredToken,
-      clearToken: removeStoredToken,
-      evaluate: evaluateStoredToken,
+      getToken:  getToken,
+      clearToken: clearToken,
+      evaluate:  evaluateSession,
+      config:    CONFIG,
     };
 
   }());
