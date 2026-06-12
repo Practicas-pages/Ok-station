@@ -1,129 +1,1459 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>OK.station - Mantenimiento</title>
+  <!-- SEO desactivado durante mantenimiento -->
+  <meta name="robots" content="noindex, nofollow, noarchive, nosnippet">
+  <meta name="googlebot" content="noindex, nofollow">
+  <title>OK.station — Sitio en mantenimiento</title>
 
-<style>
+  <!-- Open Graph mínimo (evitar preview en redes con contenido del sitio real) -->
+  <meta property="og:title" content="OK.station — Próximamente">
+  <meta property="og:description" content="Estamos trabajando para ofrecerte una mejor experiencia. Vuelve pronto.">
 
-*{
-    margin:0;
-    padding:0;
-    box-sizing:border-box;
-    font-family:'Poppins',sans-serif;
-}
+  <!-- Fuente Poppins idéntica al sitio principal -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
-body{
-    min-height:100vh;
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    background:linear-gradient(135deg,#066CFF,#8B3DFF);
-    padding:20px;
-}
+  <style>
+    /* ============================================================
+       DESIGN TOKENS — exactamente los mismos que styles.css
+       ============================================================ */
+    :root {
+      --brand-blue:         #066CFF;
+      --brand-blue-hover:   #0558CC;
+      --brand-blue-light:   #E8F0FF;
+      --brand-purple:       #9C1DFF;
+      --brand-purple-hover: #7B16CC;
+      --brand-cyan:         #00C6FF;
+      --brand-orange:       #FF7C19;
+      --brand-black:        #0A0A0F;
 
-.card{
-    max-width:650px;
-    width:100%;
-    background:white;
-    border-radius:24px;
-    padding:50px;
-    text-align:center;
-    box-shadow:0 20px 50px rgba(0,0,0,.2);
-}
+      --grad-brand:   linear-gradient(135deg, #9C1DFF 0%, #066CFF 55%, #00C6FF 100%);
+      --grad-blue:    linear-gradient(135deg, #066CFF 0%, #00C6FF 100%);
+      --grad-purple:  linear-gradient(135deg, #9C1DFF 0%, #066CFF 100%);
 
-.logo{
-    font-size:42px;
-    font-weight:800;
-    margin-bottom:20px;
-}
+      --surface-dark:   #0D0E16;
+      --surface-dark-2: #141620;
+      --surface-dark-3: #1C1E2A;
+      --surface-dark-4: #222534;
 
-.logo .ok{
-    color:#066CFF;
-}
+      --text-on-dark:   rgba(255,255,255,0.92);
+      --text-on-dark-2: rgba(255,255,255,0.65);
+      --text-on-dark-3: rgba(255,255,255,0.40);
 
-.logo .dot{
-    color:#8B3DFF;
-}
+      --border-dark:   #2A2D3E;
+      --border-dark-2: #353849;
 
-h1{
-    font-size:32px;
-    margin-bottom:15px;
-    color:#1F2937;
-}
+      --color-success: #16A34A;
+      --color-warning: #D97706;
+      --color-error:   #DC2626;
+      --color-wa:      #25D366;
 
-p{
-    font-size:18px;
-    color:#6B7280;
-    line-height:1.7;
-    margin-bottom:25px;
-}
+      --shadow-md:    0 12px 32px rgba(12,20,50,0.09), 0 4px 12px rgba(12,20,50,0.05);
+      --shadow-lg:    0 24px 56px rgba(12,20,50,0.12), 0 8px 24px rgba(12,20,50,0.06);
+      --shadow-xl:    0 40px 80px rgba(12,20,50,0.16), 0 16px 40px rgba(12,20,50,0.08);
+      --shadow-brand: 0 12px 36px rgba(6,108,255,0.30), 0 4px 16px rgba(6,108,255,0.18);
 
-.status{
-    display:inline-block;
-    background:#FEF3C7;
-    color:#92400E;
-    padding:10px 18px;
-    border-radius:999px;
-    font-weight:600;
-    margin-bottom:25px;
-}
+      --radius-sm:   10px;
+      --radius-md:   16px;
+      --radius-lg:   22px;
+      --radius-xl:   32px;
+      --radius-full: 9999px;
 
-.btn{
-    display:inline-block;
-    padding:14px 28px;
-    border-radius:12px;
-    text-decoration:none;
-    background:#066CFF;
-    color:white;
-    font-weight:600;
-    transition:.3s;
-}
+      --transition-fast:   0.14s ease;
+      --transition-base:   0.22s ease;
+      --transition-spring: 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
 
-.btn:hover{
-    transform:translateY(-2px);
-}
+      --ff: "Poppins", system-ui, -apple-system, sans-serif;
+      --max-w: 1240px;
+    }
 
-.footer{
-    margin-top:25px;
-    color:#9CA3AF;
-    font-size:14px;
-}
+    /* ── Reset ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { font-size: 16px; -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
+    body {
+      font-family: var(--ff);
+      background: var(--surface-dark);
+      color: var(--text-on-dark);
+      line-height: 1.6;
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+    h1, h2, h3 { font-weight: 700; line-height: 1.1; letter-spacing: -0.025em; margin: 0; }
+    p { margin: 0; text-wrap: pretty; }
+    a { color: inherit; text-decoration: none; }
+    button, input { font-family: var(--ff); }
+    img, svg { display: block; }
 
-</style>
+    /* ── Layout wrapper ── */
+    .wrap {
+      max-width: var(--max-w);
+      margin: 0 auto;
+      padding: 0 clamp(16px, 4vw, 32px);
+    }
+
+    /* ============================================================
+       FONDO — mismas luces del hero del sitio principal
+       ============================================================ */
+    .maint-bg {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      overflow: hidden;
+    }
+    .maint-bg::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 70% 55% at 75% 15%, rgba(156,29,255,0.20) 0%, transparent 65%),
+        radial-gradient(ellipse 55% 65% at 15% 85%, rgba(6,108,255,0.18) 0%, transparent 60%),
+        radial-gradient(ellipse 45% 40% at 50% 50%, rgba(0,198,255,0.05) 0%, transparent 70%);
+    }
+    /* Partícula decorativa superior */
+    .maint-bg__orb {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(60px);
+      opacity: 0.12;
+      animation: orb-drift 14s ease-in-out infinite alternate;
+    }
+    .maint-bg__orb:nth-child(2) {
+      width: 400px; height: 400px;
+      background: var(--brand-purple);
+      top: -100px; right: -80px;
+      animation-duration: 16s;
+    }
+    .maint-bg__orb:nth-child(3) {
+      width: 320px; height: 320px;
+      background: var(--brand-blue);
+      bottom: -60px; left: -60px;
+      animation-duration: 12s;
+      animation-delay: -6s;
+    }
+    @keyframes orb-drift {
+      from { transform: translate(0, 0) scale(1); }
+      to   { transform: translate(30px, 20px) scale(1.08); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .maint-bg__orb { animation: none; }
+    }
+
+    /* ============================================================
+       HEADER
+       ============================================================ */
+    .maint-header {
+      position: relative;
+      z-index: 10;
+      padding: clamp(20px, 3vw, 28px) 0;
+      border-bottom: 1px solid rgba(255,255,255,0.07);
+    }
+    .maint-header__inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    /* Logo — misma estructura que .logo en styles.css */
+    .logo {
+      display: inline-flex;
+      align-items: baseline;
+      gap: 1px;
+      font-size: 1.5rem;
+      font-weight: 800;
+      letter-spacing: -0.05em;
+      line-height: 1;
+      text-decoration: none;
+      flex-shrink: 0;
+    }
+    .logo__ok      { color: var(--brand-blue); }
+    .logo__dot     { color: var(--brand-purple); }
+    .logo__station { color: rgba(255,255,255,0.90); font-weight: 600; }
+
+    /* Badge de estado */
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.70);
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.12);
+      padding: 6px 14px;
+      border-radius: var(--radius-full);
+      flex-shrink: 0;
+    }
+    .status-badge__dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: var(--brand-orange);
+      animation: dot-pulse 2s ease-in-out infinite;
+    }
+    @keyframes dot-pulse {
+      0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(255,124,25,0.4); }
+      50%       { opacity: 0.7; box-shadow: 0 0 0 5px rgba(255,124,25,0); }
+    }
+    @media (prefers-reduced-motion: reduce) { .status-badge__dot { animation: none; } }
+
+    /* ============================================================
+       MAIN LAYOUT — 2 columnas en desktop, stack en móvil
+       ============================================================ */
+    .maint-main {
+      position: relative;
+      z-index: 1;
+      padding: clamp(40px, 6vw, 72px) 0 clamp(40px, 5vw, 64px);
+    }
+    .maint-grid {
+      display: grid;
+      grid-template-columns: 1fr 420px;
+      gap: clamp(32px, 5vw, 64px);
+      align-items: start;
+    }
+
+    /* ── Columna izquierda: información ── */
+    .maint-info {}
+
+    .maint-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--brand-cyan);
+      margin-bottom: 20px;
+    }
+    .maint-eyebrow::before {
+      content: '';
+      width: 22px; height: 2.5px;
+      background: var(--brand-cyan);
+      border-radius: var(--radius-full);
+      flex-shrink: 0;
+    }
+
+    .maint-title {
+      font-size: clamp(2rem, 4.5vw, 3.4rem);
+      font-weight: 800;
+      letter-spacing: -0.04em;
+      line-height: 1.05;
+      margin-bottom: 20px;
+    }
+    .maint-title mark {
+      background: var(--grad-brand);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      -webkit-text-fill-color: transparent;
+      font-style: normal;
+    }
+
+    .maint-lead {
+      font-size: clamp(0.9375rem, 1.5vw, 1.0625rem);
+      color: var(--text-on-dark-2);
+      line-height: 1.7;
+      max-width: 520px;
+      margin-bottom: 36px;
+    }
+
+    /* Barra de progreso del proyecto */
+    .maint-progress {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid var(--border-dark);
+      border-radius: var(--radius-lg);
+      padding: 24px 28px;
+      margin-bottom: 32px;
+    }
+    .maint-progress__header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
+      gap: 12px;
+    }
+    .maint-progress__label {
+      font-size: 0.8125rem;
+      font-weight: 600;
+      color: var(--text-on-dark-2);
+    }
+    .maint-progress__pct {
+      font-size: 0.8125rem;
+      font-weight: 700;
+      color: var(--brand-cyan);
+    }
+    .maint-progress__bar {
+      height: 6px;
+      background: rgba(255,255,255,0.08);
+      border-radius: var(--radius-full);
+      overflow: hidden;
+    }
+    .maint-progress__fill {
+      height: 100%;
+      width: 78%;
+      background: var(--grad-blue);
+      border-radius: var(--radius-full);
+      animation: fill-anim 1.4s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+      animation-delay: 0.4s;
+    }
+    @keyframes fill-anim { from { width: 0; } }
+    @media (prefers-reduced-motion: reduce) {
+      .maint-progress__fill { animation: none; }
+    }
+    .maint-progress__phases {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-top: 16px;
+    }
+    .phase-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 0.75rem;
+      font-weight: 500;
+      padding: 4px 11px;
+      border-radius: var(--radius-full);
+      border: 1px solid transparent;
+    }
+    .phase-tag--done {
+      background: rgba(22,163,74,0.12);
+      border-color: rgba(22,163,74,0.25);
+      color: #4ADE80;
+    }
+    .phase-tag--done::before { content: '✓ '; }
+    .phase-tag--active {
+      background: rgba(6,108,255,0.14);
+      border-color: rgba(6,108,255,0.30);
+      color: #93C5FD;
+    }
+    .phase-tag--active::before { content: '→ '; }
+    .phase-tag--pending {
+      background: rgba(255,255,255,0.05);
+      border-color: var(--border-dark);
+      color: var(--text-on-dark-3);
+    }
+
+    /* Info cards de contacto */
+    .maint-contact-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    .maint-contact-card {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--border-dark);
+      border-radius: var(--radius-md);
+      padding: 14px 16px;
+      transition: border-color var(--transition-base), background var(--transition-base);
+      text-decoration: none;
+      color: inherit;
+    }
+    .maint-contact-card:hover {
+      border-color: rgba(6,108,255,0.35);
+      background: rgba(6,108,255,0.06);
+    }
+    .maint-contact-card:focus-visible {
+      outline: 2px solid var(--brand-cyan);
+      outline-offset: 2px;
+    }
+    .maint-contact-card__icon {
+      width: 38px; height: 38px;
+      flex-shrink: 0;
+      border-radius: var(--radius-sm);
+      background: var(--grad-blue);
+      display: grid;
+      place-items: center;
+    }
+    .maint-contact-card__icon svg { width: 18px; height: 18px; color: #fff; }
+    .maint-contact-card__label { font-size: 0.75rem; color: var(--text-on-dark-3); }
+    .maint-contact-card__value { font-size: 0.875rem; font-weight: 600; color: var(--text-on-dark); }
+
+    /* ── Columna derecha: panel de acceso ── */
+    .maint-panel {
+      background: var(--surface-dark-2);
+      border: 1px solid var(--border-dark);
+      border-radius: var(--radius-xl);
+      overflow: hidden;
+      box-shadow: var(--shadow-xl);
+      position: sticky;
+      top: 24px;
+    }
+
+    /* Gradiente superior del panel */
+    .maint-panel__accent {
+      height: 4px;
+      background: var(--grad-brand);
+    }
+
+    .maint-panel__body { padding: 32px; }
+
+    .maint-panel__title {
+      font-size: 1.125rem;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 6px;
+    }
+    .maint-panel__sub {
+      font-size: 0.8125rem;
+      color: var(--text-on-dark-3);
+      margin-bottom: 28px;
+      line-height: 1.55;
+    }
+
+    /* ── ESTADO 1: Formulario de login (por defecto) ── */
+    .panel-login {}
+
+    /* ── ESTADO 2: Cliente autenticado — bloqueado ── */
+    .panel-blocked {
+      display: none;
+      text-align: center;
+      padding: 8px 0 16px;
+    }
+    .panel-blocked__icon {
+      width: 64px; height: 64px;
+      border-radius: 50%;
+      background: rgba(217,119,6,0.15);
+      border: 1px solid rgba(217,119,6,0.3);
+      display: grid;
+      place-items: center;
+      margin: 0 auto 20px;
+    }
+    .panel-blocked__icon svg { width: 30px; height: 30px; color: #FCD34D; }
+    .panel-blocked__title { font-size: 1.1rem; font-weight: 700; color: #fff; margin-bottom: 10px; }
+    .panel-blocked__msg {
+      font-size: 0.875rem;
+      color: var(--text-on-dark-2);
+      line-height: 1.65;
+      margin-bottom: 24px;
+    }
+
+    /* ── ESTADO 3: Acceso concedido ── */
+    .panel-granted {
+      display: none;
+      text-align: center;
+      padding: 8px 0 16px;
+    }
+    .panel-granted__icon {
+      width: 64px; height: 64px;
+      border-radius: 50%;
+      background: var(--grad-blue);
+      display: grid;
+      place-items: center;
+      margin: 0 auto 20px;
+      box-shadow: var(--shadow-brand);
+      animation: granted-pop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    @keyframes granted-pop { from { transform: scale(0.4); opacity: 0; } }
+    @media (prefers-reduced-motion: reduce) { .panel-granted__icon { animation: none; } }
+    .panel-granted__icon svg { width: 30px; height: 30px; color: #fff; }
+    .panel-granted__title { font-size: 1.1rem; font-weight: 700; color: #fff; margin-bottom: 10px; }
+    .panel-granted__msg {
+      font-size: 0.875rem;
+      color: var(--text-on-dark-2);
+      line-height: 1.65;
+      margin-bottom: 24px;
+    }
+
+    /* ── Alerta de error ── */
+    .login-alert {
+      display: none;
+      align-items: flex-start;
+      gap: 10px;
+      background: rgba(220,38,38,0.10);
+      border: 1px solid rgba(220,38,38,0.28);
+      border-radius: var(--radius-md);
+      padding: 12px 14px;
+      margin-bottom: 18px;
+      font-size: 0.8125rem;
+      color: #FCA5A5;
+      line-height: 1.5;
+    }
+    .login-alert.is-visible { display: flex; }
+    .login-alert svg { width: 16px; height: 16px; flex-shrink: 0; margin-top: 1px; color: #F87171; }
+
+    /* ── Campos del formulario ── */
+    .form-field { margin-bottom: 14px; }
+    .form-field label {
+      display: block;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--text-on-dark-3);
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      margin-bottom: 7px;
+    }
+    .form-field__wrap { position: relative; }
+    .form-field__icon {
+      position: absolute;
+      left: 13px; top: 50%;
+      transform: translateY(-50%);
+      width: 17px; height: 17px;
+      color: rgba(255,255,255,0.28);
+      pointer-events: none;
+      transition: color var(--transition-fast);
+    }
+    .form-field__wrap:focus-within .form-field__icon { color: var(--brand-cyan); }
+    .form-field input {
+      width: 100%;
+      background: rgba(255,255,255,0.05);
+      border: 1.5px solid var(--border-dark-2);
+      border-radius: var(--radius-md);
+      padding: 12px 14px 12px 40px;
+      font-size: 0.9375rem;
+      color: #fff;
+      transition: border-color var(--transition-fast), background var(--transition-fast);
+      appearance: none;
+      -webkit-appearance: none;
+    }
+    .form-field input::placeholder { color: rgba(255,255,255,0.22); }
+    .form-field input:hover  { border-color: rgba(255,255,255,0.22); }
+    .form-field input:focus  {
+      outline: none;
+      border-color: var(--brand-cyan);
+      background: rgba(0,198,255,0.04);
+    }
+    .form-field input[type="date"] { color-scheme: dark; cursor: pointer; }
+
+    /* Password toggle */
+    .pw-toggle {
+      position: absolute;
+      right: 11px; top: 50%;
+      transform: translateY(-50%);
+      background: none; border: none;
+      cursor: pointer; padding: 4px;
+      color: rgba(255,255,255,0.30);
+      border-radius: 6px;
+      display: grid; place-items: center;
+      transition: color var(--transition-fast);
+    }
+    .pw-toggle:hover { color: rgba(255,255,255,0.60); }
+    .pw-toggle:focus-visible { outline: 2px solid var(--brand-cyan); outline-offset: 2px; }
+    .pw-toggle svg { width: 17px; height: 17px; }
+    .pw-toggle .icon-eye-off { display: none; }
+    .pw-toggle.is-visible .icon-eye { display: none; }
+    .pw-toggle.is-visible .icon-eye-off { display: block; }
+    .form-field input[type="password"],
+    .form-field input[type="text"].is-password { padding-right: 42px; }
+
+    /* ── Botón principal ── */
+    .btn-login {
+      width: 100%;
+      padding: 13px 24px;
+      margin-top: 4px;
+      background: var(--brand-blue);
+      color: #fff;
+      border: none;
+      border-radius: var(--radius-full);
+      font-size: 0.9375rem;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: var(--shadow-brand);
+      transition: background var(--transition-base), transform var(--transition-base), box-shadow var(--transition-base);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      min-height: 46px;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .btn-login:hover { background: var(--brand-blue-hover); transform: translateY(-2px); box-shadow: 0 16px 48px rgba(6,108,255,0.40); }
+    .btn-login:active { transform: scale(0.98); }
+    .btn-login:focus-visible { outline: 2px solid var(--brand-cyan); outline-offset: 3px; }
+    .btn-login svg { width: 17px; height: 17px; }
+    .btn-login--loading {
+      opacity: 0.72;
+      pointer-events: none;
+    }
+    .btn-login--loading .btn-login__label { display: none; }
+    .btn-login--loading::after {
+      content: '';
+      width: 16px; height: 16px;
+      border: 2px solid rgba(255,255,255,0.35);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.55s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    @media (prefers-reduced-motion: reduce) { .btn-login--loading::after { animation: none; } }
+
+    /* ── Botón secundario (ghost) ── */
+    .btn-ghost {
+      width: 100%;
+      padding: 11px 24px;
+      background: rgba(255,255,255,0.06);
+      color: var(--text-on-dark-2);
+      border: 1.5px solid var(--border-dark-2);
+      border-radius: var(--radius-full);
+      font-family: var(--ff);
+      font-size: 0.875rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background var(--transition-base), color var(--transition-base), border-color var(--transition-base);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      min-height: 42px;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .btn-ghost:hover { background: rgba(255,255,255,0.10); color: #fff; border-color: rgba(255,255,255,0.25); }
+    .btn-ghost:focus-visible { outline: 2px solid var(--brand-cyan); outline-offset: 3px; }
+    .btn-ghost svg { width: 16px; height: 16px; }
+
+    /* ── Separador ── */
+    .panel-divider {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 18px 0;
+      font-size: 0.75rem;
+      color: var(--text-on-dark-3);
+    }
+    .panel-divider::before, .panel-divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border-dark);
+    }
+
+    /* ── Usuario logueado: info card ── */
+    .user-card {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--border-dark);
+      border-radius: var(--radius-md);
+      padding: 12px 14px;
+      margin-bottom: 16px;
+    }
+    .user-card__avatar {
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      background: var(--grad-purple);
+      display: grid;
+      place-items: center;
+      font-size: 0.875rem;
+      font-weight: 700;
+      color: #fff;
+      flex-shrink: 0;
+    }
+    .user-card__name { font-size: 0.875rem; font-weight: 600; color: #fff; }
+    .user-card__role {
+      font-size: 0.75rem;
+      color: var(--text-on-dark-3);
+      margin-top: 1px;
+    }
+    .role-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 0.6875rem;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: var(--radius-full);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .role-badge--admin    { background: rgba(6,108,255,0.18); color: #93C5FD; border: 1px solid rgba(6,108,255,0.30); }
+    .role-badge--empleado { background: rgba(22,163,74,0.15); color: #86EFAC; border: 1px solid rgba(22,163,74,0.25); }
+    .role-badge--cliente  { background: rgba(217,119,6,0.15);  color: #FCD34D; border: 1px solid rgba(217,119,6,0.25); }
+
+    /* ── Footer del panel ── */
+    .maint-panel__footer {
+      padding: 16px 32px 24px;
+      border-top: 1px solid rgba(255,255,255,0.06);
+      text-align: center;
+      font-size: 0.75rem;
+      color: var(--text-on-dark-3);
+      line-height: 1.6;
+    }
+    .maint-panel__footer a {
+      color: rgba(255,255,255,0.45);
+      text-decoration: underline;
+      text-underline-offset: 2px;
+      transition: color var(--transition-fast);
+    }
+    .maint-panel__footer a:hover { color: rgba(255,255,255,0.75); }
+
+    /* ============================================================
+       FOOTER
+       ============================================================ */
+    .maint-footer {
+      position: relative;
+      z-index: 1;
+      padding: clamp(20px, 3vw, 28px) 0;
+      border-top: 1px solid rgba(255,255,255,0.06);
+    }
+    .maint-footer__inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      font-size: 0.8125rem;
+      color: var(--text-on-dark-3);
+    }
+    .maint-footer__brand { color: var(--brand-cyan); font-weight: 600; }
+
+    /* ============================================================
+       RESPONSIVE
+       ============================================================ */
+    @media (max-width: 900px) {
+      .maint-grid { grid-template-columns: 1fr; }
+      .maint-panel { position: static; }
+      .maint-contact-grid { grid-template-columns: 1fr 1fr; }
+    }
+
+    @media (max-width: 640px) {
+      .maint-contact-grid { grid-template-columns: 1fr; }
+      .maint-panel__body  { padding: 24px 20px; }
+      .maint-panel__footer { padding: 14px 20px 20px; }
+      .status-badge { display: none; }
+    }
+
+    @media (max-width: 380px) {
+      .maint-progress { padding: 18px; }
+      .maint-progress__phases { gap: 4px; }
+      .phase-tag { font-size: 0.6875rem; padding: 3px 8px; }
+    }
+  </style>
 </head>
-
 <body>
 
-<div class="card">
+  <!-- Fondo decorativo -->
+  <div class="maint-bg" aria-hidden="true">
+    <div class="maint-bg__orb"></div>
+    <div class="maint-bg__orb"></div>
+  </div>
 
-    <div class="logo">
-        <span class="ok">OK</span><span class="dot">.</span>station
+  <!-- ── Header ── -->
+  <header class="maint-header">
+    <div class="wrap maint-header__inner">
+      <a href="/" class="logo" aria-label="OK.station — Inicio">
+        <span class="logo__ok">OK</span><span class="logo__dot">.</span><span class="logo__station">station</span>
+      </a>
+      <div class="status-badge" role="status" aria-live="polite">
+        <span class="status-badge__dot" aria-hidden="true"></span>
+        En mantenimiento
+      </div>
     </div>
+  </header>
 
-    <div class="status">
-        🚧 Sitio en mantenimiento
+  <!-- ── Main ── -->
+  <main class="maint-main" id="main">
+    <div class="wrap">
+      <div class="maint-grid">
+
+        <!-- ── Columna izquierda: información ── -->
+        <div class="maint-info">
+
+          <p class="maint-eyebrow">Modo mantenimiento activo</p>
+
+          <h1 class="maint-title">
+            Estamos construyendo<br>
+            <mark>algo increíble.</mark>
+          </h1>
+
+          <p class="maint-lead">
+            OK.station está en proceso de lanzamiento. Nuestro equipo está trabajando
+            para ofrecerte la mejor experiencia en copias, impresiones y servicios de
+            trámites en Tijuana. Pronto estaremos listos.
+          </p>
+
+          <!-- Progreso del proyecto -->
+          <div class="maint-progress" role="region" aria-label="Progreso del proyecto">
+            <div class="maint-progress__header">
+              <span class="maint-progress__label">Progreso del proyecto</span>
+              <span class="maint-progress__pct" aria-label="78 por ciento completado">78%</span>
+            </div>
+            <div class="maint-progress__bar" role="progressbar" aria-valuenow="78" aria-valuemin="0" aria-valuemax="100" aria-label="78% completado">
+              <div class="maint-progress__fill"></div>
+            </div>
+            <div class="maint-progress__phases" aria-label="Fases del proyecto">
+              <span class="phase-tag phase-tag--done">Diseño UI</span>
+              <span class="phase-tag phase-tag--done">Frontend</span>
+              <span class="phase-tag phase-tag--done">Base de datos</span>
+              <span class="phase-tag phase-tag--active">Integración API</span>
+              <span class="phase-tag phase-tag--pending">Pruebas QA</span>
+              <span class="phase-tag phase-tag--pending">Lanzamiento</span>
+            </div>
+          </div>
+
+          <!-- Contacto -->
+          <div class="maint-contact-grid" role="list" aria-label="Información de contacto">
+            <a href="https://wa.me/5216641044896" target="_blank" rel="noopener noreferrer"
+               class="maint-contact-card" role="listitem">
+              <div class="maint-contact-card__icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M.057 24l1.687-6.163A11.867 11.867 0 01.16 11.892C.163 5.335 5.495 0 12.05 0a11.817 11.817 0 018.413 3.488 11.816 11.816 0 013.48 8.414c-.003 6.557-5.338 11.892-11.893 11.892a11.9 11.9 0 01-5.688-1.448L.057 24zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884a9.86 9.86 0 001.51 5.26l-.999 3.648 3.978-1.04zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.017-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.247-.694.247-1.29.173-1.414z"/>
+                </svg>
+              </div>
+              <div>
+                <div class="maint-contact-card__label">WhatsApp</div>
+                <div class="maint-contact-card__value">(664) 104-4896</div>
+              </div>
+            </a>
+
+            <a href="mailto:station@okdock.mx" class="maint-contact-card" role="listitem">
+              <div class="maint-contact-card__icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="2" y="4" width="20" height="16" rx="2"/>
+                  <path d="M22 7l-10 5L2 7"/>
+                </svg>
+              </div>
+              <div>
+                <div class="maint-contact-card__label">Correo</div>
+                <div class="maint-contact-card__value">station@okdock.mx</div>
+              </div>
+            </a>
+
+            <a href="https://maps.google.com/?q=Centro+Comercial+Otay+Tijuana"
+               target="_blank" rel="noopener noreferrer" class="maint-contact-card" role="listitem">
+              <div class="maint-contact-card__icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/>
+                  <circle cx="12" cy="10" r="3"/>
+                </svg>
+              </div>
+              <div>
+                <div class="maint-contact-card__label">Ubicación</div>
+                <div class="maint-contact-card__value">C.C. Otay, Tijuana</div>
+              </div>
+            </a>
+
+            <div class="maint-contact-card" role="listitem">
+              <div class="maint-contact-card__icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="10"/>
+                  <polyline points="12 6 12 12 16 14"/>
+                </svg>
+              </div>
+              <div>
+                <div class="maint-contact-card__label">Horario</div>
+                <div class="maint-contact-card__value">Lun–Vie 9–19h</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── Columna derecha: panel de acceso ── -->
+        <div class="maint-panel" role="region" aria-label="Panel de acceso para personal">
+          <div class="maint-panel__accent" aria-hidden="true"></div>
+          <div class="maint-panel__body">
+
+            <h2 class="maint-panel__title" id="panel-title">Acceso interno</h2>
+            <p class="maint-panel__sub" id="panel-sub">
+              Personal y administradores pueden acceder al sitio durante el mantenimiento.
+            </p>
+
+            <!-- ── ESTADO A: Formulario de login ── -->
+            <div class="panel-login" id="panel-login" role="form" aria-label="Formulario de acceso">
+
+              <!-- Alerta de error -->
+              <div class="login-alert" id="login-alert" role="alert" aria-live="assertive" aria-atomic="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <circle cx="12" cy="12" r="10"/>
+                  <line x1="12" y1="8" x2="12" y2="12"/>
+                  <line x1="12" y1="16" x2="12.01" y2="16"/>
+                </svg>
+                <span id="login-alert-msg"></span>
+              </div>
+
+              <!-- Campo: email/usuario -->
+              <div class="form-field">
+                <label for="login-identifier">Usuario o correo</label>
+                <div class="form-field__wrap">
+                  <svg class="form-field__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/>
+                    <circle cx="12" cy="7" r="4"/>
+                  </svg>
+                  <input
+                    type="text"
+                    id="login-identifier"
+                    name="identifier"
+                    placeholder="usuario@okstation.mx"
+                    autocomplete="username"
+                    autocapitalize="none"
+                    spellcheck="false"
+                    required
+                    maxlength="254"
+                  >
+                </div>
+              </div>
+
+              <!-- Campo: contraseña -->
+              <div class="form-field">
+                <label for="login-password">Contraseña</label>
+                <div class="form-field__wrap">
+                  <svg class="form-field__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                    <path d="M7 11V7a5 5 0 0110 0v4"/>
+                  </svg>
+                  <input
+                    type="password"
+                    id="login-password"
+                    name="password"
+                    placeholder="••••••••"
+                    autocomplete="current-password"
+                    required
+                    maxlength="256"
+                  >
+                  <button type="button" class="pw-toggle" id="pw-toggle" aria-label="Mostrar contraseña">
+                    <svg class="icon-eye" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                      <circle cx="12" cy="12" r="3"/>
+                    </svg>
+                    <svg class="icon-eye-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                      <path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/>
+                      <line x1="1" y1="1" x2="23" y2="23"/>
+                    </svg>
+                  </button>
+                </div>
+              </div>
+
+              <button type="button" class="btn-login" id="btn-login">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4"/>
+                  <polyline points="10 17 15 12 10 7"/>
+                  <line x1="15" y1="12" x2="3" y2="12"/>
+                </svg>
+                <span class="btn-login__label">Ingresar</span>
+              </button>
+
+            </div><!-- /panel-login -->
+
+            <!-- ── ESTADO B: Cliente — acceso bloqueado ── -->
+            <div class="panel-blocked" id="panel-blocked">
+              <div class="user-card" id="blocked-user-card" aria-label="Usuario autenticado">
+                <div class="user-card__avatar" id="blocked-avatar" aria-hidden="true">?</div>
+                <div>
+                  <div class="user-card__name" id="blocked-name">—</div>
+                  <div class="user-card__role">
+                    <span class="role-badge role-badge--cliente" id="blocked-role-badge">Cliente</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="panel-blocked__icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+                  <line x1="12" y1="9" x2="12" y2="13"/>
+                  <line x1="12" y1="17" x2="12.01" y2="17"/>
+                </svg>
+              </div>
+              <h3 class="panel-blocked__title">Sitio en mantenimiento</h3>
+              <p class="panel-blocked__msg">
+                Hola <strong id="blocked-first-name">—</strong>, tu cuenta está activa pero
+                el sitio sigue en mantenimiento. Podrás acceder cuando el equipo
+                finalice el proceso de configuración.
+              </p>
+              <button type="button" class="btn-ghost" id="btn-logout-blocked">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/>
+                  <polyline points="16 17 21 12 16 7"/>
+                  <line x1="21" y1="12" x2="9" y2="12"/>
+                </svg>
+                Cerrar sesión
+              </button>
+            </div><!-- /panel-blocked -->
+
+            <!-- ── ESTADO C: Admin/Empleado — acceso concedido ── -->
+            <div class="panel-granted" id="panel-granted">
+              <div class="user-card" id="granted-user-card" aria-label="Usuario autenticado con acceso">
+                <div class="user-card__avatar" id="granted-avatar" aria-hidden="true">?</div>
+                <div>
+                  <div class="user-card__name" id="granted-name">—</div>
+                  <div class="user-card__role">
+                    <span class="role-badge role-badge--admin" id="granted-role-badge">Admin</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="panel-granted__icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="20 6 9 17 4 12"/>
+                </svg>
+              </div>
+              <h3 class="panel-granted__title">¡Bienvenido de vuelta!</h3>
+              <p class="panel-granted__msg">
+                Acceso concedido. Entrando al sitio…
+              </p>
+              <button type="button" class="btn-login" id="btn-enter">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M3 12h18M13 6l6 6-6 6"/>
+                </svg>
+                <span class="btn-login__label">Ir al sitio</span>
+              </button>
+              <div class="panel-divider">o</div>
+              <button type="button" class="btn-ghost" id="btn-logout-granted">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/>
+                  <polyline points="16 17 21 12 16 7"/>
+                  <line x1="21" y1="12" x2="9" y2="12"/>
+                </svg>
+                Cerrar sesión
+              </button>
+            </div><!-- /panel-granted -->
+
+          </div><!-- /panel-body -->
+
+          <div class="maint-panel__footer">
+            ¿Necesitas ayuda?
+            <a href="mailto:station@okdock.mx">Contacta al administrador</a>
+          </div>
+        </div><!-- /maint-panel -->
+
+      </div><!-- /maint-grid -->
+    </div><!-- /wrap -->
+  </main>
+
+  <!-- ── Footer ── -->
+  <footer class="maint-footer">
+    <div class="wrap maint-footer__inner">
+      <span>© 2026 OK.station · Una marca de OK Dock · Tijuana, B.C.</span>
+      <span class="maint-footer__brand">You say tech, we listen.</span>
     </div>
+  </footer>
 
-    <h1>Estamos realizando mejoras</h1>
+  <script>
+  /* ============================================================
+     OK.station — Maintenance Guard v2
+     Lógica de autenticación JWT para la pantalla de mantenimiento.
 
-    <p>
-        Nuestro equipo se encuentra trabajando para mejorar la experiencia
-        de OK.station.
-        El acceso temporalmente está disponible únicamente para administradores.
-    </p>
+     FLUJO:
+     1. Al cargar: verificar si hay JWT válido en localStorage.
+     2. Si hay JWT: decodificar, leer rol.
+        - rol admin/empleado → mostrar panel-granted
+        - rol cliente        → mostrar panel-blocked
+     3. Si NO hay JWT: mostrar formulario (panel-login).
+     4. Al enviar el form: llamar a la API real del backend.
+     5. Si login OK: guardar JWT, re-evaluar rol.
+     6. Si acceso concedido: redirigir al sitio real.
 
-    <a href="cuenta.html" class="btn">
-        Iniciar sesión como administrador
-    </a>
+     CONFIGURA:
+       API_BASE  → URL de tu backend PHP
+       JWT_KEY   → clave del JWT en localStorage (la que usa tu app)
+       ADMIN_ROLES → roles que tienen acceso al sitio
+  ============================================================ */
+  (function () {
+    'use strict';
 
-    <div class="footer">
-        OK.station © 2026
-    </div>
+    /* ──────────────────────────────────────────────────────────
+       CONFIGURACIÓN — adapta estos valores a tu proyecto
+       ────────────────────────────────────────────────────────── */
+    var CONFIG = {
+      /* URL base de tu API PHP.
+         Si tu API está en /api/ en el mismo dominio: '/api'
+         Si está en otro dominio: 'https://api.okstation.mx' */
+      API_BASE: '/api',
 
-</div>
+      /* Endpoint de login de tu API existente.
+         Cambia a la ruta real: '/auth/login', '/user/login', etc. */
+      LOGIN_ENDPOINT: '/auth/login',
+
+      /* Clave bajo la que tu app guarda el JWT en localStorage.
+         Busca en tu código algo como: localStorage.setItem('token', ...)
+         o localStorage.setItem('okstation_token', ...) */
+      JWT_KEY: 'okstation_token',
+
+      /* Clave alternativa (algunos sistemas usan 'access_token') */
+      JWT_KEY_ALT: 'access_token',
+
+      /* Roles con acceso completo durante mantenimiento */
+      ADMIN_ROLES: ['admin', 'administrator', 'superadmin', 'empleado', 'employee', 'staff'],
+
+      /* Rol de cliente (bloqueado durante mantenimiento) */
+      CLIENT_ROLES: ['cliente', 'client', 'customer', 'user'],
+
+      /* URL a la que redirigir tras acceso concedido */
+      SITE_URL: '/',
+
+      /* Tiempo de espera tras acceso concedido antes de redirigir (ms) */
+      REDIRECT_DELAY: 1400,
+    };
+
+    /* ──────────────────────────────────────────────────────────
+       REFERENCIAS DOM
+       ────────────────────────────────────────────────────────── */
+    var panelLogin   = document.getElementById('panel-login');
+    var panelBlocked = document.getElementById('panel-blocked');
+    var panelGranted = document.getElementById('panel-granted');
+    var loginAlert   = document.getElementById('login-alert');
+    var loginAlertMsg= document.getElementById('login-alert-msg');
+    var identifierEl = document.getElementById('login-identifier');
+    var passwordEl   = document.getElementById('login-password');
+    var btnLogin     = document.getElementById('btn-login');
+    var btnEnter     = document.getElementById('btn-enter');
+    var btnLogoutBlocked = document.getElementById('btn-logout-blocked');
+    var btnLogoutGranted = document.getElementById('btn-logout-granted');
+    var pwToggle     = document.getElementById('pw-toggle');
+
+    /* ──────────────────────────────────────────────────────────
+       UTILIDADES JWT
+       ────────────────────────────────────────────────────────── */
+    function getStoredToken() {
+      try {
+        return localStorage.getItem(CONFIG.JWT_KEY)
+            || localStorage.getItem(CONFIG.JWT_KEY_ALT)
+            || sessionStorage.getItem(CONFIG.JWT_KEY)
+            || sessionStorage.getItem(CONFIG.JWT_KEY_ALT)
+            || null;
+      } catch (_) { return null; }
+    }
+
+    function removeStoredToken() {
+      try {
+        localStorage.removeItem(CONFIG.JWT_KEY);
+        localStorage.removeItem(CONFIG.JWT_KEY_ALT);
+        sessionStorage.removeItem(CONFIG.JWT_KEY);
+        sessionStorage.removeItem(CONFIG.JWT_KEY_ALT);
+      } catch (_) {}
+    }
+
+    function saveToken(token) {
+      try { localStorage.setItem(CONFIG.JWT_KEY, token); } catch (_) {}
+    }
+
+    /* Decodificar payload del JWT sin verificar firma (es cliente) */
+    function decodeJwtPayload(token) {
+      try {
+        var parts = token.split('.');
+        if (parts.length !== 3) return null;
+        /* Base64url → Base64 estándar */
+        var base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+        /* Padding */
+        while (base64.length % 4) { base64 += '='; }
+        var json = atob(base64);
+        return JSON.parse(decodeURIComponent(
+          json.split('').map(function (c) {
+            return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+          }).join('')
+        ));
+      } catch (_) { return null; }
+    }
+
+    /* Verificar si el token está expirado */
+    function isTokenExpired(payload) {
+      if (!payload || !payload.exp) return false;
+      return Math.floor(Date.now() / 1000) > payload.exp;
+    }
+
+    /* Extraer el rol del payload.
+       Adapta los nombres de campo según tu API:
+       payload.role | payload.roles[0] | payload.user.role | payload.data.role */
+    function extractRole(payload) {
+      if (!payload) return null;
+      /* Intenta múltiples rutas posibles en el payload */
+      return payload.role
+          || payload.rol
+          || (payload.roles && payload.roles[0])
+          || (payload.user && (payload.user.role || payload.user.rol))
+          || (payload.data && (payload.data.role || payload.data.rol))
+          || null;
+    }
+
+    function extractName(payload) {
+      if (!payload) return '';
+      return payload.name
+          || payload.nombre
+          || payload.email
+          || (payload.user && (payload.user.name || payload.user.nombre || payload.user.email))
+          || (payload.data && (payload.data.name || payload.data.nombre))
+          || 'Usuario';
+    }
+
+    function getRoleLabel(role) {
+      if (!role) return '';
+      var r = role.toLowerCase();
+      if (r === 'admin' || r === 'administrator' || r === 'superadmin') return 'Administrador';
+      if (r === 'empleado' || r === 'employee' || r === 'staff') return 'Empleado';
+      if (r === 'cliente' || r === 'client' || r === 'customer') return 'Cliente';
+      return role;
+    }
+
+    function isAdminRole(role) {
+      if (!role) return false;
+      return CONFIG.ADMIN_ROLES.indexOf(role.toLowerCase()) > -1;
+    }
+
+    /* ──────────────────────────────────────────────────────────
+       CONTROL DE PANELES
+       ────────────────────────────────────────────────────────── */
+    function showLogin() {
+      panelLogin.style.display   = '';
+      panelBlocked.style.display = 'none';
+      panelGranted.style.display = 'none';
+    }
+
+    function showBlocked(payload) {
+      panelLogin.style.display   = 'none';
+      panelBlocked.style.display = 'block';
+      panelGranted.style.display = 'none';
+
+      var name  = extractName(payload);
+      var role  = extractRole(payload);
+      var first = name.split(' ')[0];
+      var init  = name.charAt(0).toUpperCase() || '?';
+
+      var avatarEl  = document.getElementById('blocked-avatar');
+      var nameEl    = document.getElementById('blocked-name');
+      var firstEl   = document.getElementById('blocked-first-name');
+      if (avatarEl)  avatarEl.textContent  = init;
+      if (nameEl)    nameEl.textContent    = name;
+      if (firstEl)   firstEl.textContent   = first;
+    }
+
+    function showGranted(payload) {
+      panelLogin.style.display   = 'none';
+      panelBlocked.style.display = 'none';
+      panelGranted.style.display = 'block';
+
+      var name  = extractName(payload);
+      var role  = extractRole(payload);
+      var init  = name.charAt(0).toUpperCase() || '?';
+
+      var avatarEl   = document.getElementById('granted-avatar');
+      var nameEl     = document.getElementById('granted-name');
+      var badgeEl    = document.getElementById('granted-role-badge');
+      if (avatarEl)  avatarEl.textContent  = init;
+      if (nameEl)    nameEl.textContent    = name;
+      if (badgeEl) {
+        badgeEl.textContent = getRoleLabel(role);
+        badgeEl.className   = 'role-badge ' +
+          (isAdminRole(role) ? (role.toLowerCase().includes('empl') || role.toLowerCase().includes('staff')
+            ? 'role-badge--empleado' : 'role-badge--admin') : 'role-badge--admin');
+      }
+    }
+
+    /* ──────────────────────────────────────────────────────────
+       EVALUACIÓN INICIAL — ¿hay JWT en localStorage?
+       ────────────────────────────────────────────────────────── */
+    function evaluateStoredToken() {
+      var token = getStoredToken();
+      if (!token) { showLogin(); return; }
+
+      var payload = decodeJwtPayload(token);
+      if (!payload || isTokenExpired(payload)) {
+        removeStoredToken();
+        showLogin();
+        return;
+      }
+
+      var role = extractRole(payload);
+      if (isAdminRole(role)) {
+        showGranted(payload);
+        /* Si hay token válido de admin, auto-redirigir después de un breve delay */
+        setTimeout(function () { redirectToSite(); }, 800);
+      } else {
+        showBlocked(payload);
+      }
+    }
+
+    /* ──────────────────────────────────────────────────────────
+       LOGIN — llama a la API real del backend
+       ────────────────────────────────────────────────────────── */
+    function setLoginLoading(loading) {
+      if (loading) {
+        btnLogin.classList.add('btn-login--loading');
+      } else {
+        btnLogin.classList.remove('btn-login--loading');
+      }
+    }
+
+    function showError(msg) {
+      loginAlertMsg.textContent = msg;
+      loginAlert.classList.add('is-visible');
+      loginAlert.focus();
+    }
+
+    function hideError() {
+      loginAlert.classList.remove('is-visible');
+    }
+
+    async function doLogin() {
+      var identifier = identifierEl ? identifierEl.value.trim() : '';
+      var password   = passwordEl   ? passwordEl.value          : '';
+
+      if (!identifier || !password) {
+        showError('Por favor ingresa tu usuario y contraseña.');
+        return;
+      }
+
+      hideError();
+      setLoginLoading(true);
+
+      try {
+        var response = await fetch(CONFIG.API_BASE + CONFIG.LOGIN_ENDPOINT, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept':       'application/json',
+          },
+          body: JSON.stringify({
+            /* Adapta los nombres de campo a los que usa tu API:
+               email/username/identifier + password/pass/contrasena */
+            email:    identifier,
+            username: identifier,
+            password: password,
+          }),
+          credentials: 'include', /* Para cookies de sesión si las usa tu backend */
+        });
+
+        var data;
+        try { data = await response.json(); } catch (_) { data = {}; }
+
+        if (!response.ok) {
+          /* Usa el mensaje de error de la API si existe */
+          var errMsg = data.message
+                    || data.error
+                    || data.msg
+                    || (response.status === 401 ? 'Credenciales incorrectas.' : 'Error al iniciar sesión.')
+                    || 'Error al iniciar sesión. Intenta de nuevo.';
+          showError(errMsg);
+          setLoginLoading(false);
+          return;
+        }
+
+        /* Extraer el JWT de la respuesta.
+           Adapta según lo que devuelve tu API:
+           data.token | data.access_token | data.jwt | data.data.token */
+        var token = data.token
+                 || data.access_token
+                 || data.jwt
+                 || (data.data && (data.data.token || data.data.access_token))
+                 || null;
+
+        if (!token) {
+          showError('Respuesta inesperada del servidor. Contacta al administrador.');
+          setLoginLoading(false);
+          return;
+        }
+
+        /* Guardar token y evaluar rol */
+        saveToken(token);
+        var payload = decodeJwtPayload(token);
+        var role    = extractRole(payload);
+
+        setLoginLoading(false);
+
+        if (isAdminRole(role)) {
+          showGranted(payload);
+          setTimeout(function () { redirectToSite(); }, CONFIG.REDIRECT_DELAY);
+        } else {
+          showBlocked(payload);
+        }
+
+      } catch (networkError) {
+        console.error('[OKStation Maintenance] Network error:', networkError);
+        showError('No se pudo conectar al servidor. Verifica tu conexión e intenta de nuevo.');
+        setLoginLoading(false);
+      }
+    }
+
+    function redirectToSite() {
+      /* Recuperar la URL a la que quería ir el usuario */
+      var intended = '';
+      try { intended = sessionStorage.getItem('oks_intended_url') || ''; } catch (_) {}
+      try { sessionStorage.removeItem('oks_intended_url'); } catch (_) {}
+
+      /* Evitar redirigir a maintenance.html de nuevo */
+      if (!intended || intended.includes('maintenance') || intended === window.location.pathname) {
+        intended = CONFIG.SITE_URL;
+      }
+
+      window.location.href = intended;
+    }
+
+    function doLogout() {
+      removeStoredToken();
+      /* Notificar al backend si tiene endpoint de logout */
+      try {
+        fetch(CONFIG.API_BASE + '/auth/logout', {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'Accept': 'application/json' }
+        }).catch(function () {});
+      } catch (_) {}
+      showLogin();
+      if (identifierEl) identifierEl.focus();
+    }
+
+    /* ──────────────────────────────────────────────────────────
+       EVENT LISTENERS
+       ────────────────────────────────────────────────────────── */
+    if (btnLogin) {
+      btnLogin.addEventListener('click', doLogin);
+    }
+
+    /* Enter en los campos dispara login */
+    [identifierEl, passwordEl].forEach(function (el) {
+      if (!el) return;
+      el.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') { e.preventDefault(); doLogin(); }
+      });
+    });
+
+    /* Ir al sitio (panel-granted) */
+    if (btnEnter) {
+      btnEnter.addEventListener('click', redirectToSite);
+    }
+
+    /* Logout desde panel bloqueado */
+    if (btnLogoutBlocked) {
+      btnLogoutBlocked.addEventListener('click', doLogout);
+    }
+
+    /* Logout desde panel concedido */
+    if (btnLogoutGranted) {
+      btnLogoutGranted.addEventListener('click', doLogout);
+    }
+
+    /* Toggle de contraseña */
+    if (pwToggle && passwordEl) {
+      pwToggle.addEventListener('click', function () {
+        var show = passwordEl.type === 'password';
+        passwordEl.type = show ? 'text' : 'password';
+        pwToggle.classList.toggle('is-visible', show);
+        pwToggle.setAttribute('aria-label', show ? 'Ocultar contraseña' : 'Mostrar contraseña');
+        passwordEl.focus();
+      });
+    }
+
+    /* ──────────────────────────────────────────────────────────
+       INICIALIZACIÓN
+       ────────────────────────────────────────────────────────── */
+    document.addEventListener('DOMContentLoaded', function () {
+      evaluateStoredToken();
+
+      /* Foco automático */
+      if (identifierEl) {
+        setTimeout(function () { identifierEl.focus(); }, 100);
+      }
+    });
+
+    /* Exponer para debugging en consola durante desarrollo */
+    window._OKSMaint = {
+      getToken: getStoredToken,
+      clearToken: removeStoredToken,
+      evaluate: evaluateStoredToken,
+    };
+
+  }());
+  </script>
 
 </body>
 </html>
