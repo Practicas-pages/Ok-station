@@ -51,7 +51,7 @@ INSERT INTO settings (`key`, `value`) VALUES
   ('tax_rate',        '0.16'),
   ('currency',        'MXN'),
   ('business_name',   'OK.station'),
-  ('whatsapp',        '5216641044896')
+  ('whatsapp',        '5216647194117')
 ON DUPLICATE KEY UPDATE `value` = VALUES(`value`);
 
 -- ── Catálogo inicial (editable luego desde el panel) ──

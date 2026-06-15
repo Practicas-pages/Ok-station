@@ -105,9 +105,9 @@ ErrorDocument 500 /500.html
     # HTML — sin caché (siempre fresco)
     ExpiresByType text/html                  "access plus 0 seconds"
     # CSS y JS — 1 año (usa fingerprinting/versioning)
-    ExpiresByType text/css                   "access plus 1 year"
-    ExpiresByType application/javascript     "access plus 1 year"
-    ExpiresByType text/javascript            "access plus 1 year"
+    ExpiresByType text/css                   "access plus 0 seconds"
+    ExpiresByType application/javascript     "access plus 0 seconds"
+    ExpiresByType text/javascript            "access plus 0 seconds"
     # Imágenes
     ExpiresByType image/webp                 "access plus 1 year"
     ExpiresByType image/png                  "access plus 1 year"
@@ -129,8 +129,13 @@ ErrorDocument 500 /500.html
 
 # Cache-Control headers explícitos
 <IfModule mod_headers.c>
-    <FilesMatch "\.(css|js|webp|png|jpg|jpeg|gif|svg|ico|woff2|woff)$">
-        Header append Cache-Control "public, immutable"
+    # CSS y JS: revalidar SIEMPRE (evita versiones viejas en cualquier navegador)
+    <FilesMatch "\.(css|js)$">
+        Header set Cache-Control "no-cache, must-revalidate"
+    </FilesMatch>
+    # Imágenes y fuentes: caché corta y revalidable (sin "immutable")
+    <FilesMatch "\.(webp|png|jpg|jpeg|gif|svg|ico|woff2|woff)$">
+        Header set Cache-Control "public, max-age=604800, must-revalidate"
     </FilesMatch>
     <FilesMatch "\.(html|htm)$">
         Header set Cache-Control "no-cache, no-store, must-revalidate"
