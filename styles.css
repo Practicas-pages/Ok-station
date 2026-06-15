@@ -2815,7 +2815,10 @@ h1, h2, h3, h4, h5, h6 {
     display: flex;
   }
 
-  .nav__tel {
+  /* En celular: ocultar tel y el botón WhatsApp del header (ya existe el botón
+     flotante verde). Así la hamburguesa queda despejada y sin amontonarse. */
+  .nav__tel,
+  .nav__actions .btn--wa {
     display: none;
   }
 
