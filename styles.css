@@ -4018,9 +4018,22 @@ body {
 
 .service-card__img {
   width: 100%;
-  height: 160px;          /* ajusta a lo que quieras */
+  height: 220px;          /* ajusta a lo que quieras */
   object-fit: cover;
   display: block;
   border-radius: var(--border-radius) var(--border-radius) 0 0; /* solo arriba si tienes esquinas */
   margin-bottom: 1rem;
+}
+/* Texto ligeramente más pequeño */
+.service-card h3 {
+  font-size: 13px;  /* antes 15-16px */
+}
+
+.service-card p {
+  font-size: 12px;  /* antes 13-14px */
+}
+
+/* Padding del body un poco menor también ayuda */
+.service-card .card-body {
+  padding: .75rem;  /* antes 1rem */
 }
