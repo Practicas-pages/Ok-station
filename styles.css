@@ -4026,11 +4026,11 @@ body {
 }
 /* Texto ligeramente más pequeño */
 .service-card h3 {
-  font-size: 13px;  /* antes 15-16px */
+  font-size: 14px;  /* antes 15-16px */
 }
 
 .service-card p {
-  font-size: 12px;  /* antes 13-14px */
+  font-size: 13px;  /* antes 13-14px */
 }
 
 /* Padding del body un poco menor también ayuda */
