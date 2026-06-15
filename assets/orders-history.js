@@ -30,6 +30,7 @@
             '<div class="order-row__meta">' + (o.items_count || 0) + ' archivo(s) · ' + mxn(o.total) + ' · ' + String(o.created_at).slice(0, 10) + '</div></div>' +
             '<span class="ostatus ostatus--' + o.status + '">' + (LABELS[o.status] || o.status) + '</span>' +
             '<div class="order-row__actions">' +
+              (+o.has_ticket ? '<button class="btn btn--light btn--sm" data-ticket="' + o.id + '" data-code="' + esc(o.code) + '">Descargar ticket</button>' : '') +
               '<button class="btn btn--light btn--sm" data-repeat="' + o.id + '">Repetir</button>' +
               (cancelable ? '<button class="btn btn--light btn--sm" data-cancel="' + o.id + '">Cancelar</button>' : '') +
             '</div></div>';
@@ -39,7 +40,34 @@
       .catch(function () { host.innerHTML = '<p style="color:var(--color-error)">No se pudo cargar el historial.</p>'; });
   }
 
+  function downloadTicket(id, code, btn) {
+    var orig = btn.textContent;
+    btn.disabled = true; btn.textContent = "Descargando…";
+    fetch(API + "/orders/ticket.php?id=" + id, { headers: { Authorization: "Bearer " + token() } })
+      .then(function (r) {
+        if (!r.ok) throw new Error(r.status === 404 ? "no-ticket" : "err");
+        return r.blob();
+      })
+      .then(function (blob) {
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement("a");
+        a.href = url; a.download = "ticket-" + code + ".pdf";
+        document.body.appendChild(a); a.click(); a.remove();
+        setTimeout(function () { URL.revokeObjectURL(url); }, 4000);
+        btn.disabled = false; btn.textContent = orig;
+      })
+      .catch(function (e) {
+        btn.disabled = false; btn.textContent = orig;
+        window.alert(e && e.message === "no-ticket"
+          ? "El ticket de este pedido aún no está disponible. Si acabas de hacerlo, espera un momento y recarga la página."
+          : "No se pudo descargar el ticket. Revisa tu conexión e inténtalo de nuevo.");
+      });
+  }
+
   function wire() {
+    Array.prototype.forEach.call(host.querySelectorAll("[data-ticket]"), function (b) {
+      b.addEventListener("click", function () { downloadTicket(+b.dataset.ticket, b.dataset.code, b); });
+    });
     Array.prototype.forEach.call(host.querySelectorAll("[data-repeat]"), function (b) {
       b.addEventListener("click", function () { post("orders/repeat.php", { id: +b.dataset.repeat }).then(load); });
     });
