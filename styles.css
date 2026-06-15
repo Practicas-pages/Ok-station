@@ -3917,3 +3917,98 @@ body {
 @media (max-width: 480px) {
   .dropzone .thumbs-grid { grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); }
 }
+
+/* ============================================================
+   32. OVERRIDES — Cambios visuales (imagen de anotaciones)
+   ============================================================
+   PEGAR AL FINAL DE styles.css
+   ============================================================
+
+   CAMBIOS APLICADOS:
+   1. Nav links    — borde azul siempre visible + hover: bg azul + letras blancas
+   2. Panel title  — "¿Qué necesitas hoy?" más grande (1.25rem)
+   3. Hero lead    — texto gris oscuro (#3d3f55) sobre fondo claro
+   4. Hero bg      — degradado azul-cyan de marca (línea de onda SVG)
+   5. Quick cards  — borde azul al hacer hover
+   6. Hero hours   — hora "09:00 – 19:00" alineada a la derecha
+   ============================================================ */
+
+/* ── 1. NAV LINKS: borde azul siempre visible ── */
+.nav__link {
+  border: 1.5px solid var(--brand-blue);
+}
+
+.nav__link:hover,
+.nav__link:focus-visible {
+  background: var(--brand-blue) !important;
+  color: #fff !important;
+  border-color: var(--brand-blue);
+}
+
+.nav__link.is-active {
+  background: var(--brand-blue);
+  color: #fff;
+  border-color: var(--brand-blue);
+}
+
+/* ── 2. PANEL TITLE: más grande ── */
+.hero__panel-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+/* ── 3. HERO LEAD: gris oscuro ── */
+.hero__lead {
+  color: #3d3f55 !important;
+}
+
+/* ── 4. HERO BACKGROUND: degradado azul-cyan de marca ── */
+.hero {
+  background: linear-gradient(
+    135deg,
+    #ddeeff 0%,
+    #e4f0ff 30%,
+    #e8f5ff 60%,
+    #ddf0ff 100%
+  ) !important;
+}
+
+.hero__bg-overlay {
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 360' preserveAspectRatio='none'%3E%3Cpath d='M-40 220 C 320 70 640 340 980 200 S 1480 80 1620 230' fill='none' stroke='%23066CFF' stroke-opacity='0.28' stroke-width='80' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat center 80% / 135% auto,
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 360' preserveAspectRatio='none'%3E%3Cpath d='M-40 260 C 280 110 600 310 940 180 S 1440 110 1620 260' fill='none' stroke='%2300C6FF' stroke-opacity='0.18' stroke-width='55' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat center 60% / 130% auto,
+    radial-gradient(48% 60% at 88% 20%, rgba(6,108,255,0.11), transparent 65%),
+    radial-gradient(44% 58% at 10% 35%, rgba(0,198,255,0.13), transparent 62%),
+    radial-gradient(35% 45% at 55% 90%, rgba(6,108,255,0.08), transparent 60%) !important;
+}
+
+/* ── 5. QUICK CARDS: borde azul en hover ── */
+.quick__card:hover,
+.quick__card:focus-visible {
+  border-color: var(--brand-blue) !important;
+  box-shadow: 0 0 0 2px rgba(6,108,255,0.15), var(--shadow-sm) !important;
+}
+
+/* ── 6. HERO HOURS: hora alineada a la derecha ── */
+.hero__hours {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 10px !important;
+}
+
+.hero__hours-time {
+  margin-left: auto;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  color: #15803D;
+  font-size: 0.85rem;
+}
+
+/* Mobile: borde nav más suave en menú vertical */
+@media (max-width: 768px) {
+  .nav__link {
+    border-color: rgba(6,108,255,0.3);
+  }
+}
