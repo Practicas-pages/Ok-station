@@ -192,43 +192,84 @@
     window.scrollTo(0, 0);
   }
 
+  /* Ticket PDF con la identidad de OK.station (degradado de marca, colores y lema). */
   function buildTicket(order) {
     var jsPDF = window.jspdf.jsPDF;
     var doc = new jsPDF({ unit: "mm", format: "a4" });
-    var x = 16, y = 20;
-    doc.setFont("helvetica", "bold"); doc.setFontSize(20); doc.text("OK.station", x, y);
-    doc.setFont("helvetica", "normal"); doc.setFontSize(10);
-    doc.text("Ticket de pedido", x, y + 6);
-    doc.setFont("helvetica", "bold"); doc.setFontSize(13);
-    doc.text(order.code, x, y + 16);
-    doc.setFont("helvetica", "normal"); doc.setFontSize(10);
-    doc.text("Estado: " + order.status, x, y + 22);
+    var PW = 210, x = 16;
 
-    var ty = y + 34;
-    doc.setFont("helvetica", "bold"); doc.text("Archivos", x, ty);
-    doc.setFont("helvetica", "normal"); ty += 6;
-    (order.items || []).forEach(function (it) {
-      var cfg = it.config_json ? (typeof it.config_json === "string" ? JSON.parse(it.config_json) : it.config_json) : {};
-      var line = "• " + (it.original_name || "Archivo") + "  —  " + (cfg.size || "") + ", " + (cfg.color || "") + ", x" + it.qty;
-      doc.text(doc.splitTextToSize(line, 150), x, ty); ty += 6;
-    });
+    // Paleta de marca
+    var purple = [156, 29, 255], blue = [6, 108, 255], cyan = [0, 198, 255];
+    var dark = [15, 23, 42], muted = [110, 122, 140];
+    function lerp(a, b, t) { return [Math.round(a[0] + (b[0] - a[0]) * t), Math.round(a[1] + (b[1] - a[1]) * t), Math.round(a[2] + (b[2] - a[2]) * t)]; }
+    function gradBand(x0, y0, w, h) {
+      var n = Math.max(2, Math.round(w));
+      var step = w / n;
+      for (var i = 0; i < n; i++) {
+        var t = i / (n - 1);
+        var c = t < 0.5 ? lerp(purple, blue, t * 2) : lerp(blue, cyan, (t - 0.5) * 2);
+        doc.setFillColor(c[0], c[1], c[2]);
+        doc.rect(x0 + step * i, y0, step + 0.4, h, "F");
+      }
+    }
 
-    ty += 4;
-    doc.setFont("helvetica", "bold");
-    doc.text("Subtotal: " + mxn(order.subtotal), x, ty); ty += 6;
-    doc.text("IVA: " + mxn(order.tax), x, ty); ty += 6;
-    doc.setFontSize(13); doc.text("Total: " + mxn(order.total), x, ty);
+    // ── Encabezado con degradado de marca ──
+    gradBand(0, 0, PW, 34);
+    doc.setTextColor(255, 255, 255);
+    doc.setFont("helvetica", "bold"); doc.setFontSize(24); doc.text("OK.station", x, 18);
+    doc.setFont("helvetica", "normal"); doc.setFontSize(10.5); doc.text("Ticket de pedido", x, 26);
 
-    // QR con el folio (para consultar el pedido)
+    // ── QR (para consultar el pedido) ──
     try {
       var tmp = document.createElement("div");
-      new QRCode(tmp, { text: location.origin + "/perfil.html?pedido=" + order.code, width: 120, height: 120 });
+      new QRCode(tmp, { text: location.origin + "/perfil.html?pedido=" + order.code, width: 160, height: 160 });
       var canvas = tmp.querySelector("canvas");
-      if (canvas) doc.addImage(canvas.toDataURL("image/png"), "PNG", 150, y + 8, 40, 40);
+      if (canvas) doc.addImage(canvas.toDataURL("image/png"), "PNG", PW - x - 38, 44, 38, 38);
     } catch (e) {}
 
-    doc.setFont("helvetica", "normal"); doc.setFontSize(8);
-    doc.text("Gracias por tu pedido · okstation.mx", x, 285);
+    // ── Folio + estado ──
+    doc.setTextColor(dark[0], dark[1], dark[2]);
+    doc.setFont("helvetica", "bold"); doc.setFontSize(18); doc.text(String(order.code || ""), x, 52);
+
+    var STAT = { recibido: "Recibido", en_revision: "En revisión", en_produccion: "En producción", listo: "Listo", entregado: "Entregado", cancelado: "Cancelado" };
+    var label = STAT[order.status] || order.status || "—";
+    doc.setFont("helvetica", "bold"); doc.setFontSize(9);
+    var lw = doc.getTextWidth(label) + 8;
+    doc.setFillColor(blue[0], blue[1], blue[2]);
+    doc.roundedRect(x, 56, lw, 7, 3.5, 3.5, "F");
+    doc.setTextColor(255, 255, 255); doc.text(label, x + 4, 60.8);
+
+    // ── Archivos ──
+    var ty = 78;
+    doc.setTextColor(blue[0], blue[1], blue[2]);
+    doc.setFont("helvetica", "bold"); doc.setFontSize(12); doc.text("Archivos", x, ty);
+    ty += 7;
+    (order.items || []).forEach(function (it) {
+      var cfg = {};
+      if (it.config_json) { try { cfg = typeof it.config_json === "string" ? JSON.parse(it.config_json) : it.config_json; } catch (e) { cfg = {}; } }
+      doc.setFont("helvetica", "bold"); doc.setFontSize(10); doc.setTextColor(dark[0], dark[1], dark[2]);
+      doc.text("• " + (it.original_name || "Archivo"), x, ty);
+      var meta = [cfg.size, cfg.color, cfg.sides, cfg.finish].filter(Boolean).join(" · ");
+      meta = (meta ? meta + " · " : "") + "x" + (it.qty || 1);
+      doc.setFont("helvetica", "normal"); doc.setTextColor(muted[0], muted[1], muted[2]);
+      doc.text(doc.splitTextToSize(meta, 120), x + 5, ty + 5);
+      ty += 12;
+    });
+
+    // ── Totales ──
+    ty += 2;
+    doc.setDrawColor(230, 233, 238); doc.line(x, ty, x + 95, ty); ty += 8;
+    doc.setFont("helvetica", "normal"); doc.setFontSize(10); doc.setTextColor(dark[0], dark[1], dark[2]);
+    doc.text("Subtotal", x, ty); doc.text(mxn(order.subtotal), x + 95, ty, { align: "right" }); ty += 6;
+    doc.text("IVA (16%)", x, ty); doc.text(mxn(order.tax), x + 95, ty, { align: "right" }); ty += 9;
+    doc.setFont("helvetica", "bold"); doc.setFontSize(14); doc.setTextColor(blue[0], blue[1], blue[2]);
+    doc.text("Total", x, ty); doc.text(mxn(order.total), x + 95, ty, { align: "right" });
+
+    // ── Pie con línea de marca + lema ──
+    gradBand(0, 287, PW, 3);
+    doc.setFont("helvetica", "normal"); doc.setFontSize(8.5); doc.setTextColor(muted[0], muted[1], muted[2]);
+    doc.text("okstation.mx · You say tech, we listen", x, 283);
+
     return doc.output("datauristring");
   }
 
