@@ -212,52 +212,63 @@
   function closeOrderModal() {
     var m = document.getElementById("order-modal");
     if (m) {
-      if (m._ticketUrl) { try { URL.revokeObjectURL(m._ticketUrl); } catch (e) {} }
+      (m._fileUrls || []).forEach(function (u) { try { URL.revokeObjectURL(u); } catch (e) {} });
       m.remove();
     }
     document.body.style.overflow = "";
     document.removeEventListener("keydown", escClose);
   }
 
-  /* Carga el ticket PDF (con token) en la previsualización y habilita descargar/imprimir. */
-  function loadTicketInto(modal, id, code) {
-    var wrap = $("#ticket-preview", modal);
-    var dl = $("#ticket-download", modal);
-    var pr = $("#ticket-print", modal);
-    fetch(API_BASE + "/orders/ticket.php?id=" + encodeURIComponent(id), { headers: { Authorization: "Bearer " + token() } })
+  /* Carga el ARCHIVO del cliente (con token) en su visor y habilita descargar/imprimir. */
+  function loadFileInto(modal, idx, fid, name) {
+    var wrap = modal.querySelector("#filewrap-" + idx);
+    var dl = modal.querySelector('[data-file-dl="' + idx + '"]');
+    var pr = modal.querySelector('[data-file-print="' + idx + '"]');
+    if (!wrap) return;
+    if (!fid) { wrap.innerHTML = '<p style="color:var(--text-muted,#6b7280);font-size:.85rem;text-align:center;padding:20px 0;margin:0">Archivo no disponible.</p>'; return; }
+    fetch(API_BASE + "/orders/file.php?id=" + encodeURIComponent(fid), { headers: { Authorization: "Bearer " + token() } })
       .then(function (r) { if (!r.ok) throw new Error(String(r.status)); return r.blob(); })
       .then(function (blob) {
         var url = URL.createObjectURL(blob);
-        modal._ticketUrl = url;
-        wrap.innerHTML = '<iframe id="order-ticket-frame" src="' + url + '" style="width:100%;height:440px;border:1px solid #eef0f4;border-radius:10px;background:#fff" title="Ticket del pedido ' + esc(code) + '"></iframe>';
-        if (dl) { dl.disabled = false; dl.onclick = function () { var a = document.createElement("a"); a.href = url; a.download = "ticket-" + code + ".pdf"; document.body.appendChild(a); a.click(); a.remove(); }; }
-        if (pr) { pr.disabled = false; pr.onclick = function () { var f = document.getElementById("order-ticket-frame"); try { f.contentWindow.focus(); f.contentWindow.print(); } catch (e) { window.open(url, "_blank"); } }; }
+        (modal._fileUrls = modal._fileUrls || []).push(url);
+        var frameId = "file-frame-" + idx;
+        wrap.innerHTML = '<iframe id="' + frameId + '" src="' + url + '" style="width:100%;height:380px;border:1px solid #eef0f4;border-radius:10px;background:#fff" title="' + esc(name || "Archivo") + '"></iframe>';
+        if (dl) { dl.disabled = false; dl.onclick = function () { var a = document.createElement("a"); a.href = url; a.download = name || ("archivo-" + idx); document.body.appendChild(a); a.click(); a.remove(); }; }
+        if (pr) { pr.disabled = false; pr.onclick = function () { var f = document.getElementById(frameId); try { f.contentWindow.focus(); f.contentWindow.print(); } catch (e) { window.open(url, "_blank"); } }; }
       })
       .catch(function () {
-        wrap.innerHTML = '<p style="color:var(--text-muted,#6b7280);font-size:.88rem;text-align:center;padding:28px 0;margin:0">El ticket PDF de este pedido no está disponible.</p>';
+        wrap.innerHTML = '<p style="color:var(--text-muted,#6b7280);font-size:.85rem;text-align:center;padding:20px 0;margin:0">No se pudo cargar el archivo.</p>';
       });
   }
 
   function openOrderModal(o) {
     closeOrderModal();
     var items = o.items || [];
-    var rows = items.map(function (it) {
-      var cfg = cfgLabel(it.config_json || it.config);
-      var imp = it.line_total != null ? it.line_total : (it.unit_price || 0) * (it.qty || 1);
-      return '<tr><td style="padding:6px 0"><b>' + esc(it.original_name || "Archivo") + '</b>' +
-        (cfg ? '<div style="color:var(--text-muted,#6b7280);font-size:.8rem;margin-top:2px">' + esc(cfg) + '</div>' : '') +
-        '</td><td style="text-align:center">' + (it.qty || 1) + '</td>' +
-        '<td style="text-align:right" class="mono">' + mxn(imp) + '</td></tr>';
-    }).join("") || '<tr><td colspan="3" style="color:var(--text-muted,#6b7280)">Sin archivos.</td></tr>';
-
     var c = o.client || {};
+
+    var filesHtml = items.map(function (it, idx) {
+      var cfg = cfgLabel(it.config_json || it.config);
+      var bits = [cfg, "x" + (it.qty || 1), (it.pages ? it.pages + " pág." : "")].filter(Boolean).join(" · ");
+      return '<div style="border:1px solid #eef0f4;border-radius:12px;padding:14px;margin-bottom:14px">' +
+          '<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:10px;flex-wrap:wrap">' +
+            '<div style="min-width:0"><b style="font-size:.95rem;word-break:break-word">' + esc(it.original_name || "Archivo") + '</b>' +
+            (bits ? '<div style="color:var(--text-muted,#6b7280);font-size:.82rem;margin-top:3px">' + esc(bits) + '</div>' : '') + '</div>' +
+            '<div style="display:flex;gap:8px;flex-shrink:0">' +
+              '<button type="button" class="btn btn--light btn--sm" data-file-dl="' + idx + '" disabled>Descargar</button>' +
+              '<button type="button" class="btn btn--primary btn--sm" data-file-print="' + idx + '" disabled>Imprimir</button>' +
+            '</div>' +
+          '</div>' +
+          '<div id="filewrap-' + idx + '"><p style="color:var(--text-muted,#6b7280);font-size:.85rem;text-align:center;padding:24px 0;margin:0">Cargando archivo…</p></div>' +
+        '</div>';
+    }).join("") || '<p style="color:var(--text-muted,#6b7280)">Este pedido no tiene archivos.</p>';
+
     var ov = document.createElement("div");
     ov.id = "order-modal";
     ov.setAttribute("role", "dialog");
     ov.setAttribute("aria-modal", "true");
     ov.style.cssText = "position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;padding:18px;background:rgba(15,23,42,.5);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px)";
     ov.innerHTML =
-      '<div style="background:#fff;border-radius:16px;max-width:760px;width:100%;max-height:92vh;overflow:auto;box-shadow:0 20px 60px rgba(0,0,0,.3)">' +
+      '<div style="background:#fff;border-radius:16px;max-width:780px;width:100%;max-height:92vh;overflow:auto;box-shadow:0 20px 60px rgba(0,0,0,.3)">' +
         '<div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:18px 20px;border-bottom:1px solid #eef0f4">' +
           '<div><div style="font-weight:700;font-size:1.05rem">' + esc(o.code) + '</div>' +
           '<div style="font-size:.8rem;color:var(--text-muted,#6b7280)">' + esc(String(o.created_at || o.date || "").slice(0, 10)) + '</div></div>' +
@@ -269,24 +280,11 @@
             (c.email ? '<br><a href="mailto:' + esc(c.email) + '">' + esc(c.email) + '</a>' : '') +
             (c.phone ? '<br><a href="tel:' + esc(c.phone) + '">' + esc(c.phone) + '</a>' : '') +
           '</p>' +
-          '<h4 style="margin:0 0 6px;font-size:.95rem">Archivos</h4>' +
-          '<table style="width:100%;border-collapse:collapse;font-size:.88rem">' +
-            '<thead><tr style="text-align:left;color:var(--text-muted,#6b7280);border-bottom:1px solid #eef0f4">' +
-            '<th style="padding:0 0 6px">Archivo</th><th style="text-align:center">Cant.</th><th style="text-align:right">Importe</th></tr></thead>' +
-            '<tbody>' + rows + '</tbody>' +
-          '</table>' +
-          (o.comments ? '<h4 style="margin:16px 0 6px;font-size:.95rem">Indicaciones</h4><p style="margin:0;font-size:.9rem;white-space:pre-wrap">' + esc(o.comments) + '</p>' : '') +
-          '<div style="margin-top:16px;border-top:1px solid #eef0f4;padding-top:12px;font-size:.9rem">' +
-            '<div style="display:flex;justify-content:space-between;margin-bottom:3px"><span>Subtotal</span><b class="mono">' + mxn(o.subtotal || 0) + '</b></div>' +
-            '<div style="display:flex;justify-content:space-between;margin-bottom:3px"><span>IVA</span><b class="mono">' + mxn(o.tax || 0) + '</b></div>' +
-            '<div style="display:flex;justify-content:space-between;font-size:1.05rem"><span><b>Total</b></span><b class="mono">' + mxn(o.total || 0) + '</b></div>' +
-          '</div>' +
-          '<h4 style="margin:18px 0 8px;font-size:.95rem">Ticket del pedido</h4>' +
-          '<div id="ticket-preview"><p style="color:var(--text-muted,#6b7280);font-size:.88rem;text-align:center;padding:28px 0;margin:0">Cargando ticket…</p></div>' +
+          (o.comments ? '<h4 style="margin:0 0 6px;font-size:.95rem">Indicaciones del cliente</h4><p style="margin:0 0 16px;font-size:.9rem;white-space:pre-wrap;background:#f8fafc;border-radius:8px;padding:10px 12px">' + esc(o.comments) + '</p>' : '') +
+          '<h4 style="margin:0 0 10px;font-size:.95rem">Archivos a imprimir</h4>' +
+          filesHtml +
         '</div>' +
-        '<div style="display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end;padding:14px 20px;border-top:1px solid #eef0f4">' +
-          '<button type="button" class="btn btn--light btn--sm" id="ticket-download" disabled>Descargar PDF</button>' +
-          '<button type="button" class="btn btn--light btn--sm" id="ticket-print" disabled>Imprimir</button>' +
+        '<div style="display:flex;justify-content:flex-end;padding:14px 20px;border-top:1px solid #eef0f4">' +
           '<button type="button" class="btn btn--primary btn--sm" id="order-modal-close">Cerrar</button>' +
         '</div>' +
       '</div>';
@@ -295,7 +293,7 @@
     ov.addEventListener("click", function (e) { if (e.target === ov) closeOrderModal(); });
     $("#order-modal-close", ov).addEventListener("click", closeOrderModal);
     document.addEventListener("keydown", escClose);
-    loadTicketInto(ov, o.id || o.code, o.code);
+    items.forEach(function (it, idx) { loadFileInto(ov, idx, it.uploaded_file_id, it.original_name); });
   }
 
   function viewOrder(id) {
