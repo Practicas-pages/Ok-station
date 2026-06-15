@@ -86,6 +86,10 @@
       if (DEMO) { var o = MOCK.orders.find(function (x) { return String(x.id) === String(id); }); if (o) o.status = status; return Promise.resolve({ ok: true }); }
       return apiPost("/admin/order-status.php", { id: id, status: status });
     },
+    orderDetail: function (id) {
+      if (DEMO) { var o = (MOCK.orders || []).find(function (x) { return String(x.id || x.code) === String(id); }); return Promise.resolve(o ? { ok: true, order: o } : { ok: false }); }
+      return apiGet("/orders/get.php?id=" + encodeURIComponent(id));
+    },
     users:    function () { return DEMO ? Promise.resolve(MOCK.users)    : apiGet("/admin/users.php").then(function (j) { return j.users || []; }); },
     services: function () { return DEMO ? Promise.resolve(MOCK.services) : apiGet("/admin/services.php").then(function (j) { return j.services || []; }); },
     reviews:  function () { return DEMO ? Promise.resolve(MOCK.reviews)  : apiGet("/admin/reviews.php").then(function (j) { return j.reviews || []; }); },
@@ -179,7 +183,7 @@
         : badge(o.status);
       return '<tr><td class="mono">' + esc(o.code) + '</td><td><b>' + esc(o.client) + '</b></td><td>' + o.items + '</td>' +
         '<td class="mono">' + mxn(o.total) + '</td><td>' + statusCell + '</td><td>' + esc(o.date) + '</td>' +
-        '<td><button class="admin-btn-sm">Ver</button></td></tr>';
+        '<td><button class="admin-btn-sm" data-view-order="' + esc(o.id || o.code) + '">Ver</button></td></tr>';
     }).join("");
     return head + '<tbody>' + body + '</tbody>';
   }
@@ -194,9 +198,97 @@
     });
   }
 
+  /* ── Detalle de pedido (botón "Ver") ── */
+  function cfgLabel(cfg) {
+    if (!cfg) return "";
+    if (typeof cfg === "string") { try { cfg = JSON.parse(cfg); } catch (e) { return ""; } }
+    var L = { size: "Tamaño", color: "Color", sides: "Caras", finish: "Acabado", paper: "Papel", copies: "Copias" };
+    var parts = [];
+    Object.keys(L).forEach(function (k) { if (cfg[k] != null && cfg[k] !== "") parts.push(L[k] + ": " + cfg[k]); });
+    return parts.join(" · ");
+  }
+
+  function escClose(e) { if (e.key === "Escape") closeOrderModal(); }
+  function closeOrderModal() {
+    var m = document.getElementById("order-modal");
+    if (m) m.remove();
+    document.body.style.overflow = "";
+    document.removeEventListener("keydown", escClose);
+  }
+
+  function openOrderModal(o) {
+    closeOrderModal();
+    var items = o.items || [];
+    var rows = items.map(function (it) {
+      var cfg = cfgLabel(it.config_json || it.config);
+      var imp = it.line_total != null ? it.line_total : (it.unit_price || 0) * (it.qty || 1);
+      return '<tr><td style="padding:6px 0"><b>' + esc(it.original_name || "Archivo") + '</b>' +
+        (cfg ? '<div style="color:var(--text-muted,#6b7280);font-size:.8rem;margin-top:2px">' + esc(cfg) + '</div>' : '') +
+        '</td><td style="text-align:center">' + (it.qty || 1) + '</td>' +
+        '<td style="text-align:right" class="mono">' + mxn(imp) + '</td></tr>';
+    }).join("") || '<tr><td colspan="3" style="color:var(--text-muted,#6b7280)">Sin archivos.</td></tr>';
+
+    var c = o.client || {};
+    var ov = document.createElement("div");
+    ov.id = "order-modal";
+    ov.setAttribute("role", "dialog");
+    ov.setAttribute("aria-modal", "true");
+    ov.style.cssText = "position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;padding:18px;background:rgba(15,23,42,.5);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px)";
+    ov.innerHTML =
+      '<div style="background:#fff;border-radius:16px;max-width:560px;width:100%;max-height:90vh;overflow:auto;box-shadow:0 20px 60px rgba(0,0,0,.3)">' +
+        '<div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:18px 20px;border-bottom:1px solid #eef0f4">' +
+          '<div><div style="font-weight:700;font-size:1.05rem">' + esc(o.code) + '</div>' +
+          '<div style="font-size:.8rem;color:var(--text-muted,#6b7280)">' + esc(String(o.created_at || o.date || "").slice(0, 10)) + '</div></div>' +
+          badge(o.status) +
+        '</div>' +
+        '<div style="padding:18px 20px">' +
+          '<h4 style="margin:0 0 6px;font-size:.95rem">Cliente</h4>' +
+          '<p style="margin:0 0 16px;font-size:.9rem;line-height:1.5">' + esc(c.name || o.client_name || "—") +
+            (c.email ? '<br><a href="mailto:' + esc(c.email) + '">' + esc(c.email) + '</a>' : '') +
+            (c.phone ? '<br><a href="tel:' + esc(c.phone) + '">' + esc(c.phone) + '</a>' : '') +
+          '</p>' +
+          '<h4 style="margin:0 0 6px;font-size:.95rem">Archivos</h4>' +
+          '<table style="width:100%;border-collapse:collapse;font-size:.88rem">' +
+            '<thead><tr style="text-align:left;color:var(--text-muted,#6b7280);border-bottom:1px solid #eef0f4">' +
+            '<th style="padding:0 0 6px">Archivo</th><th style="text-align:center">Cant.</th><th style="text-align:right">Importe</th></tr></thead>' +
+            '<tbody>' + rows + '</tbody>' +
+          '</table>' +
+          (o.comments ? '<h4 style="margin:16px 0 6px;font-size:.95rem">Indicaciones</h4><p style="margin:0;font-size:.9rem;white-space:pre-wrap">' + esc(o.comments) + '</p>' : '') +
+          '<div style="margin-top:16px;border-top:1px solid #eef0f4;padding-top:12px;font-size:.9rem">' +
+            '<div style="display:flex;justify-content:space-between;margin-bottom:3px"><span>Subtotal</span><b class="mono">' + mxn(o.subtotal || 0) + '</b></div>' +
+            '<div style="display:flex;justify-content:space-between;margin-bottom:3px"><span>IVA</span><b class="mono">' + mxn(o.tax || 0) + '</b></div>' +
+            '<div style="display:flex;justify-content:space-between;font-size:1.05rem"><span><b>Total</b></span><b class="mono">' + mxn(o.total || 0) + '</b></div>' +
+          '</div>' +
+        '</div>' +
+        '<div style="padding:14px 20px;border-top:1px solid #eef0f4;text-align:right">' +
+          '<button type="button" class="btn btn--primary btn--sm" id="order-modal-close">Cerrar</button>' +
+        '</div>' +
+      '</div>';
+    document.body.appendChild(ov);
+    document.body.style.overflow = "hidden";
+    ov.addEventListener("click", function (e) { if (e.target === ov) closeOrderModal(); });
+    $("#order-modal-close", ov).addEventListener("click", closeOrderModal);
+    document.addEventListener("keydown", escClose);
+  }
+
+  function viewOrder(id) {
+    DataSource.orderDetail(id).then(function (res) {
+      if (!res || !res.ok || !res.order) { window.alert("No se pudo cargar el detalle del pedido."); return; }
+      openOrderModal(res.order);
+    }).catch(function () { window.alert("Sin conexión al cargar el pedido."); });
+  }
+
+  function bindOrderView(scope) {
+    $$("[data-view-order]", scope).forEach(function (b) {
+      b.addEventListener("click", function () { viewOrder(b.dataset.viewOrder); });
+    });
+  }
+
   function renderRecentOrders() {
     DataSource.orders("").then(function (list) {
-      $("#recent-orders").innerHTML = ordersRows(list.slice(0, 5), false);
+      var host = $("#recent-orders");
+      host.innerHTML = ordersRows(list.slice(0, 5), false);
+      bindOrderView(host);
     });
   }
   function renderOrdersTable(status) {
@@ -204,6 +296,7 @@
       var t = $("#orders-table");
       t.innerHTML = ordersRows(list, true);
       bindStatusSelects(t);
+      bindOrderView(t);
     });
   }
   function renderUsers() {

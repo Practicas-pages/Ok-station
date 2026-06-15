@@ -15,4 +15,11 @@ $canView = user_has_permission((int) $user['id'], 'orders.view');
 if (!$isOwner && !$canView) fail('No autorizado.', 403);
 
 $o['items'] = Order::items($id);
+
+// Datos del cliente (útil para el panel administrativo).
+$cu = User::find((int) $o['user_id']);
+if ($cu) {
+    $o['client'] = ['name' => $cu['full_name'], 'email' => $cu['email'], 'phone' => $cu['phone']];
+}
+
 respond(['ok' => true, 'order' => $o]);
