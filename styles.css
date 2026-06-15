@@ -4012,3 +4012,12 @@ body {
     border-color: rgba(6,108,255,0.3);
   }
 }
+
+.service-card__img {
+  width: 100%;
+  height: 160px;          /* ajusta a lo que quieras */
+  object-fit: cover;
+  display: block;
+  border-radius: var(--border-radius) var(--border-radius) 0 0; /* solo arriba si tienes esquinas */
+  margin-bottom: 1rem;
+}
