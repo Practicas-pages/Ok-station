@@ -17,6 +17,11 @@ abstract class Model
     }
 
     public static function findBy(string $col, $val): ?array {
+        // El valor va parametrizado, pero el nombre de columna se interpola:
+        // validamos que sea un identificador SQL válido (anti-inyección).
+        if (!preg_match('/^[a-zA-Z_][a-zA-Z0-9_]*$/', $col)) {
+            throw new InvalidArgumentException('Nombre de columna inválido: ' . $col);
+        }
         $st = db()->prepare('SELECT * FROM ' . static::$table . ' WHERE ' . $col . ' = ? LIMIT 1');
         $st->execute([$val]);
         return $st->fetch() ?: null;

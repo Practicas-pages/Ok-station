@@ -170,9 +170,9 @@
       var btn = host.querySelector("#review-submit"); btn.disabled = true; btn.textContent = "Guardando…";
       var op = state.editingId ? Data.update(state.editingId, data.rating, ta.value.trim()) : Data.create(data.rating, ta.value.trim());
       op.then(function (res) {
-        if (res && res.ok === false) { btn.disabled = false; btn.textContent = "Reintentar"; alert.hidden = false; alert.textContent = res.error || "No se pudo guardar."; return; }
+        if (!res || !res.ok) { btn.disabled = false; btn.textContent = "Reintentar"; alert.hidden = false; alert.textContent = (res && res.error) || "No se pudo guardar."; return; }
         host.innerHTML = ""; state.editingId = null; load();
-      });
+      }).catch(function () { btn.disabled = false; btn.textContent = "Reintentar"; alert.hidden = false; alert.textContent = "Sin conexión. Inténtalo de nuevo."; });
     });
 
     ta.focus();
