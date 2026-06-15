@@ -183,7 +183,7 @@
         : badge(o.status);
       return '<tr><td class="mono">' + esc(o.code) + '</td><td><b>' + esc(o.client) + '</b></td><td>' + o.items + '</td>' +
         '<td class="mono">' + mxn(o.total) + '</td><td>' + statusCell + '</td><td>' + esc(o.date) + '</td>' +
-        '<td><button class="admin-btn-sm" data-view-order="' + esc(o.id || o.code) + '">Ver</button></td></tr>';
+        '<td><button class="admin-btn-sm" data-view-order="' + esc(o.id || o.code) + '">Previsualizar</button></td></tr>';
     }).join("");
     return head + '<tbody>' + body + '</tbody>';
   }
@@ -211,9 +211,31 @@
   function escClose(e) { if (e.key === "Escape") closeOrderModal(); }
   function closeOrderModal() {
     var m = document.getElementById("order-modal");
-    if (m) m.remove();
+    if (m) {
+      if (m._ticketUrl) { try { URL.revokeObjectURL(m._ticketUrl); } catch (e) {} }
+      m.remove();
+    }
     document.body.style.overflow = "";
     document.removeEventListener("keydown", escClose);
+  }
+
+  /* Carga el ticket PDF (con token) en la previsualización y habilita descargar/imprimir. */
+  function loadTicketInto(modal, id, code) {
+    var wrap = $("#ticket-preview", modal);
+    var dl = $("#ticket-download", modal);
+    var pr = $("#ticket-print", modal);
+    fetch(API_BASE + "/orders/ticket.php?id=" + encodeURIComponent(id), { headers: { Authorization: "Bearer " + token() } })
+      .then(function (r) { if (!r.ok) throw new Error(String(r.status)); return r.blob(); })
+      .then(function (blob) {
+        var url = URL.createObjectURL(blob);
+        modal._ticketUrl = url;
+        wrap.innerHTML = '<iframe id="order-ticket-frame" src="' + url + '" style="width:100%;height:440px;border:1px solid #eef0f4;border-radius:10px;background:#fff" title="Ticket del pedido ' + esc(code) + '"></iframe>';
+        if (dl) { dl.disabled = false; dl.onclick = function () { var a = document.createElement("a"); a.href = url; a.download = "ticket-" + code + ".pdf"; document.body.appendChild(a); a.click(); a.remove(); }; }
+        if (pr) { pr.disabled = false; pr.onclick = function () { var f = document.getElementById("order-ticket-frame"); try { f.contentWindow.focus(); f.contentWindow.print(); } catch (e) { window.open(url, "_blank"); } }; }
+      })
+      .catch(function () {
+        wrap.innerHTML = '<p style="color:var(--text-muted,#6b7280);font-size:.88rem;text-align:center;padding:28px 0;margin:0">El ticket PDF de este pedido no está disponible.</p>';
+      });
   }
 
   function openOrderModal(o) {
@@ -235,7 +257,7 @@
     ov.setAttribute("aria-modal", "true");
     ov.style.cssText = "position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;padding:18px;background:rgba(15,23,42,.5);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px)";
     ov.innerHTML =
-      '<div style="background:#fff;border-radius:16px;max-width:560px;width:100%;max-height:90vh;overflow:auto;box-shadow:0 20px 60px rgba(0,0,0,.3)">' +
+      '<div style="background:#fff;border-radius:16px;max-width:760px;width:100%;max-height:92vh;overflow:auto;box-shadow:0 20px 60px rgba(0,0,0,.3)">' +
         '<div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:18px 20px;border-bottom:1px solid #eef0f4">' +
           '<div><div style="font-weight:700;font-size:1.05rem">' + esc(o.code) + '</div>' +
           '<div style="font-size:.8rem;color:var(--text-muted,#6b7280)">' + esc(String(o.created_at || o.date || "").slice(0, 10)) + '</div></div>' +
@@ -259,8 +281,12 @@
             '<div style="display:flex;justify-content:space-between;margin-bottom:3px"><span>IVA</span><b class="mono">' + mxn(o.tax || 0) + '</b></div>' +
             '<div style="display:flex;justify-content:space-between;font-size:1.05rem"><span><b>Total</b></span><b class="mono">' + mxn(o.total || 0) + '</b></div>' +
           '</div>' +
+          '<h4 style="margin:18px 0 8px;font-size:.95rem">Ticket del pedido</h4>' +
+          '<div id="ticket-preview"><p style="color:var(--text-muted,#6b7280);font-size:.88rem;text-align:center;padding:28px 0;margin:0">Cargando ticket…</p></div>' +
         '</div>' +
-        '<div style="padding:14px 20px;border-top:1px solid #eef0f4;text-align:right">' +
+        '<div style="display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end;padding:14px 20px;border-top:1px solid #eef0f4">' +
+          '<button type="button" class="btn btn--light btn--sm" id="ticket-download" disabled>Descargar PDF</button>' +
+          '<button type="button" class="btn btn--light btn--sm" id="ticket-print" disabled>Imprimir</button>' +
           '<button type="button" class="btn btn--primary btn--sm" id="order-modal-close">Cerrar</button>' +
         '</div>' +
       '</div>';
@@ -269,6 +295,7 @@
     ov.addEventListener("click", function (e) { if (e.target === ov) closeOrderModal(); });
     $("#order-modal-close", ov).addEventListener("click", closeOrderModal);
     document.addEventListener("keydown", escClose);
+    loadTicketInto(ov, o.id || o.code, o.code);
   }
 
   function viewOrder(id) {
