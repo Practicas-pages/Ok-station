@@ -11,7 +11,7 @@ $o = Order::find($id);
 if (!$o) fail('Pedido no encontrado.', 404);
 
 $isOwner = ((int) $o['user_id'] === (int) $user['id']);
-$canView = in_array('orders.view', User::permissions((int) $user['id']), true);
+$canView = user_has_permission((int) $user['id'], 'orders.view');
 if (!$isOwner && !$canView) fail('No autorizado.', 403);
 
 $o['items'] = Order::items($id);

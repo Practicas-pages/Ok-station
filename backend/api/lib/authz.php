@@ -30,10 +30,20 @@ function require_role($roles): array {
     return $u;
 }
 
+/**
+ * ¿El usuario tiene el permiso indicado?
+ * Un 'administrador' tiene TODOS los permisos por definición (acceso total),
+ * así no depende de que la tabla role_permissions esté 100% sembrada.
+ */
+function user_has_permission(int $userId, string $perm): bool {
+    if (user_has_role($userId, 'administrador')) return true;
+    return in_array($perm, User::permissions($userId), true);
+}
+
 /** Exige un permiso concreto (p.ej. 'orders.update_status'). */
 function require_permission(string $perm): array {
     $u = current_user();
-    if (!in_array($perm, User::permissions((int) $u['id']), true)) {
+    if (!user_has_permission((int) $u['id'], $perm)) {
         fail('Permiso insuficiente: ' . $perm, 403);
     }
     return $u;
