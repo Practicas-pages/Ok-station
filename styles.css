@@ -1510,6 +1510,89 @@ h1, h2, h3, h4, h5, h6 {
   min-height: 100px;
 }
 
+/* ── Paso "Tus datos": etiqueta opcional, prefijo de teléfono,
+      chips de contacto y consentimiento (mismo tema oscuro del wizard) ── */
+.field__opt {
+  font-weight: 500;
+  color: rgba(255,255,255,0.45);
+}
+
+/* Más compacto solo en este paso */
+.cita-step--datos .field { margin-bottom: var(--space-4); }
+
+/* Prefijo +52 en el teléfono */
+.input-prefix { display: flex; align-items: stretch; }
+.input-prefix__tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 13px 14px;
+  background: rgba(255,255,255,0.07);
+  border: 1.5px solid rgba(255,255,255,0.18);
+  border-right: none;
+  border-radius: var(--radius-sm) 0 0 var(--radius-sm);
+  color: rgba(255,255,255,0.85);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.input-prefix__wa { width: 16px; height: 16px; color: #25D366; }
+.input-prefix input { border-radius: 0 var(--radius-sm) var(--radius-sm) 0 !important; }
+
+/* Chips: ¿cómo prefieres que te contactemos? (radios accesibles, sin JS) */
+.contact-pref { display: flex; flex-wrap: wrap; gap: var(--space-3); }
+.contact-pref input {
+  position: absolute;
+  width: 1px; height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+.contact-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 11px 16px;
+  border-radius: var(--radius-sm);
+  border: 1.5px solid rgba(255,255,255,0.18);
+  background: rgba(255,255,255,0.07);
+  color: rgba(255,255,255,0.88);
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition:
+    border-color var(--transition-fast),
+    background var(--transition-fast),
+    transform var(--transition-spring);
+}
+.contact-chip svg { width: 16px; height: 16px; }
+.contact-chip:hover { border-color: rgba(0,198,255,0.45); transform: translateY(-2px); }
+.contact-chip:has(input:checked) {
+  border-color: var(--brand-cyan);
+  background: var(--brand-blue);
+  color: #fff;
+  box-shadow: var(--shadow-brand);
+}
+.contact-chip:has(input:focus-visible) { outline: 3px solid var(--brand-cyan); outline-offset: 2px; }
+
+/* Casilla de consentimiento */
+.cita-consent {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-top: var(--space-2);
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: rgba(255,255,255,0.7);
+  cursor: pointer;
+}
+.cita-consent input {
+  width: 18px; height: 18px;
+  margin-top: 1px;
+  flex-shrink: 0;
+  accent-color: var(--brand-cyan);
+  cursor: pointer;
+}
+
 /* Horarios */
 .time-grid {
   display: grid;
