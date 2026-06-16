@@ -412,16 +412,42 @@
           <h3 class="cita-aside__title">Tu cita, sin filas ni complicaciones</h3>
           <p class="cita-aside__desc">Te guiamos en todo el proceso con la voz de la experiencia y la calidez de un buen servicio.</p>
           <div class="steps-rail" aria-hidden="true">
-            <div class="step-item is-active"><span class="step-item__num">1</span> Elige el trámite</div>
-            <div class="step-item"><span class="step-item__num">2</span> Fecha y hora</div>
-            <div class="step-item"><span class="step-item__num">3</span> Tus datos</div>
+            <div class="step-item is-active"><span class="step-item__num">1</span> Tus datos</div>
+            <div class="step-item"><span class="step-item__num">2</span> Elige el trámite</div>
+            <div class="step-item"><span class="step-item__num">3</span> Fecha y hora</div>
             <div class="step-item"><span class="step-item__num">4</span> Confirmación</div>
           </div>
         </aside>
 
         <div class="cita-panel">
-          <!-- Paso 0: trámite -->
+          <!-- Paso 1: datos -->
           <div class="cita-step is-active" aria-hidden="false">
+            <h4 class="cita-step__title">Tus datos de contacto</h4>
+            <p class="cita-step__sub">Para confirmarte la cita y resolver cualquier duda.</p>
+            <div class="field-group">
+              <div class="field">
+                <label for="cita-nombre">Nombre completo</label>
+                <input type="text" id="cita-nombre" name="cita-nombre" autocomplete="name" placeholder="Ej. María González">
+              </div>
+              <div class="field">
+                <label for="cita-tel">Teléfono / WhatsApp</label>
+                <input type="tel" id="cita-tel" name="cita-tel" autocomplete="tel" inputmode="tel" placeholder="664 000 0000">
+              </div>
+            </div>
+            <div class="field">
+              <label for="cita-notas">Notas (opcional)</label>
+              <textarea id="cita-notas" name="cita-notas" rows="3" placeholder="Cuántas personas, primera vez o renovación, dudas..."></textarea>
+            </div>
+            <div class="cita-nav">
+              <span></span>
+              <button type="button" class="btn btn--primary" id="cita-next-2" data-cita-next disabled aria-disabled="true">Continuar
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+              </button>
+            </div>
+          </div>
+
+          <!-- Paso 2: trámite -->
+          <div class="cita-step" aria-hidden="true">
             <h4 class="cita-step__title">¿Qué trámite necesitas?</h4>
             <p class="cita-step__sub">Selecciona el servicio para el que quieres tu cita.</p>
             <div class="tramite-grid" role="group" aria-label="Tipo de trámite">
@@ -439,14 +465,14 @@
               </button>
             </div>
             <div class="cita-nav">
-              <span></span>
+              <button type="button" class="btn btn--ghost-dark" data-cita-back>Atrás</button>
               <button type="button" class="btn btn--primary" id="cita-next-0" data-cita-next disabled aria-disabled="true">Continuar
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
               </button>
             </div>
           </div>
 
-          <!-- Paso 1: fecha y hora -->
+          <!-- Paso 3: fecha y hora -->
           <div class="cita-step" aria-hidden="true">
             <h4 class="cita-step__title">Elige fecha y hora</h4>
             <p class="cita-step__sub">Disponibilidad sujeta a confirmación. Te avisamos por WhatsApp.</p>
@@ -469,39 +495,13 @@
             </div>
             <div class="cita-nav">
               <button type="button" class="btn btn--ghost-dark" data-cita-back>Atrás</button>
-              <button type="button" class="btn btn--primary" id="cita-next-1" data-cita-next disabled aria-disabled="true">Continuar
+              <button type="button" class="btn btn--primary" id="cita-next-1" data-cita-next disabled aria-disabled="true">Ver resumen
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
               </button>
             </div>
           </div>
 
-          <!-- Paso 2: datos -->
-          <div class="cita-step" aria-hidden="true">
-            <h4 class="cita-step__title">Tus datos de contacto</h4>
-            <p class="cita-step__sub">Para confirmarte la cita y resolver cualquier duda.</p>
-            <div class="field-group">
-              <div class="field">
-                <label for="cita-nombre">Nombre completo</label>
-                <input type="text" id="cita-nombre" name="cita-nombre" autocomplete="name" placeholder="Ej. María González">
-              </div>
-              <div class="field">
-                <label for="cita-tel">Teléfono / WhatsApp</label>
-                <input type="tel" id="cita-tel" name="cita-tel" autocomplete="tel" inputmode="tel" placeholder="664 000 0000">
-              </div>
-            </div>
-            <div class="field">
-              <label for="cita-notas">Notas (opcional)</label>
-              <textarea id="cita-notas" name="cita-notas" rows="3" placeholder="Cuántas personas, primera vez o renovación, dudas..."></textarea>
-            </div>
-            <div class="cita-nav">
-              <button type="button" class="btn btn--ghost-dark" data-cita-back>Atrás</button>
-              <button type="button" class="btn btn--primary" id="cita-next-2" data-cita-next disabled aria-disabled="true">Ver resumen
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-              </button>
-            </div>
-          </div>
-
-          <!-- Paso 3: confirmación -->
+          <!-- Paso 4: confirmación -->
           <div class="cita-step" aria-hidden="true">
             <div class="cita-confirm">
               <div class="cita-confirm__check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg></div>
