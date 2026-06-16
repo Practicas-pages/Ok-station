@@ -1388,67 +1388,128 @@ h1, h2, h3, h4, h5, h6 {
 .tramite-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: var(--space-3);
+  gap: var(--space-4);
   margin-bottom: var(--space-7);
+  align-items: stretch;
 }
 
 .tramite-btn {
+  --taccent: var(--brand-cyan);
+  --tgrad: var(--grad-blue);
+  --ttext: #7fb0ff;
+  --ttagbg: rgba(0,198,255,0.16);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
   background: var(--surface-dark-3);
   border: 2px solid var(--border-dark-2);
-  border-radius: var(--radius-md);
-  padding: 22px 18px;
+  border-radius: var(--radius-lg);
+  padding: 22px 20px;
   cursor: pointer;
   text-align: left;
+  color: #fff;
   transition:
     border-color var(--transition-base),
     background var(--transition-base),
+    box-shadow var(--transition-base),
     transform var(--transition-spring);
-  color: #fff;
 }
 
-.tramite-btn:hover {
-  transform: translateY(-3px);
-  border-color: rgba(0,198,255,0.4);
-  background: var(--surface-dark-4);
-}
-
-.tramite-btn.is-selected {
-  border-color: var(--brand-cyan);
-  background: rgba(0,198,255,0.08);
-}
-
-.tramite-btn:focus-visible {
-  outline: 3px solid var(--brand-cyan);
-  outline-offset: 2px;
-}
+/* Acento por trámite */
+.tramite-btn[data-tramite="pasaporte"] { --taccent:#066CFF; --tgrad:var(--grad-blue);   --ttext:#8fb8ff; --ttagbg:rgba(6,108,255,0.20); }
+.tramite-btn[data-tramite="visa"]      { --taccent:#9C1DFF; --tgrad:var(--grad-purple); --ttext:#cba0ff; --ttagbg:rgba(156,29,255,0.22); }
+.tramite-btn[data-tramite="sentri"]    { --taccent:#14b8a6; --tgrad:linear-gradient(135deg,#00C6FF,#14b8a6); --ttext:#5fe0cf; --ttagbg:rgba(20,184,166,0.22); }
 
 .tramite-btn__icon {
-  width: 50px;
-  height: 50px;
-  border-radius: var(--radius-sm);
-  background: var(--grad-blue);
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  background: var(--tgrad);
   display: grid;
   place-items: center;
-  margin-bottom: var(--space-4);
+  margin-bottom: 2px;
 }
 
 .tramite-btn__icon svg {
-  width: 26px;
-  height: 26px;
+  width: 28px;
+  height: 28px;
   color: #fff;
 }
 
-.tramite-btn b {
+.tramite-btn__title {
   display: block;
-  font-size: 0.9375rem;
-  font-weight: 600;
-  margin-bottom: 4px;
+  font-size: 1.0625rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
 }
 
-.tramite-btn span {
+.tramite-btn__meta {
   font-size: 0.8125rem;
   color: var(--text-on-dark-2);
-  line-height: 1.4;
+  line-height: 1.35;
+}
+
+.tramite-btn__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 2px 0;
+}
+
+.tramite-tag {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  padding: 3px 9px;
+  border-radius: var(--radius-full);
+  background: var(--ttagbg);
+  color: var(--ttext);
+  letter-spacing: 0.01em;
+}
+
+.tramite-btn__desc {
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: var(--text-on-dark-2);
+}
+
+/* Check de selección (arriba a la derecha) */
+.tramite-btn__check {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--taccent);
+  display: grid;
+  place-items: center;
+  opacity: 0;
+  transform: scale(0.5);
+  transition: opacity var(--transition-fast), transform var(--transition-spring);
+}
+
+.tramite-btn__check svg { width: 14px; height: 14px; color: #fff; }
+
+.tramite-btn.is-selected .tramite-btn__check { opacity: 1; transform: scale(1); }
+
+/* Estados con alta especificidad para ganar a .citas-section .tramite-btn */
+.citas-section .tramite-btn:hover {
+  transform: translateY(-4px);
+  border-color: var(--taccent);
+  box-shadow: 0 14px 34px -16px rgba(0,0,0,0.6);
+}
+
+.citas-section .tramite-btn:focus-visible {
+  outline: 3px solid var(--taccent);
+  outline-offset: 2px;
+}
+
+.citas-section .tramite-btn.is-selected {
+  border-color: var(--taccent);
+  background: rgba(255,255,255,0.06);
+  box-shadow: 0 0 0 1.5px var(--taccent), 0 16px 38px -18px rgba(0,0,0,0.6);
 }
 
 /* Campos del wizard */
