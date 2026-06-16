@@ -1157,6 +1157,17 @@ h1, h2, h3, h4, h5, h6 {
   margin-bottom: var(--space-3);
 }
 
+/* Encabezado de la tarjeta: ícono + título en una sola fila (compacto, sin
+   espacio vacío arriba). No cambia colores, tamaños ni el ícono en sí. */
+.service-card .service-head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  margin-bottom: var(--space-3);
+}
+.service-card .service-head .service-icon { margin-bottom: 0; }
+.service-card .service-head h3 { margin-bottom: 0; }
+
 .service-card p {
   font-size: 0.9rem;
   line-height: 1.65;
