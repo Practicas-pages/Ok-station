@@ -444,11 +444,11 @@
       if (!summaryEl) return;
 
       var rows = [
+        ["Nombre",    sanitize(state.nombre || "—")],
+        ["Teléfono",  sanitize(state.tel || "—")],
         ["Trámite",   sanitize(state.tramiteLabel)],
         ["Fecha",     sanitize(formatDate(state.fecha))],
-        ["Hora",      sanitize(state.hora) + " hrs"],
-        ["Nombre",    sanitize(state.nombre || "—")],
-        ["Teléfono",  sanitize(state.tel || "—")]
+        ["Hora",      sanitize(state.hora) + " hrs"]
       ];
 
       if (state.notas) {
