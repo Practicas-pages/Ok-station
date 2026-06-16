@@ -879,6 +879,18 @@
   /* ============================================================
      09. INICIALIZACIÓN
      ============================================================ */
+  /* Galería del local: si una foto aún no existe, se elimina el <img> y queda
+     visible el placeholder con su etiqueta (sin icono de imagen rota). */
+  function initGallery() {
+    qsa(".store-gallery__item img").forEach(function (img) {
+      function fail() { if (img.parentNode) img.remove(); }
+      // Si ya falló antes de que corriera este script (defer), quítala ya.
+      if (img.complete && img.naturalWidth === 0) { fail(); return; }
+      img.addEventListener("error", fail);
+      img.addEventListener("load", function () { if (img.naturalWidth === 0) fail(); });
+    });
+  }
+
   function init() {
     initHeader();
     initReveal();
@@ -886,6 +898,7 @@
     initCitas();
     initFotos();
     initScrollTop();
+    initGallery();
   }
 
   if (document.readyState === "loading") {
