@@ -1113,8 +1113,11 @@
     }
 
     function clearToken() {
-      try { localStorage.removeItem(CONFIG.TOKEN_KEY); }
-      catch (_) {}
+      try {
+        localStorage.removeItem(CONFIG.TOKEN_KEY);
+        /* Limpia también el flag de acceso que lee site-guard.js */
+        localStorage.removeItem('oks_site_access');
+      } catch (_) {}
     }
 
     /* ──────────────────────────────────────────────────────────
@@ -1205,6 +1208,8 @@
     }
 
     function renderBlocked(userObj) {
+      /* Cliente sin acceso: asegura que NO quede el flag de acceso. */
+      try { localStorage.removeItem('oks_site_access'); } catch (_) {}
       var name  = extractName(userObj);
       var first = name.split(' ')[0];
       var init  = (name.charAt(0) || '?').toUpperCase();
@@ -1216,6 +1221,10 @@
     }
 
     function renderGranted(userObj, role) {
+      /* Marca el acceso concedido. site-guard.js (en home.html y páginas
+         internas) confía en este flag para dejar pasar sin re-evaluar el
+         token — evita bucles por rol u otro formato de token. */
+      try { localStorage.setItem('oks_site_access', '1'); } catch (_) {}
       var name = extractName(userObj);
       var init = (name.charAt(0) || '?').toUpperCase();
 

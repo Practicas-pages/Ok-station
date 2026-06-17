@@ -124,7 +124,16 @@
     });
   }
 
-  /* ── EVALUACIÓN PRINCIPAL ── */
+  /* ── Acceso ya validado por maintenance.html ──
+     maintenance.html escribe 'oks_site_access' cuando concede acceso
+     (admin/empleado), usando el backend como fuente de verdad. Confiamos en
+     ese veredicto y no re-evaluamos el token aquí: el formato del token o la
+     ortografía del rol pueden diferir y provocar un bucle de redirección. */
+  try {
+    if (localStorage.getItem('oks_site_access') === '1') { return; }
+  } catch (_) {}
+
+  /* ── EVALUACIÓN PRINCIPAL (respaldo: token directo sin pasar por maintenance) ── */
   var token = getToken();
 
   if (!token) {
