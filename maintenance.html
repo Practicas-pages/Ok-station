@@ -990,7 +990,7 @@
               </div>
               <h3 class="panel-granted__title">¡Bienvenido de vuelta!</h3>
               <p class="panel-granted__msg">
-                Acceso concedido. Pulsa el botón para entrar al sitio.
+                Acceso concedido. En un momento te redirigimos.
               </p>
               <button type="button" class="btn-login" id="btn-enter">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -1287,7 +1287,7 @@
 
       if (hasAccess(role)) {
         renderGranted(userObj, role);
-        /* Sin auto-redirect: el usuario pulsa 'Ir al sitio' */
+        /* sin auto-redirect: usuario pulsa 'Ir al sitio' */
       } else if (role) {
         renderBlocked(userObj);
       } else {
