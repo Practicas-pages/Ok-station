@@ -990,7 +990,7 @@
               </div>
               <h3 class="panel-granted__title">¡Bienvenido de vuelta!</h3>
               <p class="panel-granted__msg">
-                Acceso concedido. Entrando al sitio…
+                Acceso concedido. Pulsa el botón para entrar al sitio.
               </p>
               <button type="button" class="btn-login" id="btn-enter">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -1077,7 +1077,7 @@
                      'superadmin', 'empleado', 'employee', 'staff'],
 
       /* Redirect destino tras acceso concedido */
-      SITE_URL: 'home.html',
+      SITE_URL: 'index.html',
 
       /* ms de espera animada antes del redirect */
       REDIRECT_DELAY: 1400,
@@ -1287,7 +1287,7 @@
 
       if (hasAccess(role)) {
         renderGranted(userObj, role);
-        setTimeout(redirectToSite, 800);
+        /* User must click 'Ir al sitio' to proceed — no auto-redirect */
       } else if (role) {
         renderBlocked(userObj);
       } else {
