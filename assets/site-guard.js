@@ -44,8 +44,11 @@
     /* URL de la pantalla de mantenimiento */
     MAINTENANCE_URL: '/maintenance.html',
 
-    /* Rutas que NUNCA se redirigen (no incluir '/' aquí) */
-    BYPASS_PATHS: ['/assets/', '/api/'],
+    /* Rutas que NUNCA se redirigen (no incluir '/' aquí).
+       recuperar/restablecer quedan accesibles durante el mantenimiento:
+       evitan que un admin que olvidó su contraseña quede bloqueado y
+       permiten que los enlaces de restablecimiento por correo funcionen. */
+    BYPASS_PATHS: ['/assets/', '/api/', '/recuperar.html', '/restablecer.html'],
   };
 
   /* Salir inmediatamente si no estamos en modo mantenimiento */

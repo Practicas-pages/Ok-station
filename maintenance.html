@@ -795,7 +795,7 @@
 
           <!-- Contacto -->
           <div class="maint-contact-grid" role="list" aria-label="Información de contacto">
-            <a href="https://wa.me/5216641044896" target="_blank" rel="noopener noreferrer"
+            <a href="https://wa.me/5216647194117" target="_blank" rel="noopener noreferrer"
                class="maint-contact-card" role="listitem">
               <div class="maint-contact-card__icon" aria-hidden="true">
                 <svg viewBox="0 0 24 24" fill="currentColor">
@@ -804,7 +804,7 @@
               </div>
               <div>
                 <div class="maint-contact-card__label">WhatsApp</div>
-                <div class="maint-contact-card__value">(664) 104-4896</div>
+                <div class="maint-contact-card__value">(664) 719-4117</div>
               </div>
             </a>
 
@@ -844,7 +844,7 @@
               </div>
               <div>
                 <div class="maint-contact-card__label">Horario</div>
-                <div class="maint-contact-card__value">Lun–Vie 9–19h</div>
+                <div class="maint-contact-card__value">Lun–Vie 8–19h · Sáb 8–16h</div>
               </div>
             </div>
           </div>
@@ -1422,18 +1422,12 @@
        REDIRECT AL SITIO REAL
        ────────────────────────────────────────────────────────── */
     function redirectToSite() {
-      var intended = '';
-      try { intended = sessionStorage.getItem('oks_intended') || ''; } catch (_) {}
+      /* Durante el mantenimiento el único destino válido es home.html.
+         index.html reenvía a maintenance.html, así que NO debemos volver
+         a la URL de origen (oks_intended) porque provocaría un bucle. */
       try { sessionStorage.removeItem('oks_intended'); } catch (_) {}
 
-      /* Evitar loop de mantenimiento */
-      if (!intended
-          || intended.includes('maintenance')
-          || intended.includes('login')) {
-        intended = CONFIG.SITE_URL;
-      }
-
-      window.location.href = intended;
+      window.location.href = CONFIG.SITE_URL;
     }
 
     /* ──────────────────────────────────────────────────────────
