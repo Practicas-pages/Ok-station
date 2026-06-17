@@ -38,8 +38,10 @@
     JWT_KEY: 'okstation_token',
     JWT_KEY_ALT: 'access_token',
 
-    /* Roles con acceso durante mantenimiento */
-    ADMIN_ROLES: ['admin', 'administrator', 'superadmin', 'empleado', 'employee', 'staff'],
+    /* Roles con acceso durante mantenimiento.
+       DEBE coincidir con ACCESS_ROLES de maintenance.html — si difieren,
+       maintenance puede conceder acceso y el guard rebotar al usuario (bucle). */
+    ADMIN_ROLES: ['admin', 'administrador', 'administrator', 'superadmin', 'empleado', 'employee', 'staff'],
 
     /* URL de la pantalla de mantenimiento */
     MAINTENANCE_URL: '/maintenance.html',
