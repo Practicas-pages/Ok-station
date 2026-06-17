@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<!--
+  ============================================================
+  OK.station — Página de servicio: Fotos para pasaporte y trámites
+  Landing SEO local. Mismo design system que index/home
+  (styles.css + app.js, BEM). El "home" enlaza a index.html
+  (URL canónica raíz que no cambia tras el lanzamiento).
+  ============================================================
+-->
+<html lang="es-MX">
+<head>
+  <meta charset="UTF-8">
+
+  <!-- Modo mantenimiento: bloquea el acceso directo sin credenciales válidas -->
+  <script src="assets/site-guard.js"></script>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+
+  <!-- ===================== SEO BÁSICO ===================== -->
+  <title>Fotos para Pasaporte y Trámites en Tijuana | OK.station</title>
+  <meta name="description" content="Fotos para pasaporte, visa americana, infantil y credencial en Tijuana. Tomadas e impresas al momento cumpliendo las especificaciones oficiales de cada trámite. Centro Comercial Otay.">
+  <meta name="author" content="OK.station — OK Dock">
+  <meta name="robots" content="index, follow, max-image-preview:large">
+  <meta name="theme-color" content="#066CFF">
+  <meta name="geo.region" content="MX-BCN">
+  <meta name="geo.placename" content="Tijuana, Baja California">
+  <meta name="geo.position" content="32.5360;-116.9690">
+  <meta name="ICBM" content="32.5360, -116.9690">
+  <link rel="canonical" href="https://okstation.mx/fotos-para-pasaporte-tijuana.html">
+
+  <!-- ===================== OPEN GRAPH ===================== -->
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="OK.station">
+  <meta property="og:locale" content="es_MX">
+  <meta property="og:title" content="Fotos para Pasaporte y Trámites en Tijuana | OK.station">
+  <meta property="og:description" content="Te tomamos e imprimimos tus fotos para pasaporte, visa, infantil y credencial al momento, con las medidas y el fondo que cada trámite exige. En Centro Comercial Otay, Tijuana.">
+  <meta property="og:url" content="https://okstation.mx/fotos-para-pasaporte-tijuana.html">
+  <meta property="og:image" content="https://okstation.mx/assets/img/DSC01856.webp">
+  <meta property="og:image:alt" content="Estudio fotográfico de OK.station para fotos de trámites en Tijuana">
+
+  <!-- ===================== TWITTER CARDS ===================== -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Fotos para Pasaporte y Trámites en Tijuana | OK.station">
+  <meta name="twitter:description" content="Fotos para pasaporte, visa, infantil y credencial, al momento y con especificaciones oficiales. Centro Comercial Otay, Tijuana.">
+  <meta name="twitter:image" content="https://okstation.mx/assets/img/DSC01856.webp">
+  <meta name="twitter:image:alt" content="Estudio fotográfico de OK.station para fotos de trámites en Tijuana">
+
+  <!-- ===================== FAVICONS ===================== -->
+  <link rel="icon" href="/favicon.ico" sizes="any">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+
+  <!-- ===================== TIPOGRAFÍA (Poppins) ===================== -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap"
+        media="print" onload="this.media='all'">
+  <noscript>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap">
+  </noscript>
+
+  <!-- ===================== HOJA DE ESTILOS ===================== -->
+  <link rel="stylesheet" href="styles.css?v=20260611">
+
+  <!-- Estilos mínimos específicos de esta página (breadcrumb + grid de tipos) -->
+  <style>
+    .breadcrumb { padding: 14px 0 0; }
+    .breadcrumb ol { list-style: none; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin: 0; padding: 0; font-size: 0.8125rem; color: var(--text-muted, #6B7280); }
+    .breadcrumb li { display: inline-flex; align-items: center; gap: 6px; }
+    .breadcrumb li + li::before { content: "/"; opacity: 0.5; }
+    .breadcrumb a { color: inherit; text-decoration: none; }
+    .breadcrumb a:hover { color: var(--brand-blue, #066CFF); text-decoration: underline; }
+    .breadcrumb [aria-current="page"] { color: var(--brand-blue, #066CFF); font-weight: 600; }
+    .svc-meta { font-size: 0.8125rem; color: var(--brand-blue, #066CFF); font-weight: 600; }
+  </style>
+
+  <!-- ===================== DATOS ESTRUCTURADOS (JSON-LD) ===================== -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Service",
+    "name": "Fotos para pasaporte y trámites",
+    "serviceType": "Fotografía para documentos oficiales",
+    "url": "https://okstation.mx/fotos-para-pasaporte-tijuana.html",
+    "description": "Toma e impresión de fotografías para pasaporte mexicano, visa americana, infantil, credencial y ovaladas, cumpliendo las especificaciones oficiales de cada trámite, en Tijuana.",
+    "provider": { "@type": "LocalBusiness", "@id": "https://okstation.mx/#business" },
+    "areaServed": { "@type": "City", "name": "Tijuana" },
+    "availableChannel": {
+      "@type": "ServiceChannel",
+      "serviceLocation": {
+        "@type": "Place",
+        "name": "OK.station — Centro Comercial Otay",
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "Centro Comercial Otay, Local G-03, Carretera Aeropuerto 1900",
+          "addressLocality": "Tijuana",
+          "addressRegion": "Baja California",
+          "postalCode": "22425",
+          "addressCountry": "MX"
+        }
+      }
+    }
+  }
+  </script>
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      { "@type": "ListItem", "position": 1, "name": "Inicio", "item": "https://okstation.mx/" },
+      { "@type": "ListItem", "position": 2, "name": "Fotos para pasaporte y trámites", "item": "https://okstation.mx/fotos-para-pasaporte-tijuana.html" }
+    ]
+  }
+  </script>
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "¿Necesito cita para tomarme fotos de pasaporte o trámites?",
+        "acceptedAnswer": { "@type": "Answer", "text": "No. Puedes llegar directamente a nuestro local en Centro Comercial Otay y te las tomamos en el momento. Si prefieres, escríbenos antes por WhatsApp para confirmar horario." }
+      },
+      {
+        "@type": "Question",
+        "name": "¿Las fotos cumplen las especificaciones oficiales de cada trámite?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Sí. Tomamos e imprimimos las fotos con el tamaño, el fondo y el encuadre que exige cada trámite: pasaporte mexicano (SRE), visa americana, infantil, credencial y ovaladas para certificados y títulos." }
+      },
+      {
+        "@type": "Question",
+        "name": "¿Cuánto tardan en entregar las fotos?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Al momento. Te las tomamos, imprimimos y entregamos el mismo día, listas para tu trámite." }
+      },
+      {
+        "@type": "Question",
+        "name": "¿Toman fotografías a bebés y niños para pasaporte?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Sí, hacemos fotos infantiles y para pasaporte de bebés y niños, cuidando el fondo y el encuadre que pide el trámite." }
+      },
+      {
+        "@type": "Question",
+        "name": "¿Dónde están ubicados para tomarme las fotos?",
+        "acceptedAnswer": { "@type": "Answer", "text": "En Centro Comercial Otay, Local G-03, Carretera Aeropuerto 1900, Tijuana, B.C. Estamos a tu disposición de lunes a viernes de 8:00 a 19:00 y sábados de 8:00 a 16:00." }
+      }
+    ]
+  }
+  </script>
+</head>
+
+<body id="top">
+
+<!-- Enlace para saltar al contenido (accesibilidad / teclado) -->
+<a class="skip-link" href="#main">Saltar al contenido principal</a>
+
+<!-- ============================ BARRA SUPERIOR ============================ -->
+<div class="header-bar">
+  Atención personal en Centro Comercial Otay ·
+  <a href="https://wa.me/526647194117?text=Hola,%20quiero%20solicitar%20informaci%C3%B3n" target="_blank" rel="noopener">Escríbenos por WhatsApp</a>
+</div>
+
+<!-- ============================ HEADER ============================ -->
+<header class="site-header">
+  <div class="wrap nav">
+    <a href="index.html" class="logo" aria-label="OK.station — Ir al inicio">
+      <span class="logo__ok">OK</span><span class="logo__dot">.</span><span class="logo__station">station</span>
+    </a>
+
+    <nav class="nav__links" id="nav-menu" aria-label="Navegación principal">
+      <a class="nav__link" href="index.html#servicios">Servicios</a>
+      <a class="nav__link" href="index.html#citas">Citas</a>
+      <a class="nav__link" href="index.html#fotos">Imprime tus fotos</a>
+      <a class="nav__link" href="pedido.html">Haz tu pedido</a>
+      <a class="nav__link" href="index.html#testimonios">Reseñas</a>
+      <a class="nav__link" href="index.html#visitanos">Visítanos</a>
+    </nav>
+
+    <div class="nav__actions">
+      <a class="nav__tel" href="tel:+5216647194117" aria-label="Llamar al (664) 719-4117">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>
+        (664) 719-4117
+      </a>
+      <div class="acct" id="acct">
+        <a class="btn btn--light btn--sm" href="cuenta.html" id="acct-login" aria-label="Iniciar sesión"> <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> Cuenta </a>
+      </div>
+      <a class="btn btn--wa btn--sm" href="https://wa.me/526647194117?text=Hola,%20quiero%20solicitar%20informaci%C3%B3n" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M.057 24l1.687-6.163a11.867 11.867 0 01-1.587-5.945C.16 5.335 5.495 0 12.05 0a11.82 11.82 0 018.413 3.488 11.82 11.82 0 013.48 8.414c-.003 6.557-5.338 11.892-11.893 11.892a11.9 11.9 0 01-5.688-1.448L.057 24zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884a9.86 9.86 0 001.51 5.26l-.999 3.648 3.978-1.040zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.017-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.247-.694.247-1.29.173-1.414z"/></svg>
+        WhatsApp
+      </a>
+      <button class="nav__toggle" aria-label="Abrir menú de navegación" aria-expanded="false" aria-controls="nav-menu">
+        <span class="nav__toggle-bar"></span>
+        <span class="nav__toggle-bar"></span>
+        <span class="nav__toggle-bar"></span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<main id="main">
+
+  <!-- ============================ BREADCRUMB + HERO ============================ -->
+  <section class="section" aria-labelledby="svc-title">
+    <div class="wrap">
+      <nav class="breadcrumb" aria-label="Ruta de navegación">
+        <ol>
+          <li><a href="index.html">Inicio</a></li>
+          <li><span aria-current="page">Fotos para pasaporte y trámites</span></li>
+        </ol>
+      </nav>
+
+      <div class="section-head reveal">
+        <span class="eyebrow">Fotos para trámites · Tijuana</span>
+        <h1 class="text-h2" id="svc-title">Fotos para <span class="hl">pasaporte y trámites</span> en Tijuana</h1>
+        <p class="text-lead">Te tomamos e imprimimos tus fotografías para pasaporte, visa americana, infantil y credencial cumpliendo las especificaciones oficiales de cada trámite. En Centro Comercial Otay y listas el mismo día.</p>
+        <div class="hero__cta" style="margin-top:24px">
+          <a href="https://wa.me/526647194117?text=Hola,%20quiero%20fotos%20para%20un%20tr%C3%A1mite" class="btn btn--wa btn--lg" target="_blank" rel="noopener">
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M.057 24l1.687-6.163a11.867 11.867 0 01-1.587-5.945C.16 5.335 5.495 0 12.05 0a11.82 11.82 0 018.413 3.488 11.82 11.82 0 013.48 8.414c-.003 6.557-5.338 11.892-11.893 11.892a11.9 11.9 0 01-5.688-1.448L.057 24z"/></svg>
+            Pídelas por WhatsApp
+          </a>
+          <a href="index.html#visitanos" class="btn btn--light btn--lg">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            Cómo llegar
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================ TIPOS DE FOTO ============================ -->
+  <section class="section section--alt" aria-labelledby="tipos-title">
+    <div class="wrap">
+      <div class="section-head section-head--center reveal">
+        <span class="eyebrow">Tipos de foto</span>
+        <h2 class="text-h2" id="tipos-title">Para el trámite que necesites</h2>
+        <p class="text-lead">Cada documento pide medidas y fondo distintos. Nosotros conocemos las especificaciones y te las dejamos listas.</p>
+      </div>
+
+      <div class="services-grid reveal-stagger">
+        <article class="service-card reveal">
+          <div class="service-head">
+            <div class="service-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/><circle cx="12" cy="9" r="2.2"/><path d="M9 14.5c.6-1.2 1.7-2 3-2s2.4.8 3 2"/></svg></div>
+            <h3>Pasaporte mexicano</h3>
+          </div>
+          <p>Fotografías con el tamaño y el fondo que pide la SRE para tu pasaporte, en primera vez o renovación.</p>
+          <div class="service-tags"><span class="tag">SRE</span><span class="tag">Adultos y niños</span></div>
+        </article>
+
+        <article class="service-card reveal">
+          <div class="service-head">
+            <div class="service-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/><path d="M6 15h4"/></svg></div>
+            <h3>Visa americana</h3>
+          </div>
+          <p>Foto 5×5 cm (2×2") con fondo blanco, según los requisitos del trámite de visa de EE. UU.</p>
+          <div class="service-tags"><span class="tag">5×5 cm</span><span class="tag">Fondo blanco</span></div>
+        </article>
+
+        <article class="service-card reveal">
+          <div class="service-head">
+            <div class="service-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="5"/><path d="M3 21v-1a7 7 0 0114 0v1"/></svg></div>
+            <h3>Infantil y credencial</h3>
+          </div>
+          <p>Tamaño infantil y credencial para escuela, trabajo y trámites varios. Impresas al momento.</p>
+          <div class="service-tags"><span class="tag">Infantil</span><span class="tag">Credencial</span></div>
+        </article>
+
+        <article class="service-card reveal">
+          <div class="service-head">
+            <div class="service-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><ellipse cx="12" cy="12" rx="6" ry="9"/><circle cx="12" cy="9" r="2.4"/><path d="M8.5 15.5c.8-1.6 2-2.4 3.5-2.4s2.7.8 3.5 2.4"/></svg></div>
+            <h3>Ovaladas</h3>
+          </div>
+          <p>Fotografías ovaladas para certificados, títulos y cédulas profesionales, con el acabado correcto.</p>
+          <div class="service-tags"><span class="tag">Certificados</span><span class="tag">Títulos</span></div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================ CÓMO FUNCIONA ============================ -->
+  <section class="section" aria-labelledby="pasos-title">
+    <div class="wrap">
+      <div class="section-head section-head--center reveal">
+        <span class="eyebrow">Cómo funciona</span>
+        <h2 class="text-h2" id="pasos-title">Tus fotos en 3 pasos</h2>
+      </div>
+      <ul class="photo-steps reveal" aria-label="Cómo obtener tus fotos">
+        <li><span>1</span> Llega a nuestro local en Centro Comercial Otay (o escríbenos por WhatsApp).</li>
+        <li><span>2</span> Te tomamos la foto con el fondo y las medidas que exige tu trámite.</li>
+        <li><span>3</span> Las imprimimos y te las entregamos al momento, listas para usar.</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ============================ POR QUÉ NOSOTROS ============================ -->
+  <section class="section section--alt" aria-labelledby="porque-title">
+    <div class="wrap">
+      <div class="section-head section-head--center reveal">
+        <span class="eyebrow">Por qué OK.station</span>
+        <h2 class="text-h2" id="porque-title">Bien hechas, a la primera</h2>
+      </div>
+      <div class="services-grid reveal-stagger">
+        <article class="service-card reveal">
+          <div class="service-head"><div class="service-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg></div><h3>Especificaciones correctas</h3></div>
+          <p>Conocemos los requisitos de cada trámite, así evitas rechazos y repetir el viaje.</p>
+        </article>
+        <article class="service-card reveal">
+          <div class="service-head"><div class="service-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div><h3>Al momento</h3></div>
+          <p>Te las entregamos el mismo día, sin esperas ni tener que volver por ellas.</p>
+        </article>
+        <article class="service-card reveal">
+          <div class="service-head"><div class="service-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg></div><h3>En Centro Comercial Otay</h3></div>
+          <p>Fácil de llegar y con atención personal, precio justo y siempre con una sonrisa.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================ FAQ ============================ -->
+  <section class="section" id="faq" aria-labelledby="faq-title">
+    <div class="wrap">
+      <div class="section-head section-head--center reveal">
+        <span class="eyebrow">Preguntas frecuentes</span>
+        <h2 class="text-h2" id="faq-title">Dudas sobre fotos para trámites</h2>
+      </div>
+      <div class="faq-list reveal" style="margin:0 auto">
+        <div class="faq-item">
+          <button type="button" class="faq-question">
+            ¿Necesito cita para tomarme fotos de pasaporte o trámites?
+            <span class="faq-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></span>
+          </button>
+          <div class="faq-answer"><div class="faq-answer__inner">No. Puedes llegar directamente a nuestro local en Centro Comercial Otay y te las tomamos en el momento. Si prefieres, escríbenos antes por WhatsApp para confirmar horario.</div></div>
+        </div>
+        <div class="faq-item">
+          <button type="button" class="faq-question">
+            ¿Las fotos cumplen las especificaciones oficiales de cada trámite?
+            <span class="faq-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></span>
+          </button>
+          <div class="faq-answer"><div class="faq-answer__inner">Sí. Tomamos e imprimimos las fotos con el tamaño, el fondo y el encuadre que exige cada trámite: pasaporte mexicano (SRE), visa americana, infantil, credencial y ovaladas para certificados y títulos.</div></div>
+        </div>
+        <div class="faq-item">
+          <button type="button" class="faq-question">
+            ¿Cuánto tardan en entregar las fotos?
+            <span class="faq-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></span>
+          </button>
+          <div class="faq-answer"><div class="faq-answer__inner">Al momento. Te las tomamos, imprimimos y entregamos el mismo día, listas para tu trámite.</div></div>
+        </div>
+        <div class="faq-item">
+          <button type="button" class="faq-question">
+            ¿Toman fotografías a bebés y niños para pasaporte?
+            <span class="faq-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></span>
+          </button>
+          <div class="faq-answer"><div class="faq-answer__inner">Sí, hacemos fotos infantiles y para pasaporte de bebés y niños, cuidando el fondo y el encuadre que pide el trámite.</div></div>
+        </div>
+        <div class="faq-item">
+          <button type="button" class="faq-question">
+            ¿Dónde están ubicados para tomarme las fotos?
+            <span class="faq-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></span>
+          </button>
+          <div class="faq-answer"><div class="faq-answer__inner">En Centro Comercial Otay, Local G-03, Carretera Aeropuerto 1900, Tijuana, B.C. Te atendemos de lunes a viernes de 8:00 a 19:00 y sábados de 8:00 a 16:00.</div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================ CTA + UBICACIÓN ============================ -->
+  <section class="section section--alt" id="contacto" aria-labelledby="cta-title">
+    <div class="wrap">
+      <div class="contact-grid reveal">
+        <div class="contact-cta">
+          <h3 id="cta-title">¿Listo para tus fotos?</h3>
+          <p>Escríbenos por WhatsApp o pásate por el local. Te asesoramos según tu trámite y te las dejamos listas el mismo día.</p>
+          <a class="btn btn--wa btn--lg" href="https://wa.me/526647194117?text=Hola,%20quiero%20fotos%20para%20un%20tr%C3%A1mite" target="_blank" rel="noopener" style="align-self:flex-start">
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M.057 24l1.687-6.163a11.867 11.867 0 01-1.587-5.945C.16 5.335 5.495 0 12.05 0a11.82 11.82 0 018.413 3.488 11.82 11.82 0 013.48 8.414c-.003 6.557-5.338 11.892-11.893 11.892a11.9 11.9 0 01-5.688-1.448L.057 24z"/></svg>
+            WhatsApp: (664) 719-4117
+          </a>
+        </div>
+        <div class="contact-cards">
+          <div class="map-wrap">
+            <iframe loading="lazy" referrerpolicy="no-referrer-when-downgrade" src="https://www.google.com/maps?q=Otay+Centro+Comercial,+Carretera+Aeropuerto+1900,+Tijuana&output=embed" title="Mapa de ubicación de OK.station en Centro Comercial Otay, Tijuana"></iframe>
+          </div>
+          <div class="info-card">
+            <span class="info-card__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg></span>
+            <div><b>Centro Comercial Otay</b><span>Local G-03 · Carretera Aeropuerto 1900 · Tijuana, B.C.</span></div>
+          </div>
+          <div class="info-card">
+            <span class="info-card__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></span>
+            <div><b>Lun–Vie 8:00–19:00</b><span>Sábados 8:00–16:00</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Enlaces internos a servicios relacionados (SEO + navegación) -->
+      <p class="text-lead reveal" style="text-align:center;margin-top:32px">
+        ¿Buscas algo más? También te ayudamos con
+        <a href="index.html#citas" class="svc-meta">citas de pasaporte, visa y SENTRI</a> y
+        <a href="index.html#fotos" class="svc-meta">impresión de fotografías</a>.
+      </p>
+    </div>
+  </section>
+
+</main>
+
+<!-- ============================ FOOTER ============================ -->
+<footer class="site-footer">
+  <div class="wrap">
+    <div class="footer-top">
+      <div class="footer-brand">
+        <a href="index.html" class="logo logo--dark"><span class="logo__ok">OK</span><span class="logo__dot">.</span><span class="logo__station">station</span></a>
+        <p class="footer-tagline">Materializa tus ideas en físico. Copias, impresiones y servicios de papelería, en un solo lugar.</p>
+        <div class="footer-social">
+          <a href="https://wa.me/526647194117?text=Hola,%20quiero%20solicitar%20informaci%C3%B3n" target="_blank" rel="noopener" aria-label="WhatsApp">
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M.057 24l1.687-6.163a11.867 11.867 0 01-1.587-5.945C.16 5.335 5.495 0 12.05 0a11.82 11.82 0 018.413 3.488 11.82 11.82 0 013.48 8.414c-.003 6.557-5.338 11.892-11.893 11.892a11.9 11.9 0 01-5.688-1.448L.057 24z"/></svg>
+          </a>
+          <a href="mailto:station@okdock.mx" aria-label="Correo electrónico">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M22 7l-10 5L2 7"/></svg>
+          </a>
+        </div>
+      </div>
+      <div class="footer-col">
+        <h5>Servicios</h5>
+        <a href="index.html#servicios">Copias e impresión</a>
+        <a href="index.html#fotos">Impresión de fotos</a>
+        <a href="fotos-para-pasaporte-tijuana.html">Fotos para trámites</a>
+        <a href="index.html#servicios">Enmicado y engargolado</a>
+        <a href="index.html#servicios">Papelería de oficina</a>
+      </div>
+      <div class="footer-col">
+        <h5>Trámites</h5>
+        <a href="index.html#citas">Citas de pasaporte</a>
+        <a href="index.html#citas">Citas de visa</a>
+        <a href="index.html#citas">Citas SENTRI</a>
+      </div>
+      <div class="footer-col">
+        <h5>Contacto</h5>
+        <a href="https://wa.me/526647194117?text=Hola,%20quiero%20solicitar%20informaci%C3%B3n" target="_blank" rel="noopener">WhatsApp (664) 719-4117</a>
+        <a href="tel:+5216647194117">Tel. (664) 719-4117</a>
+        <a href="mailto:station@okdock.mx">station@okdock.mx</a>
+        <a href="https://www.google.com/maps?q=Otay+Centro+Comercial+Tijuana" target="_blank" rel="noopener">Centro Comercial Otay</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2026 OK.station · Una marca de OK Dock · Tijuana, B.C.</span>
+      <span class="footer-brand-line">You say tech, we listen.</span>
+    </div>
+  </div>
+</footer>
+
+<!-- ============================ FLOTANTES ============================ -->
+<a class="wa-fab" href="https://wa.me/526647194117?text=Hola,%20quiero%20solicitar%20informaci%C3%B3n" target="_blank" rel="noopener" aria-label="Escríbenos por WhatsApp">
+  <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M.057 24l1.687-6.163a11.867 11.867 0 01-1.587-5.945C.16 5.335 5.495 0 12.05 0a11.82 11.82 0 018.413 3.488 11.82 11.82 0 013.48 8.414c-.003 6.557-5.338 11.892-11.893 11.892a11.9 11.9 0 01-5.688-1.448L.057 24z"/></svg>
+</a>
+
+<button type="button" class="scroll-top" aria-label="Volver arriba">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>
+</button>
+
+<!-- ============================ SCRIPTS ============================ -->
+<script src="app.js?v=20260611" defer></script>
+<script src="assets/session-nav.js?v=20260611" defer></script>
+</body>
+</html>
