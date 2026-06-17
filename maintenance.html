@@ -1077,7 +1077,7 @@
                      'superadmin', 'empleado', 'employee', 'staff'],
 
       /* Redirect destino tras acceso concedido */
-      SITE_URL: 'index.html',
+      SITE_URL: 'home.html',
 
       /* ms de espera animada antes del redirect */
       REDIRECT_DELAY: 1400,
@@ -1287,7 +1287,7 @@
 
       if (hasAccess(role)) {
         renderGranted(userObj, role);
-        /* User must click 'Ir al sitio' to proceed — no auto-redirect */
+        /* Sin auto-redirect: el usuario pulsa 'Ir al sitio' */
       } else if (role) {
         renderBlocked(userObj);
       } else {
