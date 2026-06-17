@@ -453,41 +453,110 @@
           <h3 class="cita-aside__title">Tu cita, sin filas ni complicaciones</h3>
           <p class="cita-aside__desc">Te guiamos en todo el proceso con la voz de la experiencia y la calidez de un buen servicio.</p>
           <div class="steps-rail" aria-hidden="true">
-            <div class="step-item is-active"><span class="step-item__num">1</span> Elige el trámite</div>
-            <div class="step-item"><span class="step-item__num">2</span> Fecha y hora</div>
-            <div class="step-item"><span class="step-item__num">3</span> Tus datos</div>
+            <div class="step-item is-active"><span class="step-item__num">1</span> Tus datos</div>
+            <div class="step-item"><span class="step-item__num">2</span> Elige el trámite</div>
+            <div class="step-item"><span class="step-item__num">3</span> Fecha y hora</div>
             <div class="step-item"><span class="step-item__num">4</span> Confirmación</div>
           </div>
         </aside>
 
         <div class="cita-panel">
-          <!-- Paso 0: trámite -->
-          <div class="cita-step is-active" aria-hidden="false">
+          <!-- Paso 1: datos -->
+          <div class="cita-step cita-step--datos is-active" aria-hidden="false">
+            <h4 class="cita-step__title">Tus datos de contacto</h4>
+            <p class="cita-step__sub">Para confirmarte la cita y resolver cualquier duda.</p>
+            <div class="field-group">
+              <div class="field">
+                <label for="cita-nombre">Nombre completo</label>
+                <input type="text" id="cita-nombre" name="cita-nombre" autocomplete="name" placeholder="Ej. María González">
+              </div>
+              <div class="field">
+                <label for="cita-correo">Correo electrónico <span class="field__opt">(opcional)</span></label>
+                <input type="email" id="cita-correo" name="cita-correo" autocomplete="email" placeholder="tu@correo.com">
+              </div>
+            </div>
+            <div class="field">
+              <label for="cita-tel">Teléfono / WhatsApp</label>
+              <div class="input-prefix">
+                <span class="input-prefix__tag"><svg class="input-prefix__wa" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M.057 24l1.687-6.163a11.867 11.867 0 01-1.587-5.945C.16 5.335 5.495 0 12.05 0a11.82 11.82 0 018.413 3.488 11.82 11.82 0 013.48 8.414c-.003 6.557-5.338 11.892-11.893 11.892a11.9 11.9 0 01-5.688-1.448L.057 24z"/></svg> +52</span>
+                <input type="tel" id="cita-tel" name="cita-tel" autocomplete="tel" inputmode="tel" placeholder="664 000 0000">
+              </div>
+            </div>
+            <div class="field">
+              <label id="contacto-label">¿Cómo prefieres que te contactemos?</label>
+              <div class="contact-pref" role="radiogroup" aria-labelledby="contacto-label">
+                <label class="contact-chip">
+                  <input type="radio" name="cita-contacto" value="whatsapp">
+                  <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M.057 24l1.687-6.163a11.867 11.867 0 01-1.587-5.945C.16 5.335 5.495 0 12.05 0a11.82 11.82 0 018.413 3.488 11.82 11.82 0 013.48 8.414c-.003 6.557-5.338 11.892-11.893 11.892a11.9 11.9 0 01-5.688-1.448L.057 24z"/></svg>
+                  WhatsApp
+                </label>
+                <label class="contact-chip">
+                  <input type="radio" name="cita-contacto" value="llamada">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72c.13.96.36 1.9.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0122 16.92z"/></svg>
+                  Llamada
+                </label>
+                <label class="contact-chip">
+                  <input type="radio" name="cita-contacto" value="correo">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M22 7l-10 5L2 7"/></svg>
+                  Correo
+                </label>
+              </div>
+            </div>
+            <div class="field">
+              <label for="cita-notas">Notas <span class="field__opt">(opcional)</span></label>
+              <textarea id="cita-notas" name="cita-notas" rows="3" placeholder="Cuántas personas, primera vez o renovación, dudas..."></textarea>
+            </div>
+            <label class="cita-consent" for="cita-acepto">
+              <input type="checkbox" id="cita-acepto" name="cita-acepto">
+              <span>Acepto que mis datos sean utilizados para confirmar mi cita y recibir comunicación relacionada. No se compartirán con terceros.</span>
+            </label>
+            <div class="cita-nav">
+              <span></span>
+              <button type="button" class="btn btn--primary" id="cita-next-2" data-cita-next disabled aria-disabled="true">Siguiente
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+              </button>
+            </div>
+          </div>
+
+          <!-- Paso 2: trámite -->
+          <div class="cita-step" aria-hidden="true">
             <h4 class="cita-step__title">¿Qué trámite necesitas?</h4>
             <p class="cita-step__sub">Selecciona el servicio para el que quieres tu cita.</p>
             <div class="tramite-grid" role="group" aria-label="Tipo de trámite">
               <button type="button" class="tramite-btn" data-tramite="pasaporte" aria-pressed="false">
+                <span class="tramite-btn__check" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
                 <span class="tramite-btn__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/><circle cx="12" cy="9" r="2.2"/><path d="M9 14.5c.6-1.2 1.7-2 3-2s2.4.8 3 2"/></svg></span>
-                <b>Pasaporte</b><span>SRE / pasaporte mexicano</span>
+                <b class="tramite-btn__title">Pasaporte</b>
+                <span class="tramite-btn__meta">SRE / pasaporte mexicano</span>
+                <span class="tramite-btn__tags"><span class="tramite-tag">Renovación</span><span class="tramite-tag">Primera vez</span></span>
+                <span class="tramite-btn__desc">Renueva tu pasaporte o tramítalo por primera vez.</span>
               </button>
               <button type="button" class="tramite-btn" data-tramite="visa" aria-pressed="false">
+                <span class="tramite-btn__check" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
                 <span class="tramite-btn__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/><path d="M6 15h4"/></svg></span>
-                <b>Visa Americana</b><span>DS-160, CAS y consulado</span>
+                <b class="tramite-btn__title">Visa Americana</b>
+                <span class="tramite-btn__meta">DS-160, CAS y consulado</span>
+                <span class="tramite-btn__tags"><span class="tramite-tag">DS-160</span><span class="tramite-tag">CAS</span></span>
+                <span class="tramite-btn__desc">Trámite de visa americana en el consulado de EE. UU.</span>
               </button>
               <button type="button" class="tramite-btn" data-tramite="sentri" aria-pressed="false">
+                <span class="tramite-btn__check" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
                 <span class="tramite-btn__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 17h14M5 17l2-9h10l2 9M5 17l-1 4h16l-1-4"/><circle cx="9" cy="13" r="1" fill="currentColor"/><circle cx="15" cy="13" r="1" fill="currentColor"/></svg></span>
-                <b>SENTRI / Global Entry</b><span>Cruce rápido fronterizo</span>
+                <b class="tramite-btn__title">SENTRI / Global Entry</b>
+                <span class="tramite-btn__meta">Cruce rápido fronterizo</span>
+                <span class="tramite-btn__tags"><span class="tramite-tag">SENTRI</span><span class="tramite-tag">Global Entry</span></span>
+                <span class="tramite-btn__desc">Programa para acelerar tu cruce por la frontera.</span>
               </button>
             </div>
             <div class="cita-nav">
-              <span></span>
+              <button type="button" class="btn btn--ghost-dark" data-cita-back>Atrás</button>
               <button type="button" class="btn btn--primary" id="cita-next-0" data-cita-next disabled aria-disabled="true">Continuar
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
               </button>
             </div>
           </div>
 
-          <!-- Paso 1: fecha y hora -->
+          <!-- Paso 3: fecha y hora -->
           <div class="cita-step" aria-hidden="true">
             <h4 class="cita-step__title">Elige fecha y hora</h4>
             <p class="cita-step__sub">Disponibilidad sujeta a confirmación. Te avisamos por WhatsApp.</p>
@@ -510,39 +579,13 @@
             </div>
             <div class="cita-nav">
               <button type="button" class="btn btn--ghost-dark" data-cita-back>Atrás</button>
-              <button type="button" class="btn btn--primary" id="cita-next-1" data-cita-next disabled aria-disabled="true">Continuar
+              <button type="button" class="btn btn--primary" id="cita-next-1" data-cita-next disabled aria-disabled="true">Ver resumen
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
               </button>
             </div>
           </div>
 
-          <!-- Paso 2: datos -->
-          <div class="cita-step" aria-hidden="true">
-            <h4 class="cita-step__title">Tus datos de contacto</h4>
-            <p class="cita-step__sub">Para confirmarte la cita y resolver cualquier duda.</p>
-            <div class="field-group">
-              <div class="field">
-                <label for="cita-nombre">Nombre completo</label>
-                <input type="text" id="cita-nombre" name="cita-nombre" autocomplete="name" placeholder="Ej. María González">
-              </div>
-              <div class="field">
-                <label for="cita-tel">Teléfono / WhatsApp</label>
-                <input type="tel" id="cita-tel" name="cita-tel" autocomplete="tel" inputmode="tel" placeholder="664 000 0000">
-              </div>
-            </div>
-            <div class="field">
-              <label for="cita-notas">Notas (opcional)</label>
-              <textarea id="cita-notas" name="cita-notas" rows="3" placeholder="Cuántas personas, primera vez o renovación, dudas..."></textarea>
-            </div>
-            <div class="cita-nav">
-              <button type="button" class="btn btn--ghost-dark" data-cita-back>Atrás</button>
-              <button type="button" class="btn btn--primary" id="cita-next-2" data-cita-next disabled aria-disabled="true">Ver resumen
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-              </button>
-            </div>
-          </div>
-
-          <!-- Paso 3: confirmación -->
+          <!-- Paso 4: confirmación -->
           <div class="cita-step" aria-hidden="true">
             <div class="cita-confirm">
               <div class="cita-confirm__check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg></div>
@@ -563,7 +606,6 @@
       </div>
     </div>
   </section>
-
   <!-- ============================ FOTOS (UPLOAD) ============================ -->
   <section class="section section--alt" id="fotos" aria-labelledby="fotos-title">
     <div class="wrap">
@@ -811,84 +853,71 @@
        AdobeStock_618706344.webp  5760 × 3840 px
      ============================================================ -->
 
-<section class="section" id="visitanos">
-  <div class="wrap">
+<section class="section" id="visitanos" aria-labelledby="visitanos-title">
+    <div class="wrap">
+      <div class="section-head section-head--center reveal">
+        <span class="eyebrow">Ven a visitarnos</span>
+        <h2 class="text-h2" id="visitanos-title">Estamos en <span class="hl">Centro Comercial Otay</span></h2>
+        <p class="text-lead">Atención personal, precio justo y siempre con una sonrisa. Te esperamos.</p>
+      </div>
 
-    <!-- Encabezado de sección -->
-    <div class="section-head reveal">
-      <span class="eyebrow">Ven a visitarnos</span>
-      <h2 class="text-h2">Estamos en Centro Comercial Otay</h2>
-      <p class="text-lead">Atención personal, precio justo y siempre con una sonrisa. Te esperamos.</p>
+      <!-- Fotos reales del local en assets/img/ (.webp). Si una foto no existe
+           aún, app.js quita el <img> y queda el placeholder con su etiqueta. -->
+      <div class="store-gallery reveal">
+        <div class="store-gallery__item store-gallery__item--main">
+          <img src="assets/img/DSC02057.webp" alt="Fachada de OK.station en Centro Comercial Otay, Tijuana" loading="lazy" decoding="async">
+          <div class="store-gallery__placeholder"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="M21 15l-3.086-3.086a2 2 0 00-2.828 0L6 21"/></svg>Fachada OK.station</div>
+        </div>
+        <div class="store-gallery__item">
+          <img src="assets/img/DSC01892.webp" alt="Consumibles: tóner y cartuchos disponibles en OK.station Tijuana" loading="lazy" decoding="async">
+          <div class="store-gallery__placeholder"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="M21 15l-3.086-3.086a2 2 0 00-2.828 0L6 21"/></svg>Consumibles</div>
+        </div>
+        <div class="store-gallery__item">
+          <img src="assets/img/DSC01856.webp" alt="Estudio fotográfico de OK.station para fotos de trámites e impresión" loading="lazy" decoding="async">
+          <div class="store-gallery__placeholder"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="M21 15l-3.086-3.086a2 2 0 00-2.828 0L6 21"/></svg>Fotografías impresas</div>
+        </div>
+        <div class="store-gallery__item">
+          <img src="assets/img/DSC01928.webp" alt="Papelería y útiles de oficina en OK.station Tijuana" loading="lazy" decoding="async">
+          <div class="store-gallery__placeholder"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="M21 15l-3.086-3.086a2 2 0 00-2.828 0L6 21"/></svg>Papelería</div>
+        </div>
+        <div class="store-gallery__item">
+          <img src="assets/img/DSC01877.webp" alt="Equipo de impresión profesional Sharp en OK.station Tijuana" loading="lazy" decoding="async">
+          <div class="store-gallery__placeholder"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="M21 15l-3.086-3.086a2 2 0 00-2.828 0L6 21"/></svg>Equipo de impresión</div>
+        </div>
+      </div>
+
+      <div class="contact-grid reveal">
+        <div class="contact-cta">
+          <h3>¿Tienes dudas? Escríbenos ahora.</h3>
+          <p>Somos ese amigo que te escucha y asesora. Respuesta rápida, trato personal, siempre con una sonrisa.</p>
+          <a class="btn btn--wa btn--lg" href="https://wa.me/526647194117?text=Hola,%20quiero%20solicitar%20informaci%C3%B3n" target="_blank" rel="noopener" style="align-self:flex-start">
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M.057 24l1.687-6.163a11.867 11.867 0 01-1.587-5.945C.16 5.335 5.495 0 12.05 0a11.82 11.82 0 018.413 3.488 11.82 11.82 0 013.48 8.414c-.003 6.557-5.338 11.892-11.893 11.892a11.9 11.9 0 01-5.688-1.448L.057 24zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884a9.86 9.86 0 001.51 5.26l-.999 3.648 3.978-1.040zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.017-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.247-.694.247-1.29.173-1.414z"/></svg>
+            WhatsApp: (664) 719-4117
+          </a>
+        </div>
+
+        <div class="contact-cards">
+          <div class="map-wrap">
+            <iframe loading="lazy" referrerpolicy="no-referrer-when-downgrade" src="https://www.google.com/maps?q=Otay+Centro+Comercial,+Carretera+Aeropuerto+1900,+Tijuana&output=embed" title="Mapa de ubicación de OK.station en Centro Comercial Otay, Tijuana"></iframe>
+          </div>
+          <div class="info-card">
+            <span class="info-card__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg></span>
+            <div><b>Centro Comercial Otay</b><span>Local G-03 · Carretera Aeropuerto 1900 · Tijuana, B.C.</span></div>
+          </div>
+          <div class="info-card">
+            <span class="info-card__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg></span>
+            <div><b>(664) 719-4117</b><span>(664) 719-4117 · Llamada o WhatsApp</span></div>
+          </div>
+          <div class="info-card">
+            <span class="info-card__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M22 7l-10 5L2 7"/></svg></span>
+            <div><b>station@okdock.mx</b><span>Cotizaciones y consultas por email</span></div>
+          </div>
+        </div>
+      </div>
     </div>
+  </section>
 
-    <!-- ════════════════════════════════════════════════════════
-         GALERÍA DE FOTOS DEL LOCAL
-         Grid desktop: columnas 1.5fr 1fr 1fr / filas 240px 200px
-         La imagen principal (--main) ocupa las 2 filas del lado izq.
-         ════════════════════════════════════════════════════════ -->
-    <div class="store-gallery reveal" role="region" aria-label="Fotografías del local OK.station en Tijuana">
-
-      <!-- ── Imagen principal: interior OK.station ── -->
-      <div class="store-gallery__item store-gallery__item--main">
-        <img
-          src="assets/img/DSC02087.webp"
-          alt="Interior de OK.station en Centro Comercial Otay, Tijuana — consumibles, papelería y soluciones digitales"
-          width="4912"
-          height="2760"
-          loading="lazy"
-          decoding="async"
-        >
-      </div>
-
-      <!-- ── Imagen pequeña 1: consumibles ── -->
-      <div class="store-gallery__item">
-        <img
-          src="assets/img/DSC02096.webp"
-          alt="Consumibles HP — tintas y cartuchos originales a la venta en OK.station Tijuana"
-          width="4912"
-          height="2760"
-          loading="lazy"
-          decoding="async"
-        >
-      </div>
-
-      <!-- ── Imagen pequeña 2: fotografías impresas ── -->
-      <div class="store-gallery__item">
-        <img
-          src="assets/img/AdobeStock_193108210.webp"
-          alt="Impresión de fotografías en OK.station Tijuana — fotos 10×15, 20×30 y gran formato"
-          width="5764"
-          height="3843"
-          loading="lazy"
-          decoding="async"
-        >
-      </div>
-
-      <!-- ── Imagen pequeña 3: papelería y trámites ── -->
-      <div class="store-gallery__item">
-        <img
-          src="assets/img/AdobeStock_2020029065.webp"
-          alt="Servicio de papelería y gestión de trámites en OK.station, Centro Comercial Otay, Tijuana"
-          width="2944"
-          height="1648"
-          loading="lazy"
-          decoding="async"
-        >
-      </div>
-
-      <!-- ── Imagen pequeña 4: equipo de impresión ── -->
-      <div class="store-gallery__item">
-        <img
-          src="assets/img/AdobeStock_618706344.webp"
-          alt="Equipo profesional de impresión y copiado en OK.station, Tijuana, Baja California"
-          width="5760"
-          height="3840"
-          loading="lazy"
-          decoding="async"
-        >
-      </div>
-
-    </div><!-- /store-gallery -->
+</main><!-- /store-gallery -->
 
 
     <!-- Contacto y mapa -->
