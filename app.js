@@ -315,7 +315,8 @@
     var tramiteInfo = {
       pasaporte: { label: "Pasaporte mexicano", desc: "Cita en SRE para pasaporte" },
       visa:      { label: "Visa Americana",     desc: "DS-160, CAS y consulado" },
-      sentri:    { label: "SENTRI / Global Entry", desc: "Cruce rápido fronterizo" }
+      sentri:    { label: "SENTRI / Global Entry", desc: "Cruce rápido fronterizo" },
+      i94:       { label: "I-94", desc: "Registro de entrada y salida" }
     };
 
     /* Referencias DOM */
@@ -326,7 +327,6 @@
     var telInput  = qs("#cita-tel");
     var notesInput = qs("#cita-notas");
     var summaryEl = qs("#cita-resumen");
-    var waLink_el = qs("#cita-wa");
 
     if (!stepPanels.length) return;
 
@@ -418,6 +418,7 @@
     function authToken() { try { return localStorage.getItem("okstation.token"); } catch (e) { return null; } }
     var availCfg = { weekly: {}, blackout: [], maxAdvance: 60 };
     var maxDate = new Date(today0); maxDate.setDate(maxDate.getDate() + availCfg.maxAdvance);
+    var occByDate = {}; /* nivel de ocupación por fecha: "full" | "mid" | "none" */
 
     /* ¿La fecha es un día atendido (según horario semanal y días bloqueados)? */
     function dayIsOpen(date) {
@@ -492,8 +493,9 @@
         var date = new Date(y, m, d);
         var disabled = !dayIsOpen(date) || date < minDate || date > maxDate;
         var selected = state.fecha === isoOf(date);
+        var lvl = occByDate[isoOf(date)] || "full";
         var dot = !disabled
-          ? '<i class="okcal-dot okcal-dot--full"></i>'
+          ? '<i class="okcal-dot okcal-dot--' + lvl + '"></i>'
           : '<i class="okcal-dot" style="visibility:hidden"></i>';
         cells += '<button type="button" class="okcal__day' + (selected ? " is-selected" : "") + '" ' +
           'data-date="' + isoOf(date) + '"' +
@@ -524,11 +526,27 @@
       }
     }
 
-    if (calPrev) calPrev.addEventListener("click", function () { calView.setMonth(calView.getMonth() - 1); renderCalendar(); updateCalNav(); });
-    if (calNext) calNext.addEventListener("click", function () { calView.setMonth(calView.getMonth() + 1); renderCalendar(); updateCalNav(); });
+    if (calPrev) calPrev.addEventListener("click", function () { calView.setMonth(calView.getMonth() - 1); renderCalendar(); updateCalNav(); loadMonthOccupancy(); });
+    if (calNext) calNext.addEventListener("click", function () { calView.setMonth(calView.getMonth() + 1); renderCalendar(); updateCalNav(); loadMonthOccupancy(); });
 
     function resetSlots() {
       if (slotsEl) slotsEl.innerHTML = '<p class="time-grid__empty">Elige una fecha para ver los horarios.</p>';
+    }
+
+    function monthKey(date) {
+      return date.getFullYear() + "-" + String(date.getMonth() + 1).padStart(2, "0");
+    }
+    /* Colorea el calendario con la OCUPACIÓN REAL del mes visible (verde/naranja/rojo). */
+    function loadMonthOccupancy() {
+      fetch(API + "/appointments/month.php?month=" + monthKey(calView))
+        .then(function (r) { return r.json(); })
+        .then(function (j) {
+          if (j && j.ok && j.days) {
+            occByDate = Object.assign({}, occByDate, j.days);
+            renderCalendar();
+          }
+        })
+        .catch(function () {});
     }
 
     /* Carga la config de disponibilidad (horario semanal, días bloqueados, ventana) y dibuja el calendario. */
@@ -544,7 +562,7 @@
           }
         })
         .catch(function () {})
-        .then(function () { if (calGrid) { renderCalendar(); updateCalNav(); resetSlots(); } });
+        .then(function () { if (calGrid) { renderCalendar(); updateCalNav(); resetSlots(); loadMonthOccupancy(); } });
     }
 
     if (calGrid) { renderCalendar(); updateCalNav(); resetSlots(); loadAvailabilityConfig(); }
@@ -616,8 +634,9 @@
     }
 
     /* Confirmación: la reserva ocurre en el servidor (no WhatsApp). */
-    var confirmBtn = qs("#cita-confirm-btn");
-    var successEl  = qs("#cita-success");
+    var confirmBtn   = qs("#cita-confirm-btn");
+    var successEl    = qs("#cita-success");
+    var confirmIntro = qs("#cita-confirm-intro");
     function submitCita() {
       if (!confirmBtn || confirmBtn.disabled) return;
       var emailEl = qs("#cita-correo");
@@ -650,6 +669,7 @@
                 '<h4>¡Cita registrada!</h4>' +
                 '<p>Tu folio es <b>' + sanitize(j.appointment.code) + '</b>. Te contactaremos para confirmar tu cita.</p>';
             }
+            if (confirmIntro) confirmIntro.style.display = "none"; /* evita doble palomita */
             if (summaryEl) summaryEl.style.display = "none";
             confirmBtn.style.display = "none";
             showToast("¡Cita registrada! Folio " + j.appointment.code);
@@ -712,6 +732,7 @@
         renderCalendar();
         updateCalNav();
         resetSlots();
+        loadMonthOccupancy();
 
         var btn0 = qs("#cita-next-0");
         var btn1 = qs("#cita-next-1");
@@ -722,6 +743,7 @@
 
         try { sessionStorage.removeItem("okstation.cita.draft"); } catch (_) {}
 
+        if (confirmIntro) confirmIntro.style.display = "";
         if (summaryEl) summaryEl.style.display = "";
         if (confirmBtn) { confirmBtn.style.display = ""; confirmBtn.disabled = false; confirmBtn.textContent = "Confirmar cita"; }
         if (successEl) { successEl.hidden = true; successEl.innerHTML = ""; }

@@ -40,30 +40,49 @@ if (preg_match('/Bearer\s+(.+)/i', $hdr, $m)) {
     if ($claims) $userId = (int) $claims['sub'];
 }
 
-/* Anti-spam por IP: máximo 8 solicitudes en 24 h. */
 $ip = $_SERVER['REMOTE_ADDR'] ?? '';
-$st = db()->prepare("SELECT COUNT(*) c FROM appointments WHERE created_ip = ? AND created_at >= (NOW() - INTERVAL 1 DAY)");
-$st->execute([$ip]);
-if ((int) $st->fetch()['c'] >= 8) {
-    fail('Has alcanzado el límite de solicitudes por hoy. Escríbenos por WhatsApp.', 429);
+
+/* Límite POR USUARIO (nunca global): máximo 2 citas activas y de trámites distintos.
+   - Usuarios diferentes no se afectan entre sí.
+   - No se permite duplicar un trámite ya activo.
+   Para invitados (sin sesión) la persona se identifica por su teléfono. */
+$phoneDigits = preg_replace('/\D/', '', $phone);
+if ($userId) {
+    $q = db()->prepare("SELECT tramite FROM appointments WHERE user_id = ? AND status IN ('pendiente','confirmada')");
+    $q->execute([$userId]);
+} else {
+    $q = db()->prepare(
+        "SELECT tramite FROM appointments
+         WHERE user_id IS NULL
+           AND REPLACE(REPLACE(REPLACE(REPLACE(contact_phone,' ',''),'-',''),'(',''),')','') = ?
+           AND status IN ('pendiente','confirmada')"
+    );
+    $q->execute([$phoneDigits]);
+}
+$activeTramites = array_column($q->fetchAll(), 'tramite');
+if (in_array($tramite, $activeTramites, true)) {
+    fail('Ya tienes una cita activa de este trámite. Solo puedes tener una cita por trámite a la vez.', 409);
+}
+if (count($activeTramites) >= 2) {
+    fail('Ya tienes el máximo de 2 citas activas (de trámites distintos). Completa o cancela una para agendar otra.', 409);
 }
 
 /* VALIDACIÓN DE DISPONIBILIDAD EN EL SERVIDOR (día y hora). */
 [$ok, $err] = Availability::canBook($date, $time);
 if (!$ok) fail($err, 409);
 
-$time   = Availability::normTime($time);
-$cap    = Availability::config()['capacity'];
-$pdo    = db();
+$time = Availability::normTime($time);
+$pdo  = db();
 
 $pdo->beginTransaction();
 try {
-    /* Re-verifica capacidad dentro de la transacción para evitar doble reserva del mismo horario. */
-    $cnt = $pdo->prepare("SELECT COUNT(*) c FROM appointments WHERE appt_date=? AND appt_time=? AND status<>'cancelada' FOR UPDATE");
+    /* Doble reserva: re-verifica dentro de la transacción que el horario siga libre.
+       Cada fecha+hora es un único espacio y solo cuentan las citas activas. */
+    $cnt = $pdo->prepare("SELECT COUNT(*) c FROM appointments WHERE appt_date=? AND appt_time=? AND status IN ('pendiente','confirmada') FOR UPDATE");
     $cnt->execute([$date, $time . ':00']);
-    if ((int) $cnt->fetch()['c'] >= $cap) {
+    if ((int) $cnt->fetch()['c'] > 0) {
         $pdo->rollBack();
-        fail('Ese horario acaba de ocuparse. Elige otro.', 409);
+        fail('Ese horario acaba de ocuparse mientras llenabas el formulario. Elige otro, por favor.', 409);
     }
 
     $pdo->prepare(
