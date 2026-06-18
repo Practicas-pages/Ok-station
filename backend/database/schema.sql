@@ -182,6 +182,34 @@ CREATE TABLE IF NOT EXISTS review_replies (
   CONSTRAINT fk_rr_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- ─────────── Citas (appointments) ───────────
+CREATE TABLE IF NOT EXISTS appointments (
+  id            BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  code          VARCHAR(20)     NOT NULL,
+  user_id       BIGINT UNSIGNED NULL,
+  tramite       ENUM('pasaporte','visa','sentri','i94') NOT NULL,
+  appt_date     DATE            NOT NULL,
+  appt_time     TIME            NOT NULL,
+  status        ENUM('pendiente','confirmada','cancelada','completada','no_show')
+                               NOT NULL DEFAULT 'pendiente',
+  contact_name  VARCHAR(120)    NOT NULL,
+  contact_phone VARCHAR(40)     NOT NULL,
+  contact_email VARCHAR(190)    NULL,
+  contact_pref  ENUM('whatsapp','llamada','correo') NULL,
+  notes         TEXT            NULL,
+  staff_notes   TEXT            NULL,
+  created_ip    VARCHAR(45)     NULL,
+  created_at    TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at    TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  UNIQUE KEY uq_appt_code (code),
+  KEY idx_appt_user (user_id),
+  KEY idx_appt_date (appt_date),
+  KEY idx_appt_status (status),
+  KEY idx_appt_slot (appt_date, appt_time),
+  CONSTRAINT fk_appt_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- ─────────── Operación ───────────
 CREATE TABLE IF NOT EXISTS notifications (
   id         BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,

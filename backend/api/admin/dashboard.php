@@ -45,13 +45,22 @@ try {
 
 $pendRev = (int) $num("SELECT COUNT(*) c FROM reviews WHERE status='pendiente'")['c'];
 
+// Citas (defensivo: la tabla llega con la migración 0006).
+$apptPending  = 0;
+$apptUpcoming = 0;
+try {
+    $apptPending  = (int) $num("SELECT COUNT(*) c FROM appointments WHERE status='pendiente'")['c'];
+    $apptUpcoming = (int) $num("SELECT COUNT(*) c FROM appointments WHERE status IN ('pendiente','confirmada') AND appt_date >= CURDATE()")['c'];
+} catch (Throwable $e) { /* sin tabla de citas todavía */ }
+
 respond([
     'ok' => true,
     'stats' => [
         'orders' => $ordersTotal, 'sales' => $salesMonth, 'users' => $usersTotal, 'pending' => $pending,
         'dOrders' => $pct($oCur, $oPre), 'dSales' => $pct((int) $salesMonth, (int) $sPre), 'dUsers' => $pct($uCur, $uPre), 'dPending' => 0,
+        'appointments' => $apptUpcoming,
     ],
     'sales7' => $sales7,
     'topServices' => $topServices,
-    'nav' => ['pedidos' => $ordersTotal, 'resenas' => $pendRev],
+    'nav' => ['pedidos' => $ordersTotal, 'resenas' => $pendRev, 'citas' => $apptPending],
 ]);
