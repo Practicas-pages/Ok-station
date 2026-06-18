@@ -24,7 +24,7 @@
   <meta charset="UTF-8">
 
   <!-- Modo mantenimiento: bloquea el acceso directo sin credenciales válidas -->
-  <script src="assets/site-guard.js"></script>
+  <script src="assets/site-guard.js?v=20260618"></script>
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 
@@ -76,7 +76,7 @@
   </noscript>
 
   <!-- ===================== HOJA DE ESTILOS ===================== -->
-  <link rel="stylesheet" href="styles.css?v=20260611">
+  <link rel="stylesheet" href="styles.css?v=20260618">
 
   <!-- ===================== DATOS ESTRUCTURADOS (JSON-LD) ===================== -->
   <script type="application/ld+json">
@@ -128,7 +128,7 @@
     },
     "openingHoursSpecification": [
       { "@type": "OpeningHoursSpecification", "dayOfWeek": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"], "opens": "08:00", "closes": "19:00" },
-      { "@type": "OpeningHoursSpecification", "dayOfWeek": "Saturday", "opens": "08:00", "closes": "16:00" }
+      { "@type": "OpeningHoursSpecification", "dayOfWeek": "Saturday", "opens": "09:00", "closes": "16:00" }
     ]
   }
   </script>
@@ -555,6 +555,14 @@
                 <span class="tramite-btn__tags"><span class="tramite-tag">SENTRI</span><span class="tramite-tag">Global Entry</span></span>
                 <span class="tramite-btn__desc">Programa para acelerar tu cruce por la frontera.</span>
               </button>
+              <button type="button" class="tramite-btn" data-tramite="i94" aria-pressed="false">
+                <span class="tramite-btn__check" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
+                <span class="tramite-btn__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="13" y2="17"/></svg></span>
+                <b class="tramite-btn__title">I-94 / Permiso de Viaje</b>
+                <span class="tramite-btn__meta">CBP / Permiso de internación</span>
+                <span class="tramite-btn__tags"><span class="tramite-tag">I-94</span><span class="tramite-tag">Travel Permit</span></span>
+                <span class="tramite-btn__desc">Permiso para viajar más allá de las 25 millas de la frontera dentro de Estados Unidos.</span>
+              </button>
             </div>
             <div class="cita-nav">
               <button type="button" class="btn btn--ghost-dark" data-cita-back>Atrás</button>
@@ -569,21 +577,26 @@
             <h4 class="cita-step__title">Elige fecha y hora</h4>
             <p class="cita-step__sub">Disponibilidad sujeta a confirmación. Te avisamos por WhatsApp.</p>
             <div class="field">
-              <label for="cita-fecha">Fecha preferida</label>
-              <input type="date" id="cita-fecha" name="cita-fecha">
+              <label id="cita-fecha-label">Fecha preferida</label>
+              <input type="hidden" id="cita-fecha" name="cita-fecha">
+              <div class="okcal" id="cita-cal" role="group" aria-labelledby="cita-fecha-label">
+                <div class="okcal__head">
+                  <button type="button" class="okcal__nav" data-cal-prev aria-label="Mes anterior"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg></button>
+                  <span class="okcal__title" id="cita-cal-title" aria-live="polite">—</span>
+                  <button type="button" class="okcal__nav" data-cal-next aria-label="Mes siguiente"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg></button>
+                </div>
+                <div class="okcal__weekdays" aria-hidden="true"><span>Lu</span><span>Ma</span><span>Mi</span><span>Ju</span><span>Vi</span><span>Sá</span><span>Do</span></div>
+                <div class="okcal__grid" id="cita-cal-grid" role="grid"></div>
+                <div class="okcal__legend">
+                  <span class="okcal__legend-item"><i class="okcal-dot okcal-dot--full"></i> Disponibilidad total</span>
+                  <span class="okcal__legend-item"><i class="okcal-dot okcal-dot--mid"></i> Disponibilidad media</span>
+                  <span class="okcal__legend-item"><i class="okcal-dot okcal-dot--none"></i> Sin disponibilidad</span>
+                </div>
+              </div>
             </div>
             <div class="field">
               <label id="horario-label">Horario preferido</label>
-              <div class="time-grid" role="group" aria-labelledby="horario-label">
-                <button type="button" class="time-slot" data-time="09:00" aria-pressed="false">09:00</button>
-                <button type="button" class="time-slot" data-time="10:00" aria-pressed="false">10:00</button>
-                <button type="button" class="time-slot" data-time="11:00" aria-pressed="false">11:00</button>
-                <button type="button" class="time-slot" data-time="12:00" aria-pressed="false">12:00</button>
-                <button type="button" class="time-slot" data-time="13:00" aria-pressed="false">13:00</button>
-                <button type="button" class="time-slot" data-time="16:00" aria-pressed="false">16:00</button>
-                <button type="button" class="time-slot" data-time="17:00" aria-pressed="false">17:00</button>
-                <button type="button" class="time-slot" data-time="18:00" aria-pressed="false">18:00</button>
-              </div>
+              <div class="time-grid" role="group" aria-labelledby="horario-label"></div>
             </div>
             <div class="cita-nav">
               <button type="button" class="btn btn--ghost-dark" data-cita-back>Atrás</button>
@@ -628,15 +641,15 @@
           <div class="dropzone" id="dropzone">
             <div class="dropzone__empty">
               <div class="dropzone__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></div>
-              <h4>Arrastra tus fotos aquí</h4>
-              <p>o haz clic para seleccionarlas desde tu dispositivo</p>
-              <div class="dropzone__formats"><span>JPG</span><span>PNG</span><span>WEBP</span><span>varias a la vez</span></div>
+              <h4>Arrastra tus fotos o PDF aquí</h4>
+              <p>o haz clic para seleccionarlos desde tu dispositivo</p>
+              <div class="dropzone__formats"><span>JPG</span><span>PNG</span><span>WEBP</span><span>PDF</span><span>varias a la vez</span></div>
             </div>
             <!-- Vista previa de las fotos subidas (dentro del recuadro) -->
             <div class="thumbs-grid" id="thumbs" style="display:none"></div>
             <p class="dropzone__more">+ Toca aquí para agregar más fotos</p>
           </div>
-          <input type="file" id="foto-input" accept="image/*" multiple hidden>
+          <input type="file" id="foto-input" accept="image/jpeg,image/png,image/webp,application/pdf,.jpg,.jpeg,.png,.webp,.pdf" multiple hidden>
           <ul class="photo-steps" aria-label="Cómo funciona">
             <li><span>1</span> Sube tus fotos (varias a la vez)</li>
             <li><span>2</span> Elige tamaño, acabado y cantidad</li>
@@ -666,6 +679,11 @@
               <button type="button" class="chip is-selected" data-finish="Brillante" aria-pressed="true">Brillante</button>
               <button type="button" class="chip" data-finish="Mate" aria-pressed="false">Mate</button>
             </div>
+            <!-- Imagen comparativa. Reemplaza el src por la de Canva cuando la tengas (mismo nombre = sin tocar código). -->
+            <figure class="finish-compare">
+              <img src="assets/img/acabado-comparativa.svg" alt="Comparación entre acabado brillante (con brillo y reflejos) y acabado mate (sin reflejos)" loading="lazy" decoding="async" width="400" height="170">
+              <figcaption>Brillante: colores vivos y con brillo. Mate: sin reflejos, ideal para enmarcar.</figcaption>
+            </figure>
           </div>
 
           <div class="cfg-section">
@@ -680,6 +698,7 @@
           <div class="cfg-total">
             <div class="cfg-total__line"><span>Fotos distintas</span><b id="total-fotos">0</b></div>
             <div class="cfg-total__line"><span>Total de copias</span><b id="total-copias">0</b></div>
+            <div class="cfg-total__line" id="total-pdf-line" style="display:none"><span>Documentos PDF</span><b id="total-pdf">0</b></div>
             <div class="cfg-total__grand"><span>Estimado</span><b class="cfg-total__price" id="total-precio">$0</b></div>
             <p class="cfg-total__note" id="total-note">Sube tus fotos para ver el estimado.</p>
             <button type="button" class="btn btn--wa btn--block" id="foto-send" disabled aria-disabled="true">
@@ -1063,8 +1082,8 @@
 </button>
 
 <!-- ============================ SCRIPTS ============================ -->
-<script src="app.js" defer></script>
-<script src="assets/reviews.js" defer></script>
-<script src="assets/session-nav.js" defer></script>
+<script src="app.js?v=20260618" defer></script>
+<script src="assets/reviews.js?v=20260618" defer></script>
+<script src="assets/session-nav.js?v=20260618" defer></script>
 </body>
 </html>

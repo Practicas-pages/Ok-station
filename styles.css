@@ -1387,10 +1387,16 @@ h1, h2, h3, h4, h5, h6 {
 /* Grid de trámites */
 .tramite-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr);
+  grid-auto-rows: 1fr;
   gap: var(--space-4);
   margin-bottom: var(--space-7);
   align-items: stretch;
+}
+
+/* Tablet: 2×2 para mantener tarjetas uniformes y legibles */
+@media (max-width: 1080px) {
+  .tramite-grid { grid-template-columns: repeat(2, 1fr); }
 }
 
 .tramite-btn {
@@ -1421,6 +1427,7 @@ h1, h2, h3, h4, h5, h6 {
 .tramite-btn[data-tramite="pasaporte"] { --taccent:#066CFF; --tgrad:var(--grad-blue);   --ttext:#8fb8ff; --ttagbg:rgba(6,108,255,0.20); }
 .tramite-btn[data-tramite="visa"]      { --taccent:#9C1DFF; --tgrad:var(--grad-purple); --ttext:#cba0ff; --ttagbg:rgba(156,29,255,0.22); }
 .tramite-btn[data-tramite="sentri"]    { --taccent:#14b8a6; --tgrad:linear-gradient(135deg,#00C6FF,#14b8a6); --ttext:#5fe0cf; --ttagbg:rgba(20,184,166,0.22); }
+.tramite-btn[data-tramite="i94"]       { --taccent:#FF7C19; --tgrad:linear-gradient(135deg,#FF7C19,#9C1DFF); --ttext:#ffc59a; --ttagbg:rgba(255,124,25,0.20); }
 
 .tramite-btn__icon {
   width: 56px;
@@ -1701,6 +1708,120 @@ h1, h2, h3, h4, h5, h6 {
   transform: none;
 }
 
+/* ── Mensaje cuando no hay slots / falta elegir fecha ── */
+.time-grid__empty {
+  grid-column: 1 / -1;
+  margin: 0;
+  padding: 14px 16px;
+  border: 1.5px dashed var(--border-dark-2);
+  border-radius: var(--radius-sm);
+  background: rgba(255,255,255,0.03);
+  color: rgba(255,255,255,0.55);
+  font-size: 0.85rem;
+  text-align: center;
+}
+
+/* ============================================================
+   CALENDARIO DE CITAS (.okcal) — disponibilidad verde/naranja/rojo
+   ============================================================ */
+.okcal {
+  background: var(--surface-dark-3);
+  border: 1.5px solid var(--border-dark-2);
+  border-radius: var(--radius-md);
+  padding: 14px clamp(12px, 2vw, 18px) 16px;
+}
+.okcal__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.okcal__title {
+  font-weight: 700;
+  color: #fff;
+  font-size: 0.95rem;
+}
+.okcal__nav {
+  width: 34px;
+  height: 34px;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  border-radius: var(--radius-sm);
+  border: 1.5px solid var(--border-dark-2);
+  background: transparent;
+  color: #fff;
+  cursor: pointer;
+  font-family: inherit;
+  transition: border-color var(--transition-fast), background var(--transition-fast);
+}
+.okcal__nav:hover:not(:disabled) { border-color: rgba(0,198,255,0.45); background: rgba(255,255,255,0.05); }
+.okcal__nav:disabled { opacity: 0.3; cursor: not-allowed; }
+.okcal__nav:focus-visible { outline: 3px solid var(--brand-cyan); outline-offset: 2px; }
+.okcal__nav svg { width: 18px; height: 18px; }
+.okcal__weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+  margin-bottom: 6px;
+}
+.okcal__weekdays span {
+  text-align: center;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: rgba(255,255,255,0.42);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.okcal__grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+}
+.okcal__day {
+  position: relative;
+  aspect-ratio: 1 / 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  border: 1.5px solid transparent;
+  border-radius: var(--radius-sm);
+  background: rgba(255,255,255,0.04);
+  color: rgba(255,255,255,0.88);
+  font-size: 0.85rem;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  transition: border-color var(--transition-fast), background var(--transition-fast), transform var(--transition-spring);
+}
+.okcal__day:hover:not(:disabled):not(.is-empty) { border-color: rgba(0,198,255,0.45); transform: translateY(-1px); }
+.okcal__day.is-selected { border-color: var(--brand-cyan); background: var(--brand-blue); color: #fff; box-shadow: var(--shadow-brand); }
+.okcal__day:focus-visible { outline: 3px solid var(--brand-cyan); outline-offset: 2px; }
+.okcal__day:disabled { opacity: 0.3; cursor: not-allowed; }
+.okcal__day.is-empty { background: transparent; border: none; cursor: default; pointer-events: none; }
+.okcal-dot { width: 6px; height: 6px; border-radius: 50%; }
+.okcal-dot--full { background: #22C55E; }
+.okcal-dot--mid  { background: #F59E0B; }
+.okcal-dot--none { background: #EF4444; }
+.okcal__legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 18px;
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border-dark-2);
+}
+.okcal__legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 0.75rem;
+  color: rgba(255,255,255,0.65);
+}
+
 /* Nav del wizard */
 .cita-nav {
   display: flex;
@@ -1938,6 +2059,57 @@ h1, h2, h3, h4, h5, h6 {
 .thumb-item__remove svg {
   width: 14px;
   height: 14px;
+}
+
+/* ── Ficha de archivo PDF (no se previsualiza como imagen) ── */
+.thumb-item--pdf {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px;
+  background: var(--brand-blue-light, #E8F0FF);
+  text-align: center;
+}
+.thumb-item__pdf {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  color: var(--brand-blue, #066CFF);
+}
+.thumb-item__pdf svg { width: 30px; height: 30px; }
+.thumb-item__pdf b { font-size: 0.6875rem; font-weight: 800; letter-spacing: 0.06em; }
+.thumb-item__name {
+  font-size: 0.6875rem;
+  line-height: 1.25;
+  color: var(--text-secondary, #4B5563);
+  width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  word-break: break-word;
+}
+
+/* ── Imagen comparativa de acabados (brillante vs mate) ── */
+.finish-compare {
+  margin: 12px 0 0;
+}
+.finish-compare img {
+  width: 100%;
+  height: auto;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-light);
+  display: block;
+}
+.finish-compare figcaption {
+  margin-top: 8px;
+  font-size: 0.75rem;
+  line-height: 1.5;
+  color: var(--text-secondary, #4B5563);
 }
 
 /* Configurador de pedido */
@@ -3011,7 +3183,9 @@ h1, h2, h3, h4, h5, h6 {
   }
 
   /* Citas */
-  .cita-layout {
+  /* Especificidad elevada para ganar a la regla de ≤1024px (que aparece
+     después en el archivo) y forzar una sola columna en móvil. */
+  .citas-section .cita-layout {
     grid-template-columns: 1fr;
   }
 

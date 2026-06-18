@@ -24,7 +24,9 @@
     whatsapp: "5216647194117",
     maxFileSizeMB: 25,
     maxFiles: 30,
-    allowedTypes: ["image/jpeg", "image/jpg", "image/png", "image/webp", "image/heic", "image/heif"],
+    /* Formatos permitidos (seguridad): solo estos. Se valida MIME + extensión. */
+    allowedTypes: ["image/jpeg", "image/jpg", "image/png", "image/webp", "application/pdf"],
+    allowedExts: ["jpg", "jpeg", "png", "webp", "pdf"],
     prices: {
       "6x4": 6,
       "10x15": 8,
@@ -313,7 +315,8 @@
     var tramiteInfo = {
       pasaporte: { label: "Pasaporte mexicano", desc: "Cita en SRE para pasaporte" },
       visa:      { label: "Visa Americana",     desc: "DS-160, CAS y consulado" },
-      sentri:    { label: "SENTRI / Global Entry", desc: "Cruce rápido fronterizo" }
+      sentri:    { label: "SENTRI / Global Entry", desc: "Cruce rápido fronterizo" },
+      i94:       { label: "I-94 / Permiso de Viaje", desc: "CBP / permiso de internación" }
     };
 
     /* Referencias DOM */
@@ -393,31 +396,133 @@
       });
     });
 
-    /* Paso 1: fecha */
-    if (dateInput) {
-      var tomorrow = new Date();
-      tomorrow.setDate(tomorrow.getDate() + 1);
-      dateInput.min = tomorrow.toISOString().split("T")[0];
+    /* ──────────────────────────────────────────────────────────
+       Paso fecha/hora — Calendario propio con disponibilidad
+       Horario oficial: L-V 8:00-19:00 · Sáb 9:00-16:00 · Dom cerrado
+       La disponibilidad (verde/naranja/rojo) es determinista por fecha
+       (placeholder visual estable); se sustituirá por datos reales del
+       backend cuando estén disponibles, sin cambiar esta interfaz.
+       ────────────────────────────────────────────────────────── */
+    var calGrid   = qs("#cita-cal-grid");
+    var calTitle  = qs("#cita-cal-title");
+    var calPrev   = qs("[data-cal-prev]");
+    var calNext   = qs("[data-cal-next]");
+    var slotsEl   = qs(".time-grid");
+    var MESES = ["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
 
-      dateInput.addEventListener("change", function () {
-        state.fecha = dateInput.value;
+    var today0  = new Date(); today0.setHours(0,0,0,0);
+    var minDate = new Date(today0); minDate.setDate(minDate.getDate() + 1); /* desde mañana */
+    var calView = new Date(minDate.getFullYear(), minDate.getMonth(), 1);
+
+    function dayHours(date) {
+      var g = date.getDay();
+      if (g === 0) return null;                 /* domingo cerrado */
+      if (g === 6) return { open: 9, close: 16 }; /* sábado */
+      return { open: 8, close: 19 };             /* lunes a viernes */
+    }
+
+    function dayAvail(date) {
+      if (!dayHours(date)) return null;
+      var key = date.getFullYear() * 372 + date.getMonth() * 31 + date.getDate();
+      var v = ((key * 2654435761) >>> 0) % 100;
+      if (v < 55) return "full";
+      if (v < 82) return "mid";
+      return "none";
+    }
+
+    function isoOf(date) {
+      var m = String(date.getMonth() + 1).padStart(2, "0");
+      var d = String(date.getDate()).padStart(2, "0");
+      return date.getFullYear() + "-" + m + "-" + d;
+    }
+
+    function renderSlots(date, avail) {
+      if (!slotsEl) return;
+      state.hora = "";
+      var hours = dayHours(date);
+      if (!hours || avail === "none") {
+        slotsEl.innerHTML = '<p class="time-grid__empty">' +
+          (avail === "none" ? "Sin disponibilidad ese día. Elige otra fecha." : "Cerrado ese día.") +
+          "</p>";
         validateStep1();
+        return;
+      }
+      var html = "";
+      for (var hh = hours.open; hh < hours.close; hh++) {
+        var label = (hh < 10 ? "0" : "") + hh + ":00";
+        html += '<button type="button" class="time-slot" data-time="' + label + '" aria-pressed="false">' + label + "</button>";
+      }
+      slotsEl.innerHTML = html;
+      qsa(".time-slot", slotsEl).forEach(function (btn) {
+        btn.addEventListener("click", function () {
+          qsa(".time-slot", slotsEl).forEach(function (b) {
+            b.classList.remove("is-selected");
+            b.setAttribute("aria-pressed", "false");
+          });
+          btn.classList.add("is-selected");
+          btn.setAttribute("aria-pressed", "true");
+          state.hora = btn.dataset.time;
+          validateStep1();
+        });
+      });
+      validateStep1();
+    }
+
+    function renderCalendar() {
+      if (!calGrid) return;
+      var y = calView.getFullYear(), m = calView.getMonth();
+      if (calTitle) calTitle.textContent = MESES[m].charAt(0).toUpperCase() + MESES[m].slice(1) + " " + y;
+
+      var first = new Date(y, m, 1);
+      var startOffset = (first.getDay() + 6) % 7; /* semana inicia en lunes */
+      var daysInMonth = new Date(y, m + 1, 0).getDate();
+
+      var cells = "";
+      for (var i = 0; i < startOffset; i++) {
+        cells += '<span class="okcal__day is-empty" aria-hidden="true"></span>';
+      }
+      for (var d = 1; d <= daysInMonth; d++) {
+        var date = new Date(y, m, d);
+        var disabled = !dayHours(date) || date < minDate;
+        var avail = disabled ? null : dayAvail(date);
+        var selected = state.fecha === isoOf(date);
+        var dot = avail
+          ? '<i class="okcal-dot okcal-dot--' + avail + '"></i>'
+          : '<i class="okcal-dot" style="visibility:hidden"></i>';
+        cells += '<button type="button" class="okcal__day' + (selected ? " is-selected" : "") + '" ' +
+          'data-date="' + isoOf(date) + '" data-avail="' + (avail || "") + '"' +
+          (disabled ? ' disabled aria-disabled="true"' : "") +
+          ' aria-label="' + d + " de " + MESES[m] + '"><span>' + d + "</span>" + dot + "</button>";
+      }
+      calGrid.innerHTML = cells;
+
+      qsa(".okcal__day[data-date]", calGrid).forEach(function (btn) {
+        if (btn.disabled) return;
+        btn.addEventListener("click", function () {
+          qsa(".okcal__day", calGrid).forEach(function (b) { b.classList.remove("is-selected"); });
+          btn.classList.add("is-selected");
+          state.fecha = btn.dataset.date;
+          if (dateInput) dateInput.value = state.fecha;
+          var p = btn.dataset.date.split("-");
+          renderSlots(new Date(+p[0], +p[1] - 1, +p[2]), btn.dataset.avail);
+        });
       });
     }
 
-    /* Paso 1: horarios */
-    qsa(".time-slot").forEach(function (btn) {
-      btn.addEventListener("click", function () {
-        qsa(".time-slot").forEach(function (b) {
-          b.classList.remove("is-selected");
-          b.setAttribute("aria-pressed", "false");
-        });
-        btn.classList.add("is-selected");
-        btn.setAttribute("aria-pressed", "true");
-        state.hora = btn.dataset.time;
-        validateStep1();
-      });
-    });
+    function updateCalNav() {
+      if (calPrev) {
+        calPrev.disabled = (calView.getFullYear() === minDate.getFullYear() && calView.getMonth() === minDate.getMonth());
+      }
+    }
+
+    if (calPrev) calPrev.addEventListener("click", function () { calView.setMonth(calView.getMonth() - 1); renderCalendar(); updateCalNav(); });
+    if (calNext) calNext.addEventListener("click", function () { calView.setMonth(calView.getMonth() + 1); renderCalendar(); updateCalNav(); });
+
+    function resetSlots() {
+      if (slotsEl) slotsEl.innerHTML = '<p class="time-grid__empty">Elige una fecha para ver los horarios.</p>';
+    }
+
+    if (calGrid) { renderCalendar(); updateCalNav(); resetSlots(); }
 
     function validateStep1() {
       var next = qs("#cita-next-1");
@@ -427,17 +532,29 @@
       next.setAttribute("aria-disabled", String(!ok));
     }
 
-    /* Paso 2: validación de datos */
+    /* Paso 2: validación de datos
+       El botón "Siguiente" permanece deshabilitado hasta que el usuario
+       complete: nombre, teléfono, método de contacto y términos. */
     function validateStep2() {
       var next = qs("#cita-next-2");
       if (!next) return;
-      var ok = !!(nameInput && nameInput.value.trim() && telInput && telInput.value.trim());
+      var hasName    = !!(nameInput && nameInput.value.trim());
+      var hasTel     = !!(telInput && telInput.value.trim());
+      var hasContact = !!qs("input[name='cita-contacto']:checked", section);
+      var acceptEl   = qs("#cita-acepto");
+      var hasTerms   = !!(acceptEl && acceptEl.checked);
+      var ok = hasName && hasTel && hasContact && hasTerms;
       next.disabled = !ok;
       next.setAttribute("aria-disabled", String(!ok));
     }
 
     if (nameInput) nameInput.addEventListener("input", validateStep2);
     if (telInput)  telInput.addEventListener("input", validateStep2);
+    qsa("input[name='cita-contacto']", section).forEach(function (r) {
+      r.addEventListener("change", validateStep2);
+    });
+    var aceptoEl = qs("#cita-acepto");
+    if (aceptoEl) aceptoEl.addEventListener("change", validateStep2);
 
     /* Construir resumen */
     function buildSummary() {
@@ -521,6 +638,17 @@
         if (telInput)   telInput.value   = "";
         if (notesInput) notesInput.value = "";
 
+        /* Reiniciar método de contacto y términos */
+        qsa("input[name='cita-contacto']", section).forEach(function (r) { r.checked = false; });
+        var aceptoReset = qs("#cita-acepto");
+        if (aceptoReset) aceptoReset.checked = false;
+
+        /* Reiniciar calendario y horarios al mes mínimo */
+        calView = new Date(minDate.getFullYear(), minDate.getMonth(), 1);
+        renderCalendar();
+        updateCalNav();
+        resetSlots();
+
         var btn0 = qs("#cita-next-0");
         var btn1 = qs("#cita-next-1");
         var btn2 = qs("#cita-next-2");
@@ -573,7 +701,7 @@
     /* ── Dropzone: accesibilidad ── */
     dropzone.setAttribute("role", "button");
     dropzone.setAttribute("tabindex", "0");
-    dropzone.setAttribute("aria-label", "Zona de carga de fotos. Haz clic o arrastra imágenes aquí");
+    dropzone.setAttribute("aria-label", "Zona de carga. Haz clic o arrastra imágenes o PDF aquí");
 
     dropzone.addEventListener("click", function () { fileInput.click(); });
     dropzone.addEventListener("keydown", function (e) {
@@ -619,19 +747,30 @@
       fileInput.value = "";
     });
 
-    /* ── Procesar archivos ── */
+    /* ── Validación de formato: extensión + MIME real del navegador ──
+       (La validación definitiva por bytes se hace en el backend al subir.) */
+    function fileExt(name) {
+      var m = String(name).toLowerCase().match(/\.([a-z0-9]+)$/);
+      return m ? m[1] : "";
+    }
+    function fileKind(f) {
+      var ext  = fileExt(f.name);
+      var mime = (f.type || "").toLowerCase();
+      var extOk  = CONFIG.allowedExts.indexOf(ext) !== -1;
+      /* Si el navegador entrega MIME, debe coincidir; si viene vacío, se valida por extensión */
+      var mimeOk = mime ? CONFIG.allowedTypes.indexOf(mime) !== -1 : true;
+      if (!extOk || !mimeOk) return null;
+      return (ext === "pdf" || mime === "application/pdf") ? "pdf" : "image";
+    }
+
+    /* ── Procesar archivos (imágenes y PDF) ── */
     function processFiles(fileList) {
       var arr = Array.from(fileList);
       var valid = arr.filter(function (f) {
-        /* Validar tipo */
-        var isValidType = CONFIG.allowedTypes.some(function (type) {
-          return f.type.toLowerCase() === type || f.name.toLowerCase().endsWith(type.replace("image/", "."));
-        });
-        if (!isValidType) {
-          showToast("⚠️ " + f.name + " no es una imagen válida");
+        if (!fileKind(f)) {
+          showToast("⚠️ " + f.name + " no es un formato permitido (JPG, PNG, WEBP o PDF)");
           return false;
         }
-        /* Validar tamaño */
         if (f.size > CONFIG.maxFileSizeMB * 1024 * 1024) {
           showToast("⚠️ " + f.name + " supera los " + CONFIG.maxFileSizeMB + "MB");
           return false;
@@ -642,23 +781,34 @@
       /* Límite máximo */
       var available = CONFIG.maxFiles - files.length;
       if (valid.length > available) {
-        showToast("Máximo " + CONFIG.maxFiles + " fotos. Solo se agregaron " + available + ".");
+        showToast("Máximo " + CONFIG.maxFiles + " archivos. Solo se agregaron " + available + ".");
         valid = valid.slice(0, available);
       }
 
       valid.forEach(function (f) {
-        var reader = new FileReader();
-        reader.onload = function (e) {
-          files.push({
-            id: Date.now() + "_" + Math.random().toString(36).slice(2, 8),
-            url: e.target.result,
-            name: f.name,
-            size: f.size
-          });
+        var kind = fileKind(f);
+        var entry = {
+          id: Date.now() + "_" + Math.random().toString(36).slice(2, 8),
+          url: "",
+          name: f.name,
+          size: f.size,
+          kind: kind
+        };
+        if (kind === "image") {
+          var reader = new FileReader();
+          reader.onload = function (e) {
+            entry.url = e.target.result;
+            files.push(entry);
+            renderThumbs();
+            updateTotal();
+          };
+          reader.readAsDataURL(f);
+        } else {
+          /* PDF: no se previsualiza como imagen; se muestra ficha con icono */
+          files.push(entry);
           renderThumbs();
           updateTotal();
-        };
-        reader.readAsDataURL(f);
+        }
       });
     }
 
@@ -675,15 +825,24 @@
       }
 
       thumbsContainer.style.display = "grid";
+      var removeSvg = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">' +
+        '<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';
+
       thumbsContainer.innerHTML = files.map(function (f) {
+        if (f.kind === "pdf") {
+          return '<div class="thumb-item thumb-item--pdf" role="figure" aria-label="PDF: ' + sanitize(f.name) + '">' +
+            '<span class="thumb-item__pdf" aria-hidden="true">' +
+            '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>' +
+            '<b>PDF</b></span>' +
+            '<span class="thumb-item__name">' + sanitize(f.name) + '</span>' +
+            '<button class="thumb-item__remove" data-id="' + sanitize(f.id) + '" aria-label="Eliminar ' + sanitize(f.name) + '">' + removeSvg + '</button>' +
+            '</div>';
+        }
         return '<div class="thumb-item" role="figure" aria-label="Foto: ' + sanitize(f.name) + '">' +
           '<img src="' + f.url + '" alt="' + sanitize(f.name) + '" loading="lazy">' +
           '<span class="thumb-item__badge">' + sanitize(config.size) + '</span>' +
           '<button class="thumb-item__remove" data-id="' + sanitize(f.id) + '" ' +
-          'aria-label="Eliminar foto ' + sanitize(f.name) + '">' +
-          '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">' +
-          '<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>' +
-          '</svg></button>' +
+          'aria-label="Eliminar foto ' + sanitize(f.name) + '">' + removeSvg + '</button>' +
           '</div>';
       }).join("");
 
@@ -756,15 +915,23 @@
 
     /* ── Actualizar totales ── */
     function updateTotal() {
-      var nFotos = files.length;
+      var images = files.filter(function (f) { return f.kind !== "pdf"; });
+      var pdfs   = files.filter(function (f) { return f.kind === "pdf"; });
+      var nFotos = images.length;
       var nCopias = nFotos * config.qty;
       var unitPrice = CONFIG.prices[config.size];
 
       if (totalFotosEl)  totalFotosEl.textContent = nFotos;
       if (totalCopiasEl) totalCopiasEl.textContent = nCopias;
 
+      /* Línea de documentos PDF (solo visible si hay) */
+      var pdfLine = qs("#total-pdf-line");
+      var pdfVal  = qs("#total-pdf");
+      if (pdfLine) pdfLine.style.display = pdfs.length ? "" : "none";
+      if (pdfVal)  pdfVal.textContent = pdfs.length;
+
       if (totalPrecioEl) {
-        if (typeof unitPrice === "number" && unitPrice > 0) {
+        if (nFotos > 0 && typeof unitPrice === "number" && unitPrice > 0) {
           totalPrecioEl.textContent = formatMXN(nCopias * unitPrice);
         } else {
           totalPrecioEl.textContent = "Cotizar";
@@ -772,10 +939,12 @@
       }
 
       if (totalNoteEl) {
-        if (typeof unitPrice === "number" && unitPrice > 0) {
+        if (nFotos > 0 && typeof unitPrice === "number" && unitPrice > 0) {
           totalNoteEl.textContent =
-            "Precio unitario: " + formatMXN(unitPrice) + " MXN por copia " +
-            config.size + ". El precio final puede variar según acabado y cantidad.";
+            "Precio unitario: " + formatMXN(unitPrice) + " MXN por copia " + config.size + "." +
+            (pdfs.length ? " La impresión de PDF se cotiza aparte." : " El precio final puede variar según acabado y cantidad.");
+        } else if (pdfs.length && nFotos === 0) {
+          totalNoteEl.textContent = "Cotizamos la impresión de tus PDF al recibirlos por WhatsApp.";
         } else {
           totalNoteEl.textContent =
             "El gran formato se cotiza según medidas y material. ¡Escríbenos para un precio personalizado!";
@@ -783,8 +952,8 @@
       }
 
       if (sendBtn) {
-        sendBtn.disabled = nFotos === 0;
-        sendBtn.setAttribute("aria-disabled", nFotos === 0 ? "true" : "false");
+        sendBtn.disabled = files.length === 0;
+        sendBtn.setAttribute("aria-disabled", files.length === 0 ? "true" : "false");
       }
     }
 
@@ -793,22 +962,27 @@
       sendBtn.addEventListener("click", function () {
         if (!files.length) return;
 
-        var nFotos = files.length;
+        var images = files.filter(function (f) { return f.kind !== "pdf"; });
+        var pdfs   = files.filter(function (f) { return f.kind === "pdf"; });
+        var nFotos = images.length;
         var nCopias = nFotos * config.qty;
         var unitPrice = CONFIG.prices[config.size];
-        var totalStr = (typeof unitPrice === "number" && unitPrice > 0)
+        var totalStr = (nFotos > 0 && typeof unitPrice === "number" && unitPrice > 0)
           ? formatMXN(nCopias * unitPrice) + " MXN aprox."
           : "Por cotizar";
 
         var msg =
-          "¡Hola OK.station! 📸 Quiero imprimir mis fotos:\n\n" +
-          "🖼️ Fotos distintas: " + nFotos + "\n" +
-          "📐 Tamaño: " + config.size + "\n" +
-          "✨ Acabado: " + config.finish + "\n" +
-          "🔢 Copias por foto: " + config.qty + "\n" +
-          "📦 Total de copias: " + nCopias + "\n" +
-          "💵 Total estimado: " + totalStr + "\n\n" +
-          "En seguida les envío las imágenes por este chat. 🙌\n" +
+          "¡Hola OK.station! 🖨️ Quiero imprimir mis archivos:\n\n" +
+          (nFotos
+            ? "🖼️ Fotos distintas: " + nFotos + "\n" +
+              "📐 Tamaño: " + config.size + "\n" +
+              "✨ Acabado: " + config.finish + "\n" +
+              "🔢 Copias por foto: " + config.qty + "\n" +
+              "📦 Total de copias: " + nCopias + "\n" +
+              "💵 Total estimado: " + totalStr + "\n"
+            : "") +
+          (pdfs.length ? "📄 Documentos PDF: " + pdfs.length + "\n" : "") +
+          "\nEn seguida les envío los archivos por este chat. 🙌\n" +
           "_Pedido generado desde okstation.mx_";
 
         window.open(waLink(msg), "_blank", "noopener,noreferrer");
