@@ -38,14 +38,19 @@
     JWT_KEY: 'okstation_token',
     JWT_KEY_ALT: 'access_token',
 
-    /* Roles con acceso durante mantenimiento */
-    ADMIN_ROLES: ['admin', 'administrator', 'superadmin', 'empleado', 'employee', 'staff'],
+    /* Roles con acceso durante mantenimiento.
+       DEBE coincidir con ACCESS_ROLES de maintenance.html — si difieren,
+       maintenance puede conceder acceso y el guard rebotar al usuario (bucle). */
+    ADMIN_ROLES: ['admin', 'administrador', 'administrator', 'superadmin', 'empleado', 'employee', 'staff'],
 
     /* URL de la pantalla de mantenimiento */
     MAINTENANCE_URL: '/maintenance.html',
 
-    /* Rutas que NUNCA se redirigen (no incluir '/' aquí) */
-    BYPASS_PATHS: ['/assets/', '/api/'],
+    /* Rutas que NUNCA se redirigen (no incluir '/' aquí).
+       recuperar/restablecer quedan accesibles durante el mantenimiento:
+       evitan que un admin que olvidó su contraseña quede bloqueado y
+       permiten que los enlaces de restablecimiento por correo funcionen. */
+    BYPASS_PATHS: ['/assets/', '/api/', '/recuperar.html', '/restablecer.html'],
   };
 
   /* Salir inmediatamente si no estamos en modo mantenimiento */
@@ -119,7 +124,16 @@
     });
   }
 
-  /* ── EVALUACIÓN PRINCIPAL ── */
+  /* ── Acceso ya validado por maintenance.html ──
+     maintenance.html escribe 'oks_site_access' cuando concede acceso
+     (admin/empleado), usando el backend como fuente de verdad. Confiamos en
+     ese veredicto y no re-evaluamos el token aquí: el formato del token o la
+     ortografía del rol pueden diferir y provocar un bucle de redirección. */
+  try {
+    if (localStorage.getItem('oks_site_access') === '1') { return; }
+  } catch (_) {}
+
+  /* ── EVALUACIÓN PRINCIPAL (respaldo: token directo sin pasar por maintenance) ── */
   var token = getToken();
 
   if (!token) {

@@ -21,7 +21,7 @@
      01. UTILIDADES & CONFIGURACIÓN
      ============================================================ */
   var CONFIG = {
-    whatsapp: "5216641044896",
+    whatsapp: "5216647194117",
     maxFileSizeMB: 25,
     maxFiles: 30,
     allowedTypes: ["image/jpeg", "image/jpg", "image/png", "image/webp", "image/heic", "image/heif"],
