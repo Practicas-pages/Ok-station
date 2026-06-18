@@ -315,8 +315,7 @@
     var tramiteInfo = {
       pasaporte: { label: "Pasaporte mexicano", desc: "Cita en SRE para pasaporte" },
       visa:      { label: "Visa Americana",     desc: "DS-160, CAS y consulado" },
-      sentri:    { label: "SENTRI / Global Entry", desc: "Cruce rápido fronterizo" },
-      i94:       { label: "I-94 / Permiso de Viaje", desc: "CBP / permiso de internación" }
+      sentri:    { label: "SENTRI / Global Entry", desc: "Cruce rápido fronterizo" }
     };
 
     /* Referencias DOM */

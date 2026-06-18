@@ -1387,8 +1387,7 @@ h1, h2, h3, h4, h5, h6 {
 /* Grid de trámites */
 .tramite-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  grid-auto-rows: 1fr;
+  grid-template-columns: repeat(3, 1fr);
   gap: var(--space-4);
   margin-bottom: var(--space-7);
   align-items: stretch;
@@ -4262,7 +4261,7 @@ body {
    3. Hero lead    — texto gris oscuro (#3d3f55) sobre fondo claro
    4. Hero bg      — degradado azul-cyan de marca (línea de onda SVG)
    5. Quick cards  — borde azul al hacer hover
-   6. Hero hours   — hora "09:00 – 19:00" alineada a la derecha
+   6. Hero hours   — horario "Lun–Vie 8–19h · Sáb 9–16h" alineado a la derecha
    ============================================================ */
 
 /* ── 1. NAV LINKS: borde azul siempre visible ── */
