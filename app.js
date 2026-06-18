@@ -311,10 +311,11 @@
     var TOTAL_STEPS = 4;
 
     var tramiteInfo = {
-      pasaporte: { label: "Pasaporte mexicano", desc: "Cita en SRE para pasaporte" },
-      visa:      { label: "Visa Americana",     desc: "DS-160, CAS y consulado" },
-      sentri:    { label: "SENTRI / Global Entry", desc: "Cruce rápido fronterizo" }
-    };
+  pasaporte: { label: "Pasaporte mexicano", desc: "Cita en SRE para pasaporte" },
+  visa:      { label: "Visa Americana",     desc: "DS-160, CAS y consulado" },
+  sentri:    { label: "SENTRI / Global Entry", desc: "Cruce rápido fronterizo" },
+  i94:       { label: "I-94", desc: "Registro de entrada y salida" }
+};
 
     /* Referencias DOM */
     var stepsEl   = qsa(".step-item");
