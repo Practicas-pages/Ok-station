@@ -4387,6 +4387,28 @@ body {
   border-radius: var(--border-radius) var(--border-radius) 0 0; /* solo arriba si tienes esquinas */
   margin-bottom: 1rem;
 }
+
+/* ── Carga elegante de imágenes (anti "pop"): fundido suave al cargar ──
+   Solo se activa si app.js añadió .img-fade al <html>; sin JS las imágenes
+   se muestran normal (nunca se quedan invisibles). */
+.img-fade .service-card__img,
+.img-fade .store-gallery__item img { opacity: 0; }
+.img-fade .service-card__img { transition: opacity 0.5s ease; }
+.img-fade .store-gallery__item img { transition: transform 0.5s ease, opacity 0.5s ease; }
+.img-fade .service-card__img.is-loaded,
+.img-fade .store-gallery__item img.is-loaded { opacity: 1; }
+
+/* Skeleton con brillo detrás de la foto de la galería mientras carga */
+@keyframes ok-skeleton {
+  0%   { background-position: -200% 0; }
+  100% { background-position:  200% 0; }
+}
+.img-fade .store-gallery__item:has(img:not(.is-loaded)) {
+  background-image: linear-gradient(100deg, var(--border-light) 30%, rgba(255,255,255,0.65) 50%, var(--border-light) 70%);
+  background-size: 200% 100%;
+  animation: ok-skeleton 1.4s ease-in-out infinite;
+}
+
 /* Texto ligeramente más pequeño */
 .service-card h3 {
   font-size: 14px;  /* antes 15-16px */

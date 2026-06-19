@@ -1174,6 +1174,18 @@
      ============================================================ */
   /* Galería del local: si una foto aún no existe, se elimina el <img> y queda
      visible el placeholder con su etiqueta (sin icono de imagen rota). */
+  /* Fundido suave de imágenes al cargar (evita el "pop" poco profesional).
+     El modo fade solo se activa si este script corre; así, sin JS, las
+     imágenes se ven normal y nunca se quedan invisibles. */
+  function initImageFade() {
+    document.documentElement.classList.add("img-fade");
+    qsa(".service-card__img, .store-gallery__item img").forEach(function (img) {
+      if (img.complete && img.naturalWidth > 0) { img.classList.add("is-loaded"); return; }
+      img.addEventListener("load", function () { img.classList.add("is-loaded"); });
+      img.addEventListener("error", function () { img.classList.add("is-loaded"); });
+    });
+  }
+
   function initGallery() {
     qsa(".store-gallery__item img").forEach(function (img) {
       function fail() { if (img.parentNode) img.remove(); }
@@ -1191,6 +1203,7 @@
     initCitas();
     initFotos();
     initScrollTop();
+    initImageFade();
     initGallery();
   }
 
