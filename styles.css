@@ -1384,18 +1384,27 @@ h1, h2, h3, h4, h5, h6 {
   margin-bottom: var(--space-7);
 }
 
-/* Grid de trámites */
+/* Grid de trámites — 2×2 en escritorio (4 opciones) */
 .tramite-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(2, 1fr);
+  grid-auto-rows: 1fr;
   gap: var(--space-4);
   margin-bottom: var(--space-7);
   align-items: stretch;
 }
 
-/* Tablet: 2×2 para mantener tarjetas uniformes y legibles */
+/* Tablet: mantiene 2 columnas mientras el espacio lo permita */
 @media (max-width: 1080px) {
   .tramite-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+/* Teléfonos: una sola columna (cada opción debajo de la otra) */
+@media (max-width: 560px) {
+  .tramite-grid {
+    grid-template-columns: 1fr;
+    gap: var(--space-3);
+  }
 }
 
 .tramite-btn {
@@ -3190,11 +3199,6 @@ h1, h2, h3, h4, h5, h6 {
 
   .cita-aside {
     display: none;
-  }
-
-  .tramite-grid {
-    grid-template-columns: 1fr;
-    gap: var(--space-3);
   }
 
   .field-group {
