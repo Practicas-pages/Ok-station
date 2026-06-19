@@ -1715,6 +1715,14 @@ h1, h2, h3, h4, h5, h6 {
   cursor: not-allowed;
   transform: none;
 }
+.time-slot__full {
+  display: block;
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  opacity: 0.75;
+}
 
 /* ── Mensaje cuando no hay slots / falta elegir fecha ── */
 .time-grid__empty {

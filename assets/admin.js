@@ -23,6 +23,13 @@
     recibido: "Recibido", en_revision: "En revisión", en_produccion: "En producción",
     listo: "Listo", entregado: "Entregado", cancelado: "Cancelado"
   };
+  var APPT_STATUS = {
+    pendiente: "Pendiente", confirmada: "Confirmada", cancelada: "Cancelada",
+    completada: "Completada", no_show: "No asistió"
+  };
+  var TRAMITE_LABEL = {
+    pasaporte: "Pasaporte", visa: "Visa Americana", sentri: "SENTRI / Global Entry", i94: "I-94"
+  };
   function badge(status, labels) {
     var map = labels || STATUS;
     return '<span class="badge badge--' + status + '">' + esc(map[status] || status) + '</span>';
@@ -70,6 +77,12 @@
       { name: "María G.", rating: 5, comment: "Rápido y excelente atención.", status: "aprobada", date: "2026-06-09" },
       { name: "Jorge R.", rating: 5, comment: "Mi tesis quedó impecable.", status: "pendiente", date: "2026-06-10" },
       { name: "Anónimo", rating: 2, comment: "Tardó más de lo esperado.", status: "oculta", date: "2026-06-07" }
+    ],
+    appointments: [
+      { code: "CITA-2026-000031", tramite: "pasaporte", date: "2026-06-20", time: "09:00", status: "pendiente", contact_name: "María González", contact_phone: "664 100 0001", contact_email: "maria@ejemplo.com", contact_pref: "whatsapp", notes: "Renovación", account_name: "María González" },
+      { code: "CITA-2026-000030", tramite: "visa", date: "2026-06-20", time: "11:00", status: "confirmada", contact_name: "Jorge Ramírez", contact_phone: "664 100 0002", contact_email: "", contact_pref: "llamada", notes: "", account_name: null },
+      { code: "CITA-2026-000029", tramite: "sentri", date: "2026-06-19", time: "16:00", status: "completada", contact_name: "Ana López", contact_phone: "664 100 0003", contact_email: "ana@ejemplo.com", contact_pref: "correo", notes: "Primera vez", account_name: "Ana López" },
+      { code: "CITA-2026-000028", tramite: "i94", date: "2026-06-18", time: "10:00", status: "cancelada", contact_name: "Diego Salas", contact_phone: "664 100 0004", contact_email: "", contact_pref: "whatsapp", notes: "", account_name: null }
     ]
   };
 
@@ -94,7 +107,20 @@
     services: function () { return DEMO ? Promise.resolve(MOCK.services) : apiGet("/admin/services.php").then(function (j) { return j.services || []; }); },
     reviews:  function () { return DEMO ? Promise.resolve(MOCK.reviews)  : apiGet("/admin/reviews.php").then(function (j) { return j.reviews || []; }); },
     moderateReview: function (id, action) { return DEMO ? Promise.resolve({ ok: true }) : apiPost("/admin/review-moderate.php", { id: id, action: action }); },
-    toggleUser: function (id, active) { return DEMO ? Promise.resolve({ ok: true }) : apiPost("/admin/user-toggle.php", { id: id, active: active }); }
+    toggleUser: function (id, active) { return DEMO ? Promise.resolve({ ok: true }) : apiPost("/admin/user-toggle.php", { id: id, active: active }); },
+    appointments: function (status, date) {
+      if (DEMO) return Promise.resolve(MOCK.appointments.filter(function (a) {
+        return (!status || a.status === status) && (!date || a.date === date);
+      }));
+      var q = [];
+      if (status) q.push("status=" + encodeURIComponent(status));
+      if (date) q.push("date=" + encodeURIComponent(date));
+      return apiGet("/admin/appointments.php" + (q.length ? "?" + q.join("&") : "")).then(function (j) { return j.appointments || []; });
+    },
+    updateApptStatus: function (id, status) {
+      if (DEMO) { var a = MOCK.appointments.find(function (x) { return String(x.id || x.code) === String(id); }); if (a) a.status = status; return Promise.resolve({ ok: true }); }
+      return apiPost("/admin/appointment-status.php", { id: id, status: status });
+    }
   };
 
   /* ============================================================
@@ -374,14 +400,50 @@
     });
   }
 
+  function apptStatusSelect(a) {
+    return '<select class="appt-status-select" data-id="' + esc(a.id || a.code) + '">' +
+      Object.keys(APPT_STATUS).map(function (k) {
+        return '<option value="' + k + '"' + (k === a.status ? " selected" : "") + '>' + APPT_STATUS[k] + '</option>';
+      }).join("") + '</select>';
+  }
+  function renderAppointments(status, date) {
+    var head = '<thead><tr><th>Folio</th><th>Trámite</th><th>Fecha</th><th>Hora</th><th>Cliente</th><th>Contacto</th><th>Estado</th></tr></thead>';
+    DataSource.appointments(status || "", date || "").then(function (list) {
+      var t = $("#appts-table");
+      if (!t) return;
+      if (!list.length) { t.innerHTML = head + '<tbody><tr><td colspan="7" style="text-align:center;color:var(--text-muted);padding:24px">No hay citas para este filtro.</td></tr></tbody>'; return; }
+      var body = list.map(function (a) {
+        var contacto = esc(a.contact_phone || "") + (a.contact_email ? '<br><span style="color:var(--text-muted);font-size:.82rem">' + esc(a.contact_email) + '</span>' : "");
+        return '<tr>' +
+          '<td class="mono">' + esc(a.code) + '</td>' +
+          '<td>' + esc(TRAMITE_LABEL[a.tramite] || a.tramite) + '</td>' +
+          '<td>' + esc(a.date) + '</td>' +
+          '<td class="mono">' + esc(a.time) + '</td>' +
+          '<td><b>' + esc(a.contact_name) + '</b>' + (a.account_name ? '' : ' <span style="color:var(--text-muted);font-size:.78rem">(invitado)</span>') + '</td>' +
+          '<td>' + contacto + '</td>' +
+          '<td>' + apptStatusSelect(a) + '</td>' +
+        '</tr>';
+      }).join("");
+      t.innerHTML = head + '<tbody>' + body + '</tbody>';
+      $$(".appt-status-select", t).forEach(function (sel) {
+        sel.addEventListener("change", function () {
+          DataSource.updateApptStatus(sel.dataset.id, sel.value).then(function () { loadDashboardCounts(); });
+        });
+      });
+    });
+  }
+
   function loadDashboardCounts() {
     DataSource.dashboard().then(function (d) {
+      var citasEl = $("#nav-citas-count");
       if (d && d.nav) {
         $("#nav-pedidos-count").textContent = d.nav.pedidos;
         $("#nav-resenas-count").textContent = d.nav.resenas;
+        if (citasEl) citasEl.textContent = d.nav.citas != null ? d.nav.citas : 0;
       } else {
         $("#nav-pedidos-count").textContent = (MOCK.orders || []).length;
         $("#nav-resenas-count").textContent = (MOCK.reviews || []).filter(function (r) { return r.status === "pendiente"; }).length;
+        if (citasEl) citasEl.textContent = (MOCK.appointments || []).filter(function (a) { return a.status === "pendiente"; }).length;
       }
     });
   }
@@ -389,7 +451,7 @@
   /* ============================================================
      NAVEGACIÓN ENTRE VISTAS
      ============================================================ */
-  var TITLES = { dashboard: "Dashboard", pedidos: "Pedidos", usuarios: "Usuarios", servicios: "Servicios", resenas: "Reseñas" };
+  var TITLES = { dashboard: "Dashboard", pedidos: "Pedidos", citas: "Citas", usuarios: "Usuarios", servicios: "Servicios", resenas: "Reseñas" };
   var rendered = {};
   function showView(view) {
     $$("[data-view]").forEach(function (el) {
@@ -399,6 +461,7 @@
     $("#admin-title").textContent = TITLES[view] || "Panel";
     if (!rendered[view]) {
       if (view === "pedidos") renderOrdersTable("");
+      if (view === "citas") renderAppointments("");
       if (view === "usuarios") renderUsers();
       if (view === "servicios") renderServices();
       if (view === "resenas") renderReviews();
@@ -435,6 +498,21 @@
         c.classList.add("is-selected");
         renderOrdersTable(c.dataset.status);
       });
+    });
+
+    var apptStatus = "", apptDate = "";
+    $$("#appt-filters .chip").forEach(function (c) {
+      c.addEventListener("click", function () {
+        $$("#appt-filters .chip").forEach(function (x) { x.classList.remove("is-selected"); });
+        c.classList.add("is-selected");
+        apptStatus = c.dataset.status;
+        renderAppointments(apptStatus, apptDate);
+      });
+    });
+    var apptDateEl = $("#appt-date-filter");
+    if (apptDateEl) apptDateEl.addEventListener("change", function () {
+      apptDate = apptDateEl.value;
+      renderAppointments(apptStatus, apptDate);
     });
 
     $("#admin-burger").addEventListener("click", openNav);

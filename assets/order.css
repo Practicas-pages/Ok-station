@@ -99,3 +99,9 @@
 .ostatus--listo { background: #DCFCE7; color: #15803D; }
 .ostatus--entregado { background: #ECFDF5; color: #047857; }
 .ostatus--cancelado { background: #FEE2E2; color: #B91C1C; }
+/* Estados de citas */
+.ostatus--pendiente  { background: #FEF3C7; color: #B45309; }
+.ostatus--confirmada { background: #E0F2FE; color: #0369A1; }
+.ostatus--completada { background: #DCFCE7; color: #15803D; }
+.ostatus--cancelada  { background: #FEE2E2; color: #B91C1C; }
+.ostatus--no_show    { background: #F3F4F6; color: #6B7280; }

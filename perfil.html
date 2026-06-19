@@ -44,6 +44,7 @@
           <nav class="profile-nav" aria-label="Navegación de la cuenta">
             <a href="#password">Cambiar contraseña</a>
             <a href="#pedidos">Mis pedidos</a>
+            <a href="#citas">Mis citas</a>
             <!-- Solo visible para empleado/administrador (lo activa auth.js según el rol) -->
             <a href="admin.html" id="profile-admin-link" hidden style="margin-top:8px;background:var(--brand-blue-light);color:var(--brand-blue);font-weight:600">
               ▸ Panel administrativo
@@ -111,6 +112,13 @@
             <a class="btn btn--primary btn--sm" href="pedido.html" style="margin-bottom:16px">+ Haz un pedido nuevo</a>
             <div class="orders-list" id="orders-history"></div>
           </section>
+
+          <!-- Citas registradas (historial) -->
+          <section class="profile-panel" id="citas">
+            <h3>Citas registradas</h3>
+            <a class="btn btn--primary btn--sm" href="index.html#citas" style="margin-bottom:16px">+ Agenda una cita</a>
+            <div class="orders-list" id="appts-history"></div>
+          </section>
         </div>
       </div>
     </div>
@@ -118,5 +126,6 @@
 
   <script src="assets/auth.js?v=20260618" defer></script>
   <script src="assets/orders-history.js?v=20260618" defer></script>
+  <script src="assets/appointments-history.js?v=20260618" defer></script>
 </body>
 </html>
