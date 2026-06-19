@@ -176,6 +176,8 @@
     .logo__ok      { color: var(--brand-blue); }
     .logo__dot     { color: var(--brand-purple); }
     .logo__station { color: rgba(255,255,255,0.90); font-weight: 600; }
+    /* Logo oficial como imagen, en blanco (fondo oscuro de mantenimiento) */
+    .logo__img     { display: block; height: 1.15em; width: auto; filter: brightness(0) invert(1); }
 
     /* Badge de estado */
     .status-badge {
@@ -744,7 +746,7 @@
   <header class="maint-header">
     <div class="wrap maint-header__inner">
       <a href="/" class="logo" aria-label="OK.station — Inicio">
-        <span class="logo__ok">OK</span><span class="logo__dot">.</span><span class="logo__station">station</span>
+        <img src="assets/img/okstation-logo.webp" alt="OK.station" class="logo__img" width="158" height="24">
       </a>
       <div class="status-badge" role="status" aria-live="polite">
         <span class="status-badge__dot" aria-hidden="true"></span>

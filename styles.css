@@ -596,6 +596,17 @@ h1, h2, h3, h4, h5, h6 {
   font-size: 1.25rem;
 }
 
+/* Logo como imagen (wordmark oficial okstation-logo.webp).
+   Escala con el font-size del contenedor; en fondos oscuros va en blanco. */
+.logo__img {
+  display: block;
+  height: 1.15em;
+  width: auto;
+}
+.logo--dark .logo__img {
+  filter: brightness(0) invert(1);
+}
+
 
 /* ============================================================
    07. HEADER & NAVEGACIÓN
