@@ -1074,6 +1074,7 @@ h1, h2, h3, h4, h5, h6 {
 .services-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
+  grid-auto-rows: 1fr;
   gap: var(--space-5);
 }
 
@@ -4027,8 +4028,8 @@ body {
   .photo-studio .dropzone { min-height: 200px; }
 }
 
-/* ── Servicios: tarjetas a la altura de su contenido (sin huecos forzados) ── */
-.services-grid { align-items: start; }
+/* ── Servicios: todas las tarjetas con la misma altura (uniformes) ── */
+.services-grid { align-items: stretch; }
 .service-card { padding: clamp(20px, 2.4vw, 26px); }
 .service-icon { width: 52px; height: 52px; margin-bottom: var(--space-4); }
 .service-icon svg { width: 26px; height: 26px; }
