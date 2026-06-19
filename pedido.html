@@ -43,7 +43,9 @@
               <h3>Arrastra tus archivos aquí</h3>
               <p>PDF · JPG · PNG · WEBP — varios a la vez</p>
             </div>
-            <input type="file" id="order-input" accept="application/pdf,image/*" multiple hidden>
+            <input type="file" id="order-input" accept="application/pdf,image/jpeg,image/png,image/webp" multiple hidden>
+            <!-- Precios de referencia por tamaño (visibles antes de subir archivos) -->
+            <div class="order-prices" id="order-prices" aria-label="Precios de referencia por tamaño"></div>
             <div class="order-files" id="order-files"></div>
           </div>
 
@@ -52,12 +54,12 @@
             <div class="order-alert order-alert--error" id="order-alert" hidden></div>
             <div class="order-summary__line"><span>Archivos</span><b id="sum-files">0</b></div>
             <div class="order-summary__line"><span>Copias totales</span><b id="sum-copies">0</b></div>
-            <div class="order-summary__line"><span>Subtotal</span><b id="sum-subtotal">$0</b></div>
-            <div class="order-summary__line"><span>IVA (16%)</span><b id="sum-tax">$0</b></div>
-            <div class="order-summary__total"><span>Total</span><b id="sum-total">$0</b></div>
+            <div class="order-summary__line"><span>Subtotal estimado</span><b id="sum-subtotal">$0</b></div>
+            <div class="order-summary__line"><span>IVA estimado (16%)</span><b id="sum-tax">$0</b></div>
+            <div class="order-summary__total"><span>Total estimado</span><b id="sum-total">$0</b></div>
             <label for="order-comments" class="order-note">Indicaciones especiales (opcional)</label>
             <textarea id="order-comments" maxlength="1000" placeholder="Colores específicos, fecha límite, instrucciones de acabado…"></textarea>
-            <p class="order-note">El total es un estimado; confirmamos el precio final al revisar tus archivos.</p>
+            <p class="order-note">Las cifras son un estimado; confirmamos el precio final al revisar tus archivos. El gran formato se cotiza aparte.</p>
             <button class="btn btn--primary btn--block" id="order-submit" disabled>Enviar pedido</button>
           </aside>
         </div>

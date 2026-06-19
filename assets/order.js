@@ -31,6 +31,17 @@
   var TAX = 0.16;
   var files = [];        // {fileId, name, mime, pages, size, thumb, cfg}
 
+  /* ── Formatos permitidos (validación en cliente; el backend revalida) ── */
+  var ALLOWED_EXT  = ["pdf", "jpg", "jpeg", "png", "webp"];
+  var ALLOWED_MIME = ["application/pdf", "image/jpeg", "image/jpg", "image/png", "image/webp"];
+  function fileExt(name) { var m = String(name).toLowerCase().match(/\.([a-z0-9]+)$/); return m ? m[1] : ""; }
+  function typeOk(file) {
+    var ext = fileExt(file.name), mime = (file.type || "").toLowerCase();
+    var extOk = ALLOWED_EXT.indexOf(ext) !== -1;
+    var mimeOk = mime ? ALLOWED_MIME.indexOf(mime) !== -1 : true; /* si no hay MIME, validamos por extensión */
+    return extOk && mimeOk;
+  }
+
   /* ── Utilidades ── */
   var $ = function (s, c) { return (c || document).querySelector(s); };
   function mxn(n) { return new Intl.NumberFormat("es-MX", { style: "currency", currency: "MXN", maximumFractionDigits: 0 }).format(n); }
@@ -60,6 +71,10 @@
   function addFiles(list) {
     alertErr("");
     Array.prototype.forEach.call(list, function (file) {
+      if (!typeOk(file)) {
+        alertErr("«" + file.name + "» no es un formato permitido. Acepta PDF, JPG, PNG o WEBP.");
+        return;
+      }
       var isImg = /^image\//.test(file.type);
       var thumb = isImg ? URL.createObjectURL(file) : null;
       uploadOne(file).then(function (res) {
@@ -89,17 +104,21 @@
       return '<div class="file-card" data-i="' + i + '">' +
         '<div class="file-card__top">' + thumb +
           '<div class="file-card__meta"><b>' + esc(f.name) + '</b><span>' + f.pages + ' pág. · ' + Math.round(f.size / 1024) + ' KB</span></div>' +
-          '<span class="file-card__price">' + (p.quote ? "Cotizar" : mxn(p.line)) + '</span>' +
+          '<span class="file-card__price' + (p.quote ? ' file-card__price--quote' : '') + '">' + (p.quote ? "Cotización personalizada" : mxn(p.line)) + '</span>' +
           '<button class="file-card__remove" data-rm="' + i + '" aria-label="Quitar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>' +
         '</div>' +
         '<div class="file-cfg">' +
-          cfgSelect(i, "size", "Tamaño", SIZES.map(function (s) { return { v: s.id, t: s.label }; }), f.cfg.size) +
+          cfgSelect(i, "size", "Tamaño", SIZES.map(function (s) {
+            var tag = s.price > 0 ? (" · " + mxn(s.price)) : " · cotizar";
+            return { v: s.id, t: s.label + tag };
+          }), f.cfg.size) +
           cfgSeg(i, "color", "Color", [["color", "Color"], ["grises", "Grises"], ["bn", "B/N"]], f.cfg.color) +
           cfgSelect(i, "paper", "Papel", PAPERS.map(function (p2) { return { v: p2, t: p2 }; }), f.cfg.paper) +
           cfgSeg(i, "sides", "Caras", [["una", "Una"], ["doble", "Doble"]], f.cfg.sides) +
           cfgSelect(i, "finish", "Acabado", [{ v: "ninguno", t: "Ninguno" }, { v: "engargolado", t: "Engargolado" }, { v: "enmicado", t: "Enmicado" }, { v: "grapado", t: "Grapado" }], f.cfg.finish) +
           cfgQty(i, f.cfg.copies) +
         '</div>' +
+        (p.quote ? '<p class="file-card__note">Gran formato 24": cotización personalizada — te confirmamos por WhatsApp.</p>' : '') +
       '</div>';
     }).join("");
 
@@ -109,7 +128,8 @@
   }
 
   function cfgSelect(i, key, label, opts, val) {
-    return '<div class="file-cfg__row"><label>' + label + '</label><select data-i="' + i + '" data-k="' + key + '">' +
+    var id = "fcfg-" + i + "-" + key;
+    return '<div class="file-cfg__row"><label for="' + id + '">' + label + '</label><select id="' + id + '" data-i="' + i + '" data-k="' + key + '">' +
       opts.map(function (o) { return '<option value="' + o.v + '"' + (o.v === val ? " selected" : "") + '>' + esc(o.t) + '</option>'; }).join("") +
       '</select></div>';
   }
@@ -151,6 +171,21 @@
     $("#sum-subtotal").textContent = mxn(subtotal);
     $("#sum-tax").textContent = mxn(tax);
     $("#sum-total").textContent = mxn(subtotal + tax);
+  }
+
+  /* Precios de referencia por tamaño, visibles ANTES de subir archivos (U2). */
+  function renderPrices() {
+    var host = $("#order-prices");
+    if (!host) return;
+    host.innerHTML =
+      '<p class="order-prices__title">Precios base de referencia</p>' +
+      '<ul class="order-prices__list">' +
+      SIZES.map(function (s) {
+        var val = s.price > 0 ? ("desde " + mxn(s.price)) : "Cotización personalizada";
+        return '<li><span>' + esc(s.label) + '</span><b>' + esc(val) + '</b></li>';
+      }).join("") +
+      '</ul>' +
+      '<p class="order-prices__note">Precio base por página (documentos) o por copia (fotos). El total depende de color, caras, acabado y cantidad. El gran formato 24" se cotiza por WhatsApp.</p>';
   }
 
   /* ── Crear pedido + ticket ── */
@@ -283,5 +318,6 @@
   drop.addEventListener("drop", function (e) { if (e.dataTransfer && e.dataTransfer.files) addFiles(e.dataTransfer.files); });
   $("#order-submit").addEventListener("click", submit);
 
+  renderPrices();
   render();
 })();

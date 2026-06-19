@@ -1819,10 +1819,32 @@ h1, h2, h3, h4, h5, h6 {
 .okcal__day:focus-visible { outline: 3px solid var(--brand-cyan); outline-offset: 2px; }
 .okcal__day:disabled { opacity: 0.3; cursor: not-allowed; }
 .okcal__day.is-empty { background: transparent; border: none; cursor: default; pointer-events: none; }
-.okcal-dot { width: 6px; height: 6px; border-radius: 50%; }
+/* Indicador de disponibilidad: además del color, cada nivel tiene una FORMA
+   distinta (A1, daltónicos): círculo lleno = total, rombo = media, × = sin. */
+.okcal-dot { width: 7px; height: 7px; border-radius: 50%; position: relative; }
 .okcal-dot--full { background: #22C55E; }
-.okcal-dot--mid  { background: #F59E0B; }
-.okcal-dot--none { background: #EF4444; }
+.okcal-dot--mid  { background: #F59E0B; border-radius: 1px; transform: rotate(45deg); }
+.okcal-dot--none { background: transparent; }
+.okcal-dot--none::before,
+.okcal-dot--none::after {
+  content: ""; position: absolute; left: 50%; top: 50%;
+  width: 9px; height: 1.8px; background: #EF4444; border-radius: 1px;
+}
+.okcal-dot--none::before { transform: translate(-50%, -50%) rotate(45deg); }
+.okcal-dot--none::after  { transform: translate(-50%, -50%) rotate(-45deg); }
+
+/* Mensaje de error inline de los campos del wizard (tema oscuro) */
+.field-error {
+  display: block;
+  margin-top: 6px;
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: #FCA5A5;
+}
+.field [aria-invalid="true"],
+.input-prefix:has([aria-invalid="true"]) {
+  border-color: #F87171 !important;
+}
 .okcal__legend {
   display: flex;
   flex-wrap: wrap;

@@ -124,6 +124,7 @@
   box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.12);
 }
 .auth-field__hint { font-size: 0.75rem; color: var(--text-muted); }
+.auth-field__error { font-size: 0.78rem; font-weight: 500; color: var(--color-error, #DC2626); }
 
 .auth-row { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4); }
 

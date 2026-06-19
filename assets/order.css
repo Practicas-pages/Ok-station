@@ -27,6 +27,15 @@
 .order-drop h3 { font-size: 1.05rem; color: var(--text-primary); }
 .order-drop p { font-size: 0.85rem; color: var(--text-muted); margin-top: 4px; }
 
+/* Precios de referencia (antes de subir archivos) */
+.order-prices { background: #fff; border: 1px solid var(--border-light); border-radius: var(--radius-md); box-shadow: var(--shadow-xs); padding: 16px 18px; margin-top: var(--space-4); }
+.order-prices__title { font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em; color: var(--text-muted); margin-bottom: 10px; }
+.order-prices__list { list-style: none; margin: 0; padding: 0; }
+.order-prices__list li { display: flex; justify-content: space-between; gap: 12px; font-size: 0.88rem; color: var(--text-secondary); padding: 6px 0; border-bottom: 1px dashed var(--border-light); }
+.order-prices__list li:last-child { border-bottom: none; }
+.order-prices__list b { color: var(--text-primary); font-variant-numeric: tabular-nums; }
+.order-prices__note { font-size: 0.72rem; color: var(--text-muted); margin-top: 10px; }
+
 /* Lista de archivos */
 .order-files { display: flex; flex-direction: column; gap: var(--space-4); margin-top: var(--space-5); }
 .file-card { background: #fff; border: 1px solid var(--border-light); border-radius: var(--radius-md); box-shadow: var(--shadow-xs); overflow: hidden; }
@@ -37,6 +46,8 @@
 .file-card__meta b { display: block; font-size: 0.9rem; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .file-card__meta span { font-size: 0.75rem; color: var(--text-muted); }
 .file-card__price { font-weight: 800; color: var(--text-primary); font-variant-numeric: tabular-nums; }
+.file-card__price--quote { font-size: 0.8rem; font-weight: 700; color: var(--brand-blue); }
+.file-card__note { font-size: 0.76rem; color: var(--text-muted); padding: 0 16px 14px; margin: -2px 0 0; }
 .file-card__remove { width: 30px; height: 30px; border-radius: 50%; border: 1px solid var(--border-light); background: #fff; color: var(--text-muted); cursor: pointer; display: grid; place-items: center; }
 .file-card__remove:hover { border-color: var(--color-error); color: var(--color-error); }
 .file-card__remove svg { width: 14px; height: 14px; }

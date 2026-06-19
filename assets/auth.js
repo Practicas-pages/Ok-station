@@ -45,6 +45,25 @@
     el.hidden = false;
   }
   function clearAlert(el) { if (el) { el.hidden = true; el.textContent = ""; } }
+
+  /* ── Validación inline por campo (sin alerts del navegador) ──
+     Cada input usa un <span id="{input.id}-error"> para su mensaje. */
+  var EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  function fieldDigits(s) { return String(s || "").replace(/\D/g, ""); }
+  function setFieldError(input, msg) {
+    if (!input) return !msg;
+    var el = document.getElementById(input.id + "-error");
+    if (el) { el.textContent = msg || ""; el.hidden = !msg; }
+    if (msg) input.setAttribute("aria-invalid", "true");
+    else input.removeAttribute("aria-invalid");
+    return !msg;
+  }
+  /* Limpia el error de un campo en cuanto el usuario lo corrige */
+  function liveClear(inputs) {
+    inputs.forEach(function (inp) {
+      if (inp) inp.addEventListener("input", function () { setFieldError(inp, ""); });
+    });
+  }
   function setLoading(btn, on, labelWhenIdle) {
     if (!btn) return;
     if (on) { btn.dataset.label = btn.textContent; btn.disabled = true; btn.textContent = "Procesando…"; }
@@ -84,12 +103,16 @@
     var form = qs("#form-login");
     if (!form) return;
     var box = qs("#login-alert");
+    liveClear([form.email, form.password]);
     form.addEventListener("submit", function (e) {
       e.preventDefault();
       clearAlert(box);
       var btn = qs('button[type="submit"]', form);
-      var payload = { email: form.email.value.trim(), password: form.password.value };
-      if (!payload.email || !payload.password) { showAlert(box, "error", "Ingresa tu correo y contraseña."); return; }
+      var emailVal = form.email.value.trim();
+      var okEmail = setFieldError(form.email, !emailVal ? "Ingresa tu correo." : (!EMAIL_RE.test(emailVal) ? "Revisa tu correo, p. ej. nombre@correo.com." : ""));
+      var okPass  = setFieldError(form.password, !form.password.value ? "Ingresa tu contraseña." : "");
+      if (!okEmail || !okPass) return;
+      var payload = { email: emailVal, password: form.password.value };
       setLoading(btn, true);
       api("login.php", "POST", payload).then(function (res) {
         setLoading(btn, false, "Iniciar sesión");
@@ -103,20 +126,30 @@
     var form = qs("#form-register");
     if (!form) return;
     var box = qs("#register-alert");
+    liveClear([form.full_name, form.email, form.phone, form.password, form.password_confirm]);
     form.addEventListener("submit", function (e) {
       e.preventDefault();
       clearAlert(box);
       var btn = qs('button[type="submit"]', form);
+      var passVal = form.password.value;
+      var emailVal = form.email.value.trim();
+      var passMsg = passVal.length < 8
+        ? "Mínimo 8 caracteres."
+        : ((!/[a-zA-Z]/.test(passVal) || !/[0-9]/.test(passVal)) ? "Incluye letras y números." : "");
+      var okName  = setFieldError(form.full_name, !form.full_name.value.trim() ? "Ingresa tu nombre completo." : "");
+      var okMail  = setFieldError(form.email, !emailVal ? "Ingresa tu correo." : (!EMAIL_RE.test(emailVal) ? "Revisa tu correo, p. ej. nombre@correo.com." : ""));
+      var okPhone = setFieldError(form.phone, fieldDigits(form.phone.value).length < 10 ? "Ingresa un teléfono válido a 10 dígitos." : "");
+      var okPass  = setFieldError(form.password, passMsg);
+      var okPass2 = setFieldError(form.password_confirm, form.password_confirm.value !== passVal ? "Las contraseñas no coinciden." : "");
+      if (!(okName && okMail && okPhone && okPass && okPass2)) return;
       var payload = {
         full_name: form.full_name.value.trim(),
-        email: form.email.value.trim(),
+        email: emailVal,
         phone: form.phone.value.trim(),
         address: form.address.value.trim(),
-        password: form.password.value,
+        password: passVal,
         password_confirm: form.password_confirm.value
       };
-      if (payload.password !== payload.password_confirm) { showAlert(box, "error", "Las contraseñas no coinciden."); return; }
-      if (payload.password.length < 8) { showAlert(box, "error", "La contraseña debe tener mínimo 8 caracteres, con letras y números."); return; }
       setLoading(btn, true);
       api("register.php", "POST", payload).then(function (res) {
         setLoading(btn, false, "Crear cuenta");

@@ -21,7 +21,7 @@
      01. UTILIDADES & CONFIGURACIÓN
      ============================================================ */
   var CONFIG = {
-    whatsapp: "5216647194117",
+    whatsapp: "526647194117",
     maxFileSizeMB: 25,
     maxFiles: 30,
     /* Formatos permitidos (seguridad): solo estos. Se valida MIME + extensión. */
@@ -494,13 +494,18 @@
         var disabled = !dayIsOpen(date) || date < minDate || date > maxDate;
         var selected = state.fecha === isoOf(date);
         var lvl = occByDate[isoOf(date)] || "full";
+        /* Texto/icono además del color para usuarios daltónicos (A1):
+           el título describe la disponibilidad y se suma al aria-label. */
+        var occText = { full: "disponibilidad total", mid: "disponibilidad media", none: "sin disponibilidad" };
+        var availLabel = occText[lvl] || "";
         var dot = !disabled
-          ? '<i class="okcal-dot okcal-dot--' + lvl + '"></i>'
-          : '<i class="okcal-dot" style="visibility:hidden"></i>';
+          ? '<i class="okcal-dot okcal-dot--' + lvl + '" title="' + availLabel + '" aria-hidden="true"></i>'
+          : '<i class="okcal-dot" style="visibility:hidden" aria-hidden="true"></i>';
+        var ariaLabel = d + " de " + MESES[m] + (disabled ? "" : (availLabel ? ", " + availLabel : ""));
         cells += '<button type="button" class="okcal__day' + (selected ? " is-selected" : "") + '" ' +
           'data-date="' + isoOf(date) + '"' +
           (disabled ? ' disabled aria-disabled="true"' : "") +
-          ' aria-label="' + d + " de " + MESES[m] + '"><span>' + d + "</span>" + dot + "</button>";
+          ' aria-label="' + ariaLabel + '"><span>' + d + "</span>" + dot + "</button>";
       }
       calGrid.innerHTML = cells;
 
@@ -578,21 +583,45 @@
     /* Paso 2: validación de datos
        El botón "Siguiente" permanece deshabilitado hasta que el usuario
        complete: nombre, teléfono, método de contacto y términos. */
+    /* Validación inline (sin alerts del navegador): correo con formato válido
+       y teléfono con al menos 10 dígitos. Los mensajes se pintan bajo el campo. */
+    var emailInput = qs("#cita-correo");
+    var EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    function onlyDigits(s) { return String(s || "").replace(/\D/g, ""); }
+    function setFieldError(input, errorId, msg) {
+      var el = qs("#" + errorId);
+      if (el) { el.textContent = msg || ""; el.hidden = !msg; }
+      if (input) {
+        if (msg) input.setAttribute("aria-invalid", "true");
+        else input.removeAttribute("aria-invalid");
+      }
+    }
+
     function validateStep2() {
       var next = qs("#cita-next-2");
       if (!next) return;
-      var hasName    = !!(nameInput && nameInput.value.trim());
-      var hasTel     = !!(telInput && telInput.value.trim());
+      var nameVal = nameInput ? nameInput.value.trim() : "";
+      var telVal  = telInput ? telInput.value.trim() : "";
+      var mailVal = emailInput ? emailInput.value.trim() : "";
+      var hasName    = !!nameVal;
+      var telOk      = onlyDigits(telVal).length >= 10;
+      var mailOk     = !mailVal || EMAIL_RE.test(mailVal);
       var hasContact = !!qs("input[name='cita-contacto']:checked", section);
       var acceptEl   = qs("#cita-acepto");
       var hasTerms   = !!(acceptEl && acceptEl.checked);
-      var ok = hasName && hasTel && hasContact && hasTerms;
+
+      /* Solo mostramos el error cuando el campo tiene contenido inválido. */
+      setFieldError(telInput, "cita-tel-error", (telVal && !telOk) ? "Ingresa un teléfono válido a 10 dígitos." : "");
+      setFieldError(emailInput, "cita-correo-error", (mailVal && !mailOk) ? "Revisa tu correo, p. ej. nombre@correo.com." : "");
+
+      var ok = hasName && telOk && mailOk && hasContact && hasTerms;
       next.disabled = !ok;
       next.setAttribute("aria-disabled", String(!ok));
     }
 
-    if (nameInput) nameInput.addEventListener("input", validateStep2);
-    if (telInput)  telInput.addEventListener("input", validateStep2);
+    if (nameInput)  nameInput.addEventListener("input", validateStep2);
+    if (telInput)   telInput.addEventListener("input", validateStep2);
+    if (emailInput) emailInput.addEventListener("input", validateStep2);
     qsa("input[name='cita-contacto']", section).forEach(function (r) {
       r.addEventListener("change", validateStep2);
     });
