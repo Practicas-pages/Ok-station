@@ -82,7 +82,9 @@
   </noscript>
 
   <!-- ===================== HOJA DE ESTILOS ===================== -->
-  <link rel="stylesheet" href="styles.css?v=20260619">
+  <link rel="stylesheet" href="styles.css?v=20260620">
+  <!-- Estilos del configurador de pedido embebido en #fotos -->
+  <link rel="stylesheet" href="assets/order.css?v=20260620">
 
   <!-- ===================== DATOS ESTRUCTURADOS (JSON-LD) ===================== -->
   <script type="application/ld+json">
@@ -206,7 +208,7 @@
       <a class="nav__link" href="#servicios">Servicios</a>
       <a class="nav__link" href="#citas">Citas</a>
       <a class="nav__link" href="#fotos">Imprime tus fotos</a>
-      <a class="nav__link" href="pedido.html">Haz tu pedido</a>
+      <a class="nav__link" href="#fotos">Haz tu pedido</a>
       <a class="nav__link" href="#testimonios">Reseñas</a>
       <a class="nav__link" href="#visitanos">Visítanos</a>
     </nav>
@@ -605,42 +607,48 @@
         <p class="text-lead">Desde tamaños de bolsillo de 6×4" hasta gran formato de 24", en acabado brillante o mate. Haz tu pedido en línea, súbelas y recógelas listas en sucursal el mismo día.</p>
       </div>
 
-      <!-- Pedido consolidado: el configurador funcional vive en pedido.html.
-           Aquí conservamos el contenido SEO (tamaños, acabados, pasos) y un CTA al flujo único. -->
-      <div class="photo-studio reveal">
-        <div class="photo-studio__main">
-          <p class="photo-config__sub" style="margin:0 0 12px">Tamaños disponibles, de bolsillo a gran formato:</p>
-          <div class="service-tags" style="margin-bottom:22px">
-            <span class="tag">6×4"</span>
-            <span class="tag">10×15 cm</span>
-            <span class="tag">13×18 cm</span>
-            <span class="tag">20×30 cm</span>
-            <span class="tag">30×40 cm</span>
-            <span class="tag">Gran formato 24"</span>
+      <!-- Configurador de pedido EMBEBIDO (mismo flujo que la plataforma).
+           Subir archivos y enviar el pedido requiere iniciar sesión; el resto se puede explorar libre. -->
+      <div class="order-embed reveal">
+        <div id="order-builder">
+          <div class="order-grid">
+            <div>
+              <div class="order-drop" id="order-drop" role="button" tabindex="0" aria-label="Subir archivos">
+                <div class="order-drop__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></div>
+                <h3>Arrastra tus archivos aquí</h3>
+                <p>PDF · JPG · PNG · WEBP — varios a la vez</p>
+              </div>
+              <input type="file" id="order-input" accept="application/pdf,image/jpeg,image/png,image/webp" multiple hidden>
+              <div class="order-prices" id="order-prices" aria-label="Precios de referencia por tamaño"></div>
+              <div class="order-files" id="order-files"></div>
+            </div>
+            <aside class="order-summary">
+              <h3>Resumen del pedido</h3>
+              <div class="order-alert order-alert--error" id="order-alert" hidden></div>
+              <div class="order-summary__line"><span>Archivos</span><b id="sum-files">0</b></div>
+              <div class="order-summary__line"><span>Copias totales</span><b id="sum-copies">0</b></div>
+              <div class="order-summary__line"><span>Subtotal estimado</span><b id="sum-subtotal">$0</b></div>
+              <div class="order-summary__line"><span>IVA estimado (16%)</span><b id="sum-tax">$0</b></div>
+              <div class="order-summary__total"><span>Total estimado</span><b id="sum-total">$0</b></div>
+              <label for="order-comments" class="order-note">Indicaciones especiales (opcional)</label>
+              <textarea id="order-comments" maxlength="1000" placeholder="Colores específicos, fecha límite, instrucciones de acabado…"></textarea>
+              <p class="order-note">Las cifras son un estimado; confirmamos el precio final al revisar tus archivos. El gran formato se cotiza aparte. Para subir y enviar tu pedido necesitas <a href="cuenta.html">iniciar sesión</a>.</p>
+              <button class="btn btn--primary btn--block" id="order-submit" disabled>Enviar pedido</button>
+            </aside>
           </div>
-          <!-- Imagen comparativa. Reemplaza el src por la de Canva cuando la tengas (mismo nombre = sin tocar código). -->
-          <figure class="finish-compare">
-            <img src="assets/img/acabado-comparativa.svg" alt="Comparación entre acabado brillante (con brillo y reflejos) y acabado mate (sin reflejos)" loading="lazy" decoding="async" width="400" height="170">
-            <figcaption>Brillante: colores vivos y con brillo. Mate: sin reflejos, ideal para enmarcar.</figcaption>
-          </figure>
-          <ul class="photo-steps" aria-label="Cómo funciona">
-            <li><span>1</span> Crea tu cuenta o inicia sesión</li>
-            <li><span>2</span> Sube tus fotos y elige tamaño, acabado y cantidad</li>
-            <li><span>3</span> Confirma y recógelas listas en sucursal el mismo día</li>
-          </ul>
         </div>
 
-        <div class="photo-config">
-          <p class="photo-config__title">Haz tu pedido en línea</p>
-          <p class="photo-config__sub">Sube tus fotos y documentos, configúralos a tu gusto y sigue tu pedido desde tu cuenta. Te confirmamos el precio final al revisar tus archivos.</p>
-          <a class="btn btn--primary btn--block btn--lg" href="pedido.html" style="margin-top:18px">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="M21 15l-3.086-3.086a2 2 0 00-2.828 0L6 21"/></svg>
-            Haz tu pedido en línea
-          </a>
-          <a class="btn btn--wa btn--block" href="https://wa.me/526647194117?text=Hola,%20quiero%20imprimir%20unas%20fotos" target="_blank" rel="noopener" style="margin-top:12px">
-            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M.057 24l1.687-6.163a11.867 11.867 0 01-1.587-5.945C.16 5.335 5.495 0 12.05 0a11.82 11.82 0 018.413 3.488 11.82 11.82 0 013.48 8.414c-.003 6.557-5.338 11.892-11.893 11.892a11.9 11.9 0 01-5.688-1.448L.057 24zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884a9.86 9.86 0 001.51 5.26l-.999 3.648 3.978-1.040zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.017-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.247-.694.247-1.29.173-1.414z"/></svg>
-            O cotiza por WhatsApp
-          </a>
+        <div id="order-confirm" hidden>
+          <div class="order-done">
+            <div class="order-done__check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg></div>
+            <h3>¡Pedido recibido!</h3>
+            <p class="code" id="confirm-code">OKS-0000</p>
+            <p>Generamos tu ticket con código QR. Te avisaremos por la plataforma cuando esté listo.</p>
+            <div class="order-done__actions">
+              <a class="btn btn--primary" id="confirm-ticket" href="#" target="_blank" rel="noopener">Descargar ticket PDF</a>
+              <a class="btn btn--light" href="perfil.html">Ver mis pedidos</a>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -916,8 +924,12 @@
 </button>
 
 <!-- ============================ SCRIPTS ============================ -->
-<script src="app.js?v=20260619" defer></script>
-<script src="assets/reviews.js?v=20260619" defer></script>
-<script src="assets/session-nav.js?v=20260619" defer></script>
+<script src="app.js?v=20260620" defer></script>
+<script src="assets/reviews.js?v=20260620" defer></script>
+<script src="assets/session-nav.js?v=20260620" defer></script>
+<!-- Configurador de pedido embebido (#fotos): librerías de ticket PDF + QR y lógica -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" defer></script>
+<script src="assets/order.js?v=20260620" defer></script>
 </body>
 </html>

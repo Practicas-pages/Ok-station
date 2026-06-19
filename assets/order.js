@@ -10,8 +10,20 @@
   var API = "/backend/api";
   function token() { try { return localStorage.getItem("okstation.token"); } catch (e) { return null; } }
 
-  /* Guard de sesión */
-  if (!token()) { window.location.href = "cuenta.html"; return; }
+  /* Solo corre donde existe el configurador (pedido.html o embebido en #fotos del home). */
+  if (!document.getElementById("order-drop")) return;
+
+  /* En páginas dedicadas (body[data-requires-auth], p. ej. pedido.html) exigimos sesión al entrar.
+     Embebido en el home (público) el builder se explora libre; el login se pide al subir o enviar. */
+  if (document.body.hasAttribute("data-requires-auth") && !token()) {
+    window.location.href = "cuenta.html"; return;
+  }
+  function requireAuth() {
+    if (token()) return true;
+    try { sessionStorage.setItem("oks_intended", location.href); } catch (e) {}
+    window.location.href = "cuenta.html";
+    return false;
+  }
 
   /* ── Catálogo de precios (estimado en cliente; el servidor recalcula IVA) ── */
   var SIZES = [
@@ -69,6 +81,7 @@
   }
 
   function addFiles(list) {
+    if (!requireAuth()) return;
     alertErr("");
     Array.prototype.forEach.call(list, function (file) {
       if (!typeOk(file)) {
@@ -190,6 +203,7 @@
 
   /* ── Crear pedido + ticket ── */
   function submit() {
+    if (!requireAuth()) return;
     alertErr("");
     if (!files.length) return;
     var btn = $("#order-submit"); btn.disabled = true; btn.textContent = "Enviando…";
