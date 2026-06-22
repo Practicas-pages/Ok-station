@@ -4642,5 +4642,29 @@ body {
 .citas-section .time-grid { gap: 8px; }
 .citas-section .time-slot { padding: 9px 8px; }
 
+/* ============================================================
+   MÓVIL — ajustes finos de usabilidad (≤768px)
+   ============================================================ */
+@media (max-width: 768px) {
+  /* iOS: evita el ZOOM automático al enfocar un campo (exige ≥16px). */
+  input, select, textarea { font-size: 16px; }
+
+  /* Áreas táctiles cómodas (mínimo recomendado ~44px). */
+  .time-slot { min-height: 44px; }
+  .nav__toggle { min-width: 44px; min-height: 44px; }
+  .cita-more { min-height: 44px; }
+
+  /* Carruseles: aire lateral para que la tarjeta deslizada quede alineada. */
+  .services-grid,
+  .tramite-grid { scroll-padding-left: 16px; }
+
+  /* Resúmenes/celdas largas no rompen el ancho. */
+  .order-row { gap: 10px; }
+  .order-row__meta { word-break: break-word; }
+}
+
+/* El header fijo no debe tapar la sección al saltar con un enlace de menú. */
+section[id] { scroll-margin-top: 84px; }
+
 /* ── Servicios: descripción más grande ── */
 .service-card p { font-size: 15px; line-height: 1.55; }
