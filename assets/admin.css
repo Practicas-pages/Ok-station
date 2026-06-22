@@ -215,3 +215,9 @@
   background: var(--brand-blue-light); color: var(--brand-blue); vertical-align: middle;
 }
 .appt-extra { font-size: 0.76rem; color: var(--text-muted); }
+.appt-pdf {
+  margin-top: 6px; font-size: 0.72rem; font-weight: 600; cursor: pointer;
+  padding: 4px 10px; border-radius: var(--radius-sm);
+  border: 1px solid var(--border-medium); background: #fff; color: var(--brand-blue);
+}
+.appt-pdf:hover { border-color: var(--brand-blue); background: var(--brand-blue-light); }

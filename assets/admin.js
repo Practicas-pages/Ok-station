@@ -425,7 +425,8 @@
       var t = $("#appts-table");
       if (!t) return;
       if (!list.length) { t.innerHTML = head + '<tbody><tr><td colspan="7" style="text-align:center;color:var(--text-muted);padding:24px">No hay citas para este filtro.</td></tr></tbody>'; return; }
-      var body = list.map(function (a) {
+      var canPdf = !!window.OKCitaTicketDownload;
+      var body = list.map(function (a, i) {
         var contacto = esc(a.contact_phone || "") + (a.contact_email ? '<br><span style="color:var(--text-muted);font-size:.82rem">' + esc(a.contact_email) + '</span>' : "");
         return '<tr>' +
           '<td class="mono">' + esc(a.code) + '</td>' +
@@ -434,13 +435,19 @@
           '<td class="mono">' + esc(a.time) + '</td>' +
           '<td><b>' + esc(a.contact_name) + '</b>' + (a.account_name ? '' : ' <span style="color:var(--text-muted);font-size:.78rem">(invitado)</span>') + '</td>' +
           '<td>' + contacto + '</td>' +
-          '<td>' + apptStatusSelect(a) + '</td>' +
+          '<td>' + apptStatusSelect(a) + (canPdf ? ' <button type="button" class="appt-pdf" data-i="' + i + '">PDF</button>' : '') + '</td>' +
         '</tr>';
       }).join("");
       t.innerHTML = head + '<tbody>' + body + '</tbody>';
       $$(".appt-status-select", t).forEach(function (sel) {
         sel.addEventListener("change", function () {
           DataSource.updateApptStatus(sel.dataset.id, sel.value).then(function () { loadDashboardCounts(); });
+        });
+      });
+      $$(".appt-pdf", t).forEach(function (btn) {
+        btn.addEventListener("click", function () {
+          var a = list[+btn.dataset.i];
+          if (a) window.OKCitaTicketDownload({ code: a.code, tramite: a.tramite, passport_subtype: a.passport_subtype, party_size: a.party_size, date: a.date, time: a.time, status: a.status, name: a.contact_name, phone: a.contact_phone });
         });
       });
     });

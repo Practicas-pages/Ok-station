@@ -126,6 +126,32 @@ if ($userId) {
         ->execute([$userId, 'appointment', 'Cita registrada', 'Tu cita ' . $code . ' quedó registrada para el ' . $date . ' a las ' . $time . '.']);
 }
 
+/* Correo de confirmación al cliente (si proporcionó correo). Best-effort: si el
+   SMTP falla o no está configurado, NO afecta la cita ni la respuesta. */
+if ($email !== '') {
+    try {
+        require_once __DIR__ . '/../lib/Mailer.php';
+        $svcNames = [
+            'pasaporte' => 'Pasaporte', 'visa' => 'Visa Americana', 'sentri' => 'SENTRI / Global Entry',
+            'i94' => 'I-94 / Permiso de Viaje', 'curp' => 'CURP / Acta', 'ine' => 'INE / Credencial',
+            'licencia' => 'Licencia de conducir', 'apostille' => 'Apostille / Traducción', 'medica' => 'Cita médica / Examen',
+        ];
+        $svcName = $svcNames[$tramite] ?? $tramite;
+        if ($tramite === 'pasaporte' && $subtype !== '') $svcName .= ' (' . ucfirst($subtype) . ')';
+        $mailBody =
+            "Hola $name,\n\n" .
+            "Tu solicitud de cita en OK.station quedó registrada.\n\n" .
+            "Folio: $code\n" .
+            "Servicio: $svcName\n" .
+            "Personas: $party\n" .
+            "Fecha: $date\n" .
+            "Hora: $time hrs\n\n" .
+            "Estado: pendiente de confirmar. Te contactaremos para confirmar tu cita.\n\n" .
+            "Gracias,\nOK.station · Centro Comercial Otay, Tijuana\nokstation.mx";
+        (new Mailer($CONFIG['smtp'] ?? []))->send($email, 'Tu cita en OK.station — ' . $code, $mailBody);
+    } catch (Throwable $e) { /* correo best-effort; no afecta la cita */ }
+}
+
 respond([
     'ok' => true,
     'appointment' => [

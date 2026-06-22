@@ -71,6 +71,23 @@ log_activity((int) $user['id'], 'order.create', 'orders', $orderId);
 db()->prepare('INSERT INTO notifications (user_id, type, title, body) VALUES (?,?,?,?)')
     ->execute([(int) $user['id'], 'order', 'Pedido recibido', 'Tu pedido ' . $code . ' fue recibido.']);
 
+/* Correo de confirmación al usuario (best-effort: si el SMTP falla, no afecta el pedido). */
+if (!empty($user['email'])) {
+    try {
+        require_once __DIR__ . '/../lib/Mailer.php';
+        $mailBody =
+            "Hola " . ($user['full_name'] ?? '') . ",\n\n" .
+            "Recibimos tu pedido de impresión en OK.station.\n\n" .
+            "Folio: $code\n" .
+            "Subtotal estimado: $" . number_format($subtotal, 2) . " MXN\n" .
+            "IVA estimado: $" . number_format($tax, 2) . " MXN\n" .
+            "Total estimado: $" . number_format($total, 2) . " MXN\n\n" .
+            "El total es un estimado; confirmamos el precio final al revisar tus archivos. Te avisaremos cuando esté listo para recoger.\n\n" .
+            "Gracias,\nOK.station · Centro Comercial Otay, Tijuana\nokstation.mx";
+        (new Mailer($CONFIG['smtp'] ?? []))->send($user['email'], 'Tu pedido en OK.station — ' . $code, $mailBody);
+    } catch (Throwable $e) { /* correo best-effort */ }
+}
+
 $order = Order::find($orderId);
 $order['items'] = Order::items($orderId);
 respond(['ok' => true, 'order' => $order], 201);
