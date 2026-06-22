@@ -325,9 +325,8 @@
     /* Estado global del wizard (persistente entre pasos) */
     var state = {
       step: 0,
-      tramite: null, tramiteLabel: "",
+      tramite: null, tramiteLabel: "",   /* servicio único elegido (cualquiera de los 9) */
       subtype: "",                 /* solo pasaporte: "mexicano" | "americano" */
-      additional: [],              /* ids de servicios adicionales seleccionados */
       partySize: 1, partyLabel: "Solo yo",
       fecha: "", hora: "",
       nombre: "", tel: "", notas: ""
@@ -401,23 +400,26 @@
       nextBtn.setAttribute("aria-disabled", String(!ok));
     }
 
-    function selectMain(id, btn) {
-      qsa(".tramite-btn").forEach(function (b) {
-        b.classList.remove("is-selected");
-        b.setAttribute("aria-pressed", "false");
+    /* Selección ÚNICA entre los 9 servicios (tarjetas principales + panel "Más servicios").
+       Todos son independientes: elegir uno deselecciona cualquier otro. */
+    function selectService(id, el) {
+      qsa(".tramite-btn, .extra-card").forEach(function (b) {
+        var active = (b === el);
+        b.classList.toggle("is-selected", active);
+        b.setAttribute("aria-pressed", String(active));
       });
-      if (btn) { btn.classList.add("is-selected"); btn.setAttribute("aria-pressed", "true"); }
       state.tramite = id;
       var svc = serviceById(id);
       state.tramiteLabel = svc ? svc.name : id;
       if (id !== "pasaporte") state.subtype = "";  /* el subtipo solo aplica a pasaporte */
+      renderSelectedExtra();
       updateStep0Next();
     }
 
     qsa(".tramite-btn").forEach(function (btn) {
       btn.addEventListener("click", function () {
         var id = btn.dataset.tramite;
-        selectMain(id, btn);
+        selectService(id, btn);
         if (id === "pasaporte") openSubtypeModal();   /* caso especial: subtipo obligatorio */
       });
     });
@@ -462,15 +464,18 @@
     /* ── Botón "Más servicios" → panel lateral (drawer) con servicios adicionales ── */
     var moreBtn = qs("#cita-more-btn");
     var drawer  = qs("#cita-drawer");
-    function renderExtraChips() {
+    /* Si el servicio elegido vino del panel "Más servicios", lo mostramos como chip
+       en el paso 1 (porque ninguna tarjeta principal queda resaltada). */
+    function renderSelectedExtra() {
       var host = qs("#cita-extra-selected");
       if (!host) return;
-      if (!state.additional.length) { host.innerHTML = ""; host.hidden = true; return; }
-      host.hidden = false;
-      host.innerHTML = '<span class="cita-extra__label">Servicios adicionales:</span> ' + state.additional.map(function (id) {
-        var s = serviceById(id);
-        return '<span class="cita-extra__chip">' + sanitize(s ? s.name : id) + '</span>';
-      }).join(" ");
+      var svc = state.tramite ? serviceById(state.tramite) : null;
+      if (svc && svc.category === "additional") {
+        host.hidden = false;
+        host.innerHTML = '<span class="cita-extra__label">Seleccionado:</span> <span class="cita-extra__chip">' + sanitize(svc.name) + '</span>';
+      } else {
+        host.innerHTML = ""; host.hidden = true;
+      }
     }
     function drawerEsc(e) { if (e.key === "Escape") closeDrawer(); }
     function openDrawer() {
@@ -495,11 +500,8 @@
       qsa(".cita-drawer__close, .cita-drawer__overlay, .cita-drawer__done", drawer).forEach(function (el) { el.addEventListener("click", closeDrawer); });
       qsa(".extra-card", drawer).forEach(function (card) {
         card.addEventListener("click", function () {
-          var id = card.dataset.service;
-          var idx = state.additional.indexOf(id);
-          if (idx >= 0) { state.additional.splice(idx, 1); card.classList.remove("is-selected"); card.setAttribute("aria-pressed", "false"); }
-          else { state.additional.push(id); card.classList.add("is-selected"); card.setAttribute("aria-pressed", "true"); }
-          renderExtraChips();
+          selectService(card.dataset.service, card);  /* selección única */
+          closeDrawer();
         });
       });
     }
@@ -778,11 +780,6 @@
       if (state.tramite === "pasaporte" && state.subtype) {
         rows.push(["Tipo de pasaporte", sanitize(SUBTYPE_LABEL[state.subtype] || state.subtype)]);
       }
-      if (state.additional.length) {
-        rows.push(["Servicios adicionales", state.additional.map(function (id) {
-          var s = serviceById(id); return sanitize(s ? s.name : id);
-        }).join(", ")]);
-      }
       rows.push(["Personas", sanitize(String(state.partySize) + (state.partySize === 1 ? " (solo yo)" : ""))]);
       rows.push(["Nombre",   sanitize(state.nombre || "—")]);
       rows.push(["Teléfono", sanitize(state.tel || "—")]);
@@ -820,7 +817,6 @@
         tramite: state.tramite,
         passport_subtype: state.subtype || "",
         party_size: state.partySize,
-        additional_services: state.additional.slice(),
         date: state.fecha,
         time: state.hora,
         name: state.nombre,
@@ -883,19 +879,19 @@
     var resetBtn = qs("#cita-reset");
     if (resetBtn) {
       resetBtn.addEventListener("click", function () {
-        state = { step: 0, tramite: null, tramiteLabel: "", subtype: "", additional: [], partySize: 1, partyLabel: "Solo yo", fecha: "", hora: "", nombre: "", tel: "", notas: "" };
+        state = { step: 0, tramite: null, tramiteLabel: "", subtype: "", partySize: 1, partyLabel: "Solo yo", fecha: "", hora: "", nombre: "", tel: "", notas: "" };
 
         qsa(".tramite-btn").forEach(function (b) {
           b.classList.remove("is-selected");
           b.setAttribute("aria-pressed", "false");
         });
 
-        /* Limpiar servicios adicionales y cantidad de personas */
+        /* Limpiar selección del panel "Más servicios" y cantidad de personas */
         qsa(".extra-card").forEach(function (b) {
           b.classList.remove("is-selected");
           b.setAttribute("aria-pressed", "false");
         });
-        renderExtraChips();
+        renderSelectedExtra();
         setParty(1);
         closeDrawer();
         closeSubtypeModal();
@@ -944,7 +940,7 @@
     /* Inicializar */
     renderSteps();
     setParty(1);
-    renderExtraChips();
+    renderSelectedExtra();
     updateStep0Next();
     validateStep1();
     validateStep2();

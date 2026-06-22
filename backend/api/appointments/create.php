@@ -21,12 +21,11 @@ $pref    = (string) ($b['contact_pref'] ?? '');
 $notes   = trim((string) ($b['notes'] ?? ''));
 $subtype = (string) ($b['passport_subtype'] ?? '');   // solo pasaporte: mexicano|americano
 $party   = (int) ($b['party_size'] ?? 1);             // cantidad de personas (mín. 1)
-$addInput = $b['additional_services'] ?? [];          // complementos opcionales (slugs)
 
-$validTramite    = ['pasaporte', 'visa', 'sentri', 'i94'];                 // servicio principal
-$validAdditional = ['curp', 'ine', 'licencia', 'apostille', 'medica'];     // complementos
-$validPref       = ['whatsapp', 'llamada', 'correo'];
-$validSubtype    = ['mexicano', 'americano'];
+/* Catálogo completo de servicios independientes (una cita = un servicio). */
+$validTramite = ['pasaporte', 'visa', 'sentri', 'i94', 'curp', 'ine', 'licencia', 'apostille', 'medica'];
+$validPref    = ['whatsapp', 'llamada', 'correo'];
+$validSubtype = ['mexicano', 'americano'];
 
 if (!in_array($tramite, $validTramite, true))      fail('Selecciona un servicio válido.');
 if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $date))   fail('Fecha inválida.');
@@ -48,18 +47,6 @@ if ($tramite === 'pasaporte') {
 /* Cantidad de personas: mínimo 1, tope razonable. */
 if ($party < 1)  $party = 1;
 if ($party > 20) fail('Para grupos de más de 20 personas, escríbenos por WhatsApp para coordinar.');
-
-/* Servicios adicionales (complementos): solo slugs válidos, sin duplicados → JSON. */
-$additional = [];
-if (is_array($addInput)) {
-    foreach ($addInput as $svc) {
-        $svc = (string) $svc;
-        if (in_array($svc, $validAdditional, true) && !in_array($svc, $additional, true)) {
-            $additional[] = $svc;
-        }
-    }
-}
-$additionalJson = $additional ? json_encode($additional) : null;
 
 /* Usuario opcional: si hay sesión válida, se asocia. */
 $userId = null;
@@ -116,10 +103,10 @@ try {
 
     $pdo->prepare(
         'INSERT INTO appointments
-           (code, user_id, tramite, passport_subtype, party_size, additional_services, appt_date, appt_time, contact_name, contact_phone, contact_email, contact_pref, notes, created_ip)
-         VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)'
+           (code, user_id, tramite, passport_subtype, party_size, appt_date, appt_time, contact_name, contact_phone, contact_email, contact_pref, notes, created_ip)
+         VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)'
     )->execute([
-        'TMP', $userId, $tramite, ($subtype !== '' ? $subtype : null), $party, $additionalJson, $date, $time . ':00',
+        'TMP', $userId, $tramite, ($subtype !== '' ? $subtype : null), $party, $date, $time . ':00',
         $name, $phone, ($email !== '' ? $email : null), ($pref !== '' ? $pref : null),
         ($notes !== '' ? $notes : null), $ip,
     ]);
@@ -145,7 +132,6 @@ respond([
         'code' => $code, 'tramite' => $tramite,
         'passport_subtype' => ($subtype !== '' ? $subtype : null),
         'party_size' => $party,
-        'additional_services' => $additional,
         'date' => $date, 'time' => $time, 'status' => 'pendiente',
     ],
 ], 201);

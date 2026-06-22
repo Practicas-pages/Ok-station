@@ -6,7 +6,7 @@ only_method('GET');
 
 $user = current_user();
 $st = db()->prepare(
-    "SELECT code, tramite, passport_subtype, party_size, additional_services,
+    "SELECT code, tramite, passport_subtype, party_size,
             DATE_FORMAT(appt_date,'%Y-%m-%d') AS date,
             TIME_FORMAT(appt_time,'%H:%i')    AS time,
             status, created_at

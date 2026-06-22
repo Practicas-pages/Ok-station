@@ -28,28 +28,16 @@
     completada: "Completada", no_show: "No asistió"
   };
   var TRAMITE_LABEL = {
-    pasaporte: "Pasaporte", visa: "Visa Americana", sentri: "SENTRI / Global Entry", i94: "I-94"
-  };
-  var ADDITIONAL_LABEL = {
+    pasaporte: "Pasaporte", visa: "Visa Americana", sentri: "SENTRI / Global Entry", i94: "I-94",
     curp: "CURP / Acta", ine: "INE / Credencial", licencia: "Licencia de conducir",
     apostille: "Apostille / Traducción", medica: "Cita médica / Examen"
   };
   var SUBTYPE_LABEL = { mexicano: "Mexicano", americano: "Americano" };
-  /* additional_services puede venir como JSON string, arreglo o null → arreglo de slugs. */
-  function parseAdditional(v) {
-    if (!v) return [];
-    if (Array.isArray(v)) return v;
-    try { var a = JSON.parse(v); return Array.isArray(a) ? a : []; } catch (e) { return []; }
-  }
-  /* Celda de servicio: principal + subtipo de pasaporte + adicionales + nº de personas. */
+  /* Celda de servicio: servicio (cualquiera de los 9) + subtipo de pasaporte + nº de personas. */
   function apptServiceCell(a) {
     var html = '<b>' + esc(TRAMITE_LABEL[a.tramite] || a.tramite) + '</b>';
     if (a.tramite === "pasaporte" && a.passport_subtype) {
       html += ' <span class="appt-tag">' + esc(SUBTYPE_LABEL[a.passport_subtype] || a.passport_subtype) + '</span>';
-    }
-    var add = parseAdditional(a.additional_services);
-    if (add.length) {
-      html += '<br><span class="appt-extra">+ ' + add.map(function (id) { return esc(ADDITIONAL_LABEL[id] || id); }).join(", ") + '</span>';
     }
     var n = parseInt(a.party_size, 10) || 1;
     if (n > 1) html += '<br><span class="appt-extra">' + n + ' personas</span>';
@@ -104,8 +92,8 @@
       { name: "Anónimo", rating: 2, comment: "Tardó más de lo esperado.", status: "oculta", date: "2026-06-07" }
     ],
     appointments: [
-      { code: "CITA-2026-000031", tramite: "pasaporte", passport_subtype: "mexicano", party_size: 2, additional_services: '["curp"]', date: "2026-06-20", time: "09:00", status: "pendiente", contact_name: "María González", contact_phone: "664 100 0001", contact_email: "maria@ejemplo.com", contact_pref: "whatsapp", notes: "Renovación", account_name: "María González" },
-      { code: "CITA-2026-000030", tramite: "visa", party_size: 4, additional_services: '["ine","apostille"]', date: "2026-06-20", time: "11:00", status: "confirmada", contact_name: "Jorge Ramírez", contact_phone: "664 100 0002", contact_email: "", contact_pref: "llamada", notes: "", account_name: null },
+      { code: "CITA-2026-000031", tramite: "pasaporte", passport_subtype: "mexicano", party_size: 2, date: "2026-06-20", time: "09:00", status: "pendiente", contact_name: "María González", contact_phone: "664 100 0001", contact_email: "maria@ejemplo.com", contact_pref: "whatsapp", notes: "Renovación", account_name: "María González" },
+      { code: "CITA-2026-000030", tramite: "curp", party_size: 4, date: "2026-06-20", time: "11:00", status: "confirmada", contact_name: "Jorge Ramírez", contact_phone: "664 100 0002", contact_email: "", contact_pref: "llamada", notes: "", account_name: null },
       { code: "CITA-2026-000029", tramite: "sentri", date: "2026-06-19", time: "16:00", status: "completada", contact_name: "Ana López", contact_phone: "664 100 0003", contact_email: "ana@ejemplo.com", contact_pref: "correo", notes: "Primera vez", account_name: "Ana López" },
       { code: "CITA-2026-000028", tramite: "i94", date: "2026-06-18", time: "10:00", status: "cancelada", contact_name: "Diego Salas", contact_phone: "664 100 0004", contact_email: "", contact_pref: "whatsapp", notes: "", account_name: null }
     ]
