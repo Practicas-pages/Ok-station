@@ -1856,6 +1856,97 @@ h1, h2, h3, h4, h5, h6 {
 .input-prefix:has([aria-invalid="true"]) {
   border-color: #F87171 !important;
 }
+
+/* ============================================================
+   Citas v3 — Más servicios, drawer, modal de subtipo y cantidad
+   ============================================================ */
+/* Botón "Más servicios" + chips de adicionales (sobre el panel oscuro) */
+.cita-more-row { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-top: 16px; }
+.cita-more {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 10px 16px; border-radius: var(--radius-full);
+  border: 1.5px dashed rgba(255,255,255,0.32); background: transparent;
+  color: #fff; font-family: inherit; font-size: 0.9rem; font-weight: 600; cursor: pointer;
+  transition: border-color var(--transition-fast), background var(--transition-fast);
+}
+.cita-more:hover { border-color: var(--brand-cyan); background: rgba(255,255,255,0.06); }
+.cita-more:focus-visible { outline: 3px solid var(--brand-cyan); outline-offset: 2px; }
+.cita-more svg { width: 16px; height: 16px; }
+.cita-extra { font-size: 0.85rem; color: rgba(255,255,255,0.82); }
+.cita-extra__label { color: rgba(255,255,255,0.55); margin-right: 4px; }
+.cita-extra__chip { display: inline-block; background: rgba(255,255,255,0.12); border-radius: var(--radius-full); padding: 3px 10px; margin: 2px 3px; font-weight: 600; color: #fff; }
+
+/* Paso Cantidad de personas */
+.party-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 18px; }
+.party-opt {
+  display: flex; flex-direction: column; gap: 2px; align-items: flex-start;
+  padding: 14px 16px; border-radius: var(--radius-md);
+  border: 1.5px solid rgba(255,255,255,0.14); background: rgba(255,255,255,0.04);
+  color: #fff; font-family: inherit; cursor: pointer; text-align: left;
+  transition: border-color var(--transition-fast), background var(--transition-fast), transform var(--transition-spring);
+}
+.party-opt b { font-size: 0.95rem; }
+.party-opt span { font-size: 0.78rem; color: rgba(255,255,255,0.6); }
+.party-opt:hover { border-color: rgba(0,198,255,0.5); transform: translateY(-1px); }
+.party-opt.is-selected { border-color: var(--brand-cyan); background: var(--brand-blue); box-shadow: var(--shadow-brand); }
+.party-opt.is-selected span { color: rgba(255,255,255,0.85); }
+.party-opt:focus-visible { outline: 3px solid var(--brand-cyan); outline-offset: 2px; }
+.party-counter { display: flex; align-items: center; gap: 12px; }
+.party-counter .qty-btn { width: 40px; height: 40px; border-radius: var(--radius-sm); border: 1.5px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.06); color: #fff; font-size: 1.3rem; cursor: pointer; }
+.party-counter .qty-btn:hover { border-color: var(--brand-cyan); }
+.party-counter .qty-btn:focus-visible { outline: 3px solid var(--brand-cyan); outline-offset: 2px; }
+.party-counter .qty-val { min-width: 34px; text-align: center; font-size: 1.2rem; font-weight: 800; color: #fff; }
+.party-counter__label { color: rgba(255,255,255,0.6); font-size: 0.85rem; }
+
+/* Modal: tipo de pasaporte */
+.cita-modal { position: fixed; inset: 0; z-index: 120; display: flex; align-items: center; justify-content: center; padding: 20px; }
+.cita-modal[hidden] { display: none; }
+.cita-modal__overlay { position: absolute; inset: 0; background: rgba(8,12,32,0.62); backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px); }
+.cita-modal__box { position: relative; z-index: 1; width: 100%; max-width: 440px; background: var(--surface-card, #fff); border-radius: var(--radius-lg); box-shadow: var(--shadow-lg); padding: clamp(22px, 4vw, 32px); animation: citaPop 0.18s ease; }
+@keyframes citaPop { from { opacity: 0; transform: translateY(8px) scale(0.98); } to { opacity: 1; transform: none; } }
+.cita-modal__close { position: absolute; top: 12px; right: 14px; width: 34px; height: 34px; border: none; background: none; font-size: 1.6rem; line-height: 1; color: var(--text-muted); cursor: pointer; border-radius: 50%; }
+.cita-modal__close:hover { background: var(--surface-page); color: var(--text-primary); }
+.cita-modal__title { font-size: 1.2rem; font-weight: 800; color: var(--text-primary); }
+.cita-modal__sub { font-size: 0.875rem; color: var(--text-secondary); margin: 4px 0 18px; }
+.subtype-options { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
+.subtype-opt { display: flex; align-items: center; gap: 12px; padding: 14px 16px; border: 1.5px solid var(--border-light); border-radius: var(--radius-md); cursor: pointer; transition: border-color var(--transition-fast), background var(--transition-fast); }
+.subtype-opt:hover { border-color: var(--brand-blue); background: var(--brand-blue-light); }
+.subtype-opt:focus-within { border-color: var(--brand-blue); box-shadow: 0 0 0 3px rgba(6,108,255,0.15); }
+.subtype-opt input { accent-color: var(--brand-blue); width: 18px; height: 18px; flex-shrink: 0; }
+.subtype-opt__text { display: flex; flex-direction: column; }
+.subtype-opt__text b { color: var(--text-primary); font-size: 0.95rem; }
+.subtype-opt__text span { color: var(--text-muted); font-size: 0.78rem; }
+.subtype-opt:has(input:checked) { border-color: var(--brand-blue); background: var(--brand-blue-light); }
+
+/* Drawer: otros servicios */
+.cita-drawer { position: fixed; inset: 0; z-index: 120; }
+.cita-drawer[hidden] { display: none; }
+.cita-drawer__overlay { position: absolute; inset: 0; background: rgba(8,12,32,0.55); backdrop-filter: blur(2px); -webkit-backdrop-filter: blur(2px); opacity: 0; transition: opacity 0.22s ease; }
+.cita-drawer.is-open .cita-drawer__overlay { opacity: 1; }
+.cita-drawer__panel { position: absolute; top: 0; right: 0; height: 100%; width: min(420px, 90vw); background: var(--surface-card, #fff); box-shadow: -12px 0 40px rgba(0,0,0,0.25); padding: clamp(20px, 3vw, 28px); overflow-y: auto; transform: translateX(100%); transition: transform 0.26s cubic-bezier(0.22,0.61,0.36,1); display: flex; flex-direction: column; }
+.cita-drawer.is-open .cita-drawer__panel { transform: translateX(0); }
+.cita-drawer__head { display: flex; align-items: center; justify-content: space-between; }
+.cita-drawer__title { font-size: 1.15rem; font-weight: 800; color: var(--text-primary); }
+.cita-drawer__close { width: 36px; height: 36px; border: none; background: none; font-size: 1.7rem; line-height: 1; color: var(--text-muted); cursor: pointer; border-radius: 50%; }
+.cita-drawer__close:hover { background: var(--surface-page); color: var(--text-primary); }
+.cita-drawer__sub { font-size: 0.85rem; color: var(--text-secondary); margin: 4px 0 16px; }
+.extra-list { display: flex; flex-direction: column; gap: 10px; flex: 1; }
+.extra-card { display: flex; align-items: center; gap: 12px; width: 100%; text-align: left; padding: 14px; border: 1.5px solid var(--border-light); border-radius: var(--radius-md); background: #fff; cursor: pointer; transition: border-color var(--transition-fast), background var(--transition-fast); }
+.extra-card:hover { border-color: var(--brand-blue); background: var(--brand-blue-light); }
+.extra-card:focus-visible { outline: 3px solid var(--brand-cyan); outline-offset: 2px; }
+.extra-card__icon { flex-shrink: 0; width: 42px; height: 42px; border-radius: var(--radius-sm); display: grid; place-items: center; background: var(--brand-blue-light); color: var(--brand-blue); }
+.extra-card__icon svg { width: 22px; height: 22px; }
+.extra-card__text { flex: 1; display: flex; flex-direction: column; }
+.extra-card__text b { color: var(--text-primary); font-size: 0.92rem; }
+.extra-card__text span { color: var(--text-muted); font-size: 0.78rem; }
+.extra-card__check { flex-shrink: 0; width: 24px; height: 24px; border-radius: 50%; border: 2px solid var(--border-medium); display: grid; place-items: center; color: #fff; }
+.extra-card__check svg { width: 14px; height: 14px; opacity: 0; }
+.extra-card.is-selected { border-color: var(--brand-blue); background: var(--brand-blue-light); }
+.extra-card.is-selected .extra-card__check { background: var(--brand-blue); border-color: var(--brand-blue); }
+.extra-card.is-selected .extra-card__check svg { opacity: 1; }
+.cita-drawer__done { margin-top: 16px; }
+
+@media (max-width: 420px) { .party-grid { grid-template-columns: 1fr; } }
 .okcal__legend {
   display: flex;
   flex-wrap: wrap;

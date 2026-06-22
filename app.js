@@ -298,26 +298,42 @@
     var section = qs("#citas");
     if (!section) return;
 
-    /* Estado */
+    /**
+     * Catálogo tipado de servicios (única fuente de verdad).
+     * @typedef {Object} Service
+     * @property {string} id            Slug estable (coincide con el backend).
+     * @property {string} name          Nombre visible.
+     * @property {"main"|"additional"} category  Principal (tarjeta) o adicional (panel).
+     * @property {string} desc          Descripción corta.
+     * @type {Service[]}
+     */
+    var SERVICES = [
+      { id: "pasaporte", name: "Pasaporte",              category: "main",       desc: "SRE / pasaporte mexicano o americano" },
+      { id: "visa",      name: "Visa Americana",         category: "main",       desc: "DS-160, CAS y consulado" },
+      { id: "sentri",    name: "SENTRI / Global Entry",  category: "main",       desc: "Cruce rápido fronterizo" },
+      { id: "i94",       name: "I-94 / Permiso de Viaje", category: "main",      desc: "CBP / permiso de internación" },
+      { id: "curp",      name: "CURP / Acta",            category: "additional", desc: "Impresión y trámite de CURP o actas" },
+      { id: "ine",       name: "INE / Credencial",       category: "additional", desc: "Apoyo con tu credencial para votar" },
+      { id: "licencia",  name: "Licencia de Conducir",   category: "additional", desc: "Gestión de licencia estatal" },
+      { id: "apostille", name: "Apostille / Traducción", category: "additional", desc: "Apostillado y traducción de documentos" },
+      { id: "medica",    name: "Cita Médica / Examen",   category: "additional", desc: "Examen médico para tu trámite" }
+    ];
+    /** @param {string} id @returns {Service|null} */
+    function serviceById(id) { for (var i = 0; i < SERVICES.length; i++) if (SERVICES[i].id === id) return SERVICES[i]; return null; }
+    var SUBTYPE_LABEL = { mexicano: "Mexicano", americano: "Americano" };
+
+    /* Estado global del wizard (persistente entre pasos) */
     var state = {
       step: 0,
-      tramite: null,
-      tramiteLabel: "",
-      fecha: "",
-      hora: "",
-      nombre: "",
-      tel: "",
-      notas: ""
+      tramite: null, tramiteLabel: "",
+      subtype: "",                 /* solo pasaporte: "mexicano" | "americano" */
+      additional: [],              /* ids de servicios adicionales seleccionados */
+      partySize: 1, partyLabel: "Solo yo",
+      fecha: "", hora: "",
+      nombre: "", tel: "", notas: ""
     };
 
-    var TOTAL_STEPS = 4;
-
-    var tramiteInfo = {
-      pasaporte: { label: "Pasaporte mexicano", desc: "Cita en SRE para pasaporte" },
-      visa:      { label: "Visa Americana",     desc: "DS-160, CAS y consulado" },
-      sentri:    { label: "SENTRI / Global Entry", desc: "Cruce rápido fronterizo" },
-      i94:       { label: "I-94", desc: "Registro de entrada y salida" }
-    };
+    var TOTAL_STEPS = 5;           /* Trámite → Fecha → Datos → Cantidad → Confirmación */
 
     /* Referencias DOM */
     var stepsEl   = qsa(".step-item");
@@ -375,25 +391,149 @@
       window.scrollTo({ top: y, behavior: "smooth" });
     }
 
-    /* Paso 0: selección de trámite */
+    /* ── Paso 1: selección de servicio (principal + adicionales) ── */
+    function updateStep0Next() {
+      var nextBtn = qs("#cita-next-0");
+      if (!nextBtn) return;
+      /* Continuar habilitado si hay principal y, si es pasaporte, además su subtipo. */
+      var ok = !!state.tramite && (state.tramite !== "pasaporte" || !!state.subtype);
+      nextBtn.disabled = !ok;
+      nextBtn.setAttribute("aria-disabled", String(!ok));
+    }
+
+    function selectMain(id, btn) {
+      qsa(".tramite-btn").forEach(function (b) {
+        b.classList.remove("is-selected");
+        b.setAttribute("aria-pressed", "false");
+      });
+      if (btn) { btn.classList.add("is-selected"); btn.setAttribute("aria-pressed", "true"); }
+      state.tramite = id;
+      var svc = serviceById(id);
+      state.tramiteLabel = svc ? svc.name : id;
+      if (id !== "pasaporte") state.subtype = "";  /* el subtipo solo aplica a pasaporte */
+      updateStep0Next();
+    }
+
     qsa(".tramite-btn").forEach(function (btn) {
       btn.addEventListener("click", function () {
-        qsa(".tramite-btn").forEach(function (b) {
-          b.classList.remove("is-selected");
-          b.setAttribute("aria-pressed", "false");
-        });
-        btn.classList.add("is-selected");
-        btn.setAttribute("aria-pressed", "true");
-        state.tramite = btn.dataset.tramite;
-        state.tramiteLabel = (tramiteInfo[state.tramite] || {}).label || state.tramite;
-
-        var nextBtn = qs("#cita-next-0");
-        if (nextBtn) {
-          nextBtn.disabled = false;
-          nextBtn.removeAttribute("aria-disabled");
-        }
+        var id = btn.dataset.tramite;
+        selectMain(id, btn);
+        if (id === "pasaporte") openSubtypeModal();   /* caso especial: subtipo obligatorio */
       });
     });
+
+    /* ── Caso especial Pasaporte: modal de subtipo (mexicano/americano) ── */
+    var subtypeModal = qs("#cita-subtype-modal");
+    function subtypeEsc(e) { if (e.key === "Escape") closeSubtypeModal(); }
+    function openSubtypeModal() {
+      if (!subtypeModal) return;                 /* sin modal en el DOM no bloquea el flujo */
+      subtypeModal.hidden = false;
+      subtypeModal.classList.add("is-open");
+      qsa("input[name='cita-subtype']", subtypeModal).forEach(function (r) { r.checked = (r.value === state.subtype); });
+      var confirmB = qs("#cita-subtype-confirm", subtypeModal);
+      if (confirmB) { confirmB.disabled = !state.subtype; confirmB.setAttribute("aria-disabled", String(!state.subtype)); }
+      var firstRadio = qs("input[name='cita-subtype']", subtypeModal);
+      if (firstRadio) firstRadio.focus();
+      document.addEventListener("keydown", subtypeEsc);
+    }
+    function closeSubtypeModal() {
+      if (!subtypeModal) return;
+      subtypeModal.classList.remove("is-open");
+      subtypeModal.hidden = true;
+      document.removeEventListener("keydown", subtypeEsc);
+    }
+    if (subtypeModal) {
+      var subtypeConfirm = qs("#cita-subtype-confirm", subtypeModal);
+      qsa("input[name='cita-subtype']", subtypeModal).forEach(function (r) {
+        r.addEventListener("change", function () {
+          if (subtypeConfirm) { subtypeConfirm.disabled = false; subtypeConfirm.removeAttribute("aria-disabled"); }
+        });
+      });
+      if (subtypeConfirm) subtypeConfirm.addEventListener("click", function () {
+        var chosen = qs("input[name='cita-subtype']:checked", subtypeModal);
+        if (!chosen) return;
+        state.subtype = chosen.value;
+        closeSubtypeModal();
+        updateStep0Next();
+      });
+      qsa("[data-subtype-close]", subtypeModal).forEach(function (el) { el.addEventListener("click", closeSubtypeModal); });
+    }
+
+    /* ── Botón "Más servicios" → panel lateral (drawer) con servicios adicionales ── */
+    var moreBtn = qs("#cita-more-btn");
+    var drawer  = qs("#cita-drawer");
+    function renderExtraChips() {
+      var host = qs("#cita-extra-selected");
+      if (!host) return;
+      if (!state.additional.length) { host.innerHTML = ""; host.hidden = true; return; }
+      host.hidden = false;
+      host.innerHTML = '<span class="cita-extra__label">Servicios adicionales:</span> ' + state.additional.map(function (id) {
+        var s = serviceById(id);
+        return '<span class="cita-extra__chip">' + sanitize(s ? s.name : id) + '</span>';
+      }).join(" ");
+    }
+    function drawerEsc(e) { if (e.key === "Escape") closeDrawer(); }
+    function openDrawer() {
+      if (!drawer) return;
+      drawer.hidden = false;
+      drawer.classList.add("is-open");
+      if (moreBtn) moreBtn.setAttribute("aria-expanded", "true");
+      document.addEventListener("keydown", drawerEsc);
+      var firstFocus = qs(".cita-drawer__close", drawer);
+      if (firstFocus) firstFocus.focus();
+    }
+    function closeDrawer() {
+      if (!drawer) return;
+      drawer.classList.remove("is-open");
+      drawer.hidden = true;
+      if (moreBtn) { moreBtn.setAttribute("aria-expanded", "false"); moreBtn.focus(); }
+      document.removeEventListener("keydown", drawerEsc);
+    }
+    if (moreBtn && drawer) {
+      moreBtn.setAttribute("aria-expanded", "false");
+      moreBtn.addEventListener("click", openDrawer);
+      qsa(".cita-drawer__close, .cita-drawer__overlay, .cita-drawer__done", drawer).forEach(function (el) { el.addEventListener("click", closeDrawer); });
+      qsa(".extra-card", drawer).forEach(function (card) {
+        card.addEventListener("click", function () {
+          var id = card.dataset.service;
+          var idx = state.additional.indexOf(id);
+          if (idx >= 0) { state.additional.splice(idx, 1); card.classList.remove("is-selected"); card.setAttribute("aria-pressed", "false"); }
+          else { state.additional.push(id); card.classList.add("is-selected"); card.setAttribute("aria-pressed", "true"); }
+          renderExtraChips();
+        });
+      });
+    }
+
+    /* ── Paso Cantidad de personas ── */
+    var partyValEl = qs("#party-val");
+    function partyPreset(n) {
+      if (n <= 1) return "Solo yo";
+      if (n === 2) return "Pareja";
+      if (n >= 3 && n <= 5) return "Familia";
+      return "Grupo";
+    }
+    function setParty(n) {
+      n = Math.max(1, Math.min(50, n | 0));
+      state.partySize = n;
+      state.partyLabel = partyPreset(n);
+      if (partyValEl) partyValEl.textContent = String(n);
+      qsa(".party-opt").forEach(function (b) {
+        var on = String(b.dataset.party) === String(n) ||
+                 (b.dataset.party === "grupo" && n > 5) ||
+                 (b.dataset.party === "4" && n >= 3 && n <= 5);
+        b.classList.toggle("is-selected", on);
+        b.setAttribute("aria-pressed", String(on));
+      });
+    }
+    qsa(".party-opt").forEach(function (b) {
+      b.addEventListener("click", function () {
+        var v = b.dataset.party;
+        setParty(v === "grupo" ? 6 : parseInt(v, 10) || 1);
+      });
+    });
+    var partyMinus = qs("#party-minus"), partyPlus = qs("#party-plus");
+    if (partyMinus) partyMinus.addEventListener("click", function () { setParty(state.partySize - 1); });
+    if (partyPlus)  partyPlus.addEventListener("click", function () { setParty(state.partySize + 1); });
 
     /* ──────────────────────────────────────────────────────────
        Paso fecha/hora — Calendario con disponibilidad REAL del servidor.
@@ -633,16 +773,22 @@
       if (!summaryEl) return;
 
       var rows = [
-        ["Nombre",    sanitize(state.nombre || "—")],
-        ["Teléfono",  sanitize(state.tel || "—")],
-        ["Trámite",   sanitize(state.tramiteLabel)],
-        ["Fecha",     sanitize(formatDate(state.fecha))],
-        ["Hora",      sanitize(state.hora) + " hrs"]
+        ["Servicio", sanitize(state.tramiteLabel)]
       ];
-
-      if (state.notas) {
-        rows.push(["Notas", sanitize(state.notas)]);
+      if (state.tramite === "pasaporte" && state.subtype) {
+        rows.push(["Tipo de pasaporte", sanitize(SUBTYPE_LABEL[state.subtype] || state.subtype)]);
       }
+      if (state.additional.length) {
+        rows.push(["Servicios adicionales", state.additional.map(function (id) {
+          var s = serviceById(id); return sanitize(s ? s.name : id);
+        }).join(", ")]);
+      }
+      rows.push(["Personas", sanitize(String(state.partySize) + (state.partySize === 1 ? " (solo yo)" : ""))]);
+      rows.push(["Nombre",   sanitize(state.nombre || "—")]);
+      rows.push(["Teléfono", sanitize(state.tel || "—")]);
+      rows.push(["Fecha",    sanitize(formatDate(state.fecha))]);
+      rows.push(["Hora",     sanitize(state.hora) + " hrs"]);
+      if (state.notas) rows.push(["Notas", sanitize(state.notas)]);
 
       summaryEl.innerHTML = rows.map(function (r) {
         return '<div class="cita-summary__row">' +
@@ -672,6 +818,9 @@
       var prefEl  = qs("input[name='cita-contacto']:checked", section);
       var payload = {
         tramite: state.tramite,
+        passport_subtype: state.subtype || "",
+        party_size: state.partySize,
+        additional_services: state.additional.slice(),
         date: state.fecha,
         time: state.hora,
         name: state.nombre,
@@ -734,12 +883,22 @@
     var resetBtn = qs("#cita-reset");
     if (resetBtn) {
       resetBtn.addEventListener("click", function () {
-        state = { step: 0, tramite: null, tramiteLabel: "", fecha: "", hora: "", nombre: "", tel: "", notas: "" };
+        state = { step: 0, tramite: null, tramiteLabel: "", subtype: "", additional: [], partySize: 1, partyLabel: "Solo yo", fecha: "", hora: "", nombre: "", tel: "", notas: "" };
 
         qsa(".tramite-btn").forEach(function (b) {
           b.classList.remove("is-selected");
           b.setAttribute("aria-pressed", "false");
         });
+
+        /* Limpiar servicios adicionales y cantidad de personas */
+        qsa(".extra-card").forEach(function (b) {
+          b.classList.remove("is-selected");
+          b.setAttribute("aria-pressed", "false");
+        });
+        renderExtraChips();
+        setParty(1);
+        closeDrawer();
+        closeSubtypeModal();
 
         qsa(".time-slot").forEach(function (b) {
           b.classList.remove("is-selected");
@@ -784,6 +943,9 @@
 
     /* Inicializar */
     renderSteps();
+    setParty(1);
+    renderExtraChips();
+    updateStep0Next();
     validateStep1();
     validateStep2();
   }

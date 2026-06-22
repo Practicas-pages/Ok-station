@@ -207,3 +207,11 @@
   .admin-burger { display: grid; }
   .admin-user__meta { display: none; }
 }
+
+/* Citas: subtipo de pasaporte + servicios adicionales + personas (celda Servicio) */
+.appt-tag {
+  display: inline-block; font-size: 0.7rem; font-weight: 600;
+  padding: 1px 8px; border-radius: var(--radius-full);
+  background: var(--brand-blue-light); color: var(--brand-blue); vertical-align: middle;
+}
+.appt-extra { font-size: 0.76rem; color: var(--text-muted); }
