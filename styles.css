@@ -123,7 +123,9 @@
 
   /* ── Layout ── */
   --max-width: 1240px;
-  --section-pad: clamp(72px, 8vw, 112px);
+  /* Padding vertical de sección: compacto pero con aire. Se reduce aún más
+     en pantallas grandes (tiers ≥1600/1920/2560) para densificar y evitar scroll. */
+  --section-pad: clamp(48px, 6vw, 88px);
   --header-height: 76px;
 }
 
@@ -194,43 +196,43 @@ h1, h2, h3, h4, h5, h6 {
    03. TIPOGRAFÍA & ESCALA
    ============================================================ */
 .text-display {
-  font-size: clamp(2.6rem, 6vw, 5rem);
+  font-size: clamp(2.4rem, 5vw, 4rem);
   font-weight: 800;
-  line-height: 1.02;
+  line-height: 1.04;
   letter-spacing: -0.04em;
 }
 
 .text-h1 {
-  font-size: clamp(2rem, 4.5vw, 3.8rem);
+  font-size: clamp(1.9rem, 4vw, 3.2rem);
   font-weight: 700;
-  line-height: 1.06;
+  line-height: 1.08;
   letter-spacing: -0.035em;
 }
 
 .text-h2 {
-  font-size: clamp(1.75rem, 3.5vw, 3rem);
+  font-size: clamp(1.6rem, 3vw, 2.4rem);
   font-weight: 700;
-  line-height: 1.1;
+  line-height: 1.12;
   letter-spacing: -0.03em;
 }
 
 .text-h3 {
-  font-size: clamp(1.35rem, 2.5vw, 1.9rem);
+  font-size: clamp(1.3rem, 2.2vw, 1.7rem);
   font-weight: 700;
   line-height: 1.2;
   letter-spacing: -0.02em;
 }
 
 .text-h4 {
-  font-size: clamp(1.15rem, 2vw, 1.45rem);
+  font-size: clamp(1.1rem, 1.8vw, 1.35rem);
   font-weight: 600;
   line-height: 1.3;
   letter-spacing: -0.015em;
 }
 
 .text-lead {
-  font-size: clamp(1rem, 1.6vw, 1.2rem);
-  line-height: 1.65;
+  font-size: clamp(1rem, 1.4vw, 1.125rem);
+  line-height: 1.6;
   color: var(--text-secondary);
 }
 
@@ -278,7 +280,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .section-head {
-  margin-bottom: clamp(40px, 5vw, 64px);
+  margin-bottom: clamp(28px, 4vw, 44px);
 }
 
 .section-head--center {
@@ -286,7 +288,7 @@ h1, h2, h3, h4, h5, h6 {
   max-width: 680px;
   margin-left: auto;
   margin-right: auto;
-  margin-bottom: clamp(40px, 5vw, 64px);
+  margin-bottom: clamp(28px, 4vw, 44px);
 }
 
 .eyebrow {
@@ -787,12 +789,16 @@ h1, h2, h3, h4, h5, h6 {
    ============================================================ */
 .hero {
   position: relative;
+  /* Antes ocupaba TODO el viewport (calc(100vh - header)) → forzaba scroll en
+     monitores/TV. Ahora se acota a ~700px máx para que se asome la siguiente
+     sección. Es un mínimo: si el contenido es más alto, el hero crece (no recorta). */
   min-height: calc(100vh - var(--header-height));
+  min-height: min(calc(100svh - var(--header-height)), 700px);
   display: flex;
   align-items: center;
   overflow: hidden;
   background: var(--surface-dark);
-  padding: clamp(60px, 8vw, 100px) 0 clamp(60px, 7vw, 88px);
+  padding: clamp(48px, 6vw, 80px) 0 clamp(44px, 5vw, 72px);
 }
 
 /* Imagen de fondo con overlay */
@@ -859,11 +865,11 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .hero__title {
-  font-size: clamp(2.5rem, 5.5vw, 4.4rem);
+  font-size: clamp(2.3rem, 4.5vw, 3.6rem);
   font-weight: 800;
-  line-height: 1.02;
+  line-height: 1.04;
   letter-spacing: -0.04em;
-  margin-bottom: var(--space-6);
+  margin-bottom: var(--space-5);
   color: #fff;
 }
 
@@ -1261,7 +1267,9 @@ h1, h2, h3, h4, h5, h6 {
 
 .cita-layout {
   display: grid;
-  grid-template-columns: 300px 1fr;
+  /* minmax(0,1fr): permite que el panel ENCOJA bajo el ancho de su contenido
+     (sin esto, el grid desbordaba horizontalmente entre ~1080–1600px). */
+  grid-template-columns: 300px minmax(0, 1fr);
   gap: var(--space-4);
   background: var(--surface-dark-2);
   border: 1px solid var(--border-dark);
@@ -2878,7 +2886,7 @@ h1, h2, h3, h4, h5, h6 {
 .site-footer {
   background: var(--surface-dark);
   color: var(--text-on-dark);
-  padding: clamp(56px, 6vw, 80px) 0 clamp(24px, 3vw, 36px);
+  padding: clamp(40px, 5vw, 60px) 0 clamp(24px, 3vw, 32px);
 }
 
 .footer-top {
@@ -3433,10 +3441,8 @@ h1, h2, h3, h4, h5, h6 {
 @media (min-width: 1600px) {
   :root {
     --max-width: 1440px;
-  }
-
-  .hero__title {
-    font-size: 5rem;
+    /* Densificar en pantallas grandes: menos padding vertical (evita scroll). */
+    --section-pad: clamp(44px, 4.5vw, 72px);
   }
 }
 
@@ -3481,16 +3487,15 @@ h1, h2, h3, h4, h5, h6 {
   }
 }
 
-/* Monitores grandes: ampliamos el contenedor y escalamos la base (rem)
-   para aprovechar el ancho sin estirar la línea de lectura. */
+/* Monitores grandes / 4K / TV: ampliamos el contenedor para aprovechar el ancho
+   (más contenido por fila) y DENSIFICAMOS el alto (menos padding) para que quepa
+   más sin scroll. NO agrandamos la base rem (eso hacía que "todo se viera enorme"). */
 @media (min-width: 1920px) {
-  :root { --max-width: 1560px; }
-  html { font-size: 17px; }
+  :root { --max-width: 1600px; --section-pad: clamp(40px, 3.5vw, 64px); }
 }
 
 @media (min-width: 2560px) {
-  :root { --max-width: 1720px; }
-  html { font-size: 18px; }
+  :root { --max-width: 1840px; --section-pad: clamp(40px, 3vw, 60px); }
 }
 
 
@@ -3673,7 +3678,7 @@ body::before {
   position: relative;
   overflow: hidden;
   isolation: isolate;
-  padding: clamp(64px, 9vw, 120px) 0;
+  padding: clamp(44px, 6vw, 80px) 0;
   background: linear-gradient(180deg, #FFFFFF 0%, #F5F3FF 60%, #EFF3FF 100%);
   border-top: 1px solid var(--border-light);
   border-bottom: 1px solid var(--border-light);
@@ -3711,11 +3716,11 @@ body::before {
 
 .brand-band__title {
   color: var(--text-primary);
-  font-size: clamp(2.1rem, 5vw, 3.6rem);
+  font-size: clamp(1.8rem, 3.6vw, 2.8rem);
   font-weight: 800;
   letter-spacing: -0.04em;
-  line-height: 1.08;
-  margin-bottom: var(--space-5);
+  line-height: 1.1;
+  margin-bottom: var(--space-4);
 }
 
 /* Resaltado elegante (Stripe/Linear): solo las palabras clave en gradiente */
