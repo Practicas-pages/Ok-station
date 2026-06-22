@@ -4666,5 +4666,17 @@ body {
 /* El header fijo no debe tapar la sección al saltar con un enlace de menú. */
 section[id] { scroll-margin-top: 84px; }
 
+/* ============================================================
+   FIX desborde horizontal (carruseles dentro de su caja)
+   Los items de grid/flex traen min-width:auto, así que un carrusel hijo
+   ESTIRA el contenedor en vez de deslizarse dentro y provoca scroll lateral.
+   Permitiéndoles encoger (min-width:0) el carrusel scrollea internamente.
+   ============================================================ */
+.cita-layout,
+.cita-aside,
+.cita-panel { min-width: 0; }
+.services-grid,
+.tramite-grid { min-width: 0; max-width: 100%; }
+
 /* ── Servicios: descripción más grande ── */
 .service-card p { font-size: 15px; line-height: 1.55; }
