@@ -4611,12 +4611,21 @@ body {
 /* En móvil se desliza con el dedo: ocultamos las flechas */
 @media (max-width: 768px) { .carousel__arrow { display: none !important; } }
 
-/* ── Citas: tarjetas de trámite más compactas ("chaparritas") ── */
-.tramite-grid > .tramite-btn { padding: 14px 16px; gap: 7px; }
-.tramite-btn__desc { display: none; }      /* la descripción larga es lo que las alargaba */
-.tramite-btn__icon { width: 44px; height: 44px; border-radius: 12px; }
-.tramite-btn__icon svg { width: 22px; height: 22px; }
-.tramite-btn__title { font-size: 0.98rem; }
+/* ── Citas: pasos compactos para que los botones queden a la vista (sin scroll interno) ── */
+.tramite-grid > .tramite-btn { padding: 12px 14px; gap: 5px; }
+.tramite-btn__desc,
+.tramite-btn__tags { display: none; }       /* descripción y tags alargaban la tarjeta */
+.tramite-btn__icon { width: 40px; height: 40px; border-radius: 11px; margin-bottom: 2px; }
+.tramite-btn__icon svg { width: 20px; height: 20px; }
+.tramite-btn__title { font-size: 0.95rem; }
+.tramite-btn__meta { font-size: 0.76rem; }
+
+/* Menos aire vertical en el wizard → el botón "Continuar"/nav queda visible sin scrollear */
+.cita-step__title { font-size: 1.15rem; }
+.cita-step__sub   { margin-bottom: var(--space-4); }
+.tramite-grid     { margin-bottom: var(--space-4); }
+.cita-more-row    { margin-top: 10px; }
+.cita-nav         { margin-top: var(--space-5); padding-top: var(--space-4); }
 
 /* ── Servicios: descripción más grande ── */
 .service-card p { font-size: 15px; line-height: 1.55; }
