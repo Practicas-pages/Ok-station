@@ -320,7 +320,7 @@
     doc.text("Recoge en: Centro Comercial Otay, Local G-03 · Carretera Aeropuerto 1900, Tijuana, B.C.", x, ty);
     ty += 6;
     doc.setFont("helvetica", "bold"); doc.setFontSize(10); doc.setTextColor(blue[0], blue[1], blue[2]);
-    doc.textWithLink("Cómo llegar — abrir en Google Maps", x, ty, { url: "https://www.google.com/maps/dir/?api=1&destination=32.5360,-116.9690" });
+    doc.textWithLink("Cómo llegar — abrir en Google Maps", x, ty, { url: "https://maps.app.goo.gl/AMLiVx2iAFvSSyUn6" });
 
     // ── Pie con línea de marca + lema ──
     gradBand(0, 287, PW, 3);
