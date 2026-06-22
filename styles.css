@@ -4627,5 +4627,20 @@ body {
 .cita-more-row    { margin-top: 10px; }
 .cita-nav         { margin-top: var(--space-5); padding-top: var(--space-4); }
 
+/* Compactar cada paso del wizard (scoped a citas) para que NINGÚN paso obligue
+   a scrollear para alcanzar los botones. */
+.citas-section .cita-panel { padding: clamp(16px, 2.4vw, 24px) clamp(16px, 2.4vw, 28px); }
+.citas-section .field { margin-bottom: var(--space-3); gap: 6px; }
+.citas-section .field-group { gap: var(--space-3); }
+.citas-section .cita-consent { margin-top: 4px; }
+/* Calendario más bajo */
+.citas-section .okcal { padding: 10px 12px 12px; }
+.citas-section .okcal__head { margin-bottom: 8px; }
+.citas-section .okcal__grid { gap: 3px; }
+.citas-section .okcal__day { aspect-ratio: 1 / 0.8; }
+/* Horarios más compactos */
+.citas-section .time-grid { gap: 8px; }
+.citas-section .time-slot { padding: 9px 8px; }
+
 /* ── Servicios: descripción más grande ── */
 .service-card p { font-size: 15px; line-height: 1.55; }
