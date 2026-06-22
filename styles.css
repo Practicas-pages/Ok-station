@@ -4633,8 +4633,8 @@ body {
 .citas-section .field { margin-bottom: var(--space-3); gap: 6px; }
 .citas-section .field-group { gap: var(--space-3); }
 .citas-section .cita-consent { margin-top: 4px; }
-/* Calendario más bajo */
-.citas-section .okcal { padding: 10px 12px 12px; }
+/* Calendario más chico: se limita el ancho para que no se estire a todo el panel */
+.citas-section .okcal { padding: 10px 12px 12px; max-width: 340px; }
 .citas-section .okcal__head { margin-bottom: 8px; }
 .citas-section .okcal__grid { gap: 3px; }
 .citas-section .okcal__day { aspect-ratio: 1 / 0.8; }
