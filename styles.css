@@ -4524,3 +4524,61 @@ body {
 .service-card .card-body {
   padding: .75rem;  /* antes 1rem */
 }
+
+/* ============================================================
+   CARRUSEL — Servicios (una sola línea) y Trámites (agendar)
+   Fila horizontal deslizable con scroll-snap. Sin JS.
+   Va al final para ganar a las reglas de grid responsivas.
+   ============================================================ */
+
+/* ── Servicios: una sola línea deslizable ── */
+.services-grid {
+  display: flex;
+  grid-template-columns: none;     /* anula el grid en todos los tamaños */
+  grid-auto-rows: auto;
+  gap: var(--space-5);
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  scroll-padding-left: 2px;
+  padding-bottom: 10px;            /* aire para la barra de desplazamiento */
+  scrollbar-width: thin;
+}
+.services-grid > .service-card {
+  flex: 0 0 300px;                 /* ancho fijo por tarjeta */
+  scroll-snap-align: start;
+}
+/* En carrusel horizontal no se debe depender del reveal por scroll vertical */
+.services-grid > .reveal { opacity: 1; transform: none; }
+/* Barra discreta = señal de que se puede deslizar (descubribilidad en escritorio) */
+.services-grid::-webkit-scrollbar { height: 8px; }
+.services-grid::-webkit-scrollbar-thumb { background: rgba(15, 23, 42, 0.18); border-radius: 999px; }
+.services-grid::-webkit-scrollbar-track { background: transparent; }
+
+@media (max-width: 768px) {
+  .services-grid > .service-card { flex-basis: 80%; } /* una tarjeta + asomo de la siguiente */
+}
+
+/* ── Trámites (agendar): carrusel ── */
+.tramite-grid {
+  display: flex;
+  grid-template-columns: none;
+  grid-auto-rows: auto;
+  gap: var(--space-4);
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 8px;
+  scrollbar-width: thin;
+}
+.tramite-grid > .tramite-btn {
+  flex: 0 0 230px;
+  scroll-snap-align: start;
+}
+.tramite-grid::-webkit-scrollbar { height: 8px; }
+.tramite-grid::-webkit-scrollbar-thumb { background: rgba(15, 23, 42, 0.18); border-radius: 999px; }
+.tramite-grid::-webkit-scrollbar-track { background: transparent; }
+
+@media (max-width: 768px) {
+  .tramite-grid > .tramite-btn { flex-basis: 78%; }
+}
