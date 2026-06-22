@@ -314,6 +314,14 @@
     doc.setFont("helvetica", "bold"); doc.setFontSize(14); doc.setTextColor(blue[0], blue[1], blue[2]);
     doc.text("Total", x, ty); doc.text(mxn(order.total), x + 95, ty, { align: "right" });
 
+    // ── Cómo llegar (Google Maps) ──
+    ty += 16;
+    doc.setFont("helvetica", "normal"); doc.setFontSize(9); doc.setTextColor(muted[0], muted[1], muted[2]);
+    doc.text("Recoge en: Centro Comercial Otay, Local G-03 · Carretera Aeropuerto 1900, Tijuana, B.C.", x, ty);
+    ty += 6;
+    doc.setFont("helvetica", "bold"); doc.setFontSize(10); doc.setTextColor(blue[0], blue[1], blue[2]);
+    doc.textWithLink("Cómo llegar — abrir en Google Maps", x, ty, { url: "https://www.google.com/maps/dir/?api=1&destination=32.5360,-116.9690" });
+
     // ── Pie con línea de marca + lema ──
     gradBand(0, 287, PW, 3);
     doc.setFont("helvetica", "normal"); doc.setFontSize(8.5); doc.setTextColor(muted[0], muted[1], muted[2]);
