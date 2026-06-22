@@ -4516,9 +4516,11 @@ body {
   animation: ok-skeleton 1.4s ease-in-out infinite;
 }
 
-/* Texto ligeramente más pequeño */
+/* Títulos de tarjeta más grandes y legibles (cómodos de leer sin esfuerzo).
+   Esta regla global gana a las anteriores; controla el tamaño en todos los anchos. */
 .service-card h3 {
-  font-size: 14px;  /* antes 15-16px */
+  font-size: clamp(1.2rem, 1.5vw, 1.4rem);
+  line-height: 1.25;
 }
 
 .service-card p {
