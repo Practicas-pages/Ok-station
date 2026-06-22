@@ -1905,6 +1905,8 @@ h1, h2, h3, h4, h5, h6 {
 .party-counter .qty-btn:focus-visible { outline: 3px solid var(--brand-cyan); outline-offset: 2px; }
 .party-counter .qty-val { min-width: 34px; text-align: center; font-size: 1.2rem; font-weight: 800; color: #fff; }
 .party-counter__label { color: rgba(255,255,255,0.6); font-size: 0.85rem; }
+.party-duration { margin-top: 14px; font-size: 0.9rem; color: rgba(255,255,255,0.82); }
+.party-duration b { color: #fff; }
 
 /* Modal: tipo de pasaporte */
 .cita-modal { position: fixed; inset: 0; z-index: 120; display: flex; align-items: center; justify-content: center; padding: 20px; }

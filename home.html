@@ -25,7 +25,7 @@
   <meta charset="UTF-8">
 
   <!-- Modo mantenimiento: bloquea el acceso directo sin credenciales válidas -->
-  <script src="assets/site-guard.js?v=20260702"></script>
+  <script src="assets/site-guard.js?v=20260703"></script>
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 
@@ -78,9 +78,9 @@
   </noscript>
 
   <!-- ===================== HOJA DE ESTILOS ===================== -->
-  <link rel="stylesheet" href="styles.css?v=20260702">
+  <link rel="stylesheet" href="styles.css?v=20260703">
   <!-- Estilos del configurador de pedido embebido en #fotos -->
-  <link rel="stylesheet" href="assets/order.css?v=20260702">
+  <link rel="stylesheet" href="assets/order.css?v=20260703">
 
   <!-- ===================== DATOS ESTRUCTURADOS (JSON-LD) ===================== -->
   <script type="application/ld+json">
@@ -520,9 +520,9 @@
           <p class="cita-aside__desc">Te guiamos en todo el proceso con la voz de la experiencia y la calidez de un buen servicio.</p>
           <div class="steps-rail" aria-hidden="true">
             <div class="step-item is-active"><span class="step-item__num">1</span> Elige el servicio</div>
-            <div class="step-item"><span class="step-item__num">2</span> Fecha y hora</div>
-            <div class="step-item"><span class="step-item__num">3</span> Tus datos</div>
-            <div class="step-item"><span class="step-item__num">4</span> Cantidad</div>
+            <div class="step-item"><span class="step-item__num">2</span> Cantidad</div>
+            <div class="step-item"><span class="step-item__num">3</span> Fecha y hora</div>
+            <div class="step-item"><span class="step-item__num">4</span> Tus datos</div>
             <div class="step-item"><span class="step-item__num">5</span> Confirmación</div>
           </div>
         </aside>
@@ -581,7 +581,32 @@
             </div>
           </div>
 
-          <!-- Paso 2: fecha y hora -->
+          <!-- Paso 2: cantidad de personas -->
+          <div class="cita-step" aria-hidden="true">
+            <h4 class="cita-step__title">¿Cuántas personas?</h4>
+            <p class="cita-step__sub">Cada persona toma ~45 min; con esto reservamos el tiempo correcto. Mínimo 1.</p>
+            <div class="party-grid" role="group" aria-label="Cantidad de personas">
+              <button type="button" class="party-opt is-selected" data-party="1" aria-pressed="true"><b>Solo yo</b><span>1 persona</span></button>
+              <button type="button" class="party-opt" data-party="2" aria-pressed="false"><b>Pareja</b><span>2 personas</span></button>
+              <button type="button" class="party-opt" data-party="4" aria-pressed="false"><b>Familia</b><span>3–5 personas</span></button>
+              <button type="button" class="party-opt" data-party="grupo" aria-pressed="false"><b>Grupo</b><span>6 o más</span></button>
+            </div>
+            <div class="party-counter" role="group" aria-label="Número exacto de personas">
+              <button type="button" class="qty-btn" id="party-minus" aria-label="Quitar una persona">−</button>
+              <span class="qty-val" id="party-val" aria-live="polite">1</span>
+              <button type="button" class="qty-btn" id="party-plus" aria-label="Agregar una persona">+</button>
+              <span class="party-counter__label">personas en total</span>
+            </div>
+            <p class="party-duration" id="party-duration" aria-live="polite"></p>
+            <div class="cita-nav">
+              <button type="button" class="btn btn--ghost-dark" data-cita-back>Atrás</button>
+              <button type="button" class="btn btn--primary" id="cita-next-3" data-cita-next>Continuar
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+              </button>
+            </div>
+          </div>
+
+          <!-- Paso 3: fecha y hora -->
           <div class="cita-step" aria-hidden="true">
             <h4 class="cita-step__title">Elige fecha y hora</h4>
             <p class="cita-step__sub">Disponibilidad sujeta a confirmación. Te avisamos por WhatsApp.</p>
@@ -615,7 +640,7 @@
             </div>
           </div>
 
-          <!-- Paso 3: datos -->
+          <!-- Paso 4: datos -->
           <div class="cita-step cita-step--datos" aria-hidden="true">
             <h4 class="cita-step__title">Tus datos de contacto</h4>
             <p class="cita-step__sub">Para confirmarte la cita y resolver cualquier duda.</p>
@@ -669,31 +694,7 @@
             </label>
             <div class="cita-nav">
               <button type="button" class="btn btn--ghost-dark" data-cita-back>Atrás</button>
-              <button type="button" class="btn btn--primary" id="cita-next-2" data-cita-next disabled aria-disabled="true">Siguiente
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-              </button>
-            </div>
-          </div>
-
-          <!-- Paso 4: cantidad de personas -->
-          <div class="cita-step" aria-hidden="true">
-            <h4 class="cita-step__title">¿Cuántas personas?</h4>
-            <p class="cita-step__sub">Para preparar tu atención. Mínimo 1 persona.</p>
-            <div class="party-grid" role="group" aria-label="Cantidad de personas">
-              <button type="button" class="party-opt is-selected" data-party="1" aria-pressed="true"><b>Solo yo</b><span>1 persona</span></button>
-              <button type="button" class="party-opt" data-party="2" aria-pressed="false"><b>Pareja</b><span>2 personas</span></button>
-              <button type="button" class="party-opt" data-party="4" aria-pressed="false"><b>Familia</b><span>3–5 personas</span></button>
-              <button type="button" class="party-opt" data-party="grupo" aria-pressed="false"><b>Grupo</b><span>6 o más</span></button>
-            </div>
-            <div class="party-counter" role="group" aria-label="Número exacto de personas">
-              <button type="button" class="qty-btn" id="party-minus" aria-label="Quitar una persona">−</button>
-              <span class="qty-val" id="party-val" aria-live="polite">1</span>
-              <button type="button" class="qty-btn" id="party-plus" aria-label="Agregar una persona">+</button>
-              <span class="party-counter__label">personas en total</span>
-            </div>
-            <div class="cita-nav">
-              <button type="button" class="btn btn--ghost-dark" data-cita-back>Atrás</button>
-              <button type="button" class="btn btn--primary" id="cita-next-3" data-cita-next>Ver resumen
+              <button type="button" class="btn btn--primary" id="cita-next-2" data-cita-next disabled aria-disabled="true">Ver resumen
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
               </button>
             </div>
@@ -1279,15 +1280,15 @@
   </button>
 
 <!-- ============================ SCRIPTS ============================ -->
-<script src="app.js?v=20260702" defer></script>
-<script src="assets/reviews.js?v=20260702" defer></script>
-<script src="assets/session-nav.js?v=20260702" defer></script>
+<script src="app.js?v=20260703" defer></script>
+<script src="assets/reviews.js?v=20260703" defer></script>
+<script src="assets/session-nav.js?v=20260703" defer></script>
 <!-- Configurador de pedido embebido (#fotos): librerías de ticket PDF + QR y lógica -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" defer></script>
-<script src="assets/order.js?v=20260702" defer></script>
+<script src="assets/order.js?v=20260703" defer></script>
 <!-- Comprobante PDF de cita (compartido con perfil y admin) -->
-<script src="assets/cita-ticket.js?v=20260702" defer></script>
+<script src="assets/cita-ticket.js?v=20260703" defer></script>
 </body>
 
 </html>

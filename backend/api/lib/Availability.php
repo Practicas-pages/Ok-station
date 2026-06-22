@@ -44,6 +44,51 @@ final class Availability
         return "$h:$m";
     }
 
+    /* ── Duración: cada persona toma ~45 min; los slots del horario son de 60 min. ── */
+    const MIN_PER_PERSON = 45;
+    const SLOT_MIN = 60;
+
+    /** Nº de slots (de 60 min) que ocupa una cita de N personas. Ej: 3→ceil(135/60)=3. */
+    public static function slotsNeeded(int $party): int
+    {
+        $party = max(1, $party);
+        return max(1, (int) ceil(($party * self::MIN_PER_PERSON) / self::SLOT_MIN));
+    }
+
+    /** "HH:MM" → minutos desde medianoche. */
+    public static function timeToMin(string $t): int
+    {
+        $p = explode(':', self::normTime($t));
+        return ((int) $p[0]) * 60 + ((int) $p[1]);
+    }
+
+    /** minutos → "HH:MM". */
+    public static function minToTime(int $min): string
+    {
+        $min = max(0, $min);
+        return str_pad((string) intdiv($min, 60), 2, '0', STR_PAD_LEFT) . ':' . str_pad((string) ($min % 60), 2, '0', STR_PAD_LEFT);
+    }
+
+    /** Horas (HH:MM) que ocupa una cita que empieza en $time con N personas. */
+    public static function neededSlotTimes(string $time, int $party): array
+    {
+        $need  = self::slotsNeeded($party);
+        $start = self::timeToMin($time);
+        $out   = [];
+        for ($i = 0; $i < $need; $i++) $out[] = self::minToTime($start + $i * self::SLOT_MIN);
+        return $out;
+    }
+
+    /** Etiqueta legible de la duración de una cita de N personas (ej. "2 h 15 min"). */
+    public static function durationLabel(int $party): string
+    {
+        $mins = max(1, $party) * self::MIN_PER_PERSON;
+        $h = intdiv($mins, 60); $m = $mins % 60;
+        if ($h && $m) return "{$h} h {$m} min";
+        if ($h) return "{$h} h";
+        return "{$m} min";
+    }
+
     /** Horas (HH:MM) configuradas para una fecha, o [] si cerrado/bloqueado/fuera de ventana. */
     public static function hoursFor(string $date, ?array $cfg = null): array
     {
@@ -61,51 +106,70 @@ final class Availability
     }
 
     /**
-     * Citas ACTIVAS por horario (HH:MM => conteo) para una fecha.
-     * Solo cuentan 'pendiente' y 'confirmada'. Las 'cancelada' y 'completada'
-     * NO ocupan el horario (liberan el espacio).
+     * Slots horarios OCUPADOS por citas activas en una fecha (HH:MM => conteo).
+     * Cada cita ocupa slotsNeeded(party_size) slots consecutivos DESDE su hora,
+     * de modo que una cita de varias personas bloquea el tiempo que realmente usa.
+     * Solo 'pendiente' y 'confirmada' ocupan; 'cancelada'/'completada' liberan.
      */
-    public static function bookedCounts(string $date): array
+    public static function occupiedSlots(string $date): array
     {
         $st = db()->prepare(
-            "SELECT TIME_FORMAT(appt_time,'%H:%i') t, COUNT(*) c
+            "SELECT TIME_FORMAT(appt_time,'%H:%i') t, party_size
              FROM appointments
-             WHERE appt_date = ? AND status IN ('pendiente','confirmada')
-             GROUP BY appt_time"
+             WHERE appt_date = ? AND status IN ('pendiente','confirmada')"
         );
         $st->execute([$date]);
         $out = [];
-        foreach ($st->fetchAll() as $r) $out[$r['t']] = (int) $r['c'];
+        foreach ($st->fetchAll() as $r) {
+            foreach (self::neededSlotTimes($r['t'], (int) ($r['party_size'] ?? 1)) as $hm) {
+                $out[$hm] = ($out[$hm] ?? 0) + 1;
+            }
+        }
         return $out;
     }
 
     /**
-     * Slots con disponibilidad para una fecha: [{time, left, available}].
-     * Cada combinación fecha+hora es UN ÚNICO espacio: disponible si no existe
-     * una cita activa en ese horario; ocupado si ya existe una.
+     * Slots disponibles para una fecha y un nº de personas: [{time, left, available}].
+     * Un horario está disponible solo si los slotsNeeded($party) slots consecutivos
+     * a partir de él están TODOS dentro del horario del día y libres (así una cita
+     * larga no invade el cierre, el descanso, ni el tiempo de otra cita).
      */
-    public static function slotsFor(string $date): array
+    public static function slotsFor(string $date, int $party = 1): array
     {
         $hours = self::hoursFor($date);
         if (!$hours) return [];
-        $booked = self::bookedCounts($date);
-        $slots  = [];
+        $hourSet = array_flip($hours);
+        $occ     = self::occupiedSlots($date);
+        $need    = self::slotsNeeded($party);
+        $slots   = [];
         foreach ($hours as $h) {
-            $taken = ($booked[$h] ?? 0) > 0;
-            $slots[] = ['time' => $h, 'left' => $taken ? 0 : 1, 'available' => !$taken];
+            $fits = self::fitsAt($h, $need, $hourSet, $occ);
+            $slots[] = ['time' => $h, 'left' => $fits ? 1 : 0, 'available' => $fits];
         }
         return $slots;
     }
 
-    /** ¿Se puede reservar fecha+hora ahora mismo? Devuelve [bool ok, ?string error]. */
-    public static function canBook(string $date, string $time): array
+    /** ¿Caben $need slots consecutivos desde $h (todos abiertos ese día y libres)? */
+    private static function fitsAt(string $h, int $need, array $hourSet, array $occ): bool
+    {
+        $start = self::timeToMin($h);
+        for ($i = 0; $i < $need; $i++) {
+            $hm = self::minToTime($start + $i * self::SLOT_MIN);
+            if (!isset($hourSet[$hm])) return false;   // fuera de horario (cierre/hueco)
+            if (($occ[$hm] ?? 0) > 0) return false;     // ocupado por otra cita
+        }
+        return true;
+    }
+
+    /** ¿Se puede reservar fecha+hora para N personas? Devuelve [bool ok, ?string error]. */
+    public static function canBook(string $date, string $time, int $party = 1): array
     {
         $hours = self::hoursFor($date);
         if (!$hours) return [false, 'Ese día no atendemos citas. Elige otra fecha.'];
         $time = self::normTime($time);
         if (!in_array($time, $hours, true)) return [false, 'Ese horario no está disponible. Elige otro.'];
-        if ((self::bookedCounts($date)[$time] ?? 0) > 0) {
-            return [false, 'Ese horario ya está ocupado. Elige otro.'];
+        if (!self::fitsAt($time, self::slotsNeeded($party), array_flip($hours), self::occupiedSlots($date))) {
+            return [false, 'Ese horario no tiene tiempo suficiente para tu cita (' . self::durationLabel($party) . '). Elige otro horario.'];
         }
         return [true, null];
     }
@@ -126,18 +190,21 @@ final class Availability
         return 'full';
     }
 
-    /** Citas ACTIVAS agrupadas por fecha en un rango (Y-m-d => conteo). */
+    /** Slots OCUPADOS por fecha en un rango (Y-m-d => nº de slots), sumando la
+     *  duración (slotsNeeded) de cada cita activa. Sirve para el color del calendario. */
     public static function activeCountsByDate(string $from, string $to): array
     {
         $st = db()->prepare(
-            "SELECT DATE_FORMAT(appt_date,'%Y-%m-%d') d, COUNT(*) c
+            "SELECT DATE_FORMAT(appt_date,'%Y-%m-%d') d, party_size
              FROM appointments
-             WHERE appt_date BETWEEN ? AND ? AND status IN ('pendiente','confirmada')
-             GROUP BY appt_date"
+             WHERE appt_date BETWEEN ? AND ? AND status IN ('pendiente','confirmada')"
         );
         $st->execute([$from, $to]);
         $out = [];
-        foreach ($st->fetchAll() as $r) $out[$r['d']] = (int) $r['c'];
+        foreach ($st->fetchAll() as $r) {
+            $d = $r['d'];
+            $out[$d] = ($out[$d] ?? 0) + self::slotsNeeded((int) ($r['party_size'] ?? 1));
+        }
         return $out;
     }
 }

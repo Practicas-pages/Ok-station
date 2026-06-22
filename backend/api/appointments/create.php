@@ -83,8 +83,8 @@ if (count($activeTramites) >= 2) {
     fail('Ya tienes el máximo de 2 citas activas (de trámites distintos). Completa o cancela una para agendar otra.', 409);
 }
 
-/* VALIDACIÓN DE DISPONIBILIDAD EN EL SERVIDOR (día y hora). */
-[$ok, $err] = Availability::canBook($date, $time);
+/* VALIDACIÓN DE DISPONIBILIDAD EN EL SERVIDOR (día, hora y DURACIÓN según personas). */
+[$ok, $err] = Availability::canBook($date, $time, $party);
 if (!$ok) fail($err, 409);
 
 $time = Availability::normTime($time);
@@ -92,11 +92,22 @@ $pdo  = db();
 
 $pdo->beginTransaction();
 try {
-    /* Doble reserva: re-verifica dentro de la transacción que el horario siga libre.
-       Cada fecha+hora es un único espacio y solo cuentan las citas activas. */
-    $cnt = $pdo->prepare("SELECT COUNT(*) c FROM appointments WHERE appt_date=? AND appt_time=? AND status IN ('pendiente','confirmada') FOR UPDATE");
-    $cnt->execute([$date, $time . ':00']);
-    if ((int) $cnt->fetch()['c'] > 0) {
+    /* Doble reserva (consciente de duración): bloqueamos las citas activas del día y
+       verificamos que TODOS los slots que ocupará esta cita (45 min × persona) sigan
+       libres. Cada cita ocupa slotsNeeded(personas) horas consecutivas desde su inicio. */
+    $lock = $pdo->prepare("SELECT TIME_FORMAT(appt_time,'%H:%i') t, party_size FROM appointments WHERE appt_date=? AND status IN ('pendiente','confirmada') FOR UPDATE");
+    $lock->execute([$date]);
+    $occ = [];
+    foreach ($lock->fetchAll() as $r) {
+        foreach (Availability::neededSlotTimes($r['t'], (int) ($r['party_size'] ?? 1)) as $hm) {
+            $occ[$hm] = ($occ[$hm] ?? 0) + 1;
+        }
+    }
+    $conflict = false;
+    foreach (Availability::neededSlotTimes($time, $party) as $hm) {
+        if (($occ[$hm] ?? 0) > 0) { $conflict = true; break; }
+    }
+    if ($conflict) {
         $pdo->rollBack();
         fail('Ese horario acaba de ocuparse mientras llenabas el formulario. Elige otro, por favor.', 409);
     }

@@ -508,17 +508,27 @@
 
     /* ── Paso Cantidad de personas ── */
     var partyValEl = qs("#party-val");
+    var partyDurEl = qs("#party-duration");
+    var MIN_PER_PERSON = 45;                       /* cada persona toma ~45 min */
     function partyPreset(n) {
       if (n <= 1) return "Solo yo";
       if (n === 2) return "Pareja";
       if (n >= 3 && n <= 5) return "Familia";
       return "Grupo";
     }
+    function durationMins(n) { return n * MIN_PER_PERSON; }
+    function fmtDuration(mins) {
+      var h = Math.floor(mins / 60), m = mins % 60;
+      if (h && m) return h + " h " + m + " min";
+      if (h) return h + " h";
+      return m + " min";
+    }
     function setParty(n) {
       n = Math.max(1, Math.min(50, n | 0));
       state.partySize = n;
       state.partyLabel = partyPreset(n);
       if (partyValEl) partyValEl.textContent = String(n);
+      if (partyDurEl) partyDurEl.innerHTML = "Duración estimada de tu cita: <b>" + sanitize(fmtDuration(durationMins(n))) + "</b> (≈ 45 min por persona).";
       qsa(".party-opt").forEach(function (b) {
         var on = String(b.dataset.party) === String(n) ||
                  (b.dataset.party === "grupo" && n > 5) ||
@@ -586,7 +596,7 @@
       state.hora = "";
       validateStep1();
       renderSlotsLoading();
-      fetch(API + "/appointments/availability.php?date=" + encodeURIComponent(isoDate))
+      fetch(API + "/appointments/availability.php?date=" + encodeURIComponent(isoDate) + "&party=" + encodeURIComponent(state.partySize))
         .then(function (r) { return r.json(); })
         .then(function (j) {
           if (!j || !j.ok) throw new Error("bad");
@@ -781,6 +791,7 @@
         rows.push(["Tipo de pasaporte", sanitize(SUBTYPE_LABEL[state.subtype] || state.subtype)]);
       }
       rows.push(["Personas", sanitize(String(state.partySize) + (state.partySize === 1 ? " (solo yo)" : ""))]);
+      rows.push(["Duración estimada", sanitize(fmtDuration(durationMins(state.partySize)))]);
       rows.push(["Nombre",   sanitize(state.nombre || "—")]);
       rows.push(["Teléfono", sanitize(state.tel || "—")]);
       rows.push(["Fecha",    sanitize(formatDate(state.fecha))]);

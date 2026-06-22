@@ -26,7 +26,9 @@ if ($date === '') {
 
 if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)) fail('Fecha inválida.');
 
-$slots = Availability::slotsFor($date);
+/* Personas: para descontar la duración (45 min c/u) al listar horarios disponibles. */
+$party = max(1, (int) ($_GET['party'] ?? 1));
+$slots = Availability::slotsFor($date, $party);
 respond([
     'ok'    => true,
     'date'  => $date,
