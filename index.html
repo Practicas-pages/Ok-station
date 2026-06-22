@@ -159,7 +159,7 @@
       {
         "@type": "Question",
         "name": "¿Puedo enviar mis fotos por WhatsApp para imprimirlas?",
-        "acceptedAnswer": { "@type": "Answer", "text": "Sí. Usa la sección \"Imprime tus fotos\" para armar tu pedido y enviarlo por WhatsApp, o mándanos las imágenes por el chat. Te indicamos tamaños, acabados y el estimado." }
+        "acceptedAnswer": { "@type": "Answer", "text": "Sí. Haz tu pedido en línea desde la sección \"Imprime tus fotos\": sube tus fotos o documentos, elige tamaño y acabado, y recógelos en sucursal. Si prefieres, también puedes mandarnos las imágenes por WhatsApp." }
       },
       {
         "@type": "Question",
@@ -428,16 +428,96 @@
           <h3 class="cita-aside__title">Tu cita, sin filas ni complicaciones</h3>
           <p class="cita-aside__desc">Te guiamos en todo el proceso con la voz de la experiencia y la calidez de un buen servicio.</p>
           <div class="steps-rail" aria-hidden="true">
-            <div class="step-item is-active"><span class="step-item__num">1</span> Tus datos</div>
-            <div class="step-item"><span class="step-item__num">2</span> Elige el trámite</div>
-            <div class="step-item"><span class="step-item__num">3</span> Fecha y hora</div>
+            <div class="step-item is-active"><span class="step-item__num">1</span> Elige el trámite</div>
+            <div class="step-item"><span class="step-item__num">2</span> Fecha y hora</div>
+            <div class="step-item"><span class="step-item__num">3</span> Tus datos</div>
             <div class="step-item"><span class="step-item__num">4</span> Confirmación</div>
           </div>
         </aside>
 
         <div class="cita-panel">
-          <!-- Paso 1: datos -->
-          <div class="cita-step cita-step--datos is-active" aria-hidden="false">
+          <!-- Paso 1: trámite -->
+          <div class="cita-step is-active" aria-hidden="false">
+            <h4 class="cita-step__title">¿Qué trámite necesitas?</h4>
+            <p class="cita-step__sub">Selecciona el servicio para el que quieres tu cita.</p>
+            <div class="tramite-grid" role="group" aria-label="Tipo de trámite">
+              <button type="button" class="tramite-btn" data-tramite="pasaporte" aria-pressed="false">
+                <span class="tramite-btn__check" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
+                <span class="tramite-btn__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/><circle cx="12" cy="9" r="2.2"/><path d="M9 14.5c.6-1.2 1.7-2 3-2s2.4.8 3 2"/></svg></span>
+                <b class="tramite-btn__title">Pasaporte</b>
+                <span class="tramite-btn__meta">SRE / pasaporte mexicano</span>
+                <span class="tramite-btn__tags"><span class="tramite-tag">Renovación</span><span class="tramite-tag">Primera vez</span></span>
+                <span class="tramite-btn__desc">Renueva tu pasaporte o tramítalo por primera vez.</span>
+              </button>
+              <button type="button" class="tramite-btn" data-tramite="visa" aria-pressed="false">
+                <span class="tramite-btn__check" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
+                <span class="tramite-btn__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/><path d="M6 15h4"/></svg></span>
+                <b class="tramite-btn__title">Visa Americana</b>
+                <span class="tramite-btn__meta">DS-160, CAS y consulado</span>
+                <span class="tramite-btn__tags"><span class="tramite-tag">DS-160</span><span class="tramite-tag">CAS</span></span>
+                <span class="tramite-btn__desc">Trámite de visa americana en el consulado de EE. UU.</span>
+              </button>
+              <button type="button" class="tramite-btn" data-tramite="sentri" aria-pressed="false">
+                <span class="tramite-btn__check" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
+                <span class="tramite-btn__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 17h14M5 17l2-9h10l2 9M5 17l-1 4h16l-1-4"/><circle cx="9" cy="13" r="1" fill="currentColor"/><circle cx="15" cy="13" r="1" fill="currentColor"/></svg></span>
+                <b class="tramite-btn__title">SENTRI / Global Entry</b>
+                <span class="tramite-btn__meta">Cruce rápido fronterizo</span>
+                <span class="tramite-btn__tags"><span class="tramite-tag">SENTRI</span><span class="tramite-tag">Global Entry</span></span>
+                <span class="tramite-btn__desc">Programa para acelerar tu cruce por la frontera.</span>
+              </button>
+              <button type="button" class="tramite-btn" data-tramite="i94" aria-pressed="false">
+                <span class="tramite-btn__check" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
+                <span class="tramite-btn__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="13" y2="17"/></svg></span>
+                <b class="tramite-btn__title">I-94 / Permiso de Viaje</b>
+                <span class="tramite-btn__meta">CBP / Permiso de internación</span>
+                <span class="tramite-btn__tags"><span class="tramite-tag">I-94</span><span class="tramite-tag">Travel Permit</span></span>
+                <span class="tramite-btn__desc">Permiso para viajar más allá de las 25 millas de la frontera dentro de Estados Unidos.</span>
+              </button>
+            </div>
+            <div class="cita-nav">
+              <span></span>
+              <button type="button" class="btn btn--primary" id="cita-next-0" data-cita-next disabled aria-disabled="true">Continuar
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+              </button>
+            </div>
+          </div>
+
+          <!-- Paso 2: fecha y hora -->
+          <div class="cita-step" aria-hidden="true">
+            <h4 class="cita-step__title">Elige fecha y hora</h4>
+            <p class="cita-step__sub">Disponibilidad sujeta a confirmación. Te avisamos por WhatsApp.</p>
+            <div class="field">
+              <label id="cita-fecha-label">Fecha preferida</label>
+              <input type="hidden" id="cita-fecha" name="cita-fecha">
+              <div class="okcal" id="cita-cal" role="group" aria-labelledby="cita-fecha-label">
+                <div class="okcal__head">
+                  <button type="button" class="okcal__nav" data-cal-prev aria-label="Mes anterior"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg></button>
+                  <span class="okcal__title" id="cita-cal-title" aria-live="polite">—</span>
+                  <button type="button" class="okcal__nav" data-cal-next aria-label="Mes siguiente"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg></button>
+                </div>
+                <div class="okcal__weekdays" aria-hidden="true"><span>Lu</span><span>Ma</span><span>Mi</span><span>Ju</span><span>Vi</span><span>Sá</span><span>Do</span></div>
+                <div class="okcal__grid" id="cita-cal-grid" role="grid"></div>
+                <div class="okcal__legend">
+                  <span class="okcal__legend-item"><i class="okcal-dot okcal-dot--full"></i> Disponibilidad total</span>
+                  <span class="okcal__legend-item"><i class="okcal-dot okcal-dot--mid"></i> Disponibilidad media</span>
+                  <span class="okcal__legend-item"><i class="okcal-dot okcal-dot--none"></i> Sin disponibilidad</span>
+                </div>
+              </div>
+            </div>
+            <div class="field">
+              <label id="horario-label">Horario preferido</label>
+              <div class="time-grid" role="group" aria-labelledby="horario-label"></div>
+            </div>
+            <div class="cita-nav">
+              <button type="button" class="btn btn--ghost-dark" data-cita-back>Atrás</button>
+              <button type="button" class="btn btn--primary" id="cita-next-1" data-cita-next disabled aria-disabled="true">Ver resumen
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+              </button>
+            </div>
+          </div>
+
+          <!-- Paso 3: datos -->
+          <div class="cita-step cita-step--datos" aria-hidden="true">
             <h4 class="cita-step__title">Tus datos de contacto</h4>
             <p class="cita-step__sub">Para confirmarte la cita y resolver cualquier duda.</p>
             <div class="field-group">
@@ -489,88 +569,8 @@
               <span>Acepto que mis datos sean utilizados para confirmar mi cita y recibir comunicación relacionada. No se compartirán con terceros.</span>
             </label>
             <div class="cita-nav">
-              <span></span>
+              <button type="button" class="btn btn--ghost-dark" data-cita-back>Atrás</button>
               <button type="button" class="btn btn--primary" id="cita-next-2" data-cita-next disabled aria-disabled="true">Siguiente
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-              </button>
-            </div>
-          </div>
-
-          <!-- Paso 2: trámite -->
-          <div class="cita-step" aria-hidden="true">
-            <h4 class="cita-step__title">¿Qué trámite necesitas?</h4>
-            <p class="cita-step__sub">Selecciona el servicio para el que quieres tu cita.</p>
-            <div class="tramite-grid" role="group" aria-label="Tipo de trámite">
-              <button type="button" class="tramite-btn" data-tramite="pasaporte" aria-pressed="false">
-                <span class="tramite-btn__check" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
-                <span class="tramite-btn__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/><circle cx="12" cy="9" r="2.2"/><path d="M9 14.5c.6-1.2 1.7-2 3-2s2.4.8 3 2"/></svg></span>
-                <b class="tramite-btn__title">Pasaporte</b>
-                <span class="tramite-btn__meta">SRE / pasaporte mexicano</span>
-                <span class="tramite-btn__tags"><span class="tramite-tag">Renovación</span><span class="tramite-tag">Primera vez</span></span>
-                <span class="tramite-btn__desc">Renueva tu pasaporte o tramítalo por primera vez.</span>
-              </button>
-              <button type="button" class="tramite-btn" data-tramite="visa" aria-pressed="false">
-                <span class="tramite-btn__check" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
-                <span class="tramite-btn__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/><path d="M6 15h4"/></svg></span>
-                <b class="tramite-btn__title">Visa Americana</b>
-                <span class="tramite-btn__meta">DS-160, CAS y consulado</span>
-                <span class="tramite-btn__tags"><span class="tramite-tag">DS-160</span><span class="tramite-tag">CAS</span></span>
-                <span class="tramite-btn__desc">Trámite de visa americana en el consulado de EE. UU.</span>
-              </button>
-              <button type="button" class="tramite-btn" data-tramite="sentri" aria-pressed="false">
-                <span class="tramite-btn__check" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
-                <span class="tramite-btn__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 17h14M5 17l2-9h10l2 9M5 17l-1 4h16l-1-4"/><circle cx="9" cy="13" r="1" fill="currentColor"/><circle cx="15" cy="13" r="1" fill="currentColor"/></svg></span>
-                <b class="tramite-btn__title">SENTRI / Global Entry</b>
-                <span class="tramite-btn__meta">Cruce rápido fronterizo</span>
-                <span class="tramite-btn__tags"><span class="tramite-tag">SENTRI</span><span class="tramite-tag">Global Entry</span></span>
-                <span class="tramite-btn__desc">Programa para acelerar tu cruce por la frontera.</span>
-              </button>
-              <button type="button" class="tramite-btn" data-tramite="i94" aria-pressed="false">
-                <span class="tramite-btn__check" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
-                <span class="tramite-btn__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="13" y2="17"/></svg></span>
-                <b class="tramite-btn__title">I-94 / Permiso de Viaje</b>
-                <span class="tramite-btn__meta">CBP / Permiso de internación</span>
-                <span class="tramite-btn__tags"><span class="tramite-tag">I-94</span><span class="tramite-tag">Travel Permit</span></span>
-                <span class="tramite-btn__desc">Permiso para viajar más allá de las 25 millas de la frontera dentro de Estados Unidos.</span>
-              </button>
-            </div>
-            <div class="cita-nav">
-              <button type="button" class="btn btn--ghost-dark" data-cita-back>Atrás</button>
-              <button type="button" class="btn btn--primary" id="cita-next-0" data-cita-next disabled aria-disabled="true">Continuar
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-              </button>
-            </div>
-          </div>
-
-          <!-- Paso 3: fecha y hora -->
-          <div class="cita-step" aria-hidden="true">
-            <h4 class="cita-step__title">Elige fecha y hora</h4>
-            <p class="cita-step__sub">Disponibilidad sujeta a confirmación. Te avisamos por WhatsApp.</p>
-            <div class="field">
-              <label id="cita-fecha-label">Fecha preferida</label>
-              <input type="hidden" id="cita-fecha" name="cita-fecha">
-              <div class="okcal" id="cita-cal" role="group" aria-labelledby="cita-fecha-label">
-                <div class="okcal__head">
-                  <button type="button" class="okcal__nav" data-cal-prev aria-label="Mes anterior"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg></button>
-                  <span class="okcal__title" id="cita-cal-title" aria-live="polite">—</span>
-                  <button type="button" class="okcal__nav" data-cal-next aria-label="Mes siguiente"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg></button>
-                </div>
-                <div class="okcal__weekdays" aria-hidden="true"><span>Lu</span><span>Ma</span><span>Mi</span><span>Ju</span><span>Vi</span><span>Sá</span><span>Do</span></div>
-                <div class="okcal__grid" id="cita-cal-grid" role="grid"></div>
-                <div class="okcal__legend">
-                  <span class="okcal__legend-item"><i class="okcal-dot okcal-dot--full"></i> Disponibilidad total</span>
-                  <span class="okcal__legend-item"><i class="okcal-dot okcal-dot--mid"></i> Disponibilidad media</span>
-                  <span class="okcal__legend-item"><i class="okcal-dot okcal-dot--none"></i> Sin disponibilidad</span>
-                </div>
-              </div>
-            </div>
-            <div class="field">
-              <label id="horario-label">Horario preferido</label>
-              <div class="time-grid" role="group" aria-labelledby="horario-label"></div>
-            </div>
-            <div class="cita-nav">
-              <button type="button" class="btn btn--ghost-dark" data-cita-back>Atrás</button>
-              <button type="button" class="btn btn--primary" id="cita-next-1" data-cita-next disabled aria-disabled="true">Ver resumen
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
               </button>
             </div>
@@ -578,16 +578,14 @@
 
           <!-- Paso 4: confirmación -->
           <div class="cita-step" aria-hidden="true">
-            <div class="cita-confirm">
+            <div class="cita-confirm" id="cita-confirm-intro">
               <div class="cita-confirm__check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg></div>
               <h4>¡Tu cita está casi lista!</h4>
-              <p>Revisa los datos y confírmala por WhatsApp para que apartemos tu lugar.</p>
+              <p>Revisa los datos y confirma tu cita. Te contactaremos para confirmarla.</p>
             </div>
             <div class="cita-summary" id="cita-resumen"></div>
-            <a class="btn btn--wa btn--block" id="cita-wa" href="#" target="_blank" rel="noopener">
-              <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M.057 24l1.687-6.163a11.867 11.867 0 01-1.587-5.945C.16 5.335 5.495 0 12.05 0a11.82 11.82 0 018.413 3.488 11.82 11.82 0 013.48 8.414c-.003 6.557-5.338 11.892-11.893 11.892a11.9 11.9 0 01-5.688-1.448L.057 24zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884a9.86 9.86 0 001.51 5.26l-.999 3.648 3.978-1.040zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.017-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.247-.694.247-1.29.173-1.414z"/></svg>
-              Confirmar por WhatsApp
-            </a>
+            <div class="cita-confirm cita-confirm--done" id="cita-success" hidden></div>
+            <button type="button" class="btn btn--primary btn--block" id="cita-confirm-btn">Confirmar cita</button>
             <div class="cita-nav">
               <button type="button" class="btn btn--ghost-dark" data-cita-back>Atrás</button>
               <button type="button" class="btn btn--ghost-dark" id="cita-reset">Empezar de nuevo</button>
@@ -762,7 +760,7 @@
             ¿Puedo enviar mis fotos por WhatsApp para imprimirlas?
             <span class="faq-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></span>
           </button>
-          <div class="faq-answer"><div class="faq-answer__inner">¡Claro! Puedes usar la sección "Imprime tus fotos" para armar tu pedido y enviarlo por WhatsApp, o mandarnos directamente las imágenes por el chat. Te decimos tamaños, acabados y el estimado.</div></div>
+          <div class="faq-answer"><div class="faq-answer__inner">¡Claro! Haz tu pedido en línea desde la sección "Imprime tus fotos": sube tus fotos o documentos, elige tamaño y acabado, y recógelos en sucursal. Si prefieres, también puedes mandarnos las imágenes por WhatsApp y con gusto te ayudamos.</div></div>
         </div>
 
         <div class="faq-item">
