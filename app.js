@@ -1397,11 +1397,6 @@
       wrap.appendChild(prev);
       wrap.appendChild(next);
 
-      function step() {
-        var card = track.firstElementChild;
-        var w = card ? card.getBoundingClientRect().width : 280;
-        return Math.round(w + 20);
-      }
       function update() {
         var overflow = track.scrollWidth - track.clientWidth > 4;
         prev.style.display = next.style.display = overflow ? "" : "none";
@@ -1409,8 +1404,40 @@
         prev.disabled = track.scrollLeft <= 2;
         next.disabled = track.scrollLeft >= (track.scrollWidth - track.clientWidth - 2);
       }
-      prev.addEventListener("click", function () { track.scrollBy({ left: -step(), behavior: "smooth" }); });
-      next.addEventListener("click", function () { track.scrollBy({ left: step(), behavior: "smooth" }); });
+
+      /* Desplazamiento suave con easing (más suave que el scroll nativo). */
+      function easeInOutCubic(t) { return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2; }
+      var animating = false;
+      function glide(to) {
+        to = Math.max(0, Math.min(to, track.scrollWidth - track.clientWidth));
+        var start = track.scrollLeft, dist = to - start;
+        if (Math.abs(dist) < 1) return;
+        animating = true;
+        track.style.scrollSnapType = "none";   /* evita que el snap pelee con la animación */
+        var t0 = null, dur = 560;
+        function frame(ts) {
+          if (t0 === null) t0 = ts;
+          var p = Math.min(1, (ts - t0) / dur);
+          track.scrollLeft = start + dist * easeInOutCubic(p);
+          if (p < 1) { requestAnimationFrame(frame); }
+          else { track.style.scrollSnapType = ""; animating = false; update(); }
+        }
+        requestAnimationFrame(frame);
+      }
+      /* Avanza/retrocede a la tarjeta siguiente/anterior (alineada). */
+      function go(dir) {
+        var sl = track.scrollLeft, list = track.children, target = null, i;
+        if (dir > 0) {
+          for (i = 0; i < list.length; i++) { if (list[i].offsetLeft > sl + 2) { target = list[i].offsetLeft; break; } }
+          if (target === null) target = track.scrollWidth;
+        } else {
+          for (i = list.length - 1; i >= 0; i--) { if (list[i].offsetLeft < sl - 2) { target = list[i].offsetLeft; break; } }
+          if (target === null) target = 0;
+        }
+        glide(target);
+      }
+      prev.addEventListener("click", function () { go(-1); });
+      next.addEventListener("click", function () { go(1); });
       track.addEventListener("scroll", update, { passive: true });
       window.addEventListener("resize", update);
       /* Recalcula cuando el carrusel pasa de oculto a visible (paso del wizard). */
