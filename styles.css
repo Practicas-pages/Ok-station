@@ -1790,7 +1790,7 @@ h1, h2, h3, h4, h5, h6 {
 .okcal__nav svg { width: 18px; height: 18px; }
 .okcal__weekdays {
   display: grid;
-  grid-template-columns: repeat(7, 1fr);
+  grid-template-columns: repeat(7, minmax(0, 1fr));
   gap: 4px;
   margin-bottom: 6px;
 }
@@ -1804,7 +1804,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 .okcal__grid {
   display: grid;
-  grid-template-columns: repeat(7, 1fr);
+  grid-template-columns: repeat(7, minmax(0, 1fr));
   gap: 4px;
 }
 .okcal__day {
@@ -4638,6 +4638,12 @@ body {
 .citas-section .okcal__head { margin-bottom: 8px; }
 .citas-section .okcal__grid { gap: 3px; }
 .citas-section .okcal__day { aspect-ratio: 1 / 0.8; }
+/* En móvil el calendario se ajusta al 100% de su caja (no a un ancho fijo)
+   y su rejilla puede encoger, para que NO se salga de la pantalla. */
+@media (max-width: 768px) {
+  .citas-section .okcal { max-width: 100%; min-width: 0; }
+  .okcal, .okcal__grid, .okcal__weekdays { min-width: 0; }
+}
 /* Horarios más compactos */
 .citas-section .time-grid { gap: 8px; }
 .citas-section .time-slot { padding: 9px 8px; }
