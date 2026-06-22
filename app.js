@@ -805,7 +805,8 @@
       } catch (_) {}
     }
 
-    /* Confirmación: la reserva ocurre en el servidor (no WhatsApp). */
+    /* Confirmación: la reserva ocurre en el servidor (no WhatsApp).
+       El comprobante PDF se genera con el módulo compartido window.OKCitaTicket (assets/cita-ticket.js). */
     var confirmBtn   = qs("#cita-confirm-btn");
     var successEl    = qs("#cita-success");
     var confirmIntro = qs("#cita-confirm-intro");
@@ -841,7 +842,23 @@
               successEl.innerHTML =
                 '<div class="cita-confirm__check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg></div>' +
                 '<h4>¡Cita registrada!</h4>' +
-                '<p>Tu folio es <b>' + sanitize(j.appointment.code) + '</b>. Te contactaremos para confirmar tu cita.</p>';
+                '<p>Tu folio es <b>' + sanitize(j.appointment.code) + '</b>. Te contactaremos para confirmar tu cita.</p>' +
+                '<a class="btn btn--light btn--sm" id="cita-ticket-dl" style="margin-top:12px" download="cita-' + sanitize(j.appointment.code) + '.pdf" href="#">Descargar comprobante (PDF)</a>';
+              /* Genera el comprobante PDF con el módulo compartido (si está disponible) */
+              try {
+                var citaUri = window.OKCitaTicket ? window.OKCitaTicket({
+                  code: j.appointment.code, tramite: j.appointment.tramite,
+                  passport_subtype: j.appointment.passport_subtype, party_size: j.appointment.party_size,
+                  date: j.appointment.date, time: j.appointment.time, status: j.appointment.status,
+                  name: state.nombre, phone: state.tel
+                }) : null;
+                var dlBtn = qs("#cita-ticket-dl", successEl);
+                if (citaUri && dlBtn) dlBtn.href = citaUri;
+                else if (dlBtn) dlBtn.style.display = "none";
+              } catch (e) {
+                var dlErr = qs("#cita-ticket-dl", successEl);
+                if (dlErr) dlErr.style.display = "none";
+              }
             }
             if (confirmIntro) confirmIntro.style.display = "none"; /* evita doble palomita */
             if (summaryEl) summaryEl.style.display = "none";
