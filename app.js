@@ -1371,6 +1371,54 @@
     });
   }
 
+  /* Carruseles (Servicios y Trámites): envuelve la fila y le agrega flechas ‹ ›.
+     No toca el HTML fuente; las flechas se inyectan aquí. En móvil se ocultan
+     (se desliza con el dedo). */
+  function initCarousels() {
+    qsa(".services-grid, .tramite-grid").forEach(function (track) {
+      if (track.dataset.carousel) return;
+      track.dataset.carousel = "1";
+
+      var wrap = document.createElement("div");
+      wrap.className = "carousel";
+      track.parentNode.insertBefore(wrap, track);
+      wrap.appendChild(track);
+
+      function arrow(dir, label, pts) {
+        var b = document.createElement("button");
+        b.type = "button";
+        b.className = "carousel__arrow carousel__arrow--" + dir;
+        b.setAttribute("aria-label", label);
+        b.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="' + pts + '"/></svg>';
+        return b;
+      }
+      var prev = arrow("prev", "Anterior", "15 18 9 12 15 6");
+      var next = arrow("next", "Siguiente", "9 18 15 12 9 6");
+      wrap.appendChild(prev);
+      wrap.appendChild(next);
+
+      function step() {
+        var card = track.firstElementChild;
+        var w = card ? card.getBoundingClientRect().width : 280;
+        return Math.round(w + 20);
+      }
+      function update() {
+        var overflow = track.scrollWidth - track.clientWidth > 4;
+        prev.style.display = next.style.display = overflow ? "" : "none";
+        if (!overflow) return;
+        prev.disabled = track.scrollLeft <= 2;
+        next.disabled = track.scrollLeft >= (track.scrollWidth - track.clientWidth - 2);
+      }
+      prev.addEventListener("click", function () { track.scrollBy({ left: -step(), behavior: "smooth" }); });
+      next.addEventListener("click", function () { track.scrollBy({ left: step(), behavior: "smooth" }); });
+      track.addEventListener("scroll", update, { passive: true });
+      window.addEventListener("resize", update);
+      /* Recalcula cuando el carrusel pasa de oculto a visible (paso del wizard). */
+      if (window.ResizeObserver) { new ResizeObserver(update).observe(track); }
+      update();
+    });
+  }
+
   function init() {
     initHeader();
     initReveal();
@@ -1380,6 +1428,7 @@
     initScrollTop();
     initImageFade();
     initGallery();
+    initCarousels();
   }
 
   if (document.readyState === "loading") {
