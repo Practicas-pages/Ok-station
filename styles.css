@@ -4706,10 +4706,20 @@ section[id] { scroll-margin-top: 84px; }
 .services-grid,
 .tramite-grid { min-width: 0; max-width: 100%; }
 
-/* Reseñas: en celular, una tarjeta encima de otra (no lado a lado).
-   Va al final para ganarle al @media 1024px que, por orden, las volvía a 2 columnas. */
+/* Reseñas propias: centradas (se ven bien con pocas) y coherentes con el bloque
+   de Google. Flex en vez de grid para que 1-2 tarjetas no queden "solas". */
+.testimonios-grid {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-5);
+}
+.testimonios-grid > .testimonio-card {
+  flex: 1 1 300px;
+  max-width: 380px;
+}
 @media (max-width: 768px) {
-  .testimonios-grid { grid-template-columns: 1fr; }
+  .testimonios-grid > .testimonio-card { flex-basis: 100%; max-width: 100%; }
 }
 
 /* ── Reseñas: distinguir el origen (Google vs propias) ── */
