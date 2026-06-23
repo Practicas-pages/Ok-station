@@ -116,3 +116,24 @@
 .ostatus--completada { background: #DCFCE7; color: #15803D; }
 .ostatus--cancelada  { background: #FEE2E2; color: #B91C1C; }
 .ostatus--no_show    { background: #F3F4F6; color: #6B7280; }
+
+/* ── Pago en línea (bloque dentro del detalle del pedido) ── */
+.order-pay { flex-basis: 100%; margin-top: 12px; padding: 14px 16px; border: 1px solid var(--border-light); border-radius: var(--radius-md); background: #fbfcfe; }
+.order-pay--paid { background: #f3fbf6; border-color: #cdeede; }
+.order-pay__head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 10px; }
+.order-pay__title { font-weight: 700; font-size: 0.9rem; color: var(--text-primary); }
+.order-pay__body { display: flex; flex-direction: column; gap: 5px; margin-bottom: 12px; }
+.order-pay__row { display: flex; align-items: center; justify-content: space-between; gap: 12px; font-size: 0.86rem; }
+.order-pay__muted { color: var(--text-muted); font-size: 0.8rem; }
+.order-pay__foot { display: flex; align-items: center; justify-content: flex-end; }
+.order-pay__done { font-weight: 600; font-size: 0.85rem; color: #15803D; }
+.order-pay .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+
+/* Chip de estado de pago */
+.opay { display: inline-flex; align-items: center; gap: 5px; font-size: 0.72rem; font-weight: 600; padding: 3px 10px; border-radius: var(--radius-full); white-space: nowrap; }
+.opay::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+.opay--pendiente   { background: #F1F5F9; color: #475569; }
+.opay--procesando  { background: #FEF3C7; color: #B45309; }
+.opay--pagado      { background: #DCFCE7; color: #15803D; }
+.opay--error       { background: #FEE2E2; color: #B91C1C; }
+.opay--reembolsado { background: #EDE9FE; color: #6D28D9; }

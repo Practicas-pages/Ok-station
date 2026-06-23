@@ -47,6 +47,11 @@
     var map = labels || STATUS;
     return '<span class="badge badge--' + status + '">' + esc(map[status] || status) + '</span>';
   }
+  var PAY_STATUS = { pendiente: "Pendiente", procesando: "Procesando", pagado: "Pagado", error: "Error", reembolsado: "Reembolsado" };
+  function payBadge(status) {
+    var s = status || "pendiente";
+    return '<span class="badge badge--pay-' + s + '">' + esc(PAY_STATUS[s] || s) + '</span>';
+  }
 
   /* ============================================================
      CAPA DE DATOS (simulada). Aquí se conecta el backend real.
@@ -102,11 +107,23 @@
   function apiGet(p) { return fetch(API_BASE + p, { headers: { Authorization: "Bearer " + token() } }).then(function (r) { return r.json(); }); }
   function apiPost(p, body) { return fetch(API_BASE + p, { method: "POST", headers: { "Content-Type": "application/json", Authorization: "Bearer " + token() }, body: JSON.stringify(body) }).then(function (r) { return r.json(); }); }
 
+  /* ¿Este usuario puede ver datos financieros (montos/referencias)? Lo confirma el
+     backend (solo administrador/directivo). Se refina al cargar la lista de pedidos. */
+  var ordersCanSeeMoney = true;
   var DataSource = {
     dashboard: function () { return DEMO ? Promise.resolve(MOCK) : apiGet("/admin/dashboard.php"); },
-    orders: function (status) {
-      if (DEMO) return Promise.resolve(MOCK.orders.filter(function (o) { return !status || o.status === status; }));
-      return apiGet("/admin/orders.php" + (status ? "?status=" + status : "")).then(function (j) { return j.orders || []; });
+    orders: function (status, payment, q) {
+      if (DEMO) return Promise.resolve(MOCK.orders.filter(function (o) {
+        return (!status || o.status === status) && (!payment || (o.payment_status || "pendiente") === payment);
+      }));
+      var p = [];
+      if (status) p.push("status=" + encodeURIComponent(status));
+      if (payment) p.push("payment=" + encodeURIComponent(payment));
+      if (q) p.push("q=" + encodeURIComponent(q));
+      return apiGet("/admin/orders.php" + (p.length ? "?" + p.join("&") : "")).then(function (j) {
+        if (typeof j.can_see_money !== "undefined") ordersCanSeeMoney = !!j.can_see_money;
+        return j.orders || [];
+      });
     },
     updateStatus: function (id, status) {
       if (DEMO) { var o = MOCK.orders.find(function (x) { return String(x.id) === String(id); }); if (o) o.status = status; return Promise.resolve({ ok: true }); }
@@ -254,15 +271,21 @@
   }
 
   function ordersRows(list, withSelect) {
-    var head = '<thead><tr><th>Folio</th><th>Cliente</th><th>Archivos</th><th>Total</th><th>Estado</th><th>Fecha</th><th></th></tr></thead>';
+    var money = ordersCanSeeMoney;
+    var head = '<thead><tr><th>Folio</th><th>Cliente</th><th>Archivos</th><th>Total</th><th>Estado</th><th>Pago</th>' +
+      (money ? '<th>Referencia</th>' : '') + '<th>Fecha</th><th></th></tr></thead>';
     var body = list.map(function (o) {
       var statusCell = withSelect
         ? '<select class="status-select" data-id="' + (o.id || o.code) + '">' + Object.keys(STATUS).map(function (k) {
             return '<option value="' + k + '"' + (k === o.status ? " selected" : "") + '>' + STATUS[k] + '</option>';
           }).join("") + '</select>'
         : badge(o.status);
+      var refCell = money
+        ? '<td class="mono" style="font-size:.78rem;color:var(--text-muted)">' + (o.payment_reference ? esc(o.payment_reference) : "—") + '</td>'
+        : '';
       return '<tr><td class="mono">' + esc(o.code) + '</td><td><b>' + esc(o.client) + '</b></td><td>' + o.items + '</td>' +
-        '<td class="mono">' + mxn(o.total) + '</td><td>' + statusCell + '</td><td>' + esc(o.date) + '</td>' +
+        '<td class="mono">' + mxn(o.total) + '</td><td>' + statusCell + '</td>' +
+        '<td>' + payBadge(o.payment_status) + '</td>' + refCell + '<td>' + esc(o.date) + '</td>' +
         '<td><button class="admin-btn-sm" data-view-order="' + esc(o.id || o.code) + '">Previsualizar</button></td></tr>';
     }).join("");
     return head + '<tbody>' + body + '</tbody>';
@@ -321,6 +344,21 @@
       });
   }
 
+  /* Panel "Pago" del detalle del pedido (en el modal admin).
+     Los montos/referencia solo llegan del backend para administrador/directivo. */
+  function paymentPanel(o) {
+    var pay = o.payment_status || "pendiente";
+    var rows = [];
+    rows.push('<div style="display:flex;justify-content:space-between;gap:10px"><span style="color:var(--text-muted,#6b7280)">Estado del pago</span>' + payBadge(pay) + '</div>');
+    if (o.payment_amount != null && o.payment_amount !== "") rows.push('<div style="display:flex;justify-content:space-between;gap:10px"><span style="color:var(--text-muted,#6b7280)">Monto pagado</span><b class="mono">' + mxn(o.payment_amount) + '</b></div>');
+    if (o.payment_provider) rows.push('<div style="display:flex;justify-content:space-between;gap:10px"><span style="color:var(--text-muted,#6b7280)">Método</span><span>' + esc(o.payment_provider) + '</span></div>');
+    if (o.payment_reference) rows.push('<div style="display:flex;justify-content:space-between;gap:10px"><span style="color:var(--text-muted,#6b7280)">Referencia</span><span class="mono" style="font-size:.8rem">' + esc(o.payment_reference) + '</span></div>');
+    if (o.payment_date) rows.push('<div style="display:flex;justify-content:space-between;gap:10px"><span style="color:var(--text-muted,#6b7280)">Fecha de pago</span><span>' + esc(String(o.payment_date).slice(0, 16).replace("T", " ")) + '</span></div>');
+    if (o.payment_transaction_id) rows.push('<div style="display:flex;justify-content:space-between;gap:10px"><span style="color:var(--text-muted,#6b7280)">ID transacción</span><span class="mono" style="font-size:.78rem;word-break:break-all">' + esc(o.payment_transaction_id) + '</span></div>');
+    return '<h4 style="margin:0 0 6px;font-size:.95rem">Pago</h4>' +
+      '<div style="display:flex;flex-direction:column;gap:6px;font-size:.9rem;background:#f8fafc;border-radius:8px;padding:12px 14px;margin:0 0 16px">' + rows.join("") + '</div>';
+  }
+
   function openOrderModal(o) {
     closeOrderModal();
     var items = o.items || [];
@@ -361,6 +399,7 @@
             (c.phone ? '<br><a href="tel:' + esc(c.phone) + '">' + esc(c.phone) + '</a>' : '') +
           '</p>' +
           (o.comments ? '<h4 style="margin:0 0 6px;font-size:.95rem">Indicaciones del cliente</h4><p style="margin:0 0 16px;font-size:.9rem;white-space:pre-wrap;background:#f8fafc;border-radius:8px;padding:10px 12px">' + esc(o.comments) + '</p>' : '') +
+          paymentPanel(o) +
           '<h4 style="margin:0 0 10px;font-size:.95rem">Archivos a imprimir</h4>' +
           filesHtml +
         '</div>' +
@@ -396,20 +435,19 @@
       bindOrderView(host);
     });
   }
-  /* Estado actual de la vista Pedidos: chip de estado + texto de búsqueda. */
-  var orderStatus = "", orderSearch = "";
+  /* Estado actual de la vista Pedidos: chip de estado, chip de pago y búsqueda. */
+  var orderStatus = "", orderPayment = "", orderSearch = "";
   function renderOrdersTable() {
-    DataSource.orders(orderStatus || "").then(function (list) {
-      var q = (orderSearch || "").trim().toLowerCase();
-      if (q) list = list.filter(function (o) {
-        return String(o.client || "").toLowerCase().indexOf(q) >= 0 ||
-               String(o.code || "").toLowerCase().indexOf(q) >= 0;
-      });
+    var q = (orderSearch || "").trim();
+    DataSource.orders(orderStatus || "", orderPayment || "", q).then(function (list) {
       var t = $("#orders-table");
       if (!list.length) {
-        var msg = q ? 'No se encontraron pedidos para “' + esc(orderSearch.trim()) + '”.' : "No hay pedidos para este filtro.";
-        t.innerHTML = '<thead><tr><th>Folio</th><th>Cliente</th><th>Archivos</th><th>Total</th><th>Estado</th><th>Fecha</th><th></th></tr></thead>' +
-          '<tbody><tr><td colspan="7" style="text-align:center;color:var(--text-muted);padding:24px">' + msg + '</td></tr></tbody>';
+        var money = ordersCanSeeMoney;
+        var cols = 7 + (money ? 1 : 0);
+        var msg = q ? 'No se encontraron pedidos para “' + esc(q) + '”.' : "No hay pedidos para este filtro.";
+        t.innerHTML = '<thead><tr><th>Folio</th><th>Cliente</th><th>Archivos</th><th>Total</th><th>Estado</th><th>Pago</th>' +
+          (money ? '<th>Referencia</th>' : '') + '<th>Fecha</th><th></th></tr></thead>' +
+          '<tbody><tr><td colspan="' + cols + '" style="text-align:center;color:var(--text-muted);padding:24px">' + msg + '</td></tr></tbody>';
         return;
       }
       t.innerHTML = ordersRows(list, true);
@@ -755,6 +793,14 @@
         $$("#order-filters .chip").forEach(function (x) { x.classList.remove("is-selected"); });
         c.classList.add("is-selected");
         orderStatus = c.dataset.status;
+        renderOrdersTable();
+      });
+    });
+    $$("#order-pay-filters .chip").forEach(function (c) {
+      c.addEventListener("click", function () {
+        $$("#order-pay-filters .chip").forEach(function (x) { x.classList.remove("is-selected"); });
+        c.classList.add("is-selected");
+        orderPayment = c.dataset.payment || "";
         renderOrdersTable();
       });
     });

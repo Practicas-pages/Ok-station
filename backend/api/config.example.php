@@ -48,4 +48,14 @@ return [
         'from'      => env('SMTP_FROM', env('SMTP_USER', 'no-reply@okstation.mx')),
         'from_name' => env('SMTP_FROM_NAME', 'OK.station'),
     ],
+
+    /* Pago en línea. Por defecto 'sandbox' (checkout local de demo, sin pasarela).
+       Para cobrar de verdad: PAYMENT_PROVIDER=stripe y completa las llaves. */
+    'payment' => [
+        'provider'              => env('PAYMENT_PROVIDER', 'sandbox'),   // sandbox | stripe
+        'currency'              => env('PAYMENT_CURRENCY', 'MXN'),
+        'sandbox_secret'        => env('PAYMENT_SANDBOX_SECRET', ''),     // secreto del webhook de sandbox
+        'stripe_secret'         => env('STRIPE_SECRET_KEY', ''),
+        'stripe_webhook_secret' => env('STRIPE_WEBHOOK_SECRET', ''),
+    ],
 ];

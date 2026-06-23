@@ -22,4 +22,11 @@ if ($cu) {
     $o['client'] = ['name' => $cu['full_name'], 'email' => $cu['email'], 'phone' => $cu['phone']];
 }
 
+// Datos financieros: el dueño ve su propio pago; del staff, solo administrador/directivo.
+// El 'empleado' que no es dueño conserva el estado operativo del pago, pero sin montos.
+$canSeeMoney = $isOwner || user_has_role((int) $user['id'], ['administrador', 'directivo']);
+if (!$canSeeMoney) {
+    unset($o['payment_provider'], $o['payment_reference'], $o['payment_amount'], $o['payment_transaction_id']);
+}
+
 respond(['ok' => true, 'order' => $o]);
