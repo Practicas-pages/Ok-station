@@ -773,11 +773,6 @@
         renderAppointments(apptStatus, apptDate);
       });
     });
-    var apptDateEl = $("#appt-date-filter");
-    if (apptDateEl) apptDateEl.addEventListener("change", function () {
-      apptDate = apptDateEl.value;
-      renderAppointments(apptStatus, apptDate);
-    });
     var apptSearchEl = $("#appt-search");
     if (apptSearchEl) apptSearchEl.addEventListener("input", function () {
       apptSearch = apptSearchEl.value;

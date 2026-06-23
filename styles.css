@@ -4546,6 +4546,7 @@ body {
 /* ── Servicios: una sola línea deslizable ── */
 .services-grid {
   display: flex;
+  position: relative;              /* offsetParent de las tarjetas = el track (clave para que las flechas avancen bien) */
   grid-template-columns: none;     /* anula el grid en todos los tamaños */
   grid-auto-rows: auto;
   gap: var(--space-5);
@@ -4554,8 +4555,9 @@ body {
   -webkit-overflow-scrolling: touch;
   scroll-padding-left: 2px;
   /* Aire vertical para que el "levantar" de la tarjeta en hover (y su sombra) no se
-     recorten: overflow-x también recorta el eje vertical. */
-  padding: 14px 4px 18px;
+     recorten: overflow-x también recorta el eje vertical. Sin padding horizontal para
+     que la 1ª tarjeta quede en offsetLeft 0 y las flechas avancen bien. */
+  padding: 14px 0 18px;
   scrollbar-width: none;           /* Firefox: oculta la barra (se navega con flechas) */
   -ms-overflow-style: none;        /* Edge/IE antiguo */
 }
@@ -4575,14 +4577,16 @@ body {
 /* ── Trámites (agendar): carrusel ── */
 .tramite-grid {
   display: flex;
+  position: relative;              /* offsetParent de las tarjetas = el track (las flechas avanzan bien) */
   grid-template-columns: none;
   grid-auto-rows: auto;
   gap: var(--space-4);
   overflow-x: auto;
   scroll-snap-type: x proximity;
   -webkit-overflow-scrolling: touch;
-  /* Aire vertical para que el hover de las tarjetas no se recorte. */
-  padding: 12px 4px 16px;
+  /* Aire vertical para el hover; sin padding horizontal para que la 1ª tarjeta
+     quede en offsetLeft 0 y las flechas avancen correctamente. */
+  padding: 12px 0 16px;
   scrollbar-width: none;           /* Firefox: oculta la barra */
   -ms-overflow-style: none;        /* Edge/IE antiguo */
 }
