@@ -113,13 +113,44 @@ CREATE TABLE IF NOT EXISTS orders (
   tax        DECIMAL(10,2)   NOT NULL DEFAULT 0,
   total      DECIMAL(10,2)   NOT NULL DEFAULT 0,
   ticket_path VARCHAR(255)   NULL,         -- ruta del ticket PDF generado
+  -- Pago en línea (ver migración 0008_payments.sql)
+  payment_status ENUM('pendiente','procesando','pagado','error','reembolsado') NOT NULL DEFAULT 'pendiente',
+  payment_provider       VARCHAR(40)   NULL,
+  payment_reference      VARCHAR(100)  NULL,
+  payment_amount         DECIMAL(10,2) NULL,
+  payment_date           TIMESTAMP     NULL,
+  payment_transaction_id VARCHAR(190)  NULL,
   created_at TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (id),
   UNIQUE KEY uq_orders_code (code),
   KEY idx_orders_user (user_id),
   KEY idx_orders_status (status),
+  KEY idx_orders_payment_status (payment_status),
+  KEY idx_orders_payment_reference (payment_reference),
   CONSTRAINT fk_orders_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Bitácora de pagos (auditoría) — ver migración 0008_payments.sql
+CREATE TABLE IF NOT EXISTS payment_logs (
+  id              BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  order_id        BIGINT UNSIGNED NOT NULL,
+  previous_status VARCHAR(20)     NULL,
+  payment_status  VARCHAR(20)     NOT NULL,
+  provider        VARCHAR(40)     NULL,
+  reference       VARCHAR(100)    NULL,
+  transaction_id  VARCHAR(190)    NULL,
+  amount          DECIMAL(10,2)   NULL,
+  source          ENUM('cliente','webhook','admin','sistema') NOT NULL DEFAULT 'sistema',
+  updated_by      BIGINT UNSIGNED NULL,
+  meta_json       JSON            NULL,
+  ip              VARCHAR(45)     NULL,
+  created_at      TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  KEY idx_plog_order (order_id),
+  KEY idx_plog_status (payment_status),
+  CONSTRAINT fk_plog_order FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE,
+  CONSTRAINT fk_plog_user  FOREIGN KEY (updated_by) REFERENCES users(id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS uploaded_files (

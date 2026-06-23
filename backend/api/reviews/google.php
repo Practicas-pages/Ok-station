@@ -53,6 +53,14 @@ $httpCode = 0;
 $curlErr = '';
 $via = '';
 
+$BROWSER_HEADERS = [
+    'Accept: application/json, text/plain, */*',
+    'Accept-Language: es-MX,es;q=0.9',
+    'Origin: https://okstation.mx',
+    'Referer: https://okstation.mx/',
+];
+$BROWSER_UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36';
+
 if (function_exists('curl_init')) {
     $ch = curl_init($url);
     curl_setopt_array($ch, [
@@ -60,7 +68,9 @@ if (function_exists('curl_init')) {
         CURLOPT_TIMEOUT        => 8,
         CURLOPT_FOLLOWLOCATION => true,
         CURLOPT_SSL_VERIFYPEER => true,
-        CURLOPT_USERAGENT      => 'OKstation/1.0',
+        CURLOPT_USERAGENT      => $BROWSER_UA,
+        CURLOPT_HTTPHEADER     => $BROWSER_HEADERS,
+        CURLOPT_ENCODING       => '',
     ]);
     $raw = curl_exec($ch);
     $httpCode = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
@@ -106,6 +116,8 @@ if ($DEBUG) {
         'api_success'     => is_array($data) ? ($data['success'] ?? null) : null,
         'is_example'      => is_array($data) ? ($data['isExampleReviews'] ?? null) : null,
         'review_count'    => (is_array($data) && isset($data['reviews']) && is_array($data['reviews'])) ? count($data['reviews']) : 0,
+        'top_keys'        => is_array($data) ? array_keys($data) : null,
+        'raw_head'        => substr((string) $raw, 0, 500),
     ]]);
 }
 

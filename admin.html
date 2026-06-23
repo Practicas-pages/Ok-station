@@ -110,7 +110,17 @@
             <button class="chip" data-status="entregado">Entregados</button>
             <button class="chip" data-status="cancelado">Cancelados</button>
           </div>
-          <input type="search" class="admin-search" id="order-search" placeholder="Buscar por cliente o folio…" aria-label="Buscar pedido por nombre de cliente o folio" autocomplete="off">
+          <input type="search" class="admin-search" id="order-search" placeholder="Buscar por cliente, folio o referencia…" aria-label="Buscar pedido por cliente, folio o referencia de pago" autocomplete="off">
+        </div>
+        <div class="admin-toolbar">
+          <div class="admin-filters" id="order-pay-filters" aria-label="Filtrar por estado de pago">
+            <span class="admin-filters__label">Pago:</span>
+            <button class="chip is-selected" data-payment="">Todos</button>
+            <button class="chip" data-payment="pagado">Pagados</button>
+            <button class="chip" data-payment="pendiente">Pendientes</button>
+            <button class="chip" data-payment="procesando">En proceso</button>
+            <button class="chip" data-payment="error">Con error</button>
+          </div>
         </div>
         <div class="admin-card">
           <div class="table-wrap"><table class="admin-table" id="orders-table"></table></div>
