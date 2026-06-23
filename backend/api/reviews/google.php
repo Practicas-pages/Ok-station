@@ -1,101 +1,94 @@
 <?php
 /**
  * GET /backend/api/reviews/google.php
- * Reseñas y calificación de Google (Places API), cacheadas ~24h en `settings`.
- * Público. Si NO hay API key / Place ID configurados, devuelve lista vacía
- * (el front sigue mostrando solo las reseñas propias, sin romperse).
- *
- * Política de Google: máximo 5 reseñas, con atribución y sin almacenarlas
- * de forma permanente → por eso se cachean solo 24h.
+ * Proxy SERVER-SIDE de las reseñas de Google vía Featurable (gratis, sin tarjeta).
+ * El navegador pide a NUESTRO servidor (mismo origen) y el servidor consulta a
+ * Featurable. Así es inmune a CORS, caché del navegador, dominio de prueba, etc.
+ * Cacheado ~24h en `settings`. Siempre responde 200 con una lista (vacía si falla).
  */
 require __DIR__ . '/../_bootstrap.php';
 only_method('GET');
 
-global $CONFIG;
-$key     = (string) ($CONFIG['google_places_api_key'] ?? '');
-$placeId = (string) ($CONFIG['google_place_id'] ?? '');
+/* ID PÚBLICO del widget de Featurable (no es secreto). */
+$WIDGET_ID = '30bf3581-fa31-45bf-b825-63cf9e6bb10e';
 
-if ($key === '' || $placeId === '') {
-    respond(['ok' => true, 'configured' => false, 'rating' => null, 'total' => 0, 'reviews' => []]);
-}
+const FEAT_CACHE_KEY = 'featurable_reviews_cache';
+const FEAT_TTL = 86400; // 24 h
 
-const GOOGLE_CACHE_KEY = 'google_reviews_cache';
-const GOOGLE_CACHE_TTL = 86400; // 24 h
-
-function gset_get(string $k): ?string {
+function feat_get(string $k): ?string {
     $st = db()->prepare('SELECT `value` FROM settings WHERE `key` = ?');
     $st->execute([$k]);
     $r = $st->fetch();
     return $r ? (string) $r['value'] : null;
 }
-function gset_put(string $k, string $v): void {
+function feat_put(string $k, string $v): void {
     db()->prepare('INSERT INTO settings (`key`,`value`) VALUES (?,?) ON DUPLICATE KEY UPDATE `value`=VALUES(`value`)')
         ->execute([$k, $v]);
 }
+function feat_date_es(?string $iso): string {
+    if (!$iso) return '';
+    $ts = strtotime($iso);
+    if (!$ts) return '';
+    $m = ['', 'ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+    return $m[(int) date('n', $ts)] . ' ' . date('Y', $ts);
+}
 
 /* ── Cache fresco ── */
-$cachedRaw = gset_get(GOOGLE_CACHE_KEY);
+$cachedRaw = feat_get(FEAT_CACHE_KEY);
 if ($cachedRaw) {
     $c = json_decode($cachedRaw, true);
-    if (is_array($c) && isset($c['_at']) && (time() - (int) $c['_at']) < GOOGLE_CACHE_TTL) {
+    if (is_array($c) && isset($c['_at']) && (time() - (int) $c['_at']) < FEAT_TTL) {
         unset($c['_at']);
         respond($c);
     }
 }
 
-/* ── Llamada a Google (Place Details) ── */
-$url = 'https://maps.googleapis.com/maps/api/place/details/json?' . http_build_query([
-    'place_id'     => $placeId,
-    'fields'       => 'rating,user_ratings_total,reviews',
-    'reviews_sort' => 'newest',
-    'language'     => 'es',
-    'key'          => $key,
-]);
-
+/* ── Consulta a Featurable (server-side) ── */
+$url = 'https://api.featurable.com/v2/widgets/' . rawurlencode($WIDGET_ID);
 $raw = false;
 if (function_exists('curl_init')) {
     $ch = curl_init($url);
-    curl_setopt_array($ch, [CURLOPT_RETURNTRANSFER => true, CURLOPT_TIMEOUT => 8, CURLOPT_SSL_VERIFYPEER => true]);
+    curl_setopt_array($ch, [
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_TIMEOUT        => 8,
+        CURLOPT_FOLLOWLOCATION => true,
+        CURLOPT_SSL_VERIFYPEER => true,
+        CURLOPT_USERAGENT      => 'OKstation/1.0',
+    ]);
     $raw = curl_exec($ch);
     curl_close($ch);
 }
 if ($raw === false) {
-    $raw = @file_get_contents($url); // respaldo si cURL no está disponible
+    $raw = @file_get_contents($url);
 }
 
 $data = $raw ? json_decode($raw, true) : null;
 
-/* ── Falla: devuelve cache viejo si existe; si no, vacío ── */
-if (!is_array($data) || ($data['status'] ?? '') !== 'OK') {
+/* Falla o reseñas de ejemplo → devuelve cache viejo si hay; si no, vacío. */
+if (!is_array($data) || empty($data['success']) || !empty($data['isExampleReviews'])) {
     if ($cachedRaw) {
         $c = json_decode($cachedRaw, true);
         if (is_array($c)) { unset($c['_at']); respond($c); }
     }
-    respond(['ok' => true, 'configured' => true, 'rating' => null, 'total' => 0, 'reviews' => []]);
+    respond(['ok' => true, 'reviews' => []]);
 }
 
-$res = $data['result'] ?? [];
 $reviews = [];
-foreach (($res['reviews'] ?? []) as $rv) {
-    $text = trim((string) ($rv['text'] ?? ''));
-    if ($text === '') continue; // omite reseñas sin comentario
+foreach (($data['reviews'] ?? []) as $rv) {
+    $a    = is_array($rv['author'] ?? null) ? $rv['author'] : [];
+    $rt   = is_array($rv['rating'] ?? null) ? $rv['rating'] : [];
+    $text = trim((string) ($rv['originalText'] ?? $rv['text'] ?? '')); // prioriza idioma original
+    if ($text === '') continue;
     $reviews[] = [
-        'author'    => (string) ($rv['author_name'] ?? 'Usuario de Google'),
-        'rating'    => (int) ($rv['rating'] ?? 0),
+        'author'    => (string) ($a['name'] ?? 'Usuario de Google'),
+        'rating'    => (int) ($rt['value'] ?? 0),
         'comment'   => $text,
-        'photo'     => (string) ($rv['profile_photo_url'] ?? ''),
-        'time_desc' => (string) ($rv['relative_time_description'] ?? ''),
-        'url'       => (string) ($rv['author_url'] ?? ''),
+        'photo'     => (string) ($a['avatarUrl'] ?? ''),
+        'url'       => (string) ($rv['url'] ?? $a['profileUrl'] ?? ''),
+        'time_desc' => feat_date_es($rv['publishedAt'] ?? null),
     ];
 }
 
-$out = [
-    'ok'         => true,
-    'configured' => true,
-    'rating'     => isset($res['rating']) ? (float) $res['rating'] : null,
-    'total'      => (int) ($res['user_ratings_total'] ?? 0),
-    'reviews'    => $reviews,
-];
-
-gset_put(GOOGLE_CACHE_KEY, json_encode(array_merge($out, ['_at' => time()]), JSON_UNESCAPED_UNICODE));
+$out = ['ok' => true, 'reviews' => $reviews];
+feat_put(FEAT_CACHE_KEY, json_encode(array_merge($out, ['_at' => time()]), JSON_UNESCAPED_UNICODE));
 respond($out);
