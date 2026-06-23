@@ -110,6 +110,9 @@
   /* ¿Este usuario puede ver datos financieros (montos/referencias)? Lo confirma el
      backend (solo administrador/directivo). Se refina al cargar la lista de pedidos. */
   var ordersCanSeeMoney = true;
+  /* ¿El pago en línea está activo (migración 0008 aplicada)? Lo confirma el backend.
+     Si no, ocultamos la fila de filtros de pago (no debe haber dos hileras de filtros). */
+  var ordersPaymentsEnabled = true;
   var DataSource = {
     dashboard: function () { return DEMO ? Promise.resolve(MOCK) : apiGet("/admin/dashboard.php"); },
     orders: function (status, payment, q) {
@@ -122,6 +125,7 @@
       if (q) p.push("q=" + encodeURIComponent(q));
       return apiGet("/admin/orders.php" + (p.length ? "?" + p.join("&") : "")).then(function (j) {
         if (typeof j.can_see_money !== "undefined") ordersCanSeeMoney = !!j.can_see_money;
+        if (typeof j.payments_enabled !== "undefined") ordersPaymentsEnabled = !!j.payments_enabled;
         return j.orders || [];
       });
     },
@@ -400,7 +404,15 @@
           '</p>' +
           (o.comments ? '<h4 style="margin:0 0 6px;font-size:.95rem">Indicaciones del cliente</h4><p style="margin:0 0 16px;font-size:.9rem;white-space:pre-wrap;background:#f8fafc;border-radius:8px;padding:10px 12px">' + esc(o.comments) + '</p>' : '') +
           paymentPanel(o) +
-          '<h4 style="margin:0 0 10px;font-size:.95rem">Archivos a imprimir</h4>' +
+          '<h4 style="margin:0 0 10px;font-size:.95rem">Ticket del cliente</h4>' +
+          '<div style="border:1px solid #eef0f4;border-radius:12px;padding:14px;margin-bottom:16px">' +
+            '<div style="display:flex;justify-content:flex-end;gap:8px;margin-bottom:10px">' +
+              '<button type="button" class="btn btn--light btn--sm" data-ticket-dl disabled>Descargar</button>' +
+              '<button type="button" class="btn btn--primary btn--sm" data-ticket-print disabled>Imprimir</button>' +
+            '</div>' +
+            '<div id="ticketwrap"><p style="color:var(--text-muted,#6b7280);font-size:.85rem;text-align:center;padding:18px 0;margin:0">Cargando ticket…</p></div>' +
+          '</div>' +
+          '<h4 style="margin:0 0 10px;font-size:.95rem">Documento(s) a imprimir del cliente</h4>' +
           filesHtml +
         '</div>' +
         '<div style="display:flex;justify-content:flex-end;padding:14px 20px;border-top:1px solid #eef0f4">' +
@@ -413,6 +425,27 @@
     $("#order-modal-close", ov).addEventListener("click", closeOrderModal);
     document.addEventListener("keydown", escClose);
     items.forEach(function (it, idx) { loadFileInto(ov, idx, it.uploaded_file_id, it.original_name); });
+    loadTicketInto(ov, o.id || o.code);
+  }
+
+  /* Carga el TICKET (comprobante) del pedido en el modal y habilita descargar/imprimir. */
+  function loadTicketInto(modal, orderId) {
+    var wrap = modal.querySelector("#ticketwrap");
+    var dl = modal.querySelector("[data-ticket-dl]");
+    var pr = modal.querySelector("[data-ticket-print]");
+    if (!wrap) return;
+    fetch(API_BASE + "/orders/ticket.php?id=" + encodeURIComponent(orderId), { headers: { Authorization: "Bearer " + token() } })
+      .then(function (r) { if (!r.ok) throw new Error(String(r.status)); return r.blob(); })
+      .then(function (blob) {
+        var url = URL.createObjectURL(blob);
+        (modal._fileUrls = modal._fileUrls || []).push(url);
+        wrap.innerHTML = '<iframe id="ticket-frame" src="' + url + '" style="width:100%;height:340px;border:1px solid #eef0f4;border-radius:10px;background:#fff" title="Ticket del cliente"></iframe>';
+        if (dl) { dl.disabled = false; dl.onclick = function () { var a = document.createElement("a"); a.href = url; a.download = "ticket-" + orderId + ".pdf"; document.body.appendChild(a); a.click(); a.remove(); }; }
+        if (pr) { pr.disabled = false; pr.onclick = function () { var f = document.getElementById("ticket-frame"); try { f.contentWindow.focus(); f.contentWindow.print(); } catch (e) { window.open(url, "_blank"); } }; }
+      })
+      .catch(function () {
+        wrap.innerHTML = '<p style="color:var(--text-muted,#6b7280);font-size:.85rem;text-align:center;padding:18px 0;margin:0">El ticket de este pedido aún no está disponible.</p>';
+      });
   }
 
   function viewOrder(id) {
@@ -441,6 +474,9 @@
     var q = (orderSearch || "").trim();
     DataSource.orders(orderStatus || "", orderPayment || "", q).then(function (list) {
       var t = $("#orders-table");
+      /* Una sola hilera de filtros si el pago en línea no está activo. */
+      var payRow = $("#order-pay-filters");
+      if (payRow) { var bar = payRow.closest(".admin-toolbar"); if (bar) bar.style.display = ordersPaymentsEnabled ? "" : "none"; }
       if (!list.length) {
         var money = ordersCanSeeMoney;
         var cols = 7 + (money ? 1 : 0);
@@ -510,15 +546,10 @@
     var svcList = svcs.length
       ? '<div class="service-chips">' + svcs.map(function (x) { return '<span class="badge badge--listo">' + esc(SIZE_LABEL[x.name] || x.name) + ' · ' + x.count + '</span>'; }).join(" ") + '</div>'
       : '<p style="color:var(--text-muted);font-size:.88rem;margin:0">Sin servicios de impresión registrados.</p>';
-    var movs = (d.movements || []);
-    var movList = movs.length
-      ? '<ul class="user-movements">' + movs.map(function (m) { return '<li><span class="user-movements__when mono">' + esc(m.at) + '</span> ' + esc(ACTION_LABEL[m.action] || m.action) + (m.entity ? ' <span style="color:var(--text-muted)">(' + esc(m.entity) + (m.entity_id ? " #" + esc(m.entity_id) : "") + ')</span>' : '') + '</li>'; }).join("") + '</ul>'
-      : '<p style="color:var(--text-muted);font-size:.88rem;margin:0">Sin movimientos registrados.</p>';
     return sum +
       '<h4 style="margin:0 0 8px;font-size:.95rem">Pedidos</h4>' + oTable +
       '<h4 style="margin:18px 0 8px;font-size:.95rem">Citas</h4>' + aTable +
-      '<h4 style="margin:18px 0 8px;font-size:.95rem">Servicios de impresión tomados</h4>' + svcList +
-      '<h4 style="margin:18px 0 8px;font-size:.95rem">Movimientos</h4>' + movList;
+      '<h4 style="margin:18px 0 8px;font-size:.95rem">Servicios de impresión tomados</h4>' + svcList;
   }
   function openUserModal(d) {
     closeUserModal();
@@ -658,7 +689,7 @@
     var o = rep.orders || { count: 0, sales: 0, byStatus: {} };
     var a = rep.appointments || { count: 0, byStatus: {}, byTramite: {} };
     var sum = '<div class="stat-grid" style="margin:0 0 18px">' +
-      reportStat("Ventas del periodo", mxn(o.sales || 0)) +
+      reportStat("Ventas entregadas", mxn(o.sales || 0)) +
       reportStat("Pedidos", o.count || 0) +
       reportStat("Citas", a.count || 0) + '</div>';
     var orows = Object.keys(STATUS).map(function (k) {
@@ -699,7 +730,7 @@
     doc.setTextColor(20);
     doc.setFont("helvetica", "bold"); doc.setFontSize(12); line("Resumen"); nl(7);
     doc.setFont("helvetica", "normal"); doc.setFontSize(11);
-    line("Ventas del periodo: " + mxn(rep.orders.sales || 0)); nl();
+    line("Ventas entregadas: " + mxn(rep.orders.sales || 0)); nl();
     line("Pedidos: " + (rep.orders.count || 0)); nl();
     line("Citas: " + (rep.appointments.count || 0)); nl(11);
     doc.setFont("helvetica", "bold"); doc.setFontSize(12); line("Pedidos por estado"); nl(7);

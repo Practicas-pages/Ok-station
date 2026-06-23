@@ -47,7 +47,7 @@ $ordersByStatus = [];
 foreach ($STATUS as $s) $ordersByStatus[$s] = ['count' => 0, 'sales' => 0.0];
 
 $ordersCount = 0;
-$salesTotal  = 0.0;   // ventas reales = todo lo no cancelado
+$salesTotal  = 0.0;   // VENTA REAL = solo pedidos ENTREGADOS (no se cuenta al crear el pedido)
 $st = $pdo->prepare("SELECT status, COUNT(*) c, COALESCE(SUM(total),0) v FROM orders WHERE created_at >= ? AND created_at < ? GROUP BY status");
 $st->execute([$start . ' 00:00:00', $end . ' 00:00:00']);
 foreach ($st->fetchAll() as $r) {
@@ -56,7 +56,8 @@ foreach ($st->fetchAll() as $r) {
     $ordersByStatus[$s]['count'] = (int) $r['c'];
     $ordersByStatus[$s]['sales'] = (float) $r['v'];
     $ordersCount += (int) $r['c'];
-    if ($s !== 'cancelado') $salesTotal += (float) $r['v'];
+    /* Una venta solo cuenta cuando el pedido se marca como ENTREGADO. */
+    if ($s === 'entregado') $salesTotal += (float) $r['v'];
 }
 
 /* ── Citas en el periodo (por estado y por trámite) ── */
