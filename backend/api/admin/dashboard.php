@@ -48,9 +48,21 @@ $pendRev = (int) $num("SELECT COUNT(*) c FROM reviews WHERE status='pendiente'")
 // Citas (defensivo: la tabla llega con la migración 0006).
 $apptPending  = 0;
 $apptUpcoming = 0;
+$upcoming     = [];
 try {
     $apptPending  = (int) $num("SELECT COUNT(*) c FROM appointments WHERE status='pendiente'")['c'];
     $apptUpcoming = (int) $num("SELECT COUNT(*) c FROM appointments WHERE status IN ('pendiente','confirmada') AND appt_date >= CURDATE()")['c'];
+    // Próximas citas (activas, de hoy en adelante), ordenadas por la más cercana.
+    $upcoming = $pdo->query(
+        "SELECT code, tramite,
+                DATE_FORMAT(appt_date,'%Y-%m-%d') AS date,
+                TIME_FORMAT(appt_time,'%H:%i')    AS time,
+                status, contact_name
+         FROM appointments
+         WHERE status IN ('pendiente','confirmada') AND appt_date >= CURDATE()
+         ORDER BY appt_date ASC, appt_time ASC
+         LIMIT 6"
+    )->fetchAll();
 } catch (Throwable $e) { /* sin tabla de citas todavía */ }
 
 respond([
@@ -62,5 +74,6 @@ respond([
     ],
     'sales7' => $sales7,
     'topServices' => $topServices,
+    'upcoming' => $upcoming,
     'nav' => ['pedidos' => $ordersTotal, 'resenas' => $pendRev, 'citas' => $apptPending],
 ]);

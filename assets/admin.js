@@ -481,6 +481,32 @@
       bindClientLinks(host);
     });
   }
+
+  /* Citas próximas (Dashboard): las más cercanas en fecha/hora, para que el
+     empleado sepa qué sigue. Cada fila lleva a esa cita en su tabla. */
+  function renderUpcoming(list) {
+    var host = $("#upcoming-appts");
+    if (!host) return;
+    list = list || [];
+    var head = '<thead><tr><th>Cuándo</th><th>Servicio</th><th>Cliente</th><th>Estado</th></tr></thead>';
+    if (!list.length) {
+      host.innerHTML = head + '<tbody><tr><td colspan="4" style="text-align:center;color:var(--text-muted);padding:20px">No hay citas próximas.</td></tr></tbody>';
+      return;
+    }
+    var today = todayStr();
+    var body = list.map(function (a) {
+      var when = (a.date === today ? '<b style="color:var(--brand-blue)">Hoy</b>' : esc(a.date)) + ' · <b class="mono">' + esc(a.time) + '</b>';
+      return '<tr class="upcoming-row" data-gocita="' + esc(a.code) + '" style="cursor:pointer">' +
+        '<td>' + when + '</td>' +
+        '<td>' + esc(TRAMITE_LABEL[a.tramite] || a.tramite) + '</td>' +
+        '<td><b>' + esc(a.contact_name) + '</b></td>' +
+        '<td>' + badge(a.status, APPT_STATUS) + '</td></tr>';
+    }).join("");
+    host.innerHTML = head + '<tbody>' + body + '</tbody>';
+    $$("[data-gocita]", host).forEach(function (b) {
+      b.addEventListener("click", function () { goToAppt(b.dataset.gocita); });
+    });
+  }
   /* Estado actual de la vista Pedidos: chip de estado, chip de pago y búsqueda. */
   var orderStatus = "", orderPayment = "", orderSearch = "";
   function renderOrdersTable() {
@@ -843,6 +869,7 @@
       renderStats(d.stats);
       renderSalesChart(d.sales7);
       renderServiceBars(d.topServices);
+      renderUpcoming(d.upcoming);
     });
     renderRecentOrders();
     loadDashboardCounts();
