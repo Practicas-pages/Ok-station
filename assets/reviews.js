@@ -85,11 +85,31 @@
       }
       return apiPost(API + "/delete.php", { id: id });
     },
-    /* Reseñas de Google vía NUESTRO servidor (proxy a Featurable en google.php).
-       Mismo origen → inmune a CORS y a la caché del navegador. Degrada a [] si falla. */
+    /* Reseñas de Google directo desde el NAVEGADOR (Featurable). El navegador del
+       visitante (IP residencial) sí recibe las reseñas; el servidor no, porque
+       Featurable bloquea las IP de hosting. Degrada a [] si falla. */
     google: function () {
-      return fetch(API + "/google.php")
+      if (!FEATURABLE_ID) return Promise.resolve({ reviews: [] });
+      return fetch("https://api.featurable.com/v2/widgets/" + FEATURABLE_ID)
         .then(function (r) { return r.json(); })
+        .then(function (j) {
+          if (!j || j.isExampleReviews) return { reviews: [] };
+          var src = j.reviews || [];
+          return {
+            reviews: src.map(function (rv) {
+              var a = rv.author || {};
+              var rt = rv.rating || {};
+              return {
+                author: a.name || "Usuario de Google",
+                rating: rt.value || 0,
+                comment: rv.originalText || rv.text || "",
+                photo: a.avatarUrl || "",
+                url: rv.url || a.profileUrl || "",
+                time_desc: fmtDate(rv.publishedAt)
+              };
+            })
+          };
+        })
         .catch(function () { return { reviews: [] }; });
     }
   };
