@@ -182,6 +182,8 @@
 .admin-toolbar { display: flex; align-items: center; gap: var(--space-3); flex-wrap: wrap; }
 .admin-filters { display: flex; gap: 7px; flex-wrap: wrap; }
 .admin-date { margin-left: auto; padding: 7px 10px; border: 1px solid var(--border, #e5e7eb); border-radius: 8px; font: inherit; color: inherit; background: #fff; }
+.admin-search { margin-left: auto; min-width: 240px; max-width: 320px; padding: 8px 12px; border: 1px solid var(--border, #e5e7eb); border-radius: 8px; font: inherit; color: inherit; background: #fff; }
+.admin-search:focus-visible { outline: 3px solid var(--brand-cyan, #00C6FF); outline-offset: 1px; border-color: var(--brand-blue, #066CFF); }
 .admin-stars { color: #F59E0B; letter-spacing: 1px; }
 
 /* ── Banner demo ── */

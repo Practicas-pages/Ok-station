@@ -3,7 +3,7 @@
 require __DIR__ . '/../_bootstrap.php';
 require __DIR__ . '/../lib/authz.php';
 only_method('GET');
-require_role(['empleado', 'administrador']);
+require_role(['empleado', 'administrador', 'directivo']);
 
 $pdo = db();
 $num = function (string $sql) use ($pdo) { return $pdo->query($sql)->fetch(); };

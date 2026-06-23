@@ -11,7 +11,8 @@
 INSERT INTO roles (slug, name, description) VALUES
   ('cliente',       'Cliente',       'Crea y consulta sus pedidos, edita su perfil y publica reseñas.'),
   ('empleado',      'Empleado',      'Gestiona pedidos, clientes y reseñas. Sin configuración crítica.'),
-  ('administrador', 'Administrador', 'Acceso total a la plataforma.')
+  ('administrador', 'Administrador', 'Acceso total a la plataforma.'),
+  ('directivo',     'Directivo',     'Acceso total al panel (igual que administrador) más reportes y métricas ejecutivas.')
 ON DUPLICATE KEY UPDATE name = VALUES(name), description = VALUES(description);
 
 -- ── Permisos ──
@@ -42,6 +43,12 @@ ON DUPLICATE KEY UPDATE role_id = role_id;
 INSERT INTO role_permissions (role_id, permission_id)
 SELECT r.id, p.id FROM roles r, permissions p
 WHERE r.slug = 'administrador'
+ON DUPLICATE KEY UPDATE role_id = role_id;
+
+-- ── Permisos del rol DIRECTIVO (todos, igual que administrador) ──
+INSERT INTO role_permissions (role_id, permission_id)
+SELECT r.id, p.id FROM roles r, permissions p
+WHERE r.slug = 'directivo'
 ON DUPLICATE KEY UPDATE role_id = role_id;
 
 -- (El rol CLIENTE no requiere permisos administrativos.)

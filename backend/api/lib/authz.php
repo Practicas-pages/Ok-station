@@ -32,11 +32,12 @@ function require_role($roles): array {
 
 /**
  * ¿El usuario tiene el permiso indicado?
- * Un 'administrador' tiene TODOS los permisos por definición (acceso total),
- * así no depende de que la tabla role_permissions esté 100% sembrada.
+ * Un 'administrador' (y el 'directivo', que tiene el mismo acceso total) tiene
+ * TODOS los permisos por definición, así no depende de que la tabla
+ * role_permissions esté 100% sembrada.
  */
 function user_has_permission(int $userId, string $perm): bool {
-    if (user_has_role($userId, 'administrador')) return true;
+    if (user_has_role($userId, ['administrador', 'directivo'])) return true;
     return in_array($perm, User::permissions($userId), true);
 }
 

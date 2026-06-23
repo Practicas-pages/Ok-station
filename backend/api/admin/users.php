@@ -3,7 +3,7 @@
 require __DIR__ . '/../_bootstrap.php';
 require __DIR__ . '/../lib/authz.php';
 only_method('GET');
-require_role(['empleado', 'administrador']);
+require_role(['empleado', 'administrador', 'directivo']);
 
 $rows = db()->query(
     "SELECT u.id, u.full_name AS name, u.email, u.phone, u.is_active AS active, DATE(u.created_at) AS joined,

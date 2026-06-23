@@ -20,7 +20,7 @@
   if (login) { login.hidden = true; login.style.display = "none"; }
 
   var roles = u.roles || [];
-  var isStaff = roles.indexOf("administrador") >= 0 || roles.indexOf("empleado") >= 0;
+  var isStaff = roles.indexOf("administrador") >= 0 || roles.indexOf("empleado") >= 0 || roles.indexOf("directivo") >= 0;
   var first = (u.full_name || "Mi cuenta").trim().split(/\s+/)[0];
   var initial = (u.full_name || "U").trim().charAt(0).toUpperCase();
 

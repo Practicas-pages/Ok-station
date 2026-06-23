@@ -332,7 +332,7 @@
       nombre: "", tel: "", notas: ""
     };
 
-    var TOTAL_STEPS = 5;           /* Trámite → Fecha → Datos → Cantidad → Confirmación */
+    var TOTAL_STEPS = 5;           /* Servicio → Cantidad → Fecha → Datos → Confirmación */
 
     /* Referencias DOM */
     var stepsEl   = qsa(".step-item");

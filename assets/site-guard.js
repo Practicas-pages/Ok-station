@@ -41,7 +41,7 @@
     /* Roles con acceso durante mantenimiento.
        DEBE coincidir con ACCESS_ROLES de maintenance.html — si difieren,
        maintenance puede conceder acceso y el guard rebotar al usuario (bucle). */
-    ADMIN_ROLES: ['admin', 'administrador', 'administrator', 'superadmin', 'empleado', 'employee', 'staff'],
+    ADMIN_ROLES: ['admin', 'administrador', 'administrator', 'superadmin', 'empleado', 'employee', 'staff', 'directivo'],
 
     /* URL de la pantalla de mantenimiento */
     MAINTENANCE_URL: '/maintenance.html',

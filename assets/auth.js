@@ -296,7 +296,7 @@
     var adminLink = qs("#profile-admin-link");
     if (adminLink) {
       var roles = (u && u.roles) || [];
-      adminLink.hidden = !(roles.indexOf("administrador") >= 0 || roles.indexOf("empleado") >= 0);
+      adminLink.hidden = !(roles.indexOf("administrador") >= 0 || roles.indexOf("empleado") >= 0 || roles.indexOf("directivo") >= 0);
     }
   }
 
@@ -327,7 +327,7 @@
     const roles = (user && user.roles) || [];
 
     const isAdmin =
-      roles.includes("administrador");
+      roles.includes("administrador") || roles.includes("directivo");
 
     if (!isAdmin && !allowedPages.includes(currentPage)) {
       window.location.href = "maintenance.html";

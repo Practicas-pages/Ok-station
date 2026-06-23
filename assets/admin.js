@@ -133,8 +133,25 @@
     updateApptStatus: function (id, status) {
       if (DEMO) { var a = MOCK.appointments.find(function (x) { return String(x.id || x.code) === String(id); }); if (a) a.status = status; return Promise.resolve({ ok: true }); }
       return apiPost("/admin/appointment-status.php", { id: id, status: status });
+    },
+    report: function (period, date) {
+      if (DEMO) {
+        var oByStatus = {}; (MOCK.orders || []).forEach(function (o) { (oByStatus[o.status] = oByStatus[o.status] || { count: 0, sales: 0 }); oByStatus[o.status].count++; oByStatus[o.status].sales += (+o.total || 0); });
+        var aByStatus = {}; (MOCK.appointments || []).forEach(function (a) { aByStatus[a.status] = (aByStatus[a.status] || 0) + 1; });
+        var aByTramite = {}; (MOCK.appointments || []).forEach(function (a) { aByTramite[a.tramite] = (aByTramite[a.tramite] || 0) + 1; });
+        return Promise.resolve({
+          ok: true, period: period || "day", date: date || "", range: { label: date || "demo" }, generated: "",
+          orders: { count: (MOCK.orders || []).length, sales: (MOCK.orders || []).filter(function (o) { return o.status !== "cancelado"; }).reduce(function (s, o) { return s + (+o.total || 0); }, 0), byStatus: oByStatus },
+          appointments: { count: (MOCK.appointments || []).length, byStatus: aByStatus, byTramite: aByTramite }
+        });
+      }
+      var q = [];
+      if (period) q.push("period=" + encodeURIComponent(period));
+      if (date) q.push("date=" + encodeURIComponent(date));
+      return apiGet("/admin/reports.php" + (q.length ? "?" + q.join("&") : ""));
     }
   };
+  var PERIOD_LABEL = { day: "Día", week: "Semana", month: "Mes" };
 
   /* ============================================================
      GUARD DE ACCESO (rol empleado/administrador)
@@ -142,8 +159,10 @@
   function accessRoles() { var u = cachedUser(); return (u && u.roles) || []; }
   function hasAdminAccess() {
     var r = accessRoles();
-    return r.indexOf("administrador") >= 0 || r.indexOf("empleado") >= 0;
+    return r.indexOf("administrador") >= 0 || r.indexOf("empleado") >= 0 || r.indexOf("directivo") >= 0;
   }
+  /* El directivo tiene acceso total (igual que un administrador). */
+  function isDirectivo() { return accessRoles().indexOf("directivo") >= 0; }
   function enforceAccess() {
     if (DEMO) return true;             // demo: se permite ver el panel
     if (!token()) { window.location.href = "cuenta.html"; return false; }
@@ -158,8 +177,9 @@
     var u = cachedUser();
     var name = (u && u.full_name) || "Administrador";
     var roles = (u && u.roles) || [];
-    var role = roles.indexOf("administrador") >= 0 ? "administrador"
-             : (roles.indexOf("empleado") >= 0 ? "empleado" : (roles[0] || "usuario"));
+    var role = roles.indexOf("directivo") >= 0 ? "directivo"
+             : (roles.indexOf("administrador") >= 0 ? "administrador"
+             : (roles.indexOf("empleado") >= 0 ? "empleado" : (roles[0] || "usuario")));
     $("#admin-user-name").textContent = name;
     $("#admin-user-role").textContent = role;
     $("#admin-user-avatar").textContent = name.trim().charAt(0).toUpperCase();
@@ -355,9 +375,22 @@
       bindOrderView(host);
     });
   }
-  function renderOrdersTable(status) {
-    DataSource.orders(status || "").then(function (list) {
+  /* Estado actual de la vista Pedidos: chip de estado + texto de búsqueda. */
+  var orderStatus = "", orderSearch = "";
+  function renderOrdersTable() {
+    DataSource.orders(orderStatus || "").then(function (list) {
+      var q = (orderSearch || "").trim().toLowerCase();
+      if (q) list = list.filter(function (o) {
+        return String(o.client || "").toLowerCase().indexOf(q) >= 0 ||
+               String(o.code || "").toLowerCase().indexOf(q) >= 0;
+      });
       var t = $("#orders-table");
+      if (!list.length) {
+        var msg = q ? 'No se encontraron pedidos para “' + esc(orderSearch.trim()) + '”.' : "No hay pedidos para este filtro.";
+        t.innerHTML = '<thead><tr><th>Folio</th><th>Cliente</th><th>Archivos</th><th>Total</th><th>Estado</th><th>Fecha</th><th></th></tr></thead>' +
+          '<tbody><tr><td colspan="7" style="text-align:center;color:var(--text-muted);padding:24px">' + msg + '</td></tr></tbody>';
+        return;
+      }
       t.innerHTML = ordersRows(list, true);
       bindStatusSelects(t);
       bindOrderView(t);
@@ -453,6 +486,93 @@
     });
   }
 
+  /* ============================================================
+     REPORTES (corte de caja: ventas + pedidos + citas)
+     ============================================================ */
+  var reportPeriod = "day", reportDate = "", lastReport = null;
+  function todayStr() {
+    var d = new Date();
+    var m = String(d.getMonth() + 1); if (m.length < 2) m = "0" + m;
+    var dd = String(d.getDate()); if (dd.length < 2) dd = "0" + dd;
+    return d.getFullYear() + "-" + m + "-" + dd;
+  }
+  function reportStat(label, value) {
+    return '<div class="stat-card"><div class="stat-card__top"><span class="stat-card__label">' + label + '</span></div><div class="stat-card__value">' + value + '</div></div>';
+  }
+  function reportPreviewHtml(rep) {
+    var o = rep.orders || { count: 0, sales: 0, byStatus: {} };
+    var a = rep.appointments || { count: 0, byStatus: {}, byTramite: {} };
+    var sum = '<div class="stat-grid" style="margin:0 0 18px">' +
+      reportStat("Ventas del periodo", mxn(o.sales || 0)) +
+      reportStat("Pedidos", o.count || 0) +
+      reportStat("Citas", a.count || 0) + '</div>';
+    var orows = Object.keys(STATUS).map(function (k) {
+      var v = (o.byStatus && o.byStatus[k]) || { count: 0, sales: 0 };
+      return '<tr><td>' + STATUS[k] + '</td><td>' + (v.count || 0) + '</td><td class="mono">' + mxn(v.sales || 0) + '</td></tr>';
+    }).join("");
+    var otable = '<h4 style="margin:0 0 8px;font-size:.95rem">Pedidos por estado</h4><div class="table-wrap"><table class="admin-table"><thead><tr><th>Estado</th><th>Pedidos</th><th>Monto</th></tr></thead><tbody>' + orows + '</tbody></table></div>';
+    var asKeys = Object.keys(a.byStatus || {});
+    var aStatus = asKeys.length ? '<h4 style="margin:18px 0 8px;font-size:.95rem">Citas por estado</h4><div class="table-wrap"><table class="admin-table"><thead><tr><th>Estado</th><th>Citas</th></tr></thead><tbody>' + asKeys.map(function (k) { return '<tr><td>' + (APPT_STATUS[k] || k) + '</td><td>' + a.byStatus[k] + '</td></tr>'; }).join("") + '</tbody></table></div>' : '';
+    var atKeys = Object.keys(a.byTramite || {});
+    var aTramite = atKeys.length ? '<h4 style="margin:18px 0 8px;font-size:.95rem">Citas por servicio</h4><div class="table-wrap"><table class="admin-table"><thead><tr><th>Servicio</th><th>Citas</th></tr></thead><tbody>' + atKeys.map(function (k) { return '<tr><td>' + (TRAMITE_LABEL[k] || k) + '</td><td>' + a.byTramite[k] + '</td></tr>'; }).join("") + '</tbody></table></div>' : '';
+    return '<div style="padding:4px 20px 20px">' + sum + otable + aStatus + aTramite + '</div>';
+  }
+  function renderReport() {
+    var host = $("#report-preview");
+    if (host) host.innerHTML = '<p style="color:var(--text-muted);padding:18px 20px;margin:0">Cargando corte…</p>';
+    DataSource.report(reportPeriod, reportDate).then(function (rep) {
+      if (!rep || !rep.ok) { if (host) host.innerHTML = '<p style="color:var(--text-muted);padding:18px 20px;margin:0">No se pudo cargar el reporte.</p>'; lastReport = null; return; }
+      lastReport = rep;
+      var rangeEl = $("#report-range");
+      if (rangeEl) rangeEl.textContent = (PERIOD_LABEL[rep.period] || "") + " · " + ((rep.range && rep.range.label) || rep.date || "");
+      if (host) host.innerHTML = reportPreviewHtml(rep);
+    }).catch(function () { if (host) host.innerHTML = '<p style="color:var(--text-muted);padding:18px 20px;margin:0">Sin conexión al cargar el reporte.</p>'; lastReport = null; });
+  }
+  function downloadReportPdf() {
+    var rep = lastReport;
+    if (!rep) { window.alert("Genera primero el corte seleccionando un periodo."); return; }
+    if (!window.jspdf || !window.jspdf.jsPDF) { window.alert("No se pudo generar el PDF (falta la librería)."); return; }
+    var doc = new window.jspdf.jsPDF({ unit: "mm", format: "a4" });
+    var M = 16, y = 18;
+    function line(txt, x) { doc.text(String(txt), x == null ? M : x, y); }
+    function nl(h) { y += (h || 6); if (y > 275) { doc.addPage(); y = 18; } }
+    doc.setFont("helvetica", "bold"); doc.setFontSize(16);
+    line("OK.station — Corte de " + (PERIOD_LABEL[rep.period] || rep.period)); nl(7);
+    doc.setFont("helvetica", "normal"); doc.setFontSize(10); doc.setTextColor(90);
+    line("Periodo: " + ((rep.range && rep.range.label) || rep.date || "")); nl(5);
+    line("Generado: " + (rep.generated || todayStr())); nl(10);
+    doc.setTextColor(20);
+    doc.setFont("helvetica", "bold"); doc.setFontSize(12); line("Resumen"); nl(7);
+    doc.setFont("helvetica", "normal"); doc.setFontSize(11);
+    line("Ventas del periodo: " + mxn(rep.orders.sales || 0)); nl();
+    line("Pedidos: " + (rep.orders.count || 0)); nl();
+    line("Citas: " + (rep.appointments.count || 0)); nl(11);
+    doc.setFont("helvetica", "bold"); doc.setFontSize(12); line("Pedidos por estado"); nl(7);
+    doc.setFontSize(10);
+    line("Estado", M); line("Pedidos", 110); line("Monto", 150); nl(2); doc.line(M, y, 194, y); nl(5);
+    doc.setFont("helvetica", "normal");
+    Object.keys(STATUS).forEach(function (k) {
+      var v = (rep.orders.byStatus && rep.orders.byStatus[k]) || { count: 0, sales: 0 };
+      line(STATUS[k], M); line(String(v.count || 0), 110); line(mxn(v.sales || 0), 150); nl();
+    });
+    var aByStatus = rep.appointments.byStatus || {};
+    if (Object.keys(aByStatus).length) {
+      nl(6); doc.setFont("helvetica", "bold"); doc.setFontSize(12); line("Citas por estado"); nl(7);
+      doc.setFontSize(10); line("Estado", M); line("Citas", 110); nl(2); doc.line(M, y, 194, y); nl(5);
+      doc.setFont("helvetica", "normal");
+      Object.keys(aByStatus).forEach(function (k) { line(APPT_STATUS[k] || k, M); line(String(aByStatus[k]), 110); nl(); });
+    }
+    var aByTramite = rep.appointments.byTramite || {};
+    if (Object.keys(aByTramite).length) {
+      nl(6); doc.setFont("helvetica", "bold"); doc.setFontSize(12); line("Citas por servicio"); nl(7);
+      doc.setFontSize(10); line("Servicio", M); line("Citas", 110); nl(2); doc.line(M, y, 194, y); nl(5);
+      doc.setFont("helvetica", "normal");
+      Object.keys(aByTramite).forEach(function (k) { line(TRAMITE_LABEL[k] || k, M); line(String(aByTramite[k]), 110); nl(); });
+    }
+    var tag = (rep.range && rep.range.start) || rep.date || todayStr();
+    doc.save("corte-" + rep.period + "-" + tag + ".pdf");
+  }
+
   function loadDashboardCounts() {
     DataSource.dashboard().then(function (d) {
       var citasEl = $("#nav-citas-count");
@@ -471,7 +591,7 @@
   /* ============================================================
      NAVEGACIÓN ENTRE VISTAS
      ============================================================ */
-  var TITLES = { dashboard: "Dashboard", pedidos: "Pedidos", citas: "Citas", usuarios: "Usuarios", servicios: "Servicios", resenas: "Reseñas" };
+  var TITLES = { dashboard: "Dashboard", pedidos: "Pedidos", citas: "Citas", usuarios: "Usuarios", servicios: "Servicios", resenas: "Reseñas", reportes: "Reportes" };
   var rendered = {};
   function showView(view) {
     $$("[data-view]").forEach(function (el) {
@@ -480,11 +600,12 @@
     $$(".admin-nav__item[data-view]").forEach(function (b) { b.classList.toggle("is-active", b.dataset.view === view); });
     $("#admin-title").textContent = TITLES[view] || "Panel";
     if (!rendered[view]) {
-      if (view === "pedidos") renderOrdersTable("");
+      if (view === "pedidos") renderOrdersTable();
       if (view === "citas") renderAppointments("");
       if (view === "usuarios") renderUsers();
       if (view === "servicios") renderServices();
       if (view === "resenas") renderReviews();
+      if (view === "reportes") renderReport();
       rendered[view] = true;
     }
     document.body.parentNode; // noop
@@ -516,8 +637,14 @@
       c.addEventListener("click", function () {
         $$("#order-filters .chip").forEach(function (x) { x.classList.remove("is-selected"); });
         c.classList.add("is-selected");
-        renderOrdersTable(c.dataset.status);
+        orderStatus = c.dataset.status;
+        renderOrdersTable();
       });
+    });
+    var orderSearchEl = $("#order-search");
+    if (orderSearchEl) orderSearchEl.addEventListener("input", function () {
+      orderSearch = orderSearchEl.value;
+      renderOrdersTable();
     });
 
     var apptStatus = "", apptDate = "";
@@ -534,6 +661,24 @@
       apptDate = apptDateEl.value;
       renderAppointments(apptStatus, apptDate);
     });
+
+    /* ── Reportes: periodo (día/semana/mes) + fecha + descarga PDF ── */
+    var reportDateEl = $("#report-date");
+    if (reportDateEl && !reportDateEl.value) { reportDateEl.value = todayStr(); reportDate = reportDateEl.value; }
+    $$("#report-period .chip").forEach(function (c) {
+      c.addEventListener("click", function () {
+        $$("#report-period .chip").forEach(function (x) { x.classList.remove("is-selected"); });
+        c.classList.add("is-selected");
+        reportPeriod = c.dataset.period;
+        renderReport();
+      });
+    });
+    if (reportDateEl) reportDateEl.addEventListener("change", function () {
+      reportDate = reportDateEl.value;
+      renderReport();
+    });
+    var reportPdfBtn = $("#report-pdf");
+    if (reportPdfBtn) reportPdfBtn.addEventListener("click", downloadReportPdf);
 
     $("#admin-burger").addEventListener("click", openNav);
     $("#admin-overlay").addEventListener("click", closeNav);

@@ -48,6 +48,10 @@
         Reseñas
         <span class="admin-nav__badge" id="nav-resenas-count">0</span>
       </button>
+      <button class="admin-nav__item" data-view="reportes">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="17" x2="9" y2="13"/><line x1="13" y1="17" x2="13" y2="11"/><line x1="17" y1="17" x2="17" y2="15"/></svg>
+        Reportes
+      </button>
     </nav>
     <div class="admin-sidebar__foot">
       <a href="index.html" class="admin-nav__item">
@@ -106,6 +110,7 @@
             <button class="chip" data-status="entregado">Entregados</button>
             <button class="chip" data-status="cancelado">Cancelados</button>
           </div>
+          <input type="search" class="admin-search" id="order-search" placeholder="Buscar por cliente o folio…" aria-label="Buscar pedido por nombre de cliente o folio" autocomplete="off">
         </div>
         <div class="admin-card">
           <div class="table-wrap"><table class="admin-table" id="orders-table"></table></div>
@@ -141,6 +146,23 @@
 
       <section data-view="resenas" hidden>
         <div class="admin-card"><div class="table-wrap"><table class="admin-table" id="reviews-table"></table></div></div>
+      </section>
+
+      <!-- REPORTES (corte de caja: ventas + pedidos + citas) -->
+      <section data-view="reportes" hidden>
+        <div class="admin-toolbar">
+          <div class="admin-filters" id="report-period">
+            <button class="chip is-selected" data-period="day">Día</button>
+            <button class="chip" data-period="week">Semana</button>
+            <button class="chip" data-period="month">Mes</button>
+          </div>
+          <input type="date" class="admin-date" id="report-date" aria-label="Fecha del reporte">
+          <button class="btn btn--primary btn--sm" id="report-pdf">Descargar PDF</button>
+        </div>
+        <div class="admin-card">
+          <div class="admin-card__head"><h3>Corte del periodo</h3><span class="admin-card__hint" id="report-range">—</span></div>
+          <div id="report-preview"><p style="color:var(--text-muted);padding:18px 20px;margin:0">Selecciona un periodo para ver el corte.</p></div>
+        </div>
       </section>
 
     </div>

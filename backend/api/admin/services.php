@@ -3,7 +3,7 @@
 require __DIR__ . '/../_bootstrap.php';
 require __DIR__ . '/../lib/authz.php';
 only_method('GET');
-require_role(['empleado', 'administrador']);
+require_role(['empleado', 'administrador', 'directivo']);
 
 $rows = db()->query(
     "SELECT s.id, s.name, COALESCE(c.name, '—') AS category, s.base_price AS price, s.unit, s.is_active AS active
