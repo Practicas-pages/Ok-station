@@ -88,6 +88,8 @@
 .admin-burger svg { width: 20px; height: 20px; margin: 0 auto; }
 
 .admin-content { padding: clamp(18px, 3vw, 32px); display: flex; flex-direction: column; gap: var(--space-5); }
+/* Un poco más de aire vertical entre las tarjetas de cada vista del panel. */
+.admin-content > section:not([hidden]) { display: flex; flex-direction: column; gap: var(--space-7); }
 
 /* ── Tarjetas de estadística ── */
 .stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--space-4); }
