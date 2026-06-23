@@ -20,6 +20,11 @@ $data = ['status' => $status];
 if ($note !== '') {
     $data['staff_notes'] = trim((string) ($o['staff_notes'] ?? '') . "\n" . $note);
 }
+/* Marca la fecha de ENTREGA (para el corte de caja por día de entrega). Resiliente:
+   solo si la columna existe (migración 0009). Se setea la 1ª vez que pasa a entregado. */
+if ($status === 'entregado' && empty($o['entregado_at']) && table_has_column('orders', 'entregado_at')) {
+    $data['entregado_at'] = date('Y-m-d H:i:s');
+}
 Order::update($id, $data);
 
 log_activity((int) $user['id'], 'order.status_changed', 'orders', $id, ['status' => $status]);

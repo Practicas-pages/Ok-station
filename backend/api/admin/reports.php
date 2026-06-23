@@ -48,6 +48,7 @@ foreach ($STATUS as $s) $ordersByStatus[$s] = ['count' => 0, 'sales' => 0.0];
 
 $ordersCount = 0;
 $salesTotal  = 0.0;   // VENTA REAL = solo pedidos ENTREGADOS (no se cuenta al crear el pedido)
+/* Desglose de pedidos CREADOS en el periodo, por estado (para la tabla del reporte). */
 $st = $pdo->prepare("SELECT status, COUNT(*) c, COALESCE(SUM(total),0) v FROM orders WHERE created_at >= ? AND created_at < ? GROUP BY status");
 $st->execute([$start . ' 00:00:00', $end . ' 00:00:00']);
 foreach ($st->fetchAll() as $r) {
@@ -56,8 +57,15 @@ foreach ($st->fetchAll() as $r) {
     $ordersByStatus[$s]['count'] = (int) $r['c'];
     $ordersByStatus[$s]['sales'] = (float) $r['v'];
     $ordersCount += (int) $r['c'];
-    /* Una venta solo cuenta cuando el pedido se marca como ENTREGADO. */
-    if ($s === 'entregado') $salesTotal += (float) $r['v'];
+}
+/* VENTAS ENTREGADAS: idealmente por la FECHA DE ENTREGA (entregado_at, migración 0009).
+   Si esa columna aún no existe, se aproxima con los entregados creados en el periodo. */
+if (table_has_column('orders', 'entregado_at')) {
+    $sv = $pdo->prepare("SELECT COALESCE(SUM(total),0) v FROM orders WHERE status = 'entregado' AND entregado_at >= ? AND entregado_at < ?");
+    $sv->execute([$start . ' 00:00:00', $end . ' 00:00:00']);
+    $salesTotal = (float) $sv->fetch()['v'];
+} else {
+    $salesTotal = (float) ($ordersByStatus['entregado']['sales'] ?? 0.0);
 }
 
 /* ── Citas en el periodo (por estado y por trámite) ── */

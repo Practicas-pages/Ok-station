@@ -16,17 +16,22 @@ if ($rating < 1 || $rating > 5)        fail('Selecciona una calificación de 1 a
 if (mb_strlen($comment) < 4)           fail('Escribe tu comentario.');
 if (mb_strlen($comment) > 600)         fail('El comentario es demasiado largo (máx. 600).');
 
+/* Una reseña por usuario (evita spam/duplicados). */
+$dup = db()->prepare('SELECT id FROM reviews WHERE user_id = ? LIMIT 1');
+$dup->execute([(int) $user['id']]);
+if ($dup->fetch()) fail('Ya publicaste una reseña. ¡Gracias por tu opinión!', 409);
+
+/* MODERACIÓN: la reseña entra como PENDIENTE y NO se publica hasta que el panel la apruebe. */
 $id = Review::create([
     'user_id' => (int) $user['id'],
     'rating'  => $rating,
     'comment' => $comment,
-    'status'  => 'aprobada',   // se muestra de inmediato; el panel puede ocultarla
+    'status'  => 'pendiente',
 ]);
 log_activity((int) $user['id'], 'review.create', 'reviews', $id);
 
-$r = Review::find($id);
-$r['author'] = $user['full_name'];
-$r['mine'] = true;
-unset($r['user_id'], $r['status']);
-
-respond(['ok' => true, 'review' => $r], 201);
+respond([
+    'ok'      => true,
+    'pending' => true,
+    'message' => '¡Gracias! Tu reseña se publicará en cuanto la revisemos.',
+], 201);

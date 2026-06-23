@@ -107,6 +107,7 @@ CREATE TABLE IF NOT EXISTS orders (
   code       VARCHAR(20)     NOT NULL,
   status     ENUM('recibido','en_revision','en_produccion','listo','entregado','cancelado')
                              NOT NULL DEFAULT 'recibido',
+  entregado_at TIMESTAMP     NULL,        -- fecha de ENTREGA (corte de caja por día de entrega; ver migración 0009)
   comments   TEXT            NULL,        -- comentarios del cliente
   staff_notes TEXT           NULL,        -- comentarios internos (no visibles al cliente)
   subtotal   DECIMAL(10,2)   NOT NULL DEFAULT 0,
@@ -126,6 +127,7 @@ CREATE TABLE IF NOT EXISTS orders (
   UNIQUE KEY uq_orders_code (code),
   KEY idx_orders_user (user_id),
   KEY idx_orders_status (status),
+  KEY idx_orders_entregado_at (entregado_at),
   KEY idx_orders_payment_status (payment_status),
   KEY idx_orders_payment_reference (payment_reference),
   CONSTRAINT fk_orders_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE

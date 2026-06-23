@@ -185,7 +185,13 @@
       var op = state.editingId ? Data.update(state.editingId, data.rating, ta.value.trim()) : Data.create(data.rating, ta.value.trim());
       op.then(function (res) {
         if (!res || !res.ok) { btn.disabled = false; btn.textContent = "Reintentar"; alert.hidden = false; alert.textContent = (res && res.error) || "No se pudo guardar."; return; }
-        host.innerHTML = ""; state.editingId = null; load();
+        state.editingId = null;
+        if (res.pending) {
+          /* Reseña en moderación: aún no aparece públicamente. */
+          host.innerHTML = '<div class="review-thanks" role="status" style="text-align:center;padding:20px;border:1px solid var(--border-light,#e5e7eb);border-radius:12px;background:#f8fafc"><b style="display:block;margin-bottom:4px">¡Gracias por tu reseña! 🙌</b><span style="color:var(--text-muted,#6b7280);font-size:.9rem">' + esc(res.message || "Se publicará en cuanto la revisemos.") + '</span></div>';
+          return;
+        }
+        host.innerHTML = ""; load();
       }).catch(function () { btn.disabled = false; btn.textContent = "Reintentar"; alert.hidden = false; alert.textContent = "Sin conexión. Inténtalo de nuevo."; });
     });
 
