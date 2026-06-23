@@ -4596,15 +4596,17 @@ body {
   .tramite-grid > .tramite-btn { flex-basis: 78%; }
 }
 
-/* ── Flechas de navegación de los carruseles (inyectadas por app.js) ── */
-.carousel { position: relative; }
+/* ── Flechas de navegación de los carruseles (inyectadas por app.js) ──
+   El carrusel reserva "canaletas" laterales (padding) para que las flechas
+   vivan FUERA de las tarjetas y no las tapen. */
+.carousel { position: relative; padding: 0 50px; }
 .carousel__arrow {
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
   z-index: 6;
-  width: 42px;
-  height: 42px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
   border: 1px solid var(--border-light);
   background: #fff;
@@ -4618,11 +4620,14 @@ body {
 .carousel__arrow svg { width: 20px; height: 20px; }
 .carousel__arrow:hover { background: #f1f5f9; }
 .carousel__arrow:active { transform: translateY(-50%) scale(0.94); }
-.carousel__arrow--prev { left: -8px; }
-.carousel__arrow--next { right: -8px; }
+.carousel__arrow--prev { left: 5px; }
+.carousel__arrow--next { right: 5px; }
 .carousel__arrow:disabled { opacity: 0; pointer-events: none; }
-/* En móvil se desliza con el dedo: ocultamos las flechas */
-@media (max-width: 768px) { .carousel__arrow { display: none !important; } }
+/* En móvil se desliza con el dedo: ocultamos las flechas y recuperamos el ancho */
+@media (max-width: 768px) {
+  .carousel { padding: 0; }
+  .carousel__arrow { display: none !important; }
+}
 
 /* ── Citas: pasos compactos para que los botones queden a la vista (sin scroll interno) ── */
 .tramite-grid > .tramite-btn { padding: 12px 14px; gap: 5px; }

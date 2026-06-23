@@ -9,7 +9,11 @@ final class Mailer
     private $cfg;
     public function __construct(array $smtp) { $this->cfg = $smtp; }
 
-    public function send(string $to, string $subject, string $textBody): bool
+    /**
+     * Envía un correo. Si $attachments no está vacío, arma un mensaje multipart/mixed
+     * (cuerpo de texto + adjuntos). Cada adjunto: ['name'=>archivo, 'data'=>binario, 'type'=>mime].
+     */
+    public function send(string $to, string $subject, string $textBody, array $attachments = []): bool
     {
         $host = $this->cfg['host'] ?? '';
         $port = (int) ($this->cfg['port'] ?? 587);
@@ -49,15 +53,38 @@ final class Mailer
         $cmd('RCPT TO:<' . $to . '>');
         $cmd('DATA');
 
-        $headers =
+        $baseHeaders =
             'From: ' . $fromName . ' <' . $from . ">\r\n" .
             'To: <' . $to . ">\r\n" .
             'Subject: =?UTF-8?B?' . base64_encode($subject) . "?=\r\n" .
-            "MIME-Version: 1.0\r\n" .
-            "Content-Type: text/plain; charset=utf-8\r\n" .
-            "Content-Transfer-Encoding: 8bit\r\n";
+            "MIME-Version: 1.0\r\n";
 
-        fwrite($fp, $headers . "\r\n" . $textBody . "\r\n.\r\n");
+        if (empty($attachments)) {
+            $headers = $baseHeaders .
+                "Content-Type: text/plain; charset=utf-8\r\n" .
+                "Content-Transfer-Encoding: 8bit\r\n";
+            $message = $headers . "\r\n" . $textBody . "\r\n.\r\n";
+        } else {
+            $boundary = 'okst_' . bin2hex(random_bytes(8));
+            $headers = $baseHeaders . "Content-Type: multipart/mixed; boundary=\"" . $boundary . "\"\r\n";
+            $body  = '--' . $boundary . "\r\n";
+            $body .= "Content-Type: text/plain; charset=utf-8\r\n";
+            $body .= "Content-Transfer-Encoding: 8bit\r\n\r\n";
+            $body .= $textBody . "\r\n";
+            foreach ($attachments as $att) {
+                $name = $att['name'] ?? 'archivo';
+                $type = $att['type'] ?? 'application/octet-stream';
+                $body .= '--' . $boundary . "\r\n";
+                $body .= 'Content-Type: ' . $type . '; name="' . $name . "\"\r\n";
+                $body .= "Content-Transfer-Encoding: base64\r\n";
+                $body .= 'Content-Disposition: attachment; filename="' . $name . "\"\r\n\r\n";
+                $body .= chunk_split(base64_encode($att['data'] ?? '')) . "\r\n";
+            }
+            $body .= '--' . $boundary . "--\r\n";
+            $message = $headers . "\r\n" . $body . ".\r\n";
+        }
+
+        fwrite($fp, $message);
         $resp = $read();
         $cmd('QUIT');
         fclose($fp);

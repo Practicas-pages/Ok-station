@@ -417,9 +417,18 @@
       bindOrderView(t);
     });
   }
+  var userSearch = "";
   function renderUsers() {
     var head = '<thead><tr><th>Nombre</th><th>Correo</th><th>Teléfono</th><th>Pedidos</th><th>Estado</th><th>Alta</th><th></th></tr></thead>';
     DataSource.users().then(function (list) {
+      var q = (userSearch || "").trim().toLowerCase();
+      if (q) list = list.filter(function (u) {
+        return (String(u.name || "") + " " + String(u.email || "") + " " + String(u.phone || "")).toLowerCase().indexOf(q) >= 0;
+      });
+      if (!list.length) {
+        $("#users-table").innerHTML = head + '<tbody><tr><td colspan="7" style="text-align:center;color:var(--text-muted);padding:24px">' + (q ? 'No se encontraron usuarios para “' + esc(userSearch.trim()) + '”.' : "No hay usuarios.") + '</td></tr></tbody>';
+        return;
+      }
       var body = list.map(function (u) {
         var active = +u.active ? 1 : 0;
         return '<tr><td><b>' + esc(u.name) + '</b></td><td>' + esc(u.email) + '</td><td>' + esc(u.phone) + '</td><td>' + (u.orders || 0) + '</td>' +
@@ -514,10 +523,19 @@
       $("#services-table").innerHTML = head + '<tbody>' + body + '</tbody>';
     });
   }
+  var reviewSearch = "";
   function renderReviews() {
     var STR = { pendiente: "Pendiente", aprobada: "Aprobada", oculta: "Oculta" };
     var head = '<thead><tr><th>Cliente</th><th>Calificación</th><th>Comentario</th><th>Estado</th><th>Fecha</th><th></th></tr></thead>';
     DataSource.reviews().then(function (list) {
+      var q = (reviewSearch || "").trim().toLowerCase();
+      if (q) list = list.filter(function (r) {
+        return (String(r.name || "") + " " + String(r.comment || "")).toLowerCase().indexOf(q) >= 0;
+      });
+      if (!list.length) {
+        $("#reviews-table").innerHTML = head + '<tbody><tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:24px">' + (q ? 'No se encontraron reseñas para “' + esc(reviewSearch.trim()) + '”.' : "No hay reseñas.") + '</td></tr></tbody>';
+        return;
+      }
       var body = list.map(function (r) {
         var stars = "★★★★★".slice(0, r.rating) + "☆☆☆☆☆".slice(0, 5 - r.rating);
         var act = r.status === "aprobada" ? "hide" : "approve";
@@ -543,12 +561,20 @@
         return '<option value="' + k + '"' + (k === a.status ? " selected" : "") + '>' + APPT_STATUS[k] + '</option>';
       }).join("") + '</select>';
   }
+  var apptSearch = "";
   function renderAppointments(status, date) {
     var head = '<thead><tr><th>Folio</th><th>Servicio</th><th>Fecha</th><th>Hora</th><th>Cliente</th><th>Contacto</th><th>Estado</th></tr></thead>';
     DataSource.appointments(status || "", date || "").then(function (list) {
       var t = $("#appts-table");
       if (!t) return;
-      if (!list.length) { t.innerHTML = head + '<tbody><tr><td colspan="7" style="text-align:center;color:var(--text-muted);padding:24px">No hay citas para este filtro.</td></tr></tbody>'; return; }
+      var q = (apptSearch || "").trim().toLowerCase();
+      if (q) list = list.filter(function (a) {
+        return (String(a.contact_name || "") + " " + String(a.account_name || "") + " " + String(a.code || "")).toLowerCase().indexOf(q) >= 0;
+      });
+      if (!list.length) {
+        var msg = q ? 'No se encontraron citas para “' + esc(apptSearch.trim()) + '”.' : "No hay citas para este filtro.";
+        t.innerHTML = head + '<tbody><tr><td colspan="7" style="text-align:center;color:var(--text-muted);padding:24px">' + msg + '</td></tr></tbody>'; return;
+      }
       var canPdf = !!window.OKCitaTicketDownload;
       var body = list.map(function (a, i) {
         var contacto = esc(a.contact_phone || "") + (a.contact_email ? '<br><span style="color:var(--text-muted);font-size:.82rem">' + esc(a.contact_email) + '</span>' : "");
@@ -751,6 +777,21 @@
     if (apptDateEl) apptDateEl.addEventListener("change", function () {
       apptDate = apptDateEl.value;
       renderAppointments(apptStatus, apptDate);
+    });
+    var apptSearchEl = $("#appt-search");
+    if (apptSearchEl) apptSearchEl.addEventListener("input", function () {
+      apptSearch = apptSearchEl.value;
+      renderAppointments(apptStatus, apptDate);
+    });
+    var userSearchEl = $("#user-search");
+    if (userSearchEl) userSearchEl.addEventListener("input", function () {
+      userSearch = userSearchEl.value;
+      renderUsers();
+    });
+    var reviewSearchEl = $("#review-search");
+    if (reviewSearchEl) reviewSearchEl.addEventListener("input", function () {
+      reviewSearch = reviewSearchEl.value;
+      renderReviews();
     });
 
     /* ── Reportes: periodo (día/semana/mes) + fecha + descarga PDF ── */

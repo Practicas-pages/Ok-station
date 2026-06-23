@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
 
   <!-- Modo mantenimiento: bloquea el acceso directo sin credenciales válidas -->
-  <script src="assets/site-guard.js?v=20260703"></script>
+  <script src="assets/site-guard.js?v=20260808"></script>
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="robots" content="noindex, nofollow">
@@ -12,8 +12,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap">
-  <link rel="stylesheet" href="styles.css?v=20260703">
-  <link rel="stylesheet" href="assets/admin.css?v=20260703">
+  <link rel="stylesheet" href="styles.css?v=20260808">
+  <link rel="stylesheet" href="assets/admin.css?v=20260808">
 </head>
 <body class="admin">
 
@@ -128,6 +128,7 @@
             <button class="chip" data-status="cancelada">Canceladas</button>
             <button class="chip" data-status="no_show">No asistió</button>
           </div>
+          <input type="search" class="admin-search" id="appt-search" placeholder="Buscar por cliente o folio…" aria-label="Buscar cita por cliente o folio" autocomplete="off">
           <input type="date" class="admin-date" id="appt-date-filter" aria-label="Filtrar por fecha">
         </div>
         <div class="admin-card">
@@ -137,6 +138,9 @@
 
       <!-- USUARIOS / SERVICIOS / RESEÑAS (estructura lista, datos simulados) -->
       <section data-view="usuarios" hidden>
+        <div class="admin-toolbar">
+          <input type="search" class="admin-search" id="user-search" placeholder="Buscar por nombre, correo o teléfono…" aria-label="Buscar usuario" autocomplete="off">
+        </div>
         <div class="admin-card"><div class="table-wrap"><table class="admin-table" id="users-table"></table></div></div>
       </section>
 
@@ -145,6 +149,9 @@
       </section>
 
       <section data-view="resenas" hidden>
+        <div class="admin-toolbar">
+          <input type="search" class="admin-search" id="review-search" placeholder="Buscar por cliente o comentario…" aria-label="Buscar reseña" autocomplete="off">
+        </div>
         <div class="admin-card"><div class="table-wrap"><table class="admin-table" id="reviews-table"></table></div></div>
       </section>
 
@@ -174,7 +181,7 @@
   <!-- Librerías para el comprobante PDF de cita -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" defer></script>
-  <script src="assets/cita-ticket.js?v=20260703" defer></script>
-  <script src="assets/admin.js?v=20260703" defer></script>
+  <script src="assets/cita-ticket.js?v=20260808" defer></script>
+  <script src="assets/admin.js?v=20260808" defer></script>
 </body>
 </html>
