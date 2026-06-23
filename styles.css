@@ -4759,3 +4759,49 @@ section[id] { scroll-margin-top: 84px; }
 
 /* ── Servicios: descripción más grande ── */
 .service-card p { font-size: 15px; line-height: 1.55; }
+
+/* ============================================================
+   29. LIENZO CONTINUO + DEGRADADO POR SCROLL (Brand Book)
+   Toda la página es UN solo lienzo de azules/gris que se va
+   degradando al bajar. Se eliminan los fondos por sección (efecto
+   "diapositiva") y las ondas/líneas azul-púrpura. Solo paleta oficial.
+   ============================================================ */
+/* El html lleva un color base para que el degradado del body NO se
+   propague al canvas como fijo: así se "revela" al hacer scroll. */
+html { background: #EAF2FB; }
+body {
+  background: linear-gradient(180deg,
+    #FFFFFF 0%,
+    #EAF2FB 14%,
+    #DBDBDB 32%,
+    #D4E8FB 50%,
+    #BEDDF7 68%,
+    #A6D2F4 84%,
+    #8FC7F1 100%);
+  background-repeat: no-repeat;
+  background-attachment: scroll;   /* se mueve con el contenido → cambia al scrollear */
+}
+body::before { display: none !important; }   /* fuera la aurora fija (azul/púrpura) */
+
+/* Secciones sin fondo propio ni líneas que las dividan → lienzo continuo */
+.hero,
+.section,
+.section--alt { background: transparent !important; }
+/* La sección de Citas conserva tema oscuro (texto claro) pero en AZUL profundo
+   de la marca (no navy negruzco), para mantenerse dentro de la paleta. */
+.citas-section { background: linear-gradient(180deg, #082A6E 0%, #04153C 100%) !important; }
+
+/* Fuera las ondas/auroras (las "líneas" azul y púrpura) y los tintes por sección */
+.section::after,
+.section--alt::after,
+.section--alt::before,
+.hero::after,
+.hero__bg-overlay { display: none !important; }
+
+/* Brillo de las zonas oscuras (citas/footer): solo azul/púrpura, sin cian */
+.citas-section::before,
+.site-footer::before {
+  background:
+    radial-gradient(60% 80% at 12% 18%, rgba(156, 29, 255, 0.18), transparent 60%),
+    radial-gradient(55% 75% at 88% 28%, rgba(6, 108, 255, 0.20), transparent 60%) !important;
+}
