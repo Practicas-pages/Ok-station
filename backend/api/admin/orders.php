@@ -32,7 +32,7 @@ $moneyCols = $canSeeMoney
     ? ', o.payment_provider, o.payment_reference, o.payment_amount, o.payment_date, o.payment_transaction_id'
     : '';
 
-$sql = "SELECT o.id, o.code, o.status, o.total, $payCol DATE(o.created_at) AS date,
+$sql = "SELECT o.id, o.user_id, o.code, o.status, o.total, $payCol DATE(o.created_at) AS date,
                u.full_name AS client,
                (SELECT COUNT(*) FROM order_items oi WHERE oi.order_id = o.id) AS items
                $moneyCols

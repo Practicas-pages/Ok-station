@@ -52,6 +52,12 @@
     var s = status || "pendiente";
     return '<span class="badge badge--pay-' + s + '">' + esc(PAY_STATUS[s] || s) + '</span>';
   }
+  /* Nombre de cliente: enlace al historial si tiene cuenta (user_id); si es invitado, texto plano. */
+  function clientCell(userId, name) {
+    return userId
+      ? '<button type="button" class="client-link" data-uview="' + esc(userId) + '">' + esc(name) + '</button>'
+      : '<b>' + esc(name || "—") + '</b>';
+  }
 
   /* ============================================================
      CAPA DE DATOS (simulada). Aquí se conecta el backend real.
@@ -287,7 +293,7 @@
       var refCell = money
         ? '<td class="mono" style="font-size:.78rem;color:var(--text-muted)">' + (o.payment_reference ? esc(o.payment_reference) : "—") + '</td>'
         : '';
-      return '<tr><td class="mono">' + esc(o.code) + '</td><td><b>' + esc(o.client) + '</b></td><td>' + o.items + '</td>' +
+      return '<tr><td class="mono">' + esc(o.code) + '</td><td>' + clientCell(o.user_id, o.client) + '</td><td>' + o.items + '</td>' +
         '<td class="mono">' + mxn(o.total) + '</td><td>' + statusCell + '</td>' +
         '<td>' + payBadge(o.payment_status) + '</td>' + refCell + '<td>' + esc(o.date) + '</td>' +
         '<td><button class="admin-btn-sm" data-view-order="' + esc(o.id || o.code) + '">Previsualizar</button></td></tr>';
@@ -460,12 +466,45 @@
       b.addEventListener("click", function () { viewOrder(b.dataset.viewOrder); });
     });
   }
+  /* Abre el historial del cliente al hacer clic en su nombre (en Pedidos y Citas). */
+  function bindClientLinks(scope) {
+    $$(".client-link[data-uview]", scope).forEach(function (b) {
+      b.addEventListener("click", function () { viewUser(b.dataset.uview); });
+    });
+  }
 
   function renderRecentOrders() {
     DataSource.orders("").then(function (list) {
       var host = $("#recent-orders");
       host.innerHTML = ordersRows(list.slice(0, 5), false);
       bindOrderView(host);
+      bindClientLinks(host);
+    });
+  }
+
+  /* Citas próximas (Dashboard): las más cercanas en fecha/hora, para que el
+     empleado sepa qué sigue. Cada fila lleva a esa cita en su tabla. */
+  function renderUpcoming(list) {
+    var host = $("#upcoming-appts");
+    if (!host) return;
+    list = list || [];
+    var head = '<thead><tr><th>Cuándo</th><th>Servicio</th><th>Cliente</th><th>Estado</th></tr></thead>';
+    if (!list.length) {
+      host.innerHTML = head + '<tbody><tr><td colspan="4" style="text-align:center;color:var(--text-muted);padding:20px">No hay citas próximas.</td></tr></tbody>';
+      return;
+    }
+    var today = todayStr();
+    var body = list.map(function (a) {
+      var when = (a.date === today ? '<b style="color:var(--brand-blue)">Hoy</b>' : esc(a.date)) + ' · <b class="mono">' + esc(a.time) + '</b>';
+      return '<tr class="upcoming-row" data-gocita="' + esc(a.code) + '" style="cursor:pointer">' +
+        '<td>' + when + '</td>' +
+        '<td>' + esc(TRAMITE_LABEL[a.tramite] || a.tramite) + '</td>' +
+        '<td><b>' + esc(a.contact_name) + '</b></td>' +
+        '<td>' + badge(a.status, APPT_STATUS) + '</td></tr>';
+    }).join("");
+    host.innerHTML = head + '<tbody>' + body + '</tbody>';
+    $$("[data-gocita]", host).forEach(function (b) {
+      b.addEventListener("click", function () { goToAppt(b.dataset.gocita); });
     });
   }
   /* Estado actual de la vista Pedidos: chip de estado, chip de pago y búsqueda. */
@@ -489,6 +528,7 @@
       t.innerHTML = ordersRows(list, true);
       bindStatusSelects(t);
       bindOrderView(t);
+      bindClientLinks(t);
     });
   }
   var userSearch = "";
@@ -535,12 +575,12 @@
     var orders = (d.orders || []);
     var oTable = orders.length
       ? '<div class="table-wrap"><table class="admin-table"><thead><tr><th>Folio</th><th>Estado</th><th>Total</th><th>Archivos</th><th>Fecha</th></tr></thead><tbody>' +
-        orders.map(function (o) { return '<tr><td class="mono">' + esc(o.code) + '</td><td>' + badge(o.status) + '</td><td class="mono">' + mxn(o.total || 0) + '</td><td>' + (o.items || 0) + '</td><td>' + esc(o.date) + '</td></tr>'; }).join("") + '</tbody></table></div>'
+        orders.map(function (o) { return '<tr><td class="mono"><button type="button" class="folio-link" data-goorder="' + esc(o.code) + '">' + esc(o.code) + '</button></td><td>' + badge(o.status) + '</td><td class="mono">' + mxn(o.total || 0) + '</td><td>' + (o.items || 0) + '</td><td>' + esc(o.date) + '</td></tr>'; }).join("") + '</tbody></table></div>'
       : '<p style="color:var(--text-muted);font-size:.88rem;margin:0">Sin pedidos.</p>';
     var appts = (d.appointments || []);
     var aTable = appts.length
       ? '<div class="table-wrap"><table class="admin-table"><thead><tr><th>Folio</th><th>Servicio</th><th>Fecha</th><th>Hora</th><th>Estado</th></tr></thead><tbody>' +
-        appts.map(function (a) { return '<tr><td class="mono">' + esc(a.code) + '</td><td>' + apptServiceCell(a) + '</td><td>' + esc(a.date) + '</td><td class="mono">' + esc(a.time) + '</td><td>' + badge(a.status, APPT_STATUS) + '</td></tr>'; }).join("") + '</tbody></table></div>'
+        appts.map(function (a) { return '<tr><td class="mono"><button type="button" class="folio-link" data-gocita="' + esc(a.code) + '">' + esc(a.code) + '</button></td><td>' + apptServiceCell(a) + '</td><td>' + esc(a.date) + '</td><td class="mono">' + esc(a.time) + '</td><td>' + badge(a.status, APPT_STATUS) + '</td></tr>'; }).join("") + '</tbody></table></div>'
       : '<p style="color:var(--text-muted);font-size:.88rem;margin:0">Sin citas.</p>';
     var svcs = (d.services || []);
     var svcList = svcs.length
@@ -572,6 +612,8 @@
     document.body.style.overflow = "hidden";
     ov.addEventListener("click", function (e) { if (e.target === ov) closeUserModal(); });
     $("#user-modal-close", ov).addEventListener("click", closeUserModal);
+    $$("[data-goorder]", ov).forEach(function (b) { b.addEventListener("click", function () { goToOrder(b.dataset.goorder); }); });
+    $$("[data-gocita]", ov).forEach(function (b) { b.addEventListener("click", function () { goToAppt(b.dataset.gocita); }); });
     document.addEventListener("keydown", escUserClose);
   }
   function viewUser(id) {
@@ -579,6 +621,22 @@
       if (!res || !res.ok) { window.alert("No se pudo cargar el historial del usuario."); return; }
       openUserModal(res);
     }).catch(function () { window.alert("Sin conexión al cargar el historial."); });
+  }
+  /* Desde el historial: ir directo al pedido/cita en su tabla (con su selector de
+     estado y botón de detalle), buscándolo por folio. */
+  function goToOrder(code) {
+    closeUserModal();
+    showView("pedidos");
+    orderSearch = code;
+    var el = $("#order-search"); if (el) el.value = code;
+    renderOrdersTable();
+  }
+  function goToAppt(code) {
+    closeUserModal();
+    showView("citas");
+    apptSearch = code;
+    var el = $("#appt-search"); if (el) el.value = code;
+    renderAppointments("", "");
   }
   function renderServices() {
     var head = '<thead><tr><th>Servicio</th><th>Categoría</th><th>Precio</th><th>Unidad</th><th>Estado</th><th></th></tr></thead>';
@@ -652,7 +710,7 @@
           '<td>' + apptServiceCell(a) + '</td>' +
           '<td>' + esc(a.date) + '</td>' +
           '<td class="mono">' + esc(a.time) + '</td>' +
-          '<td><b>' + esc(a.contact_name) + '</b>' + (a.account_name ? '' : ' <span style="color:var(--text-muted);font-size:.78rem">(invitado)</span>') + '</td>' +
+          '<td>' + clientCell(a.user_id, a.contact_name) + (a.account_name ? '' : ' <span style="color:var(--text-muted);font-size:.78rem">(invitado)</span>') + '</td>' +
           '<td>' + contacto + '</td>' +
           '<td>' + apptStatusSelect(a) + (canPdf ? ' <button type="button" class="appt-pdf" data-i="' + i + '">PDF</button>' : '') + '</td>' +
         '</tr>';
@@ -669,6 +727,7 @@
           if (a) window.OKCitaTicketDownload({ code: a.code, tramite: a.tramite, passport_subtype: a.passport_subtype, party_size: a.party_size, date: a.date, time: a.time, status: a.status, name: a.contact_name, phone: a.contact_phone });
         });
       });
+      bindClientLinks(t);
     });
   }
 
@@ -810,6 +869,7 @@
       renderStats(d.stats);
       renderSalesChart(d.sales7);
       renderServiceBars(d.topServices);
+      renderUpcoming(d.upcoming);
     });
     renderRecentOrders();
     loadDashboardCounts();
