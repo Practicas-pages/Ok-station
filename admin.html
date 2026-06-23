@@ -82,23 +82,28 @@
       <!-- DASHBOARD -->
       <section data-view="dashboard">
         <div class="stat-grid" id="stat-grid"></div>
-        <div class="admin-cols">
+
+        <!-- Operativo: lo que el empleado necesita atender primero -->
+        <div class="admin-cols admin-cols--ops">
           <div class="admin-card">
-            <div class="admin-card__head"><h3>Ventas (últimos 7 días)</h3><span class="admin-card__hint">MXN</span></div>
-            <div id="chart-sales" class="chart"></div>
+            <div class="admin-card__head"><h3>Citas próximas</h3><button class="admin-link" data-goto="citas">Ver todas →</button></div>
+            <div class="table-wrap"><table class="admin-table" id="upcoming-appts"></table></div>
           </div>
           <div class="admin-card">
             <div class="admin-card__head"><h3>Servicios más solicitados</h3></div>
             <div id="chart-services" class="barlist"></div>
           </div>
         </div>
-        <div class="admin-card">
-          <div class="admin-card__head"><h3>Citas próximas</h3><button class="admin-link" data-goto="citas">Ver todas →</button></div>
-          <div class="table-wrap"><table class="admin-table" id="upcoming-appts"></table></div>
-        </div>
+
         <div class="admin-card">
           <div class="admin-card__head"><h3>Pedidos recientes</h3><button class="admin-link" data-goto="pedidos">Ver todos →</button></div>
           <div class="table-wrap"><table class="admin-table" id="recent-orders"></table></div>
+        </div>
+
+        <!-- Analítica -->
+        <div class="admin-card">
+          <div class="admin-card__head"><h3>Ventas (últimos 7 días)</h3><span class="admin-card__hint">MXN</span></div>
+          <div id="chart-sales" class="chart"></div>
         </div>
       </section>
 
