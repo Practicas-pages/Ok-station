@@ -10,6 +10,8 @@
   var DEMO = false;                      // PRODUCCIÓN: usa el API real (/backend/api/reviews/*)
   var API = "/backend/api/reviews";
   var LS = "okstation.reviews.demo";
+  /* Reseñas de Google vía Featurable (gratis, sin tarjeta). ID público del widget. */
+  var FEATURABLE_ID = "30bf3581-fa31-45bf-b825-63cf9e6bb10e";
 
   /* ── Sesión (compartida con auth.js) ── */
   function token() { try { return localStorage.getItem("okstation.token"); } catch (e) { return null; } }
@@ -25,6 +27,11 @@
   var $ = function (s, c) { return (c || document).querySelector(s); };
   function esc(s) { var d = document.createElement("div"); d.textContent = String(s == null ? "" : s); return d.innerHTML; }
   function initials(name) { return String(name || "?").trim().split(/\s+/).map(function (w) { return w[0]; }).slice(0, 2).join("").toUpperCase(); }
+  function fmtDate(iso) {
+    if (!iso) return "";
+    try { return new Date(iso).toLocaleDateString("es-MX", { month: "short", year: "numeric" }); }
+    catch (e) { return ""; }
+  }
 
   /* ============================================================
      CAPA DE DATOS (demo localStorage | API real)
@@ -77,6 +84,31 @@
         return Promise.resolve({ ok: true });
       }
       return apiPost(API + "/delete.php", { id: id });
+    },
+    /* Reseñas de Google vía Featurable (público, solo lectura). Degrada a [] si falla. */
+    google: function () {
+      if (!FEATURABLE_ID) return Promise.resolve({ reviews: [] });
+      return fetch("https://api.featurable.com/v2/widgets/" + FEATURABLE_ID)
+        .then(function (r) { return r.json(); })
+        .then(function (j) {
+          if (!j || j.isExampleReviews) return { reviews: [] };  // no mostrar reseñas de ejemplo
+          var src = j.reviews || [];
+          return {
+            reviews: src.map(function (rv) {
+              var a = rv.author || {};
+              var rt = rv.rating || {};
+              return {
+                author: a.name || "Usuario de Google",
+                rating: rt.value || 0,
+                comment: rv.originalText || rv.text || "",   // prioriza el idioma original (español)
+                photo: a.avatarUrl || "",
+                url: rv.url || a.profileUrl || "",
+                time_desc: fmtDate(rv.publishedAt)
+              };
+            })
+          };
+        })
+        .catch(function () { return { reviews: [] }; });
     }
   };
   function apiPost(url, body) {
@@ -185,18 +217,35 @@
     if (!grid) return;
     if (!list.length) { grid.innerHTML = ""; if (empty) empty.hidden = false; return; }
     if (empty) empty.hidden = true;
+    var GOOGLE_G = '<svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">' +
+      '<path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>' +
+      '<path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>' +
+      '<path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/>' +
+      '<path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>';
+
     grid.innerHTML = list.map(function (r) {
-      var actions = r.mine
+      var isGoogle = r.source === "google";
+      var actions = (r.mine && !isGoogle)
         ? '<div class="testimonio-card__actions">' +
             '<button type="button" class="review-act" data-act="edit" data-id="' + esc(r.id) + '" aria-label="Editar reseña"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 013 3L7 19l-4 1 1-4 12.5-12.5z"/></svg></button>' +
             '<button type="button" class="review-act review-act--danger" data-act="del" data-id="' + esc(r.id) + '" aria-label="Eliminar reseña"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg></button>' +
           '</div>'
         : "";
-      return '<article class="testimonio-card' + (r.mine ? " is-mine" : "") + '">' +
+      var badge = !isGoogle
+        ? '<span class="review-source review-source--ok">OK.station</span>'
+        : (r.url
+            ? '<a class="review-source review-source--google" href="' + esc(r.url) + '" target="_blank" rel="noopener" aria-label="Ver reseña en Google">' + GOOGLE_G + 'Google</a>'
+            : '<span class="review-source review-source--google">' + GOOGLE_G + 'Google</span>');
+      var avatar = (isGoogle && r.photo)
+        ? '<img class="testimonio-author__avatar testimonio-author__avatar--img" src="' + esc(r.photo) + '" alt="" loading="lazy" referrerpolicy="no-referrer">'
+        : '<span class="testimonio-author__avatar" aria-hidden="true">' + esc(initials(r.author)) + '</span>';
+      var sub = isGoogle ? ("Reseña en Google" + (r.time_desc ? " · " + esc(r.time_desc) : "")) : "Cliente · Tijuana";
+      return '<article class="testimonio-card' + (r.mine ? " is-mine" : "") + (isGoogle ? " testimonio-card--google" : "") + '">' +
         '<div class="testimonio-card__top">' + starsRow(r.rating) + actions + '</div>' +
         '<blockquote>' + esc(r.comment) + '</blockquote>' +
-        '<div class="testimonio-author"><span class="testimonio-author__avatar" aria-hidden="true">' + esc(initials(r.author)) + '</span>' +
-        '<div><b>' + esc(r.author) + '</b><span>Cliente · Tijuana</span></div></div></article>';
+        '<div class="testimonio-author">' + avatar +
+        '<div><b>' + esc(r.author) + '</b><span>' + sub + '</span></div>' +
+        badge + '</div></article>';
     }).join("");
 
     grid._all = list;
@@ -215,9 +264,21 @@
   }
 
   function load() {
-    Data.list().then(function (res) {
-      if (res && res.ok === false) { showReviewsError(res.error || "No se pudieron cargar las reseñas."); return; }
-      var list = (res && res.reviews) || [];
+    Promise.all([
+      Data.list().catch(function () { return { reviews: [] }; }),
+      Data.google().catch(function () { return { reviews: [] }; })
+    ]).then(function (out) {
+      var nativeRes = out[0] || {};
+      if (nativeRes.ok === false) { showReviewsError(nativeRes.error || "No se pudieron cargar las reseñas."); return; }
+      var nativeList = (nativeRes.reviews || []).map(function (r) { r.source = "okstation"; return r; });
+      var g = out[1] || {};
+      var googleList = (g.reviews || []).map(function (r, i) {
+        return {
+          id: "g-" + i, rating: r.rating, comment: r.comment, author: r.author,
+          photo: r.photo, time_desc: r.time_desc, url: r.url, source: "google", mine: false
+        };
+      });
+      var list = nativeList.concat(googleList);
       renderSummary(list);
       renderGrid(list);
       renderAction();

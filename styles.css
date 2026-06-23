@@ -4703,5 +4703,26 @@ section[id] { scroll-margin-top: 84px; }
   .testimonios-grid { grid-template-columns: 1fr; }
 }
 
+/* ── Reseñas: distinguir el origen (Google vs propias) ── */
+.review-source {
+  margin-left: auto;
+  align-self: center;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: var(--radius-full);
+  white-space: nowrap;
+  text-decoration: none;
+  flex-shrink: 0;
+}
+.review-source--google { background: #fff; color: #3c4043; border: 1px solid var(--border-light); }
+.review-source--google:hover { background: #f8f9fa; }
+.review-source--ok { background: var(--brand-blue-light); color: var(--brand-blue); }
+/* Avatar con foto real (Google) en vez de iniciales */
+.testimonio-author__avatar--img { object-fit: cover; background: none; padding: 0; }
+
 /* ── Servicios: descripción más grande ── */
 .service-card p { font-size: 15px; line-height: 1.55; }
