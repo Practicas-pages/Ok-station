@@ -126,6 +126,9 @@
 /* Nombre de cliente clickeable (abre su historial) */
 .client-link { background: none; border: none; padding: 0; font: inherit; font-weight: 700; color: var(--brand-blue); cursor: pointer; text-align: left; }
 .client-link:hover { text-decoration: underline; }
+/* Folio clickeable dentro del modal de historial (va al pedido/cita en su tabla) */
+.folio-link { background: none; border: none; padding: 0; font: inherit; color: var(--brand-blue); font-weight: 600; cursor: pointer; }
+.folio-link:hover { text-decoration: underline; }
 
 /* ── Gráfica de barras (SVG) ── */
 .chart { padding: 18px 20px; }

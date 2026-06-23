@@ -549,12 +549,12 @@
     var orders = (d.orders || []);
     var oTable = orders.length
       ? '<div class="table-wrap"><table class="admin-table"><thead><tr><th>Folio</th><th>Estado</th><th>Total</th><th>Archivos</th><th>Fecha</th></tr></thead><tbody>' +
-        orders.map(function (o) { return '<tr><td class="mono">' + esc(o.code) + '</td><td>' + badge(o.status) + '</td><td class="mono">' + mxn(o.total || 0) + '</td><td>' + (o.items || 0) + '</td><td>' + esc(o.date) + '</td></tr>'; }).join("") + '</tbody></table></div>'
+        orders.map(function (o) { return '<tr><td class="mono"><button type="button" class="folio-link" data-goorder="' + esc(o.code) + '">' + esc(o.code) + '</button></td><td>' + badge(o.status) + '</td><td class="mono">' + mxn(o.total || 0) + '</td><td>' + (o.items || 0) + '</td><td>' + esc(o.date) + '</td></tr>'; }).join("") + '</tbody></table></div>'
       : '<p style="color:var(--text-muted);font-size:.88rem;margin:0">Sin pedidos.</p>';
     var appts = (d.appointments || []);
     var aTable = appts.length
       ? '<div class="table-wrap"><table class="admin-table"><thead><tr><th>Folio</th><th>Servicio</th><th>Fecha</th><th>Hora</th><th>Estado</th></tr></thead><tbody>' +
-        appts.map(function (a) { return '<tr><td class="mono">' + esc(a.code) + '</td><td>' + apptServiceCell(a) + '</td><td>' + esc(a.date) + '</td><td class="mono">' + esc(a.time) + '</td><td>' + badge(a.status, APPT_STATUS) + '</td></tr>'; }).join("") + '</tbody></table></div>'
+        appts.map(function (a) { return '<tr><td class="mono"><button type="button" class="folio-link" data-gocita="' + esc(a.code) + '">' + esc(a.code) + '</button></td><td>' + apptServiceCell(a) + '</td><td>' + esc(a.date) + '</td><td class="mono">' + esc(a.time) + '</td><td>' + badge(a.status, APPT_STATUS) + '</td></tr>'; }).join("") + '</tbody></table></div>'
       : '<p style="color:var(--text-muted);font-size:.88rem;margin:0">Sin citas.</p>';
     var svcs = (d.services || []);
     var svcList = svcs.length
@@ -586,6 +586,8 @@
     document.body.style.overflow = "hidden";
     ov.addEventListener("click", function (e) { if (e.target === ov) closeUserModal(); });
     $("#user-modal-close", ov).addEventListener("click", closeUserModal);
+    $$("[data-goorder]", ov).forEach(function (b) { b.addEventListener("click", function () { goToOrder(b.dataset.goorder); }); });
+    $$("[data-gocita]", ov).forEach(function (b) { b.addEventListener("click", function () { goToAppt(b.dataset.gocita); }); });
     document.addEventListener("keydown", escUserClose);
   }
   function viewUser(id) {
@@ -593,6 +595,22 @@
       if (!res || !res.ok) { window.alert("No se pudo cargar el historial del usuario."); return; }
       openUserModal(res);
     }).catch(function () { window.alert("Sin conexión al cargar el historial."); });
+  }
+  /* Desde el historial: ir directo al pedido/cita en su tabla (con su selector de
+     estado y botón de detalle), buscándolo por folio. */
+  function goToOrder(code) {
+    closeUserModal();
+    showView("pedidos");
+    orderSearch = code;
+    var el = $("#order-search"); if (el) el.value = code;
+    renderOrdersTable();
+  }
+  function goToAppt(code) {
+    closeUserModal();
+    showView("citas");
+    apptSearch = code;
+    var el = $("#appt-search"); if (el) el.value = code;
+    renderAppointments("", "");
   }
   function renderServices() {
     var head = '<thead><tr><th>Servicio</th><th>Categoría</th><th>Precio</th><th>Unidad</th><th>Estado</th><th></th></tr></thead>';
