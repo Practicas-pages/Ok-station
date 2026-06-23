@@ -1373,6 +1373,9 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Panel del wizard */
 .cita-panel {
+  /* min-width:0 permite que el panel (ítem del grid) encoja bajo el ancho de su
+     contenido; sin esto, el carrusel de trámites lo estira y desborda la página. */
+  min-width: 0;
   padding: clamp(20px, 3vw, 32px) clamp(20px, 3vw, 36px) clamp(24px, 3vw, 36px);
 }
 
