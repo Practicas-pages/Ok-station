@@ -1438,9 +1438,9 @@
       function update() {
         var overflow = track.scrollWidth - track.clientWidth > 4;
         prev.style.display = next.style.display = overflow ? "" : "none";
-        if (!overflow) return;
-        prev.disabled = track.scrollLeft <= 2;
-        next.disabled = track.scrollLeft >= (track.scrollWidth - track.clientWidth - 2);
+        /* Loop infinito: las flechas nunca se deshabilitan; al llegar al borde, go() da la vuelta. */
+        prev.disabled = false;
+        next.disabled = false;
       }
 
       /* Desplazamiento suave con easing (más suave que el scroll nativo). */
@@ -1468,15 +1468,17 @@
          primer clic "se trabe"). */
       function posOf(el) { return el.getBoundingClientRect().left - track.getBoundingClientRect().left + track.scrollLeft; }
       function go(dir) {
-        var sl = track.scrollLeft, list = track.children, target = null, i, x;
+        var sl = track.scrollLeft, max = track.scrollWidth - track.clientWidth, list = track.children, target = null, i, x;
         if (dir > 0) {
+          if (sl >= max - 2) { glide(0); return; }   /* fin → vuelve al inicio (loop infinito) */
           for (i = 0; i < list.length; i++) { x = posOf(list[i]); if (x > sl + 2) { target = x; break; } }
-          if (target === null) target = track.scrollWidth;
+          if (target === null) target = max;
         } else {
+          if (sl <= 2) { glide(max); return; }        /* inicio → salta al final (loop infinito) */
           for (i = list.length - 1; i >= 0; i--) { x = posOf(list[i]); if (x < sl - 2) { target = x; break; } }
           if (target === null) target = 0;
         }
-        glide(target);
+        glide(Math.min(target, max));
       }
       prev.addEventListener("click", function () { go(-1); });
       next.addEventListener("click", function () { go(1); });
