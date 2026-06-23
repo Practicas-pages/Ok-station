@@ -1462,14 +1462,18 @@
         }
         requestAnimationFrame(frame);
       }
-      /* Avanza/retrocede a la tarjeta siguiente/anterior (alineada). */
+      /* Avanza/retrocede a la tarjeta siguiente/anterior (alineada).
+         Usa getBoundingClientRect (posición real) en vez de offsetLeft: así NO depende
+         de qué elemento sea el offsetParent ni del padding del carrusel (evita que el
+         primer clic "se trabe"). */
+      function posOf(el) { return el.getBoundingClientRect().left - track.getBoundingClientRect().left + track.scrollLeft; }
       function go(dir) {
-        var sl = track.scrollLeft, list = track.children, target = null, i;
+        var sl = track.scrollLeft, list = track.children, target = null, i, x;
         if (dir > 0) {
-          for (i = 0; i < list.length; i++) { if (list[i].offsetLeft > sl + 2) { target = list[i].offsetLeft; break; } }
+          for (i = 0; i < list.length; i++) { x = posOf(list[i]); if (x > sl + 2) { target = x; break; } }
           if (target === null) target = track.scrollWidth;
         } else {
-          for (i = list.length - 1; i >= 0; i--) { if (list[i].offsetLeft < sl - 2) { target = list[i].offsetLeft; break; } }
+          for (i = list.length - 1; i >= 0; i--) { x = posOf(list[i]); if (x < sl - 2) { target = x; break; } }
           if (target === null) target = 0;
         }
         glide(target);

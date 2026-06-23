@@ -32,33 +32,4 @@ if (!empty($a['user_id'])) {
         ->execute([(int) $a['user_id'], 'appointment', 'Cita actualizada', 'Tu cita ' . $a['code'] . ' ahora está: ' . ($labels[$status] ?? $status) . '.']);
 }
 
-// Aviso por correo al cliente (cuenta o invitado vía contact_email). Best-effort.
-try {
-    require_once __DIR__ . '/../lib/Mailer.php';
-    $email = '';
-    $name  = (string) ($a['contact_name'] ?? '');
-    if (!empty($a['user_id'])) {
-        $cust = user_public((int) $a['user_id']);
-        if ($cust) { $email = (string) ($cust['email'] ?? ''); if (!empty($cust['full_name'])) $name = $cust['full_name']; }
-    }
-    if ($email === '') $email = trim((string) ($a['contact_email'] ?? ''));
-    if ($email !== '') {
-        $tramites = ['pasaporte' => 'Pasaporte', 'visa' => 'Visa Americana', 'sentri' => 'SENTRI / Global Entry', 'i94' => 'I-94 / Permiso de Viaje', 'curp' => 'CURP / Acta', 'ine' => 'INE / Credencial', 'licencia' => 'Licencia de Conducir', 'apostille' => 'Apostille / Traducción', 'medica' => 'Cita Médica / Examen'];
-        $sLabels = ['pendiente' => 'Pendiente', 'confirmada' => 'Confirmada', 'cancelada' => 'Cancelada', 'completada' => 'Completada', 'no_show' => 'No asistió'];
-        $extra = [
-            'confirmada' => '¡Tu cita está confirmada! Te esperamos en Centro Comercial Otay, Tijuana.',
-            'cancelada'  => 'Tu cita fue cancelada. Si necesitas reagendar, contáctanos.',
-            'completada' => 'Gracias por tu visita.',
-            'no_show'    => 'Registramos que no pudiste asistir. Escríbenos para reagendar.',
-        ];
-        $bodyTxt = 'Hola ' . $name . ",\n\n" .
-            'El estado de tu cita ' . $a['code'] . ' (' . ($tramites[$a['tramite']] ?? $a['tramite']) . ') cambió a: ' . ($sLabels[$status] ?? $status) . ".\n" .
-            'Fecha: ' . $a['appt_date'] . ' a las ' . substr((string) $a['appt_time'], 0, 5) . ".\n" .
-            (isset($extra[$status]) ? $extra[$status] . "\n" : '') .
-            ($note !== '' ? "\nNota: " . $note . "\n" : '') .
-            "\nGracias,\nOK.station — Centro Comercial Otay, Tijuana";
-        (new Mailer($CONFIG['smtp'] ?? []))->send($email, 'Tu cita en OK.station — ' . $a['code'], $bodyTxt);
-    }
-} catch (Throwable $e) { /* el correo no debe afectar la respuesta */ }
-
 respond(['ok' => true]);
