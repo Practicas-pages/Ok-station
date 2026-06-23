@@ -3,14 +3,17 @@
  * GET /backend/api/reviews/google.php
  * Proxy SERVER-SIDE de las reseñas de Google vía Featurable (gratis, sin tarjeta).
  * El navegador pide a NUESTRO servidor (mismo origen) y el servidor consulta a
- * Featurable. Así es inmune a CORS, caché del navegador, dominio de prueba, etc.
+ * Featurable. Inmune a CORS, caché del navegador, dominio de prueba, etc.
  * Cacheado ~24h en `settings`. Siempre responde 200 con una lista (vacía si falla).
+ *
+ * Diagnóstico: añade ?debug=1 para ver por qué falla la conexión saliente.
  */
 require __DIR__ . '/../_bootstrap.php';
 only_method('GET');
 
 /* ID PÚBLICO del widget de Featurable (no es secreto). */
 $WIDGET_ID = '30bf3581-fa31-45bf-b825-63cf9e6bb10e';
+$DEBUG = isset($_GET['debug']);
 
 const FEAT_CACHE_KEY = 'featurable_reviews_cache';
 const FEAT_TTL = 86400; // 24 h
@@ -33,9 +36,9 @@ function feat_date_es(?string $iso): string {
     return $m[(int) date('n', $ts)] . ' ' . date('Y', $ts);
 }
 
-/* ── Cache fresco ── */
+/* ── Cache fresco (se omite en modo debug) ── */
 $cachedRaw = feat_get(FEAT_CACHE_KEY);
-if ($cachedRaw) {
+if (!$DEBUG && $cachedRaw) {
     $c = json_decode($cachedRaw, true);
     if (is_array($c) && isset($c['_at']) && (time() - (int) $c['_at']) < FEAT_TTL) {
         unset($c['_at']);
@@ -46,6 +49,10 @@ if ($cachedRaw) {
 /* ── Consulta a Featurable (server-side) ── */
 $url = 'https://api.featurable.com/v2/widgets/' . rawurlencode($WIDGET_ID);
 $raw = false;
+$httpCode = 0;
+$curlErr = '';
+$via = '';
+
 if (function_exists('curl_init')) {
     $ch = curl_init($url);
     curl_setopt_array($ch, [
@@ -56,13 +63,51 @@ if (function_exists('curl_init')) {
         CURLOPT_USERAGENT      => 'OKstation/1.0',
     ]);
     $raw = curl_exec($ch);
+    $httpCode = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $curlErr = (string) curl_error($ch);
     curl_close($ch);
+    $via = 'curl';
+
+    /* Reintento sin verificación SSL si el certificado del servidor falla
+       (algunos servidores no traen el CA bundle actualizado). */
+    if ($raw === false && stripos($curlErr, 'SSL') !== false) {
+        $ch = curl_init($url);
+        curl_setopt_array($ch, [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_TIMEOUT        => 8,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_SSL_VERIFYPEER => false,
+            CURLOPT_USERAGENT      => 'OKstation/1.0',
+        ]);
+        $raw = curl_exec($ch);
+        $httpCode = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $curlErr = (string) curl_error($ch);
+        curl_close($ch);
+        $via = 'curl-no-ssl';
+    }
 }
 if ($raw === false) {
     $raw = @file_get_contents($url);
+    $via = $via ? $via . '+fgc' : 'fgc';
 }
 
 $data = $raw ? json_decode($raw, true) : null;
+
+/* ── Diagnóstico ── */
+if ($DEBUG) {
+    respond(['ok' => true, 'debug' => [
+        'curl_available'  => function_exists('curl_init'),
+        'via'             => $via,
+        'http_code'       => $httpCode,
+        'curl_error'      => $curlErr,
+        'raw_len'         => strlen((string) $raw),
+        'allow_url_fopen' => (bool) ini_get('allow_url_fopen'),
+        'parsed_ok'       => is_array($data),
+        'api_success'     => is_array($data) ? ($data['success'] ?? null) : null,
+        'is_example'      => is_array($data) ? ($data['isExampleReviews'] ?? null) : null,
+        'review_count'    => (is_array($data) && isset($data['reviews']) && is_array($data['reviews'])) ? count($data['reviews']) : 0,
+    ]]);
+}
 
 /* Falla o reseñas de ejemplo → devuelve cache viejo si hay; si no, vacío. */
 if (!is_array($data) || empty($data['success']) || !empty($data['isExampleReviews'])) {
@@ -77,7 +122,7 @@ $reviews = [];
 foreach (($data['reviews'] ?? []) as $rv) {
     $a    = is_array($rv['author'] ?? null) ? $rv['author'] : [];
     $rt   = is_array($rv['rating'] ?? null) ? $rv['rating'] : [];
-    $text = trim((string) ($rv['originalText'] ?? $rv['text'] ?? '')); // prioriza idioma original
+    $text = trim((string) ($rv['originalText'] ?? $rv['text'] ?? ''));
     if ($text === '') continue;
     $reviews[] = [
         'author'    => (string) ($a['name'] ?? 'Usuario de Google'),
