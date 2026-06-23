@@ -31,23 +31,26 @@
    01. DESIGN TOKENS
    ============================================================ */
 :root {
-  /* ── Colores de marca OK Dock ── */
+  /* ── Colores de marca OK Dock (paleta ESTRICTA: azul, púrpura, gris, negro, blanco) ── */
   --brand-blue:        #066CFF;
   --brand-blue-hover:  #0558CC;
-  --brand-blue-light:  #E8F0FF;
+  --brand-blue-light:  #EAF1FF;
   --brand-purple:      #9C1DFF;
   --brand-purple-hover:#7B16CC;
-  --brand-cyan:        #00C6FF;
-  --brand-orange:      #FF7C19;
-  --brand-black:       #0A0A0F;
+  --brand-purple-light:#F3E9FF;
+  /* Cian y naranja quedan DEPRECADOS y mapeados a la paleta oficial (azul/púrpura)
+     para que cualquier uso heredado deje de salirse del Brand Book. */
+  --brand-cyan:        #066CFF;
+  --brand-orange:      #9C1DFF;
+  --brand-black:       #000000;
 
-  /* ── Gradientes oficiales ── */
-  --grad-brand:   linear-gradient(135deg, #9C1DFF 0%, #066CFF 55%, #00C6FF 100%);
-  --grad-blue:    linear-gradient(135deg, #066CFF 0%, #00C6FF 100%);
+  /* ── Gradientes oficiales (solo azul ↔ púrpura) ── */
+  --grad-brand:   linear-gradient(135deg, #9C1DFF 0%, #066CFF 100%);
+  --grad-blue:    linear-gradient(135deg, #066CFF 0%, #3B82FF 100%);
   --grad-purple:  linear-gradient(135deg, #9C1DFF 0%, #066CFF 100%);
-  --grad-warm:    linear-gradient(135deg, #FF7C19 0%, #9C1DFF 100%);
+  --grad-warm:    linear-gradient(135deg, #9C1DFF 0%, #066CFF 100%);
   --grad-hero-overlay: linear-gradient(135deg, rgba(6,108,255,0.92) 0%, rgba(156,29,255,0.85) 100%);
-  --grad-dark:    linear-gradient(180deg, #0A0A0F 0%, #12131a 100%);
+  --grad-dark:    linear-gradient(180deg, #000000 0%, #0B0B12 100%);
 
   /* ── Superficies y fondos ── */
   --surface-bg:       #F2F4F8;
@@ -1109,6 +1112,11 @@ h1, h2, h3, h4, h5, h6 {
   position: relative;
   overflow: hidden;
 }
+/* Uniformidad: la descripción crece y empuja etiquetas/enlace al fondo, de modo que
+   todas las tarjetas alinean su contenido aunque el texto tenga distinto largo. */
+.service-card > p { flex: 1 1 auto; }
+.service-card .service-tags { margin-top: var(--space-3); }
+.service-card .service-link { margin-top: var(--space-4); }
 
 .service-card:hover {
   transform: translateY(-6px);
@@ -1454,11 +1462,17 @@ h1, h2, h3, h4, h5, h6 {
     transform var(--transition-spring);
 }
 
-/* Acento por trámite */
-.tramite-btn[data-tramite="pasaporte"] { --taccent:#066CFF; --tgrad:var(--grad-blue);   --ttext:#8fb8ff; --ttagbg:rgba(6,108,255,0.20); }
-.tramite-btn[data-tramite="visa"]      { --taccent:#9C1DFF; --tgrad:var(--grad-purple); --ttext:#cba0ff; --ttagbg:rgba(156,29,255,0.22); }
-.tramite-btn[data-tramite="sentri"]    { --taccent:#14b8a6; --tgrad:linear-gradient(135deg,#00C6FF,#14b8a6); --ttext:#5fe0cf; --ttagbg:rgba(20,184,166,0.22); }
-.tramite-btn[data-tramite="i94"]       { --taccent:#FF7C19; --tgrad:linear-gradient(135deg,#FF7C19,#9C1DFF); --ttext:#ffc59a; --ttagbg:rgba(255,124,25,0.20); }
+/* Acento por trámite — SOLO azul/púrpura (Brand Book). Alternan para dar variedad
+   sin salirse de la paleta oficial. */
+.tramite-btn[data-tramite="pasaporte"],
+.tramite-btn[data-tramite="sentri"],
+.tramite-btn[data-tramite="curp"],
+.tramite-btn[data-tramite="licencia"],
+.tramite-btn[data-tramite="medica"]    { --taccent:#066CFF; --tgrad:var(--grad-blue);   --ttext:#8fb8ff; --ttagbg:rgba(6,108,255,0.20); }
+.tramite-btn[data-tramite="visa"],
+.tramite-btn[data-tramite="i94"],
+.tramite-btn[data-tramite="ine"],
+.tramite-btn[data-tramite="apostille"] { --taccent:#9C1DFF; --tgrad:var(--grad-purple); --ttext:#cba0ff; --ttagbg:rgba(156,29,255,0.22); }
 
 .tramite-btn__icon {
   width: 56px;
@@ -1844,13 +1858,13 @@ h1, h2, h3, h4, h5, h6 {
 /* Indicador de disponibilidad: además del color, cada nivel tiene una FORMA
    distinta (A1, daltónicos): círculo lleno = total, rombo = media, × = sin. */
 .okcal-dot { width: 7px; height: 7px; border-radius: 50%; position: relative; }
-.okcal-dot--full { background: #22C55E; }
-.okcal-dot--mid  { background: #F59E0B; border-radius: 1px; transform: rotate(45deg); }
+.okcal-dot--full { background: var(--brand-blue); }
+.okcal-dot--mid  { background: var(--brand-purple); border-radius: 1px; transform: rotate(45deg); }
 .okcal-dot--none { background: transparent; }
 .okcal-dot--none::before,
 .okcal-dot--none::after {
   content: ""; position: absolute; left: 50%; top: 50%;
-  width: 9px; height: 1.8px; background: #EF4444; border-radius: 1px;
+  width: 9px; height: 1.8px; background: var(--text-faint); border-radius: 1px;
 }
 .okcal-dot--none::before { transform: translate(-50%, -50%) rotate(45deg); }
 .okcal-dot--none::after  { transform: translate(-50%, -50%) rotate(-45deg); }
@@ -4189,7 +4203,7 @@ body {
 }
 /* Resaltado para secciones OSCURAS (cyan que contrasta sobre gradiente) */
 .hl--cyan {
-  background: linear-gradient(95deg, #00C6FF 0%, #6BA8FF 100%);
+  background: linear-gradient(95deg, #066CFF 0%, #9C1DFF 100%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
