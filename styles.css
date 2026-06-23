@@ -4776,16 +4776,17 @@ section[id] { scroll-margin-top: 84px; }
    propague al canvas como fijo: así se "revela" al hacer scroll. */
 html { background: #EAF2FB; }
 body {
-  /* Evoca los dos fondos oficiales (Azul → Púrpura) en tono claro para mantener
-     legible el texto oscuro de las secciones que van sobre el lienzo. */
+  /* Gradiente OFICIAL vívido recorrido con el scroll: azul → púrpura → naranja → rosa.
+     El texto sobre el lienzo va en blanco (ver overrides abajo); el contenido vive
+     en tarjetas blancas que resaltan sobre el color. */
   background: linear-gradient(180deg,
-    #FFFFFF 0%,
-    #EAF2FB 12%,
-    #DBDBDB 28%,
-    #DCEAFB 46%,
-    #CFE0FA 62%,
-    #DCD2FA 80%,
-    #E9DCFC 100%);
+    #066CFF 0%,
+    #0A57F0 14%,
+    #5A2BF5 32%,
+    #9C1DFF 50%,
+    #C42AC0 66%,
+    #FF5A3C 84%,
+    #FF4D8D 100%);
   background-repeat: no-repeat;
   background-attachment: scroll;   /* se mueve con el contenido → cambia al scrollear */
 }
@@ -4813,3 +4814,41 @@ body::before { display: none !important; }   /* fuera la aurora fija (azul/púrp
     radial-gradient(60% 80% at 12% 18%, rgba(156, 29, 255, 0.18), transparent 60%),
     radial-gradient(55% 75% at 88% 28%, rgba(6, 108, 255, 0.20), transparent 60%) !important;
 }
+
+/* ── Texto sobre el lienzo vívido → BLANCO ──
+   Los encabezados de sección y el hero van directamente sobre el degradado, así que
+   se ponen en blanco. El contenido vive en tarjetas blancas y conserva su texto oscuro. */
+.section-head .eyebrow,
+.section-head .text-h2,
+.section-head .text-lead { color: #fff !important; }
+.section-head .eyebrow::before { background: #fff !important; }
+.section-head .hl,
+.section-head .hl--cyan {
+  background: none !important;
+  -webkit-text-fill-color: #fff !important;
+  color: #fff !important;
+}
+/* Hero */
+.hero__eyebrow {
+  color: #fff !important;
+  background: rgba(255,255,255,0.16) !important;
+  border-color: rgba(255,255,255,0.40) !important;
+}
+.hero__title { color: #fff !important; }
+.hero__title .accent {
+  background: none !important;
+  -webkit-text-fill-color: #fff !important;
+  color: #fff !important;
+}
+.hero__lead { color: rgba(255,255,255,0.92) !important; }
+.hero__stats { border-top-color: rgba(255,255,255,0.25) !important; }
+.hero__stat b { color: #fff !important; }
+.hero__stat span { color: rgba(255,255,255,0.82) !important; }
+.hero__scroll { color: rgba(255,255,255,0.90) !important; }
+/* Reseñas: resumen/estado vacío van sobre el lienzo → texto blanco (las estrellas
+   conservan su color propio). Las tarjetas de reseña son blancas y no se tocan. */
+.reviews-empty,
+.reviews-bar,
+.reviews-bar .rating-summary,
+.rating-summary__label,
+.rating-summary__count { color: #fff !important; }
