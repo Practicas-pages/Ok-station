@@ -4776,17 +4776,17 @@ section[id] { scroll-margin-top: 84px; }
    propague al canvas como fijo: así se "revela" al hacer scroll. */
 html { background: #EAF2FB; }
 body {
-  /* Gradiente OFICIAL vívido recorrido con el scroll: azul → púrpura → naranja → rosa.
-     El texto sobre el lienzo va en blanco (ver overrides abajo); el contenido vive
-     en tarjetas blancas que resaltan sobre el color. */
+  /* Paleta de AZULES recorrida con el scroll: del azul más claro arriba al azul de
+     marca abajo. Se mantiene en rango claro/medio para que el texto oscuro de los
+     encabezados siga siendo legible; el contenido vive en tarjetas blancas. */
   background: linear-gradient(180deg,
-    #066CFF 0%,
-    #0A57F0 14%,
-    #5A2BF5 32%,
-    #9C1DFF 50%,
-    #C42AC0 66%,
-    #FF5A3C 84%,
-    #FF4D8D 100%);
+    #E6F0F9 0%,
+    #CFE0EE 14%,
+    #AED5F2 32%,
+    #8FC9F0 50%,
+    #6FBEF8 68%,
+    #4FAAFB 85%,
+    #2E97FF 100%);
   background-repeat: no-repeat;
   background-attachment: scroll;   /* se mueve con el contenido → cambia al scrollear */
 }
@@ -4815,40 +4815,30 @@ body::before { display: none !important; }   /* fuera la aurora fija (azul/púrp
     radial-gradient(55% 75% at 88% 28%, rgba(6, 108, 255, 0.20), transparent 60%) !important;
 }
 
-/* ── Texto sobre el lienzo vívido → BLANCO ──
-   Los encabezados de sección y el hero van directamente sobre el degradado, así que
-   se ponen en blanco. El contenido vive en tarjetas blancas y conserva su texto oscuro. */
-.section-head .eyebrow,
-.section-head .text-h2,
-.section-head .text-lead { color: #fff !important; }
-.section-head .eyebrow::before { background: #fff !important; }
-.section-head .hl,
-.section-head .hl--cyan {
+/* ── Texto sobre el lienzo ──
+   El lienzo es CLARO (azules suaves), así que los encabezados y el hero usan su
+   texto OSCURO de base (legible). Solo la sección de Citas (azul profundo) lleva
+   texto BLANCO en su encabezado. */
+.citas-section .section-head .eyebrow,
+.citas-section .section-head .text-h2,
+.citas-section .section-head .text-lead { color: #fff !important; }
+.citas-section .section-head .eyebrow::before { background: #fff !important; }
+.citas-section .section-head .hl,
+.citas-section .section-head .hl--cyan {
   background: none !important;
   -webkit-text-fill-color: #fff !important;
   color: #fff !important;
 }
-/* Hero */
-.hero__eyebrow {
-  color: #fff !important;
-  background: rgba(255,255,255,0.16) !important;
-  border-color: rgba(255,255,255,0.40) !important;
+
+/* ── Borde del carrusel pulido ──
+   Las tarjetas se desvanecen suavemente en los extremos en vez de cortarse en seco
+   (se ve mucho mejor junto a las flechas). En móvil se desactiva (se desliza con el dedo). */
+.services-grid,
+.tramite-grid {
+  -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 28px, #000 calc(100% - 28px), transparent 100%);
+          mask-image: linear-gradient(90deg, transparent 0, #000 28px, #000 calc(100% - 28px), transparent 100%);
 }
-.hero__title { color: #fff !important; }
-.hero__title .accent {
-  background: none !important;
-  -webkit-text-fill-color: #fff !important;
-  color: #fff !important;
+@media (max-width: 768px) {
+  .services-grid,
+  .tramite-grid { -webkit-mask-image: none; mask-image: none; }
 }
-.hero__lead { color: rgba(255,255,255,0.92) !important; }
-.hero__stats { border-top-color: rgba(255,255,255,0.25) !important; }
-.hero__stat b { color: #fff !important; }
-.hero__stat span { color: rgba(255,255,255,0.82) !important; }
-.hero__scroll { color: rgba(255,255,255,0.90) !important; }
-/* Reseñas: resumen/estado vacío van sobre el lienzo → texto blanco (las estrellas
-   conservan su color propio). Las tarjetas de reseña son blancas y no se tocan. */
-.reviews-empty,
-.reviews-bar,
-.reviews-bar .rating-summary,
-.rating-summary__label,
-.rating-summary__count { color: #fff !important; }
