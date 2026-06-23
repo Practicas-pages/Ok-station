@@ -73,6 +73,23 @@ function db(): PDO {
     return $pdo;
 }
 
+/* ¿Existe una columna en una tabla? (cacheado). Permite que los endpoints sigan
+   funcionando aunque una migración opcional aún no se haya aplicado (p. ej. los
+   campos de pago de la tabla `orders`). */
+function table_has_column(string $table, string $col): bool {
+    static $cache = [];
+    $key = $table . '.' . $col;
+    if (array_key_exists($key, $cache)) return $cache[$key];
+    try {
+        $st = db()->prepare('SELECT 1 FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND COLUMN_NAME = ? LIMIT 1');
+        $st->execute([$table, $col]);
+        $cache[$key] = (bool) $st->fetchColumn();
+    } catch (Throwable $e) {
+        $cache[$key] = false;
+    }
+    return $cache[$key];
+}
+
 /* ── JWT HS256 (sin librerías externas) ── */
 function b64url(string $s): string { return rtrim(strtr(base64_encode($s), '+/', '-_'), '='); }
 function b64url_decode(string $s): string { return (string) base64_decode(strtr($s, '-_', '+/')); }

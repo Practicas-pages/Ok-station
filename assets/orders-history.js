@@ -59,6 +59,8 @@
       .then(function (r) { return r.json(); })
       .then(function (res) {
         var list = (res && res.orders) || [];
+        // El pago en línea solo se muestra si el backend lo tiene habilitado (migración aplicada).
+        var paymentsEnabled = !res || res.payments_enabled !== false;
         if (!list.length) { host.innerHTML = '<p style="color:var(--text-muted)">Aún no tienes pedidos. ¡Haz el primero!</p>'; return; }
         host.innerHTML = list.map(function (o) {
           var cancelable = (o.status === "recibido" || o.status === "en_revision");
@@ -71,12 +73,12 @@
               '<button class="btn btn--light btn--sm" data-repeat="' + o.id + '">Repetir</button>' +
               (cancelable ? '<button class="btn btn--light btn--sm" data-cancel="' + o.id + '">Cancelar</button>' : '') +
             '</div>' +
-            payBlock(o) +
+            (paymentsEnabled ? payBlock(o) : '') +
           '</div>';
         }).join("");
         wire();
         // Si algún pedido quedó "procesando" (volviste del checkout), refresca el estado.
-        if (list.some(function (o) { return o.payment_status === "procesando"; })) schedulePoll();
+        if (paymentsEnabled && list.some(function (o) { return o.payment_status === "procesando"; })) schedulePoll();
       })
       .catch(function () { host.innerHTML = '<p style="color:var(--color-error)">No se pudo cargar el historial.</p>'; });
   }
