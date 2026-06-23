@@ -586,6 +586,29 @@
       return date.getFullYear() + "-" + m + "-" + d;
     }
 
+    /* Nivel de disponibilidad "de base" (cosmético y DETERMINISTA por fecha) para que el
+       calendario no se vea 100% libre y dé impresión de un negocio con demanda. La ocupación
+       REAL del servidor (mid/none) siempre manda; esto solo varía los días que el backend
+       reporta como totalmente libres. Mantiene la mayoría de días reservables (no aleatorio,
+       estable entre recargas). */
+    /* Hash entero con buena avalancha (lowbias32) sobre el día absoluto: días consecutivos
+       caen en niveles distintos (un hash de la cadena ISO se agrupaba y dejaba 0 días "none"). */
+    function dayHash(date) {
+      var x = Math.floor(date.getTime() / 86400000) >>> 0;
+      x = Math.imul(x ^ (x >>> 16), 0x45d9f3b);
+      x = Math.imul(x ^ (x >>> 16), 0x45d9f3b);
+      x = (x ^ (x >>> 16)) >>> 0;
+      return x % 100;
+    }
+    function baseLevelFor(date) {
+      var diffDays = Math.round((date - today0) / 86400000);
+      var h = dayHash(date);
+      if (diffDays <= 3) return h < 35 ? "mid" : "full";  /* días próximos: nunca "sin disponibilidad" */
+      if (h < 18) return "none";                          /* ~18% se ven sin disponibilidad */
+      if (h < 50) return "mid";                           /* ~32% disponibilidad media */
+      return "full";                                      /* ~50% disponibilidad total */
+    }
+
     function renderSlotsLoading() {
       if (slotsEl) slotsEl.innerHTML = '<p class="time-grid__empty">Cargando horarios…</p>';
     }
@@ -643,17 +666,21 @@
       }
       for (var d = 1; d <= daysInMonth; d++) {
         var date = new Date(y, m, d);
-        var disabled = !dayIsOpen(date) || date < minDate || date > maxDate;
-        var selected = state.fecha === isoOf(date);
-        var lvl = occByDate[isoOf(date)] || "full";
+        var iso = isoOf(date);
+        var selected = state.fecha === iso;
+        /* La ocupación real del servidor manda; si reporta "full" (o nada), usamos el nivel de base. */
+        var serverLvl = occByDate[iso];
+        var lvl = (serverLvl && serverLvl !== "full") ? serverLvl : baseLevelFor(date);
+        var closed = !dayIsOpen(date) || date < minDate || date > maxDate;   /* cerrado/fuera de ventana */
+        var disabled = closed || lvl === "none";                            /* "sin disponibilidad" no es reservable */
         /* Texto/icono además del color para usuarios daltónicos (A1):
            el título describe la disponibilidad y se suma al aria-label. */
         var occText = { full: "disponibilidad total", mid: "disponibilidad media", none: "sin disponibilidad" };
         var availLabel = occText[lvl] || "";
-        var dot = !disabled
+        var dot = !closed
           ? '<i class="okcal-dot okcal-dot--' + lvl + '" title="' + availLabel + '" aria-hidden="true"></i>'
           : '<i class="okcal-dot" style="visibility:hidden" aria-hidden="true"></i>';
-        var ariaLabel = d + " de " + MESES[m] + (disabled ? "" : (availLabel ? ", " + availLabel : ""));
+        var ariaLabel = d + " de " + MESES[m] + (closed ? "" : (availLabel ? ", " + availLabel : ""));
         cells += '<button type="button" class="okcal__day' + (selected ? " is-selected" : "") + '" ' +
           'data-date="' + isoOf(date) + '"' +
           (disabled ? ' disabled aria-disabled="true"' : "") +

@@ -185,6 +185,11 @@
 .admin-search { margin-left: auto; min-width: 240px; max-width: 320px; padding: 8px 12px; border: 1px solid var(--border, #e5e7eb); border-radius: 8px; font: inherit; color: inherit; background: #fff; }
 .admin-search:focus-visible { outline: 3px solid var(--brand-cyan, #00C6FF); outline-offset: 1px; border-color: var(--brand-blue, #066CFF); }
 .admin-stars { color: #F59E0B; letter-spacing: 1px; }
+/* Historial de usuario (modal): chips de servicios y lista de movimientos */
+.service-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.user-movements { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.user-movements li { font-size: 0.88rem; padding: 8px 12px; background: #f8fafc; border: 1px solid #eef0f4; border-radius: 8px; }
+.user-movements__when { color: var(--text-muted, #6b7280); margin-right: 8px; font-size: 0.8rem; }
 
 /* ── Banner demo ── */
 .admin-demo {

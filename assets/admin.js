@@ -149,9 +149,30 @@
       if (period) q.push("period=" + encodeURIComponent(period));
       if (date) q.push("date=" + encodeURIComponent(date));
       return apiGet("/admin/reports.php" + (q.length ? "?" + q.join("&") : ""));
+    },
+    userDetail: function (id) {
+      if (DEMO) {
+        var u = (MOCK.users || []).find(function (x) { return String(x.id || x.email) === String(id); }) || MOCK.users[0] || {};
+        return Promise.resolve({
+          ok: true, user: { name: u.name, email: u.email, phone: u.phone, joined: u.joined, active: u.active },
+          summary: { orders: u.orders || 0, sales: 0, appointments: 0 },
+          orders: (MOCK.orders || []).slice(0, 3), services: [{ name: "carta", count: 4 }, { name: "foto_10x15", count: 2 }],
+          appointments: (MOCK.appointments || []).slice(0, 2), movements: [{ action: "login", entity: null, at: "2026-06-20 09:12" }, { action: "order.created", entity: "orders", at: "2026-06-19 17:40" }]
+        });
+      }
+      return apiGet("/admin/user-detail.php?id=" + encodeURIComponent(id));
     }
   };
   var PERIOD_LABEL = { day: "Día", week: "Semana", month: "Mes" };
+  /* Etiquetas legibles de tamaños/servicios de impresión (para el historial). */
+  var SIZE_LABEL = { carta: "Carta", oficio: "Oficio", tabloide: "Tabloide", a4: "A4", foto_10x15: "Foto 10×15", foto_13x18: "Foto 13×18", gran_formato: "Gran formato" };
+  /* Etiquetas legibles de acciones de la bitácora (movimientos del usuario). */
+  var ACTION_LABEL = {
+    login: "Inició sesión", logout: "Cerró sesión", "order.created": "Creó un pedido",
+    "order.status_changed": "Cambio de estado de pedido", "appointment.created": "Agendó una cita",
+    "review.created": "Publicó una reseña", "user.updated": "Actualizó su perfil",
+    "user.deactivated": "Cuenta desactivada", "user.activated": "Cuenta reactivada", "password.reset": "Restableció contraseña"
+  };
 
   /* ============================================================
      GUARD DE ACCESO (rol empleado/administrador)
@@ -403,13 +424,83 @@
         var active = +u.active ? 1 : 0;
         return '<tr><td><b>' + esc(u.name) + '</b></td><td>' + esc(u.email) + '</td><td>' + esc(u.phone) + '</td><td>' + (u.orders || 0) + '</td>' +
           '<td><span class="badge badge--' + (active ? "listo" : "cancelado") + '">' + (active ? "Activo" : "Inactivo") + '</span></td>' +
-          '<td>' + esc(u.joined) + '</td><td><button class="admin-btn-sm" data-utoggle="' + esc(u.id) + '" data-active="' + (active ? 0 : 1) + '">' + (active ? "Desactivar" : "Reactivar") + '</button></td></tr>';
+          '<td>' + esc(u.joined) + '</td><td><button class="admin-btn-sm" data-uview="' + esc(u.id) + '">Historial</button> ' +
+          '<button class="admin-btn-sm" data-utoggle="' + esc(u.id) + '" data-active="' + (active ? 0 : 1) + '">' + (active ? "Desactivar" : "Reactivar") + '</button></td></tr>';
       }).join("");
       var t = $("#users-table"); t.innerHTML = head + '<tbody>' + body + '</tbody>';
       $$("[data-utoggle]", t).forEach(function (b) {
         b.addEventListener("click", function () { DataSource.toggleUser(b.dataset.utoggle, +b.dataset.active).then(renderUsers); });
       });
+      $$("[data-uview]", t).forEach(function (b) {
+        b.addEventListener("click", function () { viewUser(b.dataset.uview); });
+      });
     });
+  }
+
+  /* ── Historial del usuario (botón "Historial") ── */
+  function escUserClose(e) { if (e.key === "Escape") closeUserModal(); }
+  function closeUserModal() {
+    var m = document.getElementById("user-modal");
+    if (m) m.remove();
+    document.body.style.overflow = "";
+    document.removeEventListener("keydown", escUserClose);
+  }
+  function userHistoryHtml(d) {
+    var u = d.user || {}, s = d.summary || {};
+    var sum = '<div class="stat-grid" style="margin:0 0 18px">' +
+      reportStat("Pedidos", s.orders || 0) + reportStat("Gastado", mxn(s.sales || 0)) + reportStat("Citas", s.appointments || 0) + '</div>';
+    var orders = (d.orders || []);
+    var oTable = orders.length
+      ? '<div class="table-wrap"><table class="admin-table"><thead><tr><th>Folio</th><th>Estado</th><th>Total</th><th>Archivos</th><th>Fecha</th></tr></thead><tbody>' +
+        orders.map(function (o) { return '<tr><td class="mono">' + esc(o.code) + '</td><td>' + badge(o.status) + '</td><td class="mono">' + mxn(o.total || 0) + '</td><td>' + (o.items || 0) + '</td><td>' + esc(o.date) + '</td></tr>'; }).join("") + '</tbody></table></div>'
+      : '<p style="color:var(--text-muted);font-size:.88rem;margin:0">Sin pedidos.</p>';
+    var appts = (d.appointments || []);
+    var aTable = appts.length
+      ? '<div class="table-wrap"><table class="admin-table"><thead><tr><th>Folio</th><th>Servicio</th><th>Fecha</th><th>Hora</th><th>Estado</th></tr></thead><tbody>' +
+        appts.map(function (a) { return '<tr><td class="mono">' + esc(a.code) + '</td><td>' + apptServiceCell(a) + '</td><td>' + esc(a.date) + '</td><td class="mono">' + esc(a.time) + '</td><td>' + badge(a.status, APPT_STATUS) + '</td></tr>'; }).join("") + '</tbody></table></div>'
+      : '<p style="color:var(--text-muted);font-size:.88rem;margin:0">Sin citas.</p>';
+    var svcs = (d.services || []);
+    var svcList = svcs.length
+      ? '<div class="service-chips">' + svcs.map(function (x) { return '<span class="badge badge--listo">' + esc(SIZE_LABEL[x.name] || x.name) + ' · ' + x.count + '</span>'; }).join(" ") + '</div>'
+      : '<p style="color:var(--text-muted);font-size:.88rem;margin:0">Sin servicios de impresión registrados.</p>';
+    var movs = (d.movements || []);
+    var movList = movs.length
+      ? '<ul class="user-movements">' + movs.map(function (m) { return '<li><span class="user-movements__when mono">' + esc(m.at) + '</span> ' + esc(ACTION_LABEL[m.action] || m.action) + (m.entity ? ' <span style="color:var(--text-muted)">(' + esc(m.entity) + (m.entity_id ? " #" + esc(m.entity_id) : "") + ')</span>' : '') + '</li>'; }).join("") + '</ul>'
+      : '<p style="color:var(--text-muted);font-size:.88rem;margin:0">Sin movimientos registrados.</p>';
+    return sum +
+      '<h4 style="margin:0 0 8px;font-size:.95rem">Pedidos</h4>' + oTable +
+      '<h4 style="margin:18px 0 8px;font-size:.95rem">Citas</h4>' + aTable +
+      '<h4 style="margin:18px 0 8px;font-size:.95rem">Servicios de impresión tomados</h4>' + svcList +
+      '<h4 style="margin:18px 0 8px;font-size:.95rem">Movimientos</h4>' + movList;
+  }
+  function openUserModal(d) {
+    closeUserModal();
+    var u = d.user || {};
+    var ov = document.createElement("div");
+    ov.id = "user-modal";
+    ov.setAttribute("role", "dialog");
+    ov.setAttribute("aria-modal", "true");
+    ov.style.cssText = "position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;padding:18px;background:rgba(15,23,42,.5);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px)";
+    ov.innerHTML =
+      '<div style="background:#fff;border-radius:16px;max-width:820px;width:100%;max-height:92vh;overflow:auto;box-shadow:0 20px 60px rgba(0,0,0,.3)">' +
+        '<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:18px 20px;border-bottom:1px solid #eef0f4">' +
+          '<div><div style="font-weight:700;font-size:1.05rem">' + esc(u.name || "Usuario") + '</div>' +
+          '<div style="font-size:.82rem;color:var(--text-muted,#6b7280)">' + esc(u.email || "") + (u.phone ? " · " + esc(u.phone) : "") + (u.joined ? " · alta " + esc(u.joined) : "") + '</div></div>' +
+          '<button type="button" class="btn btn--light btn--sm" id="user-modal-close">Cerrar</button>' +
+        '</div>' +
+        '<div style="padding:18px 20px">' + userHistoryHtml(d) + '</div>' +
+      '</div>';
+    document.body.appendChild(ov);
+    document.body.style.overflow = "hidden";
+    ov.addEventListener("click", function (e) { if (e.target === ov) closeUserModal(); });
+    $("#user-modal-close", ov).addEventListener("click", closeUserModal);
+    document.addEventListener("keydown", escUserClose);
+  }
+  function viewUser(id) {
+    DataSource.userDetail(id).then(function (res) {
+      if (!res || !res.ok) { window.alert("No se pudo cargar el historial del usuario."); return; }
+      openUserModal(res);
+    }).catch(function () { window.alert("Sin conexión al cargar el historial."); });
   }
   function renderServices() {
     var head = '<thead><tr><th>Servicio</th><th>Categoría</th><th>Precio</th><th>Unidad</th><th>Estado</th><th></th></tr></thead>';
