@@ -11,10 +11,14 @@ $user  = current_user();
 $b     = body();
 $items = $b['items'] ?? [];
 $comments = trim((string) ($b['comments'] ?? ''));
+/* Teléfono del cliente (lo usan las trabajadoras para contactarlo por WhatsApp). */
+$phone = trim((string) ($b['contact_phone'] ?? ''));
+$phone = preg_replace('/[^\d+()\-\s]/', '', $phone);
 
 if (!is_array($items) || count($items) === 0) fail('El pedido no tiene ítems.');
 if (count($items) > 50) fail('Demasiados ítems en un solo pedido (máximo 50).');
 if (mb_strlen($comments) > 1000) fail('Los comentarios son demasiado largos.');
+if (strlen(preg_replace('/\D/', '', $phone)) < 10) fail('Ingresa un teléfono válido (10 dígitos) para poder contactarte.');
 
 $taxRate  = Pricing::taxRate();
 $pdo      = db();
@@ -60,6 +64,11 @@ try {
     $total    = round($subtotal + $tax, 2);
     $pdo->prepare('UPDATE orders SET code=?, subtotal=?, tax=?, total=? WHERE id=?')
         ->execute([$code, $subtotal, $tax, $total, $orderId]);
+
+    /* Teléfono del cliente: solo si la migración 0012 ya creó la columna (resiliente). */
+    if ($phone !== '' && table_has_column('orders', 'contact_phone')) {
+        $pdo->prepare('UPDATE orders SET contact_phone=? WHERE id=?')->execute([$phone, $orderId]);
+    }
 
     $pdo->commit();
 } catch (Throwable $e) {

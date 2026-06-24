@@ -63,7 +63,16 @@ if (is_array($guestsIn)) {
         if ($gd !== '' && !preg_match('/^\d{4}-\d{2}-\d{2}$/', $gd)) $gd = '';
         $gt = (string) ($g['doctype'] ?? '');
         if (!in_array($gt, $validDoc, true)) $gt = '';
-        $cleanGuests[] = ['name' => mb_substr($gn, 0, 120), 'dob' => $gd, 'doctype' => $gt];
+        /* Respuestas del cuestionario por trámite: clave alfanumérica, valor texto/bool. */
+        $cleanAns = [];
+        $ga = (isset($g['answers']) && is_array($g['answers'])) ? $g['answers'] : [];
+        foreach ($ga as $ak => $av) {
+            $ak = preg_replace('/[^a-z0-9_]/i', '', (string) $ak);
+            if ($ak === '') continue;
+            $cleanAns[$ak] = is_bool($av) ? $av : mb_substr((string) $av, 0, 500);
+            if (count($cleanAns) >= 40) break;
+        }
+        $cleanGuests[] = ['name' => mb_substr($gn, 0, 120), 'dob' => $gd, 'doctype' => $gt, 'answers' => $cleanAns];
         if (count($cleanGuests) >= $party) break;
     }
 }

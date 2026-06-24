@@ -27,13 +27,15 @@ $valid    = ['recibido', 'en_revision', 'en_produccion', 'listo', 'entregado', '
 $validPay = ['pendiente', 'procesando', 'pagado', 'error', 'reembolsado'];
 
 $payCol    = $hasPay ? 'o.payment_status,' : '';
+/* Teléfono del cliente: solo si la migración 0012 ya creó la columna (resiliente). */
+$phoneCol  = table_has_column('orders', 'contact_phone') ? 'o.contact_phone,' : '';
 // Columnas financieras solo para administrador/directivo (y si existen en la BD).
 $moneyCols = $canSeeMoney
     ? ', o.payment_provider, o.payment_reference, o.payment_amount, o.payment_date, o.payment_transaction_id'
     : '';
 
-$sql = "SELECT o.id, o.user_id, o.code, o.status, o.total, $payCol DATE(o.created_at) AS date,
-               u.full_name AS client,
+$sql = "SELECT o.id, o.user_id, o.code, o.status, o.total, $payCol $phoneCol DATE(o.created_at) AS date,
+               u.full_name AS client, u.email AS client_email,
                (SELECT COUNT(*) FROM order_items oi WHERE oi.order_id = o.id) AS items
                $moneyCols
         FROM orders o JOIN users u ON u.id = o.user_id";

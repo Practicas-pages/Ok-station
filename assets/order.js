@@ -231,6 +231,17 @@
     if (!requireAuth()) return;
     alertErr("");
     if (!files.length) return;
+    /* Teléfono OBLIGATORIO: lo usan las trabajadoras para contactar al cliente. */
+    var phoneEl = $("#order-phone");
+    var phone = phoneEl ? phoneEl.value.trim() : "";
+    var phoneErr = $("#order-phone-error");
+    if (phone.replace(/\D/g, "").length < 10) {
+      if (phoneErr) { phoneErr.textContent = "Ingresa un teléfono válido a 10 dígitos para poder contactarte."; phoneErr.hidden = false; }
+      if (phoneEl) { phoneEl.setAttribute("aria-invalid", "true"); phoneEl.focus(); }
+      return;
+    }
+    if (phoneErr) phoneErr.hidden = true;
+    if (phoneEl) phoneEl.removeAttribute("aria-invalid");
     var btn = $("#order-submit"); btn.disabled = true; btn.textContent = "Enviando…";
     var items = files.map(function (f) {
       var p = priceOf(f);
@@ -239,7 +250,7 @@
     fetch(API + "/orders/create.php", {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: "Bearer " + token() },
-      body: JSON.stringify({ items: items, comments: $("#order-comments").value.trim() })
+      body: JSON.stringify({ items: items, comments: $("#order-comments").value.trim(), contact_phone: phone })
     }).then(function (r) { return r.json(); }).then(function (res) {
       if (!res || !res.ok) { alertErr((res && res.error) || "No se pudo crear el pedido."); btn.disabled = false; btn.textContent = "Enviar pedido"; return; }
       confirmOrder(res.order);
@@ -283,7 +294,15 @@
         link.hidden = false;
       }
     }
-    window.scrollTo(0, 0);
+    /* Mostrar la confirmación donde está (antes saltaba al inicio de la página, lo
+       cual se sentía como un "brinco"). Solo se desplaza si quedó fuera de vista. */
+    var confirmEl = $("#order-confirm");
+    if (confirmEl) {
+      var cr = confirmEl.getBoundingClientRect();
+      if (cr.top < 80 || cr.top > window.innerHeight * 0.6) {
+        window.scrollTo({ top: cr.top + window.scrollY - 90, behavior: "smooth" });
+      }
+    }
   }
 
   /* Ticket PDF con la identidad de OK.station (degradado de marca, colores y lema). */

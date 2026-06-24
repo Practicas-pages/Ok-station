@@ -386,14 +386,19 @@
         var heading = qs("h4, h3", panel);
         if (heading) {
           heading.setAttribute("tabindex", "-1");
-          heading.focus();
+          heading.focus({ preventScroll: true });   /* sin salto por el foco */
           setTimeout(function () { heading.removeAttribute("tabindex"); }, 500);
         }
       }
 
-      /* Scroll al wizard */
-      var y = section.getBoundingClientRect().top + window.scrollY - 90;
-      window.scrollTo({ top: y, behavior: "smooth" });
+      /* Llevar el wizard a la vista SOLO si quedó fuera de pantalla. Antes hacía
+         scroll en CADA paso (la pantalla "saltaba" arriba/abajo); ahora, si el
+         wizard ya está visible, no se mueve nada. */
+      var rect = section.getBoundingClientRect();
+      var headerH = 90;
+      if (rect.top < headerH - 4 || rect.top > window.innerHeight * 0.6) {
+        window.scrollTo({ top: rect.top + window.scrollY - headerH, behavior: "smooth" });
+      }
     }
 
     /* ── Paso 1: selección de servicio (principal + adicionales) ── */
@@ -873,13 +878,33 @@
     function ensureGuests() {
       var n = Math.max(1, state.partySize | 0);
       if (!Array.isArray(state.guests)) state.guests = [];
-      while (state.guests.length < n) state.guests.push({ name: "", dob: "", doctype: "" });
+      while (state.guests.length < n) state.guests.push({ name: "", dob: "", doctype: "", answers: {} });
       if (state.guests.length > n) state.guests.length = n;
       /* Prefill del nombre de la 1ª persona con el del contacto, si está vacío. */
       if (state.guests[0] && !state.guests[0].name && state.nombre) state.guests[0].name = state.nombre;
       if (typeof state.activeGuest !== "number" || state.activeGuest >= n || state.activeGuest < 0) state.activeGuest = 0;
     }
 
+    /* Un control del cuestionario por trámite (texto/tel/área/select/checkbox) con su ayuda. */
+    function answerCtrlHtml(i, f) {
+      var id = "pg-" + i + "-a-" + f.k;
+      var req = f.optional ? "" : ' <span aria-hidden="true" style="color:#ff8a98">*</span>';
+      var help = f.help ? '<span class="persona-help">' + sanitize(f.help) + '</span>' : "";
+      if (f.type === "check") {
+        return '<label class="persona-check" for="' + id + '"><input type="checkbox" id="' + id + '" data-ans="' + f.k + '" data-idx="' + i + '"><span>' + sanitize(f.q) + '</span></label>' +
+          (f.help ? '<span class="persona-help persona-help--check">' + sanitize(f.help) + '</span>' : "");
+      }
+      var ctl;
+      if (f.type === "textarea") {
+        ctl = '<textarea id="' + id + '" data-ans="' + f.k + '" data-idx="' + i + '" rows="2"></textarea>';
+      } else if (f.type === "select") {
+        ctl = '<select id="' + id + '" data-ans="' + f.k + '" data-idx="' + i + '"><option value="">Selecciona…</option>' +
+          (f.opts || []).map(function (o) { return '<option value="' + sanitize(o) + '">' + sanitize(o) + '</option>'; }).join("") + '</select>';
+      } else {
+        ctl = '<input type="' + (f.type === "tel" ? "tel" : "text") + '" id="' + id + '" data-ans="' + f.k + '" data-idx="' + i + '" autocomplete="off">';
+      }
+      return '<div class="field"><label for="' + id + '">' + sanitize(f.q) + req + '</label>' + help + ctl + '</div>';
+    }
     function guestCardHtml(i) {
       var radios = "";
       if (needsDoctype()) {
@@ -889,6 +914,13 @@
             return '<label class="contact-chip"><input type="radio" name="pg-' + i + '-dt" data-pg="doctype" data-idx="' + i + '" value="' + o.v + '"> ' + o.t + '</label>';
           }).join("") + '</div></div>';
       }
+      var g = state.guests[i] || {};
+      var qfields = window.OKQ ? window.OKQ.fields(state.tramite, state.subtype, g.doctype) : [];
+      var qhtml = "";
+      if (qfields.length) {
+        qhtml = '<div class="persona-q"><p class="persona-q__intro">Responde lo de tu trámite para tener todo listo en tu cita. Si algo no aplica, escribe “No aplica”.</p>' +
+          qfields.map(function (f) { return answerCtrlHtml(i, f); }).join("") + '</div>';
+      }
       return '<div class="persona-card" data-idx="' + i + '" hidden>' +
         '<div class="persona-card__head"><span class="persona-card__badge">' + (i + 1) + '</span> Persona ' + (i + 1) + ' de ' + state.guests.length + '</div>' +
         '<div class="field-group">' +
@@ -896,7 +928,7 @@
           '<input type="text" id="pg-' + i + '-name" data-pg="name" data-idx="' + i + '" autocomplete="off" placeholder="Ej. María González"></div>' +
           '<div class="field"><label for="pg-' + i + '-dob">Fecha de nacimiento</label>' +
           '<input type="date" id="pg-' + i + '-dob" data-pg="dob" data-idx="' + i + '"></div>' +
-        '</div>' + radios +
+        '</div>' + radios + qhtml +
         '</div>';
     }
 
@@ -908,7 +940,7 @@
       personasHost.innerHTML = html;
       /* Set de valores por propiedad (evita problemas de escape en atributos). */
       for (var k = 0; k < state.guests.length; k++) {
-        var g = state.guests[k];
+        var g = state.guests[k]; if (!g.answers) g.answers = {};
         var nameEl = qs("#pg-" + k + "-name", personasHost);
         var dobEl  = qs("#pg-" + k + "-dob", personasHost);
         if (nameEl) nameEl.value = g.name || "";
@@ -917,13 +949,35 @@
           var r = qs('input[name="pg-' + k + '-dt"][value="' + g.doctype + '"]', personasHost);
           if (r) r.checked = true;
         }
+        /* Valores capturados del cuestionario por trámite. */
+        var fl = window.OKQ ? window.OKQ.fields(state.tramite, state.subtype, g.doctype) : [];
+        for (var fi = 0; fi < fl.length; fi++) {
+          var f = fl[fi], el = qs("#pg-" + k + "-a-" + f.k, personasHost), val = g.answers[f.k];
+          if (!el) continue;
+          if (f.type === "check") el.checked = (val === true);
+          else if (val != null) el.value = val;
+        }
       }
+      /* Datos base (nombre/fecha/subtipo). Cambiar el subtipo re-renderiza porque el
+         cuestionario depende de él (p. ej. la visa láser solo aparece en renovación). */
       qsa("[data-pg]", personasHost).forEach(function (el) {
         var ev = el.type === "radio" ? "change" : "input";
         el.addEventListener(ev, function () {
           var idx = parseInt(el.dataset.idx, 10) || 0;
-          if (!state.guests[idx]) state.guests[idx] = { name: "", dob: "", doctype: "" };
+          if (!state.guests[idx]) state.guests[idx] = { name: "", dob: "", doctype: "", answers: {} };
           state.guests[idx][el.dataset.pg] = el.value;
+          if (el.dataset.pg === "doctype") { renderGuests(); return; }
+          validateGuests();
+        });
+      });
+      /* Respuestas del cuestionario por trámite. */
+      qsa("[data-ans]", personasHost).forEach(function (el) {
+        var ev = (el.type === "checkbox" || el.tagName === "SELECT") ? "change" : "input";
+        el.addEventListener(ev, function () {
+          var idx = parseInt(el.dataset.idx, 10) || 0;
+          if (!state.guests[idx]) state.guests[idx] = { name: "", dob: "", doctype: "", answers: {} };
+          if (!state.guests[idx].answers) state.guests[idx].answers = {};
+          state.guests[idx].answers[el.dataset.ans] = (el.type === "checkbox") ? el.checked : el.value;
           validateGuests();
         });
       });
@@ -947,6 +1001,16 @@
     function guestValid(g) {
       if (!g || !g.name || !g.name.trim() || !g.dob) return false;
       if (needsDoctype() && !g.doctype) return false;
+      /* Todos los campos NO opcionales del cuestionario del trámite deben estar llenos
+         (los de tipo checkbox siempre tienen respuesta sí/no, así que no se exigen). */
+      var fl = window.OKQ ? window.OKQ.fields(state.tramite, state.subtype, g.doctype) : [];
+      var ans = g.answers || {};
+      for (var i = 0; i < fl.length; i++) {
+        var f = fl[i];
+        if (f.optional || f.type === "check") continue;
+        var v = ans[f.k];
+        if (v == null || String(v).trim() === "") return false;
+      }
       return true;
     }
     function validateGuests() {
@@ -1030,7 +1094,7 @@
         contact_pref: prefEl ? prefEl.value : "",
         notes: state.notas || "",
         guests: (state.guests || []).map(function (g) {
-          return { name: (g.name || "").trim(), dob: g.dob || "", doctype: g.doctype || "" };
+          return { name: (g.name || "").trim(), dob: g.dob || "", doctype: g.doctype || "", answers: g.answers || {} };
         })
       };
       var prevText = confirmBtn.textContent;

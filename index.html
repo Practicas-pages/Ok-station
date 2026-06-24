@@ -82,9 +82,9 @@
   </noscript>
 
   <!-- ===================== HOJA DE ESTILOS ===================== -->
-  <link rel="stylesheet" href="styles.css?v=20260810">
+  <link rel="stylesheet" href="styles.css?v=20260811">
   <!-- Estilos del configurador de pedido embebido en #fotos -->
-  <link rel="stylesheet" href="assets/order.css?v=20260810">
+  <link rel="stylesheet" href="assets/order.css?v=20260811">
 
   <!-- ===================== DATOS ESTRUCTURADOS (JSON-LD) ===================== -->
   <script type="application/ld+json">
@@ -235,11 +235,12 @@
   <!-- ============================ HERO ============================ -->
   <section class="hero" aria-labelledby="hero-title">
     <div class="hero__bg" aria-hidden="true">
-      <!-- Foto del local de fondo. Sube tu imagen como uploads/hero-local.jpg.webp
-           (si no existe, se oculta sola y el degradado sigue viéndose bien). -->
-      <img class="hero__bg-img" src="uploads/hero-local.jpg.webp" alt="" loading="eager" decoding="async"
+      <!-- Foto de OK.station de fondo. Sube tu imagen como uploads/hero-okstation.jpg
+           (si no existe, se oculta sola y la zona con blur de la derecha sigue viéndose bien). -->
+      <img class="hero__bg-img" src="uploads/hero-okstation.jpg" alt="" loading="eager" decoding="async"
         onerror="this.style.display='none'">
       <div class="hero__bg-overlay"></div>
+      <div class="hero__photo-zone" aria-hidden="true"></div>
     </div>
 
     <div class="hero__inner wrap">
@@ -813,6 +814,12 @@
               <div class="order-summary__line"><span>Subtotal estimado</span><b id="sum-subtotal">$0</b></div>
               <div class="order-summary__line"><span>IVA estimado (8%)</span><b id="sum-tax">$0</b></div>
               <div class="order-summary__total"><span>Total estimado</span><b id="sum-total">$0</b></div>
+              <label for="order-phone" class="order-note">Tu teléfono / WhatsApp <span aria-hidden="true" style="color:#ff7c8a">*</span></label>
+              <div class="input-prefix">
+                <span class="input-prefix__tag"><svg class="input-prefix__wa" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M.057 24l1.687-6.163a11.867 11.867 0 01-1.587-5.945C.16 5.335 5.495 0 12.05 0a11.82 11.82 0 018.413 3.488 11.82 11.82 0 013.48 8.414c-.003 6.557-5.338 11.892-11.893 11.892a11.9 11.9 0 01-5.688-1.448L.057 24z"/></svg> +52</span>
+                <input type="tel" id="order-phone" inputmode="tel" autocomplete="tel" placeholder="664 000 0000" required>
+              </div>
+              <span class="field-error" id="order-phone-error" role="alert" hidden></span>
               <label for="order-comments" class="order-note">Indicaciones especiales (opcional)</label>
               <textarea id="order-comments" maxlength="1000" placeholder="Colores específicos, fecha límite, instrucciones de acabado…"></textarea>
               <p class="order-note">Las cifras son un estimado; confirmamos el precio final al revisar tus archivos. El gran formato se cotiza aparte. Para subir y enviar tu pedido necesitas <a href="cuenta.html">iniciar sesión</a>.</p>
@@ -1068,14 +1075,14 @@
 </button>
 
 <!-- ============================ SCRIPTS ============================ -->
-<script src="app.js?v=20260810" defer></script>
-<script src="assets/reviews.js?v=20260810" defer></script>
-<script src="assets/session-nav.js?v=20260810" defer></script>
+<script src="app.js?v=20260811" defer></script>
+<script src="assets/reviews.js?v=20260811" defer></script>
+<script src="assets/session-nav.js?v=20260811" defer></script>
 <!-- Configurador de pedido embebido (#fotos): librerías de ticket PDF + QR y lógica -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" defer></script>
-<script src="assets/order.js?v=20260810" defer></script>
+<script src="assets/order.js?v=20260811" defer></script>
 <!-- Comprobante PDF de cita (compartido con perfil y admin) -->
-<script src="assets/cita-ticket.js?v=20260810" defer></script>
+<script src="assets/cita-ticket.js?v=20260811" defer></script>
 </body>
 </html>

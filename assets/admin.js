@@ -56,8 +56,18 @@
         var sub = [];
         if (g.dob) sub.push("Nac. " + esc(g.dob));
         if (g.doctype) sub.push(esc(DOCTYPE_LABEL[g.doctype] || g.doctype));
-        return '<div class="appt-guest" style="font-size:.82rem">' + (i + 1) + '. <b>' + esc(g.name || "—") + '</b>' +
+        var head = '<div class="appt-guest" style="font-size:.82rem">' + (i + 1) + '. <b>' + esc(g.name || "—") + '</b>' +
           (sub.length ? ' <span style="color:var(--text-muted)">· ' + sub.join(" · ") + '</span>' : '') + '</div>';
+        var ans = g.answers || {}, ak = Object.keys(ans), ansHtml = "";
+        if (ak.length) {
+          ansHtml = '<div class="appt-guest-ans" style="font-size:.76rem;margin:2px 0 6px 14px">' +
+            ak.map(function (k) {
+              var lbl = window.OKQ ? window.OKQ.label(k) : k;
+              var v = window.OKQ ? window.OKQ.valueText(ans[k]) : String(ans[k]);
+              return '<div style="color:var(--text-muted)">• ' + esc(lbl) + ': <b style="color:var(--text-primary)">' + esc(v) + '</b></div>';
+            }).join("") + '</div>';
+        }
+        return head + ansHtml;
       }).join("") + '</div>';
     }
     return html;
@@ -76,6 +86,19 @@
     return userId
       ? '<button type="button" class="client-link" data-uview="' + esc(userId) + '">' + esc(name) + '</button>'
       : '<b>' + esc(name || "—") + '</b>';
+  }
+  /* Botón directo al WhatsApp del cliente que hizo el pedido (apoyo a las trabajadoras). */
+  function waDigits(phone) {
+    var d = String(phone || "").replace(/\D/g, "");
+    if (d.length < 10) return "";
+    if (d.length === 10) d = "52" + d;          // 10 dígitos → anteponer lada de México
+    return d;
+  }
+  function clientWaBtn(o) {
+    var d = waDigits(o && o.contact_phone);
+    if (!d) return "";
+    return ' <a class="admin-btn-sm" style="background:#25D366;color:#fff;border-color:#25D366" ' +
+      'href="https://wa.me/' + d + '" target="_blank" rel="noopener" title="Escribir al cliente por WhatsApp">WhatsApp</a>';
   }
 
   /* ============================================================
@@ -315,7 +338,7 @@
       return '<tr><td class="mono">' + esc(o.code) + '</td><td>' + clientCell(o.user_id, o.client) + '</td><td>' + o.items + '</td>' +
         '<td class="mono">' + mxn(o.total) + '</td><td>' + statusCell + '</td>' +
         '<td>' + payBadge(o.payment_status) + '</td>' + refCell + '<td>' + esc(o.date) + '</td>' +
-        '<td><button class="admin-btn-sm" data-view-order="' + esc(o.id || o.code) + '">Previsualizar</button></td></tr>';
+        '<td><button class="admin-btn-sm" data-view-order="' + esc(o.id || o.code) + '">Previsualizar</button>' + clientWaBtn(o) + '</td></tr>';
     }).join("");
     return head + '<tbody>' + body + '</tbody>';
   }

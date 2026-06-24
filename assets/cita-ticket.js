@@ -22,6 +22,92 @@
     renovacion: "Renovación"
   };
   var STATUS = { pendiente: "Pendiente de confirmar", confirmada: "Confirmada", completada: "Completada", cancelada: "Cancelada", no_show: "No asistió" };
+
+  /* ============================================================
+     CUESTIONARIO POR TRÁMITE (requisitos que el cliente captura por persona).
+     Fuente: hojas oficiales de requisitos de OK.station. Se define UNA sola vez
+     aquí y lo consumen: el wizard (app.js, para pintar el formulario), el
+     comprobante PDF (abajo) y el panel admin (admin.js) — todos muestran las
+     mismas etiquetas. Tipos: text | tel | textarea | select | check | date.
+     Campos con help = texto de ayuda/ejemplo para que el usuario sepa qué poner.
+     ============================================================ */
+  var OKQ_CFG = {
+    pasaporte_mexicano: [
+      { k: "curp",         q: "¿Cuál es tu CURP?",                                   help: "18 caracteres. La encuentras en tu acta o en gob.mx/curp. Ej: GOMC900512MBCNZR09", type: "text" },
+      { k: "has_acta",     q: "¿Cuentas con tu acta de nacimiento (original o copia certificada)?", type: "check" },
+      { k: "has_domicilio",q: "¿Tienes un comprobante de domicilio reciente?",       help: "Recibo de luz, agua o teléfono (no mayor a 3 meses).", type: "check" },
+      { k: "has_ine",      q: "¿Tienes tu credencial de elector (INE)?",             type: "check" },
+      { k: "emer_nombre",  q: "Contacto de emergencia: nombre completo",             help: "Una persona que NO viaje contigo.", type: "text" },
+      { k: "emer_tel",     q: "Contacto de emergencia: teléfono",                    type: "tel" },
+      { k: "emer_dom",     q: "Contacto de emergencia: domicilio",                   type: "text" }
+    ],
+    pasaporte_americano: [
+      { k: "has_pasaporte_us", q: "¿Tienes tu pasaporte americano (libro o tarjeta)?", type: "check" },
+      { k: "padres",       q: "Nombre completo de tus padres",                       help: "Ambos padres, si aplica.", type: "text" },
+      { k: "padres_nac",   q: "Fecha y lugar de nacimiento de tus padres",           type: "text" },
+      { k: "has_acta",     q: "¿Cuentas con tu acta de nacimiento?",                 type: "check" },
+      { k: "correo",       q: "Correo electrónico",                                  type: "text" },
+      { k: "direccion",    q: "Dirección para recibir el pasaporte",                 help: "Tu dirección permanente o una de EE. UU.", type: "text" },
+      { k: "ojos_cabello", q: "Color de ojos y de cabello",                          type: "text" },
+      { k: "estatura",     q: "Estatura (pies y pulgadas)",                          help: "Ej: 5'7\"", type: "text" },
+      { k: "estado_civil", q: "Estado civil",                                        type: "select", opts: ["Soltero(a)", "Casado(a)", "Divorciado(a)"] }
+    ],
+    visa: [
+      { k: "ocupacion",    q: "¿Cuál es tu ocupación actual?",                       type: "select", opts: ["Trabajador / Empleador", "Pensionado", "Estudiante", "Hogar / Otro"] },
+      { k: "empresa",      q: "Nombre del trabajo o escuela",                        help: "Donde trabajas o estudias actualmente.", type: "text" },
+      { k: "empresa_dir",  q: "Dirección del trabajo o escuela",                     type: "text" },
+      { k: "empresa_tel",  q: "Teléfono del trabajo o escuela",                      type: "tel", optional: true },
+      { k: "puesto",       q: "Puesto/actividad o carrera que cursas",               type: "text" },
+      { k: "salario",      q: "Salario mensual aproximado",                          help: "Solo si trabajas o estás pensionado.", type: "text", optional: true },
+      { k: "paises",       q: "Países que has visitado en los últimos 5 años",       help: "Sepáralos por comas. Si ninguno, escribe 'Ninguno'.", type: "textarea" },
+      { k: "redes",        q: "Correo y usuario de redes sociales",                  help: "Facebook, Instagram, etc. (los que tengas).", type: "text", optional: true },
+      { k: "acompanantes", q: "¿Quién te acompañará a EE. UU.? (nombre y parentesco)", type: "text", optional: true },
+      { k: "padres",       q: "Nombre de tus padres y su fecha de nacimiento",       type: "text" },
+      { k: "conyuge",      q: "Cónyuge: nombre completo, fecha y lugar de nacimiento", help: "Solo si estás casado(a) o en unión libre.", type: "text", optional: true },
+      { k: "familiares_us",q: "Familiares directos en EE. UU. (ciudadanos o residentes)", help: "Solo hermanos, hijos, padres o cónyuge con visa.", type: "text", optional: true },
+      { k: "ultima_visita",q: "Fecha aproximada de tu última visita a EE. UU.",      help: "Solo si ya has tenido visa.", type: "text", optional: true },
+      { k: "estudios",     q: "Último grado de estudios (escuela, fechas y grado)",  type: "text" }
+    ],
+    sentri: [
+      { k: "doc_ingreso",  q: "¿Con qué documento ingresas a EE. UU.?",              type: "select", opts: ["Pasaporte americano", "Tarjeta de residente (green card)", "Visa americana"] },
+      { k: "has_doc_ingreso", q: "¿Ese documento está vigente?",                     type: "check" },
+      { k: "empleo",       q: "Empleo: empresa, dirección, teléfono y puesto",       type: "textarea" },
+      { k: "rfc",          q: "RFC vigente",                                         type: "text" },
+      { k: "direccion",    q: "Dirección y teléfono personal (celular y casa)",      type: "text" },
+      { k: "direccion_us", q: "Dirección en EE. UU. (para recibir la tarjeta SENTRI)", type: "text" },
+      { k: "paises",       q: "Países visitados en los últimos 5 años",              help: "Descarta EE. UU. y Canadá.", type: "textarea" },
+      { k: "add_vehiculo", q: "¿Deseas añadir un vehículo?",                         type: "check", optional: true },
+      { k: "vehiculo",     q: "Datos del vehículo (licencia vigente y tarjeta de circulación)", type: "text", optional: true }
+    ]
+  };
+  function okqKey(tramite, subtype) {
+    if (tramite === "pasaporte") return subtype === "americano" ? "pasaporte_americano" : "pasaporte_mexicano";
+    if (tramite === "visa") return "visa";
+    if (tramite === "sentri") return "sentri";
+    return null;
+  }
+  /* Devuelve los campos del cuestionario para un trámite/subtipo/tipo de trámite. */
+  function okqFields(tramite, subtype, doctype) {
+    var key = okqKey(tramite, subtype);
+    var arr = (key && OKQ_CFG[key]) ? OKQ_CFG[key].slice() : [];
+    /* La visa láser solo se pide en renovación. */
+    if (tramite === "visa" && (doctype === "renov_con" || doctype === "renov_sin")) {
+      arr = [{ k: "visa_laser", q: "¿Tienes tu visa láser actual o vencida?", help: "Solo para renovación.", type: "check" }].concat(arr);
+    }
+    return arr;
+  }
+  var OKQ_LABELS = { visa_laser: "¿Tienes tu visa láser actual o vencida?" };
+  Object.keys(OKQ_CFG).forEach(function (k) { OKQ_CFG[k].forEach(function (f) { OKQ_LABELS[f.k] = f.q; }); });
+  window.OKQ = {
+    fields: okqFields,
+    label: function (k) { return OKQ_LABELS[k] || k; },
+    /* Texto legible de un valor de respuesta (checkbox → Sí/No). */
+    valueText: function (v) {
+      if (v === true) return "Sí";
+      if (v === false) return "No";
+      return (v == null || v === "") ? "—" : String(v);
+    }
+  };
   /* Contacto de OK.station (WhatsApp canónico, 12 dígitos). */
   var WA_URL = "https://wa.me/526647194117?text=" + encodeURIComponent("Hola OK.station, tengo una cita agendada y quiero confirmar / hacer mi anticipo.");
   var MAPS_URL = "https://www.google.com/maps/place/Ok.station/@32.5292376,-116.9514835,17z/data=!4m6!3m5!1s0x80d9475a2b534615:0x80c51bb5b3fe8f55!8m2!3d32.5292376!4d-116.9514835!16s%2Fg%2F11k63fhrhb";
@@ -124,38 +210,45 @@
       ty += 8;
     });
 
-    /* ── Datos de cada persona (requisitos capturados en la cita) ── */
+    /* ── Datos de cada persona (requisitos + respuestas del cuestionario del trámite) ──
+       Con saltos de página automáticos para que NUNCA se trunque la información
+       (los trabajadores la necesitan completa). El pie se dibuja en la última página. */
     var guests = (appt.guests && appt.guests.length) ? appt.guests : null;
+    function needSpace(h) { if (ty + h > FOOTER_TOP) { doc.addPage(); ty = 22; } }
     if (guests) {
-      ty += 3;
+      ty += 3; needSpace(14);
       doc.setTextColor(blue[0], blue[1], blue[2]); doc.setFont("helvetica", "bold"); doc.setFontSize(12);
       doc.text("Datos de las personas", x, ty); ty += 7;
       for (var gi = 0; gi < guests.length; gi++) {
-        if (ty > FOOTER_TOP - 8) {   /* sin espacio: resume el resto */
-          doc.setFont("helvetica", "italic"); doc.setFontSize(9.5); doc.setTextColor(muted[0], muted[1], muted[2]);
-          doc.text("y " + (guests.length - gi) + " persona(s) más (ver detalle en tu cuenta).", x, ty); ty += 6;
-          break;
-        }
         var g = guests[gi] || {};
         var dt = g.doctype ? (DOCTYPE[g.doctype] || g.doctype) : "";
-        var line = (gi + 1) + ". " + (g.name || "—");
         var sub = [];
         if (g.dob) sub.push("Nac. " + fmtDate(g.dob));
         if (dt) sub.push(dt);
-        doc.setFont("helvetica", "bold"); doc.setFontSize(10); doc.setTextColor(dark[0], dark[1], dark[2]);
-        doc.text(doc.splitTextToSize(line, 170), x, ty); ty += 5;
+        needSpace(12);
+        doc.setFont("helvetica", "bold"); doc.setFontSize(10.5); doc.setTextColor(dark[0], dark[1], dark[2]);
+        doc.text(doc.splitTextToSize((gi + 1) + ". " + (g.name || "—"), 170), x, ty); ty += 5;
         if (sub.length) {
           doc.setFont("helvetica", "normal"); doc.setFontSize(9); doc.setTextColor(muted[0], muted[1], muted[2]);
-          doc.text(sub.join("  ·  "), x + 5, ty); ty += 5.5;
+          doc.text(sub.join("  ·  "), x + 5, ty); ty += 5;
         }
-        ty += 1.5;
+        var ans = g.answers || {};
+        var akeys = Object.keys(ans);
+        for (var ai = 0; ai < akeys.length; ai++) {
+          var lbl = (window.OKQ ? window.OKQ.label(akeys[ai]) : akeys[ai]);
+          var valTxt = (window.OKQ ? window.OKQ.valueText(ans[akeys[ai]]) : String(ans[akeys[ai]]));
+          var lines = doc.splitTextToSize("• " + lbl + ": " + valTxt, 165);
+          needSpace(lines.length * 4.2 + 1);
+          doc.setFont("helvetica", "normal"); doc.setFontSize(8.5); doc.setTextColor(muted[0], muted[1], muted[2]);
+          doc.text(lines, x + 5, ty); ty += lines.length * 4.2;
+        }
+        ty += 3;
       }
     }
 
-    if (ty < FOOTER_TOP - 10) {
-      ty += 3; doc.setFont("helvetica", "normal"); doc.setFontSize(9); doc.setTextColor(muted[0], muted[1], muted[2]);
-      doc.text(doc.splitTextToSize("Se requiere el anticipo del 100% para confirmar tu cita. Conserva este comprobante con tu folio.", 175), x, ty);
-    }
+    needSpace(10);
+    ty += 3; doc.setFont("helvetica", "normal"); doc.setFontSize(9); doc.setTextColor(muted[0], muted[1], muted[2]);
+    doc.text(doc.splitTextToSize("Se requiere el anticipo del 100% para confirmar tu cita. Conserva este comprobante con tu folio.", 175), x, ty);
 
     /* ── Pie FIJO: cómo llegar (Google Maps) + WhatsApp ── */
     doc.setFont("helvetica", "normal"); doc.setFontSize(9); doc.setTextColor(muted[0], muted[1], muted[2]);
