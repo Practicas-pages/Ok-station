@@ -4896,25 +4896,29 @@ body.admin::before, body.admin::after { display: none !important; }
 }
 /* Degradado OSCURO: opaco a la izquierda (texto claro legible) → translúcido a la
    derecha (se ve la foto), integrado al tema oscuro del sitio. */
-.hero__bg-overlay {
+/* Selector con MÁS especificidad (.hero .hero__bg-overlay) para ganar siempre a las
+   reglas duplicadas del tema claro viejo (líneas ~4250/4474) y al display:none de ~4845. */
+.hero .hero__bg-overlay {
   display: block !important;
   position: absolute; inset: 0;
-  /* Degradado horizontal MÁS BRUSCO: navy sólido a la izquierda → transición rápida →
-     foto a su claridad original (~90-100%) en el lado derecho. Estilo referencia. */
+  /* Degradado horizontal MÁS BRUSCO: navy sólido a la izquierda → transición CORTA →
+     foto a su claridad original (100%) en el lado derecho. Estilo referencia. */
   background: linear-gradient(95deg,
     rgba(15, 38, 92, 0.97) 0%,
-    rgba(15, 38, 92, 0.95) 33%,
-    rgba(15, 38, 92, 0.62) 44%,
-    rgba(15, 38, 92, 0.18) 51%,
-    rgba(15, 38, 92, 0.00) 57%) !important;
+    rgba(15, 38, 92, 0.96) 40%,
+    rgba(15, 38, 92, 0.78) 47%,
+    rgba(15, 38, 92, 0.22) 53%,
+    rgba(15, 38, 92, 0.00) 58%) !important;
 }
 /* Sombra sutil para que el texto blanco siga legible con el degradado más claro. */
 .hero__copy { text-shadow: 0 2px 18px rgba(4, 12, 40, 0.55); }
 
 /* ── Fusión al pie del hero → se funde con la sección de abajo (sin corte brusco) ──
-   La foto se disuelve hacia el azul del fondo animado (#0a1f4d) en el último tramo. */
-.hero::after {
+   La foto se disuelve hacia el azul del fondo animado (#0a1f4d) en el último tramo.
+   display:block !important reactiva el pseudo-elemento que la línea ~4845 apagaba. */
+.hero.hero::after {
   content: "";
+  display: block !important;
   position: absolute; left: 0; right: 0; bottom: 0;
   height: 55%;
   background: linear-gradient(180deg,
