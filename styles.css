@@ -4891,9 +4891,7 @@ body.admin::before, body.admin::after { display: none !important; }
 .hero__bg-img {
   display: block; position: absolute; inset: 0;
   width: 100%; height: 100%;
-  object-fit: cover; object-position: 75% center;
-  filter: blur(3px) saturate(1.05) brightness(1.02);
-  transform: scale(1.08);             /* cubre el borde que deja el desenfoque */
+  object-fit: cover; object-position: right center;  /* el sujeto/foto se ve NÍTIDO a la derecha */
 }
 /* Degradado OSCURO: opaco a la izquierda (texto claro legible) → translúcido a la
    derecha (se ve la foto), integrado al tema oscuro del sitio. */
@@ -4901,10 +4899,10 @@ body.admin::before, body.admin::after { display: none !important; }
   display: block !important;
   position: absolute; inset: 0;
   background: linear-gradient(100deg,
-    rgba(8,22,58,0.92) 0%,
-    rgba(8,22,58,0.86) 32%,
-    rgba(12,34,99,0.55) 58%,
-    rgba(12,34,99,0.20) 100%) !important;
+    rgba(8,22,58,0.96) 0%,
+    rgba(8,22,58,0.88) 34%,
+    rgba(10,28,75,0.45) 62%,
+    rgba(10,28,75,0.00) 95%) !important;
 }
 /* Contenido pegado a la izquierda */
 .hero__inner { position: relative; z-index: 1; }
@@ -4928,21 +4926,9 @@ body.admin::before, body.admin::after { display: none !important; }
    Un panel esmerilado (frosted) en la mitad derecha: desenfoca el fondo animado
    para que, cuando se suba la foto a uploads/hero-okstation.jpg, quede integrada y
    suave. El borde izquierdo se desvanece para fundirse con el texto. */
-.hero__photo-zone {
-  position: absolute;
-  top: 0; right: 0; bottom: 0;
-  width: 46%;
-  z-index: 0;
-  pointer-events: none;
-  -webkit-backdrop-filter: blur(10px) saturate(1.05);
-          backdrop-filter: blur(10px) saturate(1.05);
-  background:
-    radial-gradient(60% 70% at 72% 32%, rgba(0, 198, 255, 0.18), transparent 70%),
-    radial-gradient(62% 72% at 86% 78%, rgba(156, 29, 255, 0.16), transparent 70%),
-    linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.05));
-  -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 30%);
-          mask-image: linear-gradient(90deg, transparent 0, #000 30%);
-}
+/* La foto va NÍTIDA (estilo "florería"): se desactiva el panel esmerilado cuyo
+   blur difuminaba la mitad derecha. Para volver al efecto frosted, reactívalo. */
+.hero__photo-zone { display: none; }
 @media (max-width: 860px) { .hero__photo-zone { display: none; } }
 
 /* ── FAQ sobre el fondo animado oscuro: tarjetas blancas + texto azul-marino + botón "+" ── */
