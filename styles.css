@@ -63,9 +63,9 @@
   --surface-page:     #F2F4F8;
   --surface-card:     #FFFFFF;
   --surface-dark:     #0D0E16;
-  --surface-dark-2:   #141620;
-  --surface-dark-3:   #1C1E2A;
-  --surface-dark-4:   #222534;
+  --surface-dark-2:   #0D0E16;
+  --surface-dark-3:   #0D0E16;
+  --surface-dark-4:   #0D0E16;
 
   /* ── Texto ── */
   --text-primary:     #12141C;
@@ -285,7 +285,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .section--alt {
-  background: #ECEEF4;
+  background: #0D0E16;
 }
 
 .section-head {
@@ -1275,7 +1275,7 @@ h1, h2, h3, h4, h5, h6 {
    10. SECCIÓN CITAS (WIZARD)
    ============================================================ */
 .citas-section {
-  background: var(--surface-dark);
+  background: #0D0E16;
   color: var(--text-on-dark);
 }
 
@@ -1285,7 +1285,7 @@ h1, h2, h3, h4, h5, h6 {
      (sin esto, el grid desbordaba horizontalmente entre ~1080–1600px). */
   grid-template-columns: 300px minmax(0, 1fr);
   gap: var(--space-4);
-  background: var(--surface-dark-2);
+  background: transparent;
   border: 1px solid var(--border-dark);
   border-radius: var(--radius-xl);
   padding: var(--space-4);
@@ -3981,7 +3981,7 @@ body {
 
 /* ── Secciones alternas → gris muy suave (descanso visual, bloque diferenciado) ── */
 .section--alt {
-  background: #F1F3FA;
+  background: #0D0E16;
 }
 
 /* ── Cohesión dentro del wizard de citas (sin cajas negras) ── */
