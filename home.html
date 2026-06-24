@@ -242,8 +242,10 @@
     <!-- ============================ HERO ============================ -->
     <section class="hero" aria-labelledby="hero-title">
       <div class="hero__bg" aria-hidden="true">
-        <!-- EDITAR (opcional): añade una imagen de fondo del local. El overlay funciona sin imagen.
-           <img class="hero__bg-img" src="uploads/hero.jpg" alt="" loading="eager" decoding="async"> -->
+        <!-- Foto del local de fondo. Sube tu imagen como uploads/hero-local.jpg
+             (si no existe, se oculta sola y el degradado sigue viéndose bien). -->
+        <img class="hero__bg-img" src="uploads/hero-local.jpg" alt="" loading="eager" decoding="async"
+          onerror="this.style.display='none'">
         <div class="hero__bg-overlay"></div>
       </div>
 

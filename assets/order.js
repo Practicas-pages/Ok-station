@@ -247,18 +247,38 @@
     $("#confirm-code").textContent = order.code;
     $("#order-confirm").hidden = false;
 
+    var link = $("#confirm-ticket");
     try {
       var dataUri = buildTicket(order);          // PDF en base64 (data URI)
-      var link = $("#confirm-ticket");
-      link.href = dataUri;
-      link.setAttribute("download", "ticket-" + order.code + ".pdf");
+      if (link) {
+        // Blob URL: descarga fiable (mejor que un data-URI grande con target=_blank).
+        var href = dataUri;
+        try {
+          var b64 = dataUri.split(",")[1], bin = atob(b64), arr = new Uint8Array(bin.length);
+          for (var i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
+          href = URL.createObjectURL(new Blob([arr], { type: "application/pdf" }));
+        } catch (e2) { /* si falla el blob, usamos el data-URI */ }
+        link.href = href;
+        link.setAttribute("download", "ticket-" + order.code + ".pdf");
+        link.removeAttribute("target");          // descarga en el momento, sin abrir pestaña en blanco
+        link.hidden = false;
+      }
       // Guarda copia en el servidor y la asocia al pedido
       fetch(API + "/orders/ticket-store.php", {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: "Bearer " + token() },
         body: JSON.stringify({ order_id: order.id, pdf_base64: dataUri })
       });
-    } catch (e) { /* si falla el PDF, el pedido ya quedó creado */ }
+    } catch (e) {
+      /* Si falla el PDF en el cliente, el pedido YA quedó creado: ofrecemos el ticket
+         del servidor para que el usuario siempre pueda descargarlo. */
+      if (link) {
+        link.href = API + "/orders/ticket.php?id=" + encodeURIComponent(order.id);
+        link.removeAttribute("download");
+        link.textContent = "Descargar ticket PDF";
+        link.hidden = false;
+      }
+    }
     window.scrollTo(0, 0);
   }
 
@@ -335,13 +355,11 @@
     doc.setFont("helvetica", "bold"); doc.setFontSize(14); doc.setTextColor(blue[0], blue[1], blue[2]);
     doc.text("Total", x, ty); doc.text(mxn(order.total), x + 95, ty, { align: "right" });
 
-    // ── Cómo llegar (Google Maps) ──
-    ty += 16;
+    // ── Cómo llegar (Google Maps) — posición FIJA al pie para que SIEMPRE aparezca ──
     doc.setFont("helvetica", "normal"); doc.setFontSize(9); doc.setTextColor(muted[0], muted[1], muted[2]);
-    doc.text("Recoge en: Centro Comercial Otay, Local G-03 · Carretera Aeropuerto 1900, Tijuana, B.C.", x, ty);
-    ty += 6;
+    doc.text("Recoge en: Centro Comercial Otay, Local G-03 · Carretera Aeropuerto 1900, Tijuana, B.C.", x, 262);
     doc.setFont("helvetica", "bold"); doc.setFontSize(10); doc.setTextColor(blue[0], blue[1], blue[2]);
-    doc.textWithLink("Cómo llegar — abrir en Google Maps", x, ty, { url: "https://maps.app.goo.gl/AMLiVx2iAFvSSyUn6" });
+    doc.textWithLink("Cómo llegar — abrir en Google Maps", x, 269, { url: "https://www.google.com/maps/place/Ok.station/@32.5292376,-116.9514835,17z/data=!4m6!3m5!1s0x80d9475a2b534615:0x80c51bb5b3fe8f55!8m2!3d32.5292376!4d-116.9514835!16s%2Fg%2F11k63fhrhb" });
 
     // ── Pie con línea de marca + lema ──
     gradBand(0, 287, PW, 3);

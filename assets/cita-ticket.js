@@ -97,7 +97,7 @@
     ty += 4; doc.setFont("helvetica", "normal"); doc.setFontSize(9); doc.setTextColor(muted[0], muted[1], muted[2]);
     doc.text(doc.splitTextToSize("Te contactaremos para confirmar tu cita. Conserva este comprobante con tu folio.", 120), x, ty);
     /* ── Cómo llegar (Google Maps) ── */
-    var MAPS_URL = "https://maps.app.goo.gl/AMLiVx2iAFvSSyUn6";
+    var MAPS_URL = "https://www.google.com/maps/place/Ok.station/@32.5292376,-116.9514835,17z/data=!4m6!3m5!1s0x80d9475a2b534615:0x80c51bb5b3fe8f55!8m2!3d32.5292376!4d-116.9514835!16s%2Fg%2F11k63fhrhb";
     doc.setFont("helvetica", "normal"); doc.setFontSize(9); doc.setTextColor(muted[0], muted[1], muted[2]);
     doc.text("Recoge en: Centro Comercial Otay, Local G-03 · Carretera Aeropuerto 1900, Tijuana, B.C.", x, 262);
     doc.setFont("helvetica", "bold"); doc.setFontSize(10); doc.setTextColor(blue[0], blue[1], blue[2]);
