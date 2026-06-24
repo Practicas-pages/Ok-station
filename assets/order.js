@@ -25,19 +25,29 @@
     return false;
   }
 
-  /* ── Catálogo de precios (estimado en cliente; el servidor recalcula IVA) ── */
+  /* ── Catálogo de precios OFICIAL OK.station (estimado en cliente; el servidor recalcula).
+     `price` es el precio "desde" (por hoja) que se muestra como pista. El cálculo real
+     usa la tabla escalonada PRINT_TIERS/PHOTO de abajo. ── */
   var SIZES = [
-    { id: "carta",        label: "Carta",            price: 1.5 },
-    { id: "oficio",       label: "Oficio",           price: 2 },
-    { id: "tabloide",     label: "Tabloide",         price: 5 },
-    { id: "a4",           label: "A4",               price: 1.5 },
-    { id: "foto_10x15",   label: "Foto 10×15",       price: 8 },
-    { id: "foto_13x18",   label: "Foto 13×18",       price: 15 },
-    { id: "gran_formato", label: "Gran formato 24\"", price: 0 }
+    { id: "carta",        label: "Carta",                 price: 1.30 },
+    { id: "oficio",       label: "Oficio",                price: 1.50 },
+    { id: "tabloide",     label: "Doble carta",           price: 5 },
+    { id: "a4",           label: "A4",                    price: 1.30 },
+    { id: "foto_10x15",   label: "Foto 10×15 (6×4\")",    price: 10 },
+    { id: "foto_13x18",   label: "Foto 13×18 (5×7\")",    price: 30 },
+    { id: "gran_formato", label: "Gran formato 24\"",     price: 0 }
   ];
-  var COLOR  = { color: 1, grises: 0.8, bn: 0.5 };
-  var SIDES  = { una: 1, doble: 0.9 };
-  var FINISH = { ninguno: 0, engargolado: 25, enmicado: 15, grapado: 5 };
+  /* Precio por HOJA según tamaño + B/N|Color + tramo de cantidad (hojas TOTALES = páginas×copias). */
+  var PRINT_TIERS = {
+    carta:    { bn: [[10, 2.0], [60, 1.5], [Infinity, 1.3]], color: [[10, 12], [60, 9], [Infinity, 5]] },
+    a4:       { bn: [[10, 2.0], [60, 1.5], [Infinity, 1.3]], color: [[10, 12], [60, 9], [Infinity, 5]] },
+    oficio:   { bn: [[10, 2.5], [50, 2.0], [Infinity, 1.5]], color: [[10, 15], [50, 13], [Infinity, 10]] },
+    tabloide: { bn: [[Infinity, 5]],                          color: [[Infinity, 20]] }
+  };
+  var PHOTO  = { foto_10x15: 10, foto_13x18: 30 };   /* precio por foto */
+  var COLOR  = { color: "color", grises: "bn", bn: "bn" };  /* "grises" se cobra como B/N */
+  var SIDES  = { una: 1, doble: 1 };                 /* las caras no cambian el precio por hoja (tabla oficial) */
+  var FINISH = { ninguno: 0, engargolado: 45, enmicado: 20, grapado: 5 };  /* engargolado/enmicado: precio representativo (variantes por tamaño en mostrador) */
   var PAPERS = ["Bond", "Opalina", "Couché", "Fotográfico", "Cartulina", "Adhesivo"];
 
   var TAX = 0.16;
@@ -61,12 +71,23 @@
   function sizeById(id) { for (var i = 0; i < SIZES.length; i++) if (SIZES[i].id === id) return SIZES[i]; return SIZES[0]; }
   function alertErr(msg) { var a = $("#order-alert"); a.className = "order-alert order-alert--error"; a.textContent = msg; a.hidden = !msg; }
 
+  function tierFor(tiers, count) {
+    for (var i = 0; i < tiers.length; i++) { if (count <= tiers[i][0]) return tiers[i][1]; }
+    return tiers[tiers.length - 1][1];
+  }
   function priceOf(f) {
-    var base = sizeById(f.cfg.size).price;
-    if (base === 0) return { unit: 0, line: 0, quote: true };
-    var unit = base * (COLOR[f.cfg.color] || 1) * (SIDES[f.cfg.sides] || 1);
-    var line = unit * f.pages * f.cfg.copies + (FINISH[f.cfg.finish] || 0);
-    return { unit: Math.round(unit * 100) / 100, line: Math.round(line * 100) / 100, quote: false };
+    var size = f.cfg.size;
+    var count = Math.max(1, (f.pages || 1) * (f.cfg.copies || 1));   /* hojas totales */
+    if (PHOTO[size] != null) {                                       /* fotos: precio por unidad */
+      var u = PHOTO[size];
+      return { unit: u, line: Math.round(u * count * 100) / 100, quote: false };
+    }
+    var t = PRINT_TIERS[size];
+    if (!t) return { unit: 0, line: 0, quote: true };                /* gran formato → cotizar */
+    var band = (COLOR[f.cfg.color] === "color") ? t.color : t.bn;
+    var per = tierFor(band, count);
+    var line = per * count + (FINISH[f.cfg.finish] || 0);
+    return { unit: Math.round(per * 100) / 100, line: Math.round(line * 100) / 100, quote: false };
   }
 
   /* ── Subida ── */

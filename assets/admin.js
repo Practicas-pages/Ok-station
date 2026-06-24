@@ -91,11 +91,11 @@
       { name: "Diego Salas", email: "diego@ejemplo.com", phone: "664 100 0004", orders: 1, active: false, joined: "2026-05-30" }
     ],
     services: [
-      { name: "Copias fotostáticas", category: "Impresión y copias", price: 1.5, unit: "copia", active: true },
-      { name: "Impresión de fotografías", category: "Fotografía", price: 8, unit: "foto 10×15", active: true },
-      { name: "Fotos para trámites", category: "Fotografía", price: 60, unit: "set", active: true },
-      { name: "Engargolado", category: "Acabados", price: 35, unit: "pieza", active: true },
-      { name: "Enmicado", category: "Acabados", price: 15, unit: "hoja", active: true }
+      { name: "Copias fotostáticas", category: "Impresión y copias", price: 1.30, unit: "hoja (desde)", active: true },
+      { name: "Impresión de fotografías", category: "Fotografía", price: 10, unit: "foto 10×15", active: true },
+      { name: "Fotos para trámites", category: "Fotografía", price: 55, unit: "paquete (desde)", active: true },
+      { name: "Engargolado", category: "Acabados", price: 45, unit: "pieza (mediano)", active: true },
+      { name: "Enmicado", category: "Acabados", price: 20, unit: "carta", active: true }
     ],
     reviews: [
       { name: "María G.", rating: 5, comment: "Rápido y excelente atención.", status: "aprobada", date: "2026-06-09" },

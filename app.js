@@ -28,10 +28,10 @@
     allowedTypes: ["image/jpeg", "image/jpg", "image/png", "image/webp", "application/pdf"],
     allowedExts: ["jpg", "jpeg", "png", "webp", "pdf"],
     prices: {
-      "6x4": 6,
-      "10x15": 8,
-      "13x18": 15,
-      "20x30": 60,
+      "6x4": 10,
+      "10x15": 10,
+      "13x18": 30,
+      "20x30": 75,
       "30x40": 120,
       "Gran formato 24\"": 0
     }
