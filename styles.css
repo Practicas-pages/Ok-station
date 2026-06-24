@@ -4892,7 +4892,7 @@ body.admin::before, body.admin::after { display: none !important; }
   display: block; position: absolute; inset: 0;
   width: 100%; height: 100%;
   object-fit: cover; object-position: right center;  /* el sujeto/foto se ve NÍTIDO a la derecha */
-  filter: brightness(1.08) contrast(1.05) saturate(1.12);  /* foto nítida y natural a la derecha */
+  filter: brightness(1.2) contrast(1.04) saturate(1.14);  /* más claridad, manteniendo el degradado */
 }
 /* Degradado OSCURO: opaco a la izquierda (texto claro legible) → translúcido a la
    derecha (se ve la foto), integrado al tema oscuro del sitio. */
