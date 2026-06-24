@@ -4989,6 +4989,22 @@ body.admin::before, body.admin::after { display: none !important; }
   }
 }
 
+/* ── ANTI-DESBORDAMIENTO del hero (flexbox) en TODAS las pantallas ──
+   .hero es display:flex; su hijo necesita min-width:0 para poder encogerse por debajo
+   del ancho de su contenido (si no, el título grande se sale y se corta en móvil).
+   Además las palabras largas se parten en vez de empujar el ancho. */
+.hero__inner { min-width: 0; max-width: 100%; }
+.hero__copy, .hero__title, .hero__lead { min-width: 0; overflow-wrap: break-word; word-break: break-word; }
+.hero__eyebrow { max-width: 100%; flex-wrap: wrap; }
+.hero__chips { max-width: 100%; }
+
+@media (max-width: 480px) {
+  /* Teléfonos angostos: título y eyebrow un punto más compactos para que nunca se salgan. */
+  .hero__title { font-size: clamp(1.95rem, 8.5vw, 2.6rem) !important; letter-spacing: -0.02em; }
+  .hero__eyebrow { font-size: 0.78rem !important; }
+  .hero__chip { font-size: 0.8rem; }
+}
+
 /* ── Zona con BLUR a la derecha del hero (aquí va la foto de OK.station) ──
    Un panel esmerilado (frosted) en la mitad derecha: desenfoca el fondo animado
    para que, cuando se suba la foto a uploads/hero-okstation.jpg, quede integrada y
