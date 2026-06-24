@@ -5,8 +5,10 @@ require __DIR__ . '/../lib/authz.php';
 only_method('GET');
 
 $user = current_user();
+/* guests_json solo existe si se corrió la migración 0011 (resiliente). */
+$guestsCol = table_has_column('appointments', 'guests_json') ? 'guests_json,' : '';
 $st = db()->prepare(
-    "SELECT code, tramite, passport_subtype, party_size, contact_name, contact_phone,
+    "SELECT code, tramite, passport_subtype, party_size, $guestsCol contact_name, contact_phone,
             DATE_FORMAT(appt_date,'%Y-%m-%d') AS date,
             TIME_FORMAT(appt_time,'%H:%i')    AS time,
             status, created_at

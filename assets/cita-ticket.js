@@ -14,7 +14,17 @@
     apostille: "Apostille / Traducción", medica: "Cita médica / Examen"
   };
   var SUBTYPE = { mexicano: "Mexicano", americano: "Americano" };
+  /* Tipo de trámite por persona (renovación con/sin documentos, etc.). */
+  var DOCTYPE = {
+    primera:   "Primera vez",
+    renov_con: "Renovación con documentos",
+    renov_sin: "Renovación sin documentos",
+    renovacion: "Renovación"
+  };
   var STATUS = { pendiente: "Pendiente de confirmar", confirmada: "Confirmada", completada: "Completada", cancelada: "Cancelada", no_show: "No asistió" };
+  /* Contacto de OK.station (WhatsApp canónico, 12 dígitos). */
+  var WA_URL = "https://wa.me/526647194117?text=" + encodeURIComponent("Hola OK.station, tengo una cita agendada y quiero confirmar / hacer mi anticipo.");
+  var MAPS_URL = "https://www.google.com/maps/place/Ok.station/@32.5292376,-116.9514835,17z/data=!4m6!3m5!1s0x80d9475a2b534615:0x80c51bb5b3fe8f55!8m2!3d32.5292376!4d-116.9514835!16s%2Fg%2F11k63fhrhb";
 
   /* ── Precios OFICIALES de trámite/cita (MXN, por persona). Los no listados se cotizan. ── */
   var CITA_PRICES = { pasaporte: 200, visa: 800, sentri: 900, ine: 80, curp: 35 };
@@ -95,12 +105,14 @@
     doc.setFont("helvetica", "bold"); doc.setFontSize(9); var lw = doc.getTextWidth(label) + 8;
     doc.setFillColor(blue[0], blue[1], blue[2]); doc.roundedRect(x, 61, lw, 7, 3.5, 3.5, "F");
     doc.setTextColor(255, 255, 255); doc.text(label, x + 4, 65.8);
+    /* El pie (mapa + contactos) va FIJO al pie; el contenido nunca debe invadirlo. */
+    var FOOTER_TOP = 250;   /* límite inferior del área de contenido (mm) */
     var ty = 82;
     doc.setTextColor(blue[0], blue[1], blue[2]); doc.setFont("helvetica", "bold"); doc.setFontSize(12); doc.text("Detalle de la cita", x, ty); ty += 8;
     var svcName = SERVICE_NAMES[appt.tramite] || appt.tramite;
     if (appt.tramite === "pasaporte" && appt.passport_subtype) svcName += " (" + (SUBTYPE[appt.passport_subtype] || appt.passport_subtype) + ")";
     var rows = [["Servicio", svcName], ["Personas", String(appt.party_size || 1)]];
-    if (appt.name) rows.push(["Nombre", appt.name]);
+    if (appt.name) rows.push(["Contacto", appt.name]);
     if (appt.phone) rows.push(["Teléfono", appt.phone]);
     rows.push(["Fecha", fmtDate(appt.date)]);
     rows.push(["Hora", (appt.time || "") + " hrs"]);
@@ -111,26 +123,76 @@
       doc.setFont("helvetica", "bold"); doc.setTextColor(dark[0], dark[1], dark[2]); doc.text(doc.splitTextToSize(String(r[1]), 120), x + 45, ty);
       ty += 8;
     });
-    ty += 4; doc.setFont("helvetica", "normal"); doc.setFontSize(9); doc.setTextColor(muted[0], muted[1], muted[2]);
-    doc.text(doc.splitTextToSize("Te contactaremos para confirmar tu cita. Conserva este comprobante con tu folio.", 120), x, ty);
-    /* ── Cómo llegar (Google Maps) ── */
-    var MAPS_URL = "https://www.google.com/maps/place/Ok.station/@32.5292376,-116.9514835,17z/data=!4m6!3m5!1s0x80d9475a2b534615:0x80c51bb5b3fe8f55!8m2!3d32.5292376!4d-116.9514835!16s%2Fg%2F11k63fhrhb";
+
+    /* ── Datos de cada persona (requisitos capturados en la cita) ── */
+    var guests = (appt.guests && appt.guests.length) ? appt.guests : null;
+    if (guests) {
+      ty += 3;
+      doc.setTextColor(blue[0], blue[1], blue[2]); doc.setFont("helvetica", "bold"); doc.setFontSize(12);
+      doc.text("Datos de las personas", x, ty); ty += 7;
+      for (var gi = 0; gi < guests.length; gi++) {
+        if (ty > FOOTER_TOP - 8) {   /* sin espacio: resume el resto */
+          doc.setFont("helvetica", "italic"); doc.setFontSize(9.5); doc.setTextColor(muted[0], muted[1], muted[2]);
+          doc.text("y " + (guests.length - gi) + " persona(s) más (ver detalle en tu cuenta).", x, ty); ty += 6;
+          break;
+        }
+        var g = guests[gi] || {};
+        var dt = g.doctype ? (DOCTYPE[g.doctype] || g.doctype) : "";
+        var line = (gi + 1) + ". " + (g.name || "—");
+        var sub = [];
+        if (g.dob) sub.push("Nac. " + fmtDate(g.dob));
+        if (dt) sub.push(dt);
+        doc.setFont("helvetica", "bold"); doc.setFontSize(10); doc.setTextColor(dark[0], dark[1], dark[2]);
+        doc.text(doc.splitTextToSize(line, 170), x, ty); ty += 5;
+        if (sub.length) {
+          doc.setFont("helvetica", "normal"); doc.setFontSize(9); doc.setTextColor(muted[0], muted[1], muted[2]);
+          doc.text(sub.join("  ·  "), x + 5, ty); ty += 5.5;
+        }
+        ty += 1.5;
+      }
+    }
+
+    if (ty < FOOTER_TOP - 10) {
+      ty += 3; doc.setFont("helvetica", "normal"); doc.setFontSize(9); doc.setTextColor(muted[0], muted[1], muted[2]);
+      doc.text(doc.splitTextToSize("Se requiere el anticipo del 100% para confirmar tu cita. Conserva este comprobante con tu folio.", 175), x, ty);
+    }
+
+    /* ── Pie FIJO: cómo llegar (Google Maps) + WhatsApp ── */
     doc.setFont("helvetica", "normal"); doc.setFontSize(9); doc.setTextColor(muted[0], muted[1], muted[2]);
     doc.text("Recoge en: Centro Comercial Otay, Local G-03 · Carretera Aeropuerto 1900, Tijuana, B.C.", x, 262);
     doc.setFont("helvetica", "bold"); doc.setFontSize(10); doc.setTextColor(blue[0], blue[1], blue[2]);
     doc.textWithLink("Cómo llegar — abrir en Google Maps", x, 269, { url: MAPS_URL });
+    doc.setTextColor(22, 163, 74);   /* verde WhatsApp */
+    doc.textWithLink("WhatsApp: (664) 719-4117 — abrir chat", x, 275.5, { url: WA_URL });
     gradBand(0, 287, PW, 3); doc.setFont("helvetica", "normal"); doc.setFontSize(8.5); doc.setTextColor(muted[0], muted[1], muted[2]);
     doc.text("okstation.mx · You say tech, we listen", x, 283);
     return doc.output("datauristring");
   };
 
-  /** Dispara la descarga del comprobante (genera + click en <a download>). */
-  window.OKCitaTicketDownload = function (appt) {
+  /** Convierte el data-URI del PDF en un Blob URL (la descarga por data-URI no
+      funciona en muchos navegadores móviles; el Blob URL sí). @returns {string|null} */
+  window.OKCitaTicketBlobUrl = function (appt) {
     var uri = window.OKCitaTicket(appt);
-    if (!uri) return false;
+    if (!uri) return null;
+    try {
+      var b64 = uri.split(",")[1];
+      var bin = atob(b64);
+      var len = bin.length, bytes = new Uint8Array(len);
+      for (var i = 0; i < len; i++) bytes[i] = bin.charCodeAt(i);
+      return URL.createObjectURL(new Blob([bytes], { type: "application/pdf" }));
+    } catch (e) { return null; }
+  };
+
+  /** Dispara la descarga/visualización del comprobante. Usa Blob URL para que
+      funcione también en celular (iOS/Android no abren enlaces data-URI). */
+  window.OKCitaTicketDownload = function (appt) {
+    var url = window.OKCitaTicketBlobUrl(appt);
+    if (!url) return false;
     var a = document.createElement("a");
-    a.href = uri; a.download = "cita-" + (appt.code || "okstation") + ".pdf";
+    a.href = url; a.download = "cita-" + (appt.code || "okstation") + ".pdf";
+    a.rel = "noopener"; a.target = "_blank";   /* móvil: abre el visor si no descarga */
     document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(function () { URL.revokeObjectURL(url); }, 60000);
     return true;
   };
 })();

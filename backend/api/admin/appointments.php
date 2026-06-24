@@ -13,7 +13,9 @@ $status = $_GET['status'] ?? null;
 $date   = $_GET['date'] ?? null;
 $valid  = ['pendiente', 'confirmada', 'cancelada', 'completada', 'no_show'];
 
-$sql = "SELECT a.id, a.code, a.tramite, a.passport_subtype, a.party_size,
+/* guests_json solo existe si se corrió la migración 0011 (resiliente). */
+$guestsCol = table_has_column('appointments', 'guests_json') ? 'a.guests_json,' : '';
+$sql = "SELECT a.id, a.code, a.tramite, a.passport_subtype, a.party_size, $guestsCol
                DATE_FORMAT(a.appt_date,'%Y-%m-%d') AS date,
                TIME_FORMAT(a.appt_time,'%H:%i')    AS time,
                a.status, a.contact_name, a.contact_phone, a.contact_email,

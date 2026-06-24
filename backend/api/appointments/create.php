@@ -48,6 +48,27 @@ if ($tramite === 'pasaporte') {
 if ($party < 1)  $party = 1;
 if ($party > 20) fail('Para grupos de más de 20 personas, escríbenos por WhatsApp para coordinar.');
 
+/* Datos por persona (requisitos): [{name, dob, doctype}]. Validación tolerante:
+   se limpia y se recorta a la cantidad de personas. doctype solo para pasaporte/
+   visa/sentri (primera | renov_con | renov_sin). No se exige (compatibilidad). */
+$cleanGuests = [];
+$guestsIn = $b['guests'] ?? [];
+if (is_array($guestsIn)) {
+    $validDoc = ['primera', 'renov_con', 'renov_sin'];
+    foreach ($guestsIn as $g) {
+        if (!is_array($g)) continue;
+        $gn = trim((string) ($g['name'] ?? ''));
+        if ($gn === '') continue;
+        $gd = trim((string) ($g['dob'] ?? ''));
+        if ($gd !== '' && !preg_match('/^\d{4}-\d{2}-\d{2}$/', $gd)) $gd = '';
+        $gt = (string) ($g['doctype'] ?? '');
+        if (!in_array($gt, $validDoc, true)) $gt = '';
+        $cleanGuests[] = ['name' => mb_substr($gn, 0, 120), 'dob' => $gd, 'doctype' => $gt];
+        if (count($cleanGuests) >= $party) break;
+    }
+}
+$guestsJson = $cleanGuests ? json_encode($cleanGuests, JSON_UNESCAPED_UNICODE) : null;
+
 /* Usuario opcional: si hay sesión válida, se asocia. */
 $userId = null;
 $hdr = $_SERVER['HTTP_AUTHORIZATION'] ?? ($_SERVER['REDIRECT_HTTP_AUTHORIZATION'] ?? '');
@@ -125,6 +146,11 @@ try {
     $code = 'CITA-' . date('Y') . '-' . str_pad((string) $id, 6, '0', STR_PAD_LEFT);
     $pdo->prepare('UPDATE appointments SET code=? WHERE id=?')->execute([$code, $id]);
 
+    /* Datos por persona: solo si la migración 0011 ya creó la columna (resiliente). */
+    if ($guestsJson !== null && table_has_column('appointments', 'guests_json')) {
+        $pdo->prepare('UPDATE appointments SET guests_json=? WHERE id=?')->execute([$guestsJson, $id]);
+    }
+
     $pdo->commit();
 } catch (Throwable $e) {
     if ($pdo->inTransaction()) $pdo->rollBack();
@@ -169,6 +195,7 @@ respond([
         'code' => $code, 'tramite' => $tramite,
         'passport_subtype' => ($subtype !== '' ? $subtype : null),
         'party_size' => $party,
+        'guests' => $cleanGuests,
         'date' => $date, 'time' => $time, 'status' => 'pendiente',
     ],
 ], 201);

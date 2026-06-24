@@ -33,7 +33,15 @@
     apostille: "Apostille / Traducción", medica: "Cita médica / Examen"
   };
   var SUBTYPE_LABEL = { mexicano: "Mexicano", americano: "Americano" };
-  /* Celda de servicio: servicio (cualquiera de los 9) + subtipo de pasaporte + nº de personas. */
+  var DOCTYPE_LABEL = { primera: "Primera vez", renov_con: "Renovación con documentos", renov_sin: "Renovación sin documentos" };
+  /* Datos por persona (requisitos): JSON guardado en la cita, o []. */
+  function parseGuests(v) {
+    if (!v) return [];
+    if (Array.isArray(v)) return v;
+    try { var p = JSON.parse(v); return Array.isArray(p) ? p : []; } catch (e) { return []; }
+  }
+  /* Celda de servicio: servicio (cualquiera de los 9) + subtipo de pasaporte + nº de personas
+     + datos de cada persona (nombre, nacimiento, tipo de trámite con/sin documentos). */
   function apptServiceCell(a) {
     var html = '<b>' + esc(TRAMITE_LABEL[a.tramite] || a.tramite) + '</b>';
     if (a.tramite === "pasaporte" && a.passport_subtype) {
@@ -42,6 +50,16 @@
     var n = parseInt(a.party_size, 10) || 1;
     if (n > 1) html += '<br><span class="appt-extra">' + n + ' personas</span>';
     if (window.OKCitaPriceText) html += '<br><span class="appt-extra" style="color:var(--brand-blue);font-weight:600">' + esc(window.OKCitaPriceText(a.tramite, a.passport_subtype, a.party_size)) + '</span>';
+    var guests = parseGuests(a.guests_json);
+    if (guests.length) {
+      html += '<div class="appt-guests" style="margin-top:6px">' + guests.map(function (g, i) {
+        var sub = [];
+        if (g.dob) sub.push("Nac. " + esc(g.dob));
+        if (g.doctype) sub.push(esc(DOCTYPE_LABEL[g.doctype] || g.doctype));
+        return '<div class="appt-guest" style="font-size:.82rem">' + (i + 1) + '. <b>' + esc(g.name || "—") + '</b>' +
+          (sub.length ? ' <span style="color:var(--text-muted)">· ' + sub.join(" · ") + '</span>' : '') + '</div>';
+      }).join("") + '</div>';
+    }
     return html;
   }
   function badge(status, labels) {
@@ -731,7 +749,7 @@
       $$(".appt-pdf", t).forEach(function (btn) {
         btn.addEventListener("click", function () {
           var a = list[+btn.dataset.i];
-          if (a) window.OKCitaTicketDownload({ code: a.code, tramite: a.tramite, passport_subtype: a.passport_subtype, party_size: a.party_size, date: a.date, time: a.time, status: a.status, name: a.contact_name, phone: a.contact_phone });
+          if (a) window.OKCitaTicketDownload({ code: a.code, tramite: a.tramite, passport_subtype: a.passport_subtype, party_size: a.party_size, date: a.date, time: a.time, status: a.status, name: a.contact_name, phone: a.contact_phone, guests: parseGuests(a.guests_json) });
         });
       });
       bindClientLinks(t);

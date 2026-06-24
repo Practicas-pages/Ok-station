@@ -18,6 +18,12 @@
   };
   var SUBTYPE = { mexicano: "Mexicano", americano: "Americano" };
   function esc(s) { var d = document.createElement("div"); d.textContent = s == null ? "" : s; return d.innerHTML; }
+  /* Datos por persona (requisitos): JSON guardado en la cita, o []. */
+  function parseGuests(v) {
+    if (!v) return [];
+    if (Array.isArray(v)) return v;
+    try { var p = JSON.parse(v); return Array.isArray(p) ? p : []; } catch (e) { return []; }
+  }
 
   function load() {
     host.innerHTML = '<p style="color:var(--text-muted)">Cargando…</p>';
@@ -46,7 +52,7 @@
         Array.prototype.forEach.call(host.querySelectorAll(".cita-dl"), function (btn) {
           btn.addEventListener("click", function () {
             var a = list[+btn.dataset.i];
-            if (a) window.OKCitaTicketDownload({ code: a.code, tramite: a.tramite, passport_subtype: a.passport_subtype, party_size: a.party_size, date: a.date, time: a.time, status: a.status, name: a.contact_name, phone: a.contact_phone });
+            if (a) window.OKCitaTicketDownload({ code: a.code, tramite: a.tramite, passport_subtype: a.passport_subtype, party_size: a.party_size, date: a.date, time: a.time, status: a.status, name: a.contact_name, phone: a.contact_phone, guests: parseGuests(a.guests_json) });
           });
         });
       })

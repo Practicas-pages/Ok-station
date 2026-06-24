@@ -330,34 +330,44 @@
       if (canvas) doc.addImage(canvas.toDataURL("image/png"), "PNG", PW - x - 38, 44, 38, 38);
     } catch (e) {}
 
-    // ── Folio + estado ──
+    // ── Folio + estado (con holgura para no encimar los datos fiscales) ──
     doc.setTextColor(dark[0], dark[1], dark[2]);
-    doc.setFont("helvetica", "bold"); doc.setFontSize(18); doc.text(String(order.code || ""), x, 52);
+    doc.setFont("helvetica", "bold"); doc.setFontSize(18); doc.text(String(order.code || ""), x, 57);
 
     var STAT = { recibido: "Recibido", en_revision: "En revisión", en_produccion: "En producción", listo: "Listo", entregado: "Entregado", cancelado: "Cancelado" };
     var label = STAT[order.status] || order.status || "—";
     doc.setFont("helvetica", "bold"); doc.setFontSize(9);
     var lw = doc.getTextWidth(label) + 8;
     doc.setFillColor(blue[0], blue[1], blue[2]);
-    doc.roundedRect(x, 56, lw, 7, 3.5, 3.5, "F");
-    doc.setTextColor(255, 255, 255); doc.text(label, x + 4, 60.8);
+    doc.roundedRect(x, 61, lw, 7, 3.5, 3.5, "F");
+    doc.setTextColor(255, 255, 255); doc.text(label, x + 4, 65.8);
 
     // ── Archivos ──
-    var ty = 78;
+    // El pie (mapa/WhatsApp) es FIJO; reservamos espacio para los totales (~42mm)
+    // y, si hay demasiados archivos, resumimos el resto para no encimar el pie.
+    var ITEMS_LIMIT_Y = 208;   // los archivos no deben pasar de aquí (deja sitio a totales+pie)
+    var items = order.items || [];
+    var ty = 80;
     doc.setTextColor(blue[0], blue[1], blue[2]);
     doc.setFont("helvetica", "bold"); doc.setFontSize(12); doc.text("Archivos", x, ty);
     ty += 7;
-    (order.items || []).forEach(function (it) {
+    for (var ii = 0; ii < items.length; ii++) {
+      if (ty > ITEMS_LIMIT_Y) {
+        doc.setFont("helvetica", "italic"); doc.setFontSize(9.5); doc.setTextColor(muted[0], muted[1], muted[2]);
+        doc.text("y " + (items.length - ii) + " archivo(s) más…", x, ty); ty += 8;
+        break;
+      }
+      var it = items[ii];
       var cfg = {};
       if (it.config_json) { try { cfg = typeof it.config_json === "string" ? JSON.parse(it.config_json) : it.config_json; } catch (e) { cfg = {}; } }
       doc.setFont("helvetica", "bold"); doc.setFontSize(10); doc.setTextColor(dark[0], dark[1], dark[2]);
-      doc.text("• " + (it.original_name || "Archivo"), x, ty);
+      doc.text(doc.splitTextToSize("• " + (it.original_name || "Archivo"), 170), x, ty);
       var meta = [cfg.size, cfg.color, cfg.sides, cfg.finish].filter(Boolean).join(" · ");
       meta = (meta ? meta + " · " : "") + "x" + (it.qty || 1);
       doc.setFont("helvetica", "normal"); doc.setTextColor(muted[0], muted[1], muted[2]);
-      doc.text(doc.splitTextToSize(meta, 120), x + 5, ty + 5);
+      doc.text(doc.splitTextToSize(meta, 165), x + 5, ty + 5);
       ty += 12;
-    });
+    }
 
     // ── Totales ──
     ty += 2;
@@ -370,11 +380,14 @@
     doc.setFont("helvetica", "bold"); doc.setFontSize(14); doc.setTextColor(blue[0], blue[1], blue[2]);
     doc.text("Total", x, ty); doc.text(mxn(order.total), x + 95, ty, { align: "right" });
 
-    // ── Cómo llegar (Google Maps) — posición FIJA al pie para que SIEMPRE aparezca ──
+    // ── Cómo llegar (Google Maps) + WhatsApp — posición FIJA al pie para que SIEMPRE aparezcan ──
+    var WA_URL = "https://wa.me/526647194117?text=" + encodeURIComponent("Hola OK.station, tengo un pedido y quiero confirmar / hacer mi pago.");
     doc.setFont("helvetica", "normal"); doc.setFontSize(9); doc.setTextColor(muted[0], muted[1], muted[2]);
     doc.text("Recoge en: Centro Comercial Otay, Local G-03 · Carretera Aeropuerto 1900, Tijuana, B.C.", x, 262);
     doc.setFont("helvetica", "bold"); doc.setFontSize(10); doc.setTextColor(blue[0], blue[1], blue[2]);
     doc.textWithLink("Cómo llegar — abrir en Google Maps", x, 269, { url: "https://www.google.com/maps/place/Ok.station/@32.5292376,-116.9514835,17z/data=!4m6!3m5!1s0x80d9475a2b534615:0x80c51bb5b3fe8f55!8m2!3d32.5292376!4d-116.9514835!16s%2Fg%2F11k63fhrhb" });
+    doc.setTextColor(22, 163, 74);   // verde WhatsApp
+    doc.textWithLink("WhatsApp: (664) 719-4117 — abrir chat", x, 275.5, { url: WA_URL });
 
     // ── Pie con línea de marca + lema ──
     gradBand(0, 287, PW, 3);

@@ -4808,8 +4808,26 @@ body.admin::before { display: none !important; }
 .section,
 .section--alt { background: transparent !important; }
 /* La sección de Citas conserva tema oscuro (texto claro) pero en AZUL profundo
-   de la marca (no navy negruzco), para mantenerse dentro de la paleta. */
-.citas-section { background: linear-gradient(180deg, #082A6E 0%, #04153C 100%) !important; }
+   de la marca (no navy negruzco), para mantenerse dentro de la paleta.
+   Sus bordes superior/inferior se DESVANECEN a transparente (no líneas duras):
+   los ~90px de relleno superior y ~100px inferior funden el azul profundo con
+   el lienzo animado, evitando el corte tipo "diapositiva". El contenido (título,
+   tarjetas) queda donde el fondo ya es sólido, así que la legibilidad no cambia. */
+.citas-section {
+  background: linear-gradient(180deg,
+    transparent 0,
+    #082A6E 90px,
+    #04153C calc(100% - 100px),
+    transparent 100%) !important;
+}
+/* El footer también se funde por arriba con el lienzo (sin línea dura). */
+.site-footer {
+  background: linear-gradient(180deg,
+    transparent 0,
+    #230B5E 96px,
+    #142A7E 60%,
+    #0B2E9E 100%) !important;
+}
 
 /* Fuera las ondas/auroras (las "líneas" azul y púrpura) y los tintes por sección */
 .section::after,
@@ -4910,3 +4928,54 @@ body.admin::before { display: none !important; }
 #faq .faq-icon svg { color: #066CFF !important; }
 #faq .faq-item.is-open .faq-icon { background: #066CFF !important; }
 #faq .faq-item.is-open .faq-icon svg { color: #fff !important; }
+
+/* ============================================================
+   30. PASO "DATOS DE CADA PERSONA" (requisitos por persona)
+   Tarjetas dentro del wizard de citas (fondo azul profundo): se captura la
+   información de cada asistente y se navega de una persona a la siguiente.
+   ============================================================ */
+.persona-progress {
+  font-weight: 700;
+  color: #cfe0ff;
+  font-size: 0.95rem;
+  margin-bottom: 12px;
+}
+.persona-card {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 16px;
+  padding: 20px;
+}
+.persona-card[hidden] { display: none; }
+.persona-card__head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 16px;
+}
+.persona-card__badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px; height: 28px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: var(--grad-purpura-azul-cyan, #066CFF);
+  color: #fff;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+.persona-doctype { display: flex; flex-wrap: wrap; gap: 10px; }
+.persona-pager {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 14px;
+}
+.persona-pager .btn[disabled] { opacity: 0.4; cursor: not-allowed; }
+@media (max-width: 520px) {
+  .persona-pager { flex-direction: column; }
+  .persona-pager .btn { width: 100%; }
+}

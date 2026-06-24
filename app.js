@@ -329,10 +329,11 @@
       subtype: "",                 /* solo pasaporte: "mexicano" | "americano" */
       partySize: 1, partyLabel: "Solo yo",
       fecha: "", hora: "",
-      nombre: "", tel: "", notas: ""
+      nombre: "", tel: "", notas: "",
+      guests: [], activeGuest: 0   /* datos por persona (requisitos): [{name,dob,doctype}] */
     };
 
-    var TOTAL_STEPS = 5;           /* Servicio → Cantidad → Fecha → Datos → Confirmación */
+    var TOTAL_STEPS = 6;           /* Servicio → Cantidad → Fecha → Datos → Requisitos → Confirmación */
 
     /* Referencias DOM */
     var stepsEl   = qsa(".step-item");
@@ -374,6 +375,8 @@
       /* Al entrar al paso Fecha (índice 2) el calendario debe reflejar la cantidad
          de personas ya elegida en el paso anterior. */
       if (next === 2 && calGrid) { renderCalendar(); updateCalNav(); }
+      /* Al entrar al paso Requisitos (índice 4) construir un formulario por persona. */
+      if (next === 4) renderGuests();
 
       renderSteps();
 
@@ -846,6 +849,115 @@
     var aceptoEl = qs("#cita-acepto");
     if (aceptoEl) aceptoEl.addEventListener("change", validateStep2);
 
+    /* ──────────────────────────────────────────────────────────
+       Paso Requisitos: datos de CADA persona que asistirá a la cita.
+       Si la cita es para N personas se piden N formularios; se navega de una
+       persona a la siguiente y al final se puede regresar a editar antes de
+       confirmar. Para pasaporte/visa/sentri se pregunta el tipo de trámite
+       (primera vez / renovación con o sin documentos). El anticipo del 100%
+       se informa aquí (el cobro en línea se conectará después). */
+    var personasHost    = qs("#cita-personas");
+    var personaProgress = qs("#persona-progress");
+    var personaPrevBtn  = qs("#persona-prev");
+    var personaNextBtn  = qs("#persona-next");
+    var DOCTYPE_OPTS = [
+      { v: "primera",   t: "Primera vez" },
+      { v: "renov_con", t: "Renovación con documentos" },
+      { v: "renov_sin", t: "Renovación sin documentos" }
+    ];
+    var DOCTYPE_LABEL = { primera: "Primera vez", renov_con: "Renovación con documentos", renov_sin: "Renovación sin documentos" };
+    /* La pregunta de renovación con/sin documentos aplica a pasaporte, visa y SENTRI. */
+    function needsDoctype() { return state.tramite === "pasaporte" || state.tramite === "visa" || state.tramite === "sentri"; }
+
+    /* Garantiza state.guests con exactamente partySize entradas (preserva lo escrito). */
+    function ensureGuests() {
+      var n = Math.max(1, state.partySize | 0);
+      if (!Array.isArray(state.guests)) state.guests = [];
+      while (state.guests.length < n) state.guests.push({ name: "", dob: "", doctype: "" });
+      if (state.guests.length > n) state.guests.length = n;
+      /* Prefill del nombre de la 1ª persona con el del contacto, si está vacío. */
+      if (state.guests[0] && !state.guests[0].name && state.nombre) state.guests[0].name = state.nombre;
+      if (typeof state.activeGuest !== "number" || state.activeGuest >= n || state.activeGuest < 0) state.activeGuest = 0;
+    }
+
+    function guestCardHtml(i) {
+      var radios = "";
+      if (needsDoctype()) {
+        radios = '<div class="field"><label id="pg-' + i + '-dt-label">Tipo de trámite</label>' +
+          '<div class="contact-pref persona-doctype" role="radiogroup" aria-labelledby="pg-' + i + '-dt-label">' +
+          DOCTYPE_OPTS.map(function (o) {
+            return '<label class="contact-chip"><input type="radio" name="pg-' + i + '-dt" data-pg="doctype" data-idx="' + i + '" value="' + o.v + '"> ' + o.t + '</label>';
+          }).join("") + '</div></div>';
+      }
+      return '<div class="persona-card" data-idx="' + i + '" hidden>' +
+        '<div class="persona-card__head"><span class="persona-card__badge">' + (i + 1) + '</span> Persona ' + (i + 1) + ' de ' + state.guests.length + '</div>' +
+        '<div class="field-group">' +
+          '<div class="field"><label for="pg-' + i + '-name">Nombre completo</label>' +
+          '<input type="text" id="pg-' + i + '-name" data-pg="name" data-idx="' + i + '" autocomplete="off" placeholder="Ej. María González"></div>' +
+          '<div class="field"><label for="pg-' + i + '-dob">Fecha de nacimiento</label>' +
+          '<input type="date" id="pg-' + i + '-dob" data-pg="dob" data-idx="' + i + '"></div>' +
+        '</div>' + radios +
+        '</div>';
+    }
+
+    function renderGuests() {
+      if (!personasHost) return;
+      ensureGuests();
+      var html = "";
+      for (var i = 0; i < state.guests.length; i++) html += guestCardHtml(i);
+      personasHost.innerHTML = html;
+      /* Set de valores por propiedad (evita problemas de escape en atributos). */
+      for (var k = 0; k < state.guests.length; k++) {
+        var g = state.guests[k];
+        var nameEl = qs("#pg-" + k + "-name", personasHost);
+        var dobEl  = qs("#pg-" + k + "-dob", personasHost);
+        if (nameEl) nameEl.value = g.name || "";
+        if (dobEl)  dobEl.value  = g.dob || "";
+        if (g.doctype) {
+          var r = qs('input[name="pg-' + k + '-dt"][value="' + g.doctype + '"]', personasHost);
+          if (r) r.checked = true;
+        }
+      }
+      qsa("[data-pg]", personasHost).forEach(function (el) {
+        var ev = el.type === "radio" ? "change" : "input";
+        el.addEventListener(ev, function () {
+          var idx = parseInt(el.dataset.idx, 10) || 0;
+          if (!state.guests[idx]) state.guests[idx] = { name: "", dob: "", doctype: "" };
+          state.guests[idx][el.dataset.pg] = el.value;
+          validateGuests();
+        });
+      });
+      showGuest(state.activeGuest);
+      validateGuests();
+    }
+
+    function showGuest(i) {
+      if (!personasHost) return;
+      var cards = qsa(".persona-card", personasHost);
+      if (!cards.length) return;
+      i = Math.max(0, Math.min(cards.length - 1, i));
+      state.activeGuest = i;
+      cards.forEach(function (c, ci) { c.hidden = (ci !== i); });
+      if (personaProgress) personaProgress.textContent = "Persona " + (i + 1) + " de " + cards.length;
+      if (personaPrevBtn) personaPrevBtn.disabled = (i === 0);
+      if (personaNextBtn) personaNextBtn.disabled = (i === cards.length - 1);
+      if (personaPrevBtn && personaPrevBtn.parentNode) personaPrevBtn.parentNode.style.display = (cards.length > 1) ? "" : "none";
+    }
+
+    function guestValid(g) {
+      if (!g || !g.name || !g.name.trim() || !g.dob) return false;
+      if (needsDoctype() && !g.doctype) return false;
+      return true;
+    }
+    function validateGuests() {
+      var btn = qs("#cita-next-4");
+      var allOk = state.guests.length > 0 && state.guests.every(guestValid);
+      if (btn) { btn.disabled = !allOk; btn.setAttribute("aria-disabled", String(!allOk)); }
+      return allOk;
+    }
+    if (personaPrevBtn) personaPrevBtn.addEventListener("click", function () { showGuest(state.activeGuest - 1); });
+    if (personaNextBtn) personaNextBtn.addEventListener("click", function () { showGuest(state.activeGuest + 1); });
+
     /* Construir resumen */
     function buildSummary() {
       if (!summaryEl) return;
@@ -868,6 +980,16 @@
         ? window.OKCitaPriceRows(state.tramite, state.subtype, state.partySize)
         : [["Precio", "Te confirmamos el precio"]]
       ).forEach(function (pr) { rows.push([pr[0], sanitize(pr[1])]); });
+
+      /* Datos de cada persona capturados en el paso de requisitos. */
+      if (state.guests && state.guests.length) {
+        state.guests.forEach(function (g, i) {
+          var parts = [];
+          if (g.dob) parts.push("Nac. " + formatDate(g.dob));
+          if (g.doctype) parts.push(DOCTYPE_LABEL[g.doctype] || g.doctype);
+          rows.push(["Persona " + (i + 1), sanitize((g.name || "—") + (parts.length ? " · " + parts.join(" · ") : ""))]);
+        });
+      }
 
       summaryEl.innerHTML = rows.map(function (r) {
         return '<div class="cita-summary__row">' +
@@ -906,7 +1028,10 @@
         phone: state.tel,
         email: emailEl ? emailEl.value.trim() : "",
         contact_pref: prefEl ? prefEl.value : "",
-        notes: state.notas || ""
+        notes: state.notas || "",
+        guests: (state.guests || []).map(function (g) {
+          return { name: (g.name || "").trim(), dob: g.dob || "", doctype: g.doctype || "" };
+        })
       };
       var prevText = confirmBtn.textContent;
       confirmBtn.disabled = true;
@@ -925,14 +1050,15 @@
                 '<div class="cita-confirm__check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg></div>' +
                 '<h4>¡Cita registrada!</h4>' +
                 '<p>Tu folio es <b>' + sanitize(j.appointment.code) + '</b>. Te contactaremos para confirmar tu cita.</p>' +
-                '<a class="btn btn--light btn--sm" id="cita-ticket-dl" style="margin-top:12px" download="cita-' + sanitize(j.appointment.code) + '.pdf" href="#">Descargar comprobante (PDF)</a>';
-              /* Genera el comprobante PDF con el módulo compartido (si está disponible) */
+                '<a class="btn btn--light btn--sm" id="cita-ticket-dl" style="margin-top:12px" rel="noopener" target="_blank" download="cita-' + sanitize(j.appointment.code) + '.pdf" href="#">Descargar comprobante (PDF)</a>';
+              /* Genera el comprobante PDF con el módulo compartido (si está disponible).
+                 Usamos Blob URL (no data-URI) para que la descarga abra también en celular. */
               try {
-                var citaUri = window.OKCitaTicket ? window.OKCitaTicket({
+                var citaUri = window.OKCitaTicketBlobUrl ? window.OKCitaTicketBlobUrl({
                   code: j.appointment.code, tramite: j.appointment.tramite,
                   passport_subtype: j.appointment.passport_subtype, party_size: j.appointment.party_size,
                   date: j.appointment.date, time: j.appointment.time, status: j.appointment.status,
-                  name: state.nombre, phone: state.tel
+                  name: state.nombre, phone: state.tel, guests: state.guests
                 }) : null;
                 var dlBtn = qs("#cita-ticket-dl", successEl);
                 if (citaUri && dlBtn) dlBtn.href = citaUri;
@@ -978,7 +1104,8 @@
     var resetBtn = qs("#cita-reset");
     if (resetBtn) {
       resetBtn.addEventListener("click", function () {
-        state = { step: 0, tramite: null, tramiteLabel: "", subtype: "", partySize: 1, partyLabel: "Solo yo", fecha: "", hora: "", nombre: "", tel: "", notas: "" };
+        state = { step: 0, tramite: null, tramiteLabel: "", subtype: "", partySize: 1, partyLabel: "Solo yo", fecha: "", hora: "", nombre: "", tel: "", notas: "", guests: [], activeGuest: 0 };
+        if (personasHost) personasHost.innerHTML = "";
 
         qsa(".tramite-btn").forEach(function (b) {
           b.classList.remove("is-selected");
