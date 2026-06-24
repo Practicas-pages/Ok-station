@@ -4900,11 +4900,13 @@ body.admin::before, body.admin::after { display: none !important; }
   display: block !important;
   position: absolute; inset: 0;
   background: linear-gradient(100deg,
-    rgba(8,22,58,0.84) 0%,
-    rgba(8,22,58,0.58) 34%,
-    rgba(10,28,75,0.22) 60%,
-    rgba(10,28,75,0.00) 85%) !important;
+    rgba(8,22,58,0.70) 0%,
+    rgba(8,22,58,0.40) 36%,
+    rgba(10,28,75,0.12) 60%,
+    rgba(10,28,75,0.00) 82%) !important;
 }
+/* Sombra sutil para que el texto blanco siga legible con el degradado más claro. */
+.hero__copy { text-shadow: 0 2px 18px rgba(4, 12, 40, 0.55); }
 /* Contenido pegado a la izquierda */
 .hero__inner { position: relative; z-index: 1; }
 .hero__grid { justify-items: start !important; justify-content: start !important; }
