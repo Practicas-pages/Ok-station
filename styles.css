@@ -4892,18 +4892,20 @@ body.admin::before, body.admin::after { display: none !important; }
   display: block; position: absolute; inset: 0;
   width: 100%; height: 100%;
   object-fit: cover; object-position: right center;  /* el sujeto/foto se ve NÍTIDO a la derecha */
-  filter: brightness(1.22) saturate(1.07);           /* más claridad */
+  filter: brightness(1.12) contrast(1.08) saturate(1.18);  /* claridad + cuerpo (contraste/color, no solo brillo) */
 }
 /* Degradado OSCURO: opaco a la izquierda (texto claro legible) → translúcido a la
    derecha (se ve la foto), integrado al tema oscuro del sitio. */
 .hero__bg-overlay {
   display: block !important;
   position: absolute; inset: 0;
-  background: linear-gradient(100deg,
-    rgba(8,22,58,0.70) 0%,
-    rgba(8,22,58,0.40) 36%,
-    rgba(10,28,75,0.12) 60%,
-    rgba(10,28,75,0.00) 82%) !important;
+  background:
+    /* 1) Foco oscuro detrás del texto (izquierda) → el título resalta y limpia el fondo cargado */
+    radial-gradient(78% 100% at 20% 42%, rgba(6,16,48,0.82) 0%, rgba(6,16,48,0.00) 62%),
+    /* 2) Profundidad arriba/abajo y fundido suave hacia la sección de abajo */
+    linear-gradient(180deg, rgba(6,16,48,0.34) 0%, rgba(6,16,48,0.00) 32%, rgba(4,11,38,0.60) 92%),
+    /* 3) Revelado de la foto hacia la derecha */
+    linear-gradient(100deg, rgba(8,22,58,0.60) 0%, rgba(8,22,58,0.24) 46%, rgba(10,28,75,0.00) 80%) !important;
 }
 /* Sombra sutil para que el texto blanco siga legible con el degradado más claro. */
 .hero__copy { text-shadow: 0 2px 18px rgba(4, 12, 40, 0.55); }
