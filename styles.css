@@ -2916,8 +2916,8 @@ h1, h2, h3, h4, h5, h6 {
 
 .footer-top {
   display: grid;
-  grid-template-columns: 1.5fr 1fr 1fr 1fr;
-  gap: clamp(24px, 4vw, 48px);
+  grid-template-columns: 1.6fr repeat(4, 1fr);
+  gap: clamp(24px, 3.5vw, 44px);
   padding-bottom: clamp(40px, 5vw, 60px);
   border-bottom: 1px solid rgba(255,255,255,0.08);
   margin-bottom: clamp(28px, 3vw, 40px);
@@ -3446,8 +3446,12 @@ h1, h2, h3, h4, h5, h6 {
   }
 
   .footer-top {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(2, 1fr);
     row-gap: var(--space-8);
+  }
+
+  .footer-brand {
+    grid-column: 1 / -1;
   }
 
   .cita-layout {
