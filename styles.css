@@ -4842,3 +4842,7 @@ body::before { display: none !important; }   /* fuera la aurora fija (azul/púrp
   .services-grid,
   .tramite-grid { -webkit-mask-image: none; mask-image: none; }
 }
+
+/* Hero sin el recuadro lateral de accesos rápidos → una sola columna, sin hueco. */
+.hero__grid { grid-template-columns: 1fr !important; }
+.hero__copy { max-width: 820px; }
