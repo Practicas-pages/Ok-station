@@ -4996,7 +4996,11 @@ body.admin::before, body.admin::after { display: none !important; }
 
 /* ── FAQ sobre el fondo animado oscuro: tarjetas blancas + texto azul-marino + botón "+" ── */
 #faq .eyebrow { color: #7fd4ff !important; text-transform: uppercase; letter-spacing: 0.12em; }
-#faq .hl { background: linear-gradient(95deg, #9C2FFF 0%, #00C8FF 100%) !important; -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: transparent; }
+#faq .hl { background: linear-gradient(95deg, #9C2FFF 0%, #00C8FF 100%) !important; -webkit-background-clip: text !important; background-clip: text !important; -webkit-text-fill-color: transparent !important; color: transparent !important; }
+/* Respaldo: si el navegador no recorta el degradado al texto, las letras se ven en azul brillante en vez de quedar invisibles */
+@supports not ((-webkit-background-clip: text) or (background-clip: text)) {
+  #faq .hl { background: none !important; -webkit-text-fill-color: #2fa8ff !important; color: #2fa8ff !important; }
+}
 #faq .faq-item { background: rgba(255,255,255,0.97) !important; border: none !important; box-shadow: 0 12px 30px rgba(4,12,40,0.18); }
 #faq .faq-item.is-open { box-shadow: 0 16px 40px rgba(4,12,40,0.26); }
 #faq .faq-question { color: #0b1f3a !important; font-weight: 700; }
