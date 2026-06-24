@@ -4953,6 +4953,13 @@ body.admin::before, body.admin::after { display: none !important; }
 /* ── Contenido del hero MÁS GRANDE → abarca más espacio ── */
 .hero { min-height: clamp(620px, 88vh, 880px); display: flex; align-items: center; }
 .hero__title { font-size: clamp(2.8rem, 5.6vw, 4.7rem) !important; }
+/* Acento "Tú lo imaginas," más brillante y vibrante (no apagado) */
+.hero__title .accent {
+  background: linear-gradient(95deg, #7a4dff 0%, #2f9bff 45%, #35e0ff 100%) !important;
+  -webkit-background-clip: text !important; background-clip: text !important;
+  -webkit-text-fill-color: transparent !important; color: transparent !important;
+  filter: brightness(1.18) saturate(1.15);
+}
 .hero__lead  { font-size: clamp(1.12rem, 1.9vw, 1.4rem) !important; max-width: 600px !important; }
 .hero__eyebrow { font-size: 0.9rem !important; }
 .hero__cta .btn { font-size: 1.05rem; }
