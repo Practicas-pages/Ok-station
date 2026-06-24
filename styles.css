@@ -4957,6 +4957,8 @@ body.admin::before, body.admin::after { display: none !important; }
 .hero__grid { justify-items: start !important; justify-content: start !important; }
 .hero__copy { text-align: left !important; max-width: 760px; justify-self: start !important; margin-left: 0 !important; margin-right: auto !important; }
 @media (max-width: 768px) { .hero__copy { justify-self: stretch !important; } }
+/* Recorre el bloque ligeramente a la derecha (solo escritorio; en móvil queda pegado para no desbordar). */
+@media (min-width: 769px) { .hero__copy { margin-left: clamp(24px, 4.5vw, 90px) !important; } }
 
 /* ── Contenido del hero MÁS GRANDE → abarca más espacio ── */
 .hero { min-height: clamp(620px, 88vh, 880px); display: flex; align-items: center; }
