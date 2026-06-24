@@ -4909,6 +4909,39 @@ body.admin::before, body.admin::after { display: none !important; }
 }
 /* Sombra sutil para que el texto blanco siga legible con el degradado más claro. */
 .hero__copy { text-shadow: 0 2px 18px rgba(4, 12, 40, 0.55); }
+
+/* ── Fusión al pie del hero → se funde con la sección de abajo (sin corte brusco) ──
+   La foto se disuelve hacia el azul del fondo animado (#0a1f4d) en el último tramo. */
+.hero::after {
+  content: "";
+  position: absolute; left: 0; right: 0; bottom: 0;
+  height: 42%;
+  background: linear-gradient(180deg,
+    rgba(10, 31, 77, 0.00) 0%,
+    rgba(10, 31, 77, 0.45) 55%,
+    rgba(10, 31, 77, 0.92) 100%);
+  z-index: 0; pointer-events: none;
+}
+
+/* ── Chips de confianza bajo los CTAs (llenan el espacio y refuerzan el mensaje) ── */
+.hero__chips {
+  list-style: none; margin: var(--space-6) 0 0; padding: 0;
+  display: flex; flex-wrap: wrap; gap: 10px;
+}
+.hero__chip {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 9px 15px; border-radius: 999px;
+  font-size: 0.92rem; font-weight: 600; color: #eaf2ff;
+  background: rgba(255, 255, 255, 0.10);
+  border: 1px solid rgba(255, 255, 255, 0.20);
+  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  text-shadow: none;
+}
+.hero__chip svg { width: 17px; height: 17px; color: #7fd4ff; flex: none; }
+@media (max-width: 768px) {
+  .hero__chips { gap: 8px; }
+  .hero__chip { font-size: 0.84rem; padding: 8px 12px; }
+}
 /* Contenido pegado a la izquierda */
 .hero__inner { position: relative; z-index: 1; }
 .hero__grid { justify-items: start !important; justify-content: start !important; }
