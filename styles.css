@@ -627,10 +627,10 @@ h1, h2, h3, h4, h5, h6 {
   top: 0;
   z-index: 100;
   height: var(--header-height);
-  background: rgba(242,244,248,0.80);
-  backdrop-filter: saturate(180%) blur(16px);
-  -webkit-backdrop-filter: saturate(180%) blur(16px);
-  border-bottom: 1px solid transparent;
+  background: rgba(255,255,255,0.90);
+  backdrop-filter: saturate(180%) blur(18px);
+  -webkit-backdrop-filter: saturate(180%) blur(18px);
+  border-bottom: 1px solid rgba(15,38,92,0.06);
   transition:
     background var(--transition-base),
     border-color var(--transition-base),
