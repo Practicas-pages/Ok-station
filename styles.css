@@ -4899,15 +4899,14 @@ body.admin::before, body.admin::after { display: none !important; }
 .hero__bg-overlay {
   display: block !important;
   position: absolute; inset: 0;
-  /* Degradado horizontal limpio: azul (texto) → foto NÍTIDA a la derecha.
-     Azul más luminoso a la izquierda → el hero se siente con más luz, menos apagado. */
+  /* Degradado horizontal MÁS BRUSCO: navy sólido a la izquierda → transición rápida →
+     foto a su claridad original (~90-100%) en el lado derecho. Estilo referencia. */
   background: linear-gradient(95deg,
     rgba(15, 38, 92, 0.97) 0%,
-    rgba(15, 38, 92, 0.94) 20%,
-    rgba(15, 38, 92, 0.72) 38%,
-    rgba(15, 38, 92, 0.30) 54%,
-    rgba(15, 38, 92, 0.06) 68%,
-    rgba(15, 38, 92, 0.00) 78%) !important;
+    rgba(15, 38, 92, 0.95) 33%,
+    rgba(15, 38, 92, 0.62) 44%,
+    rgba(15, 38, 92, 0.18) 51%,
+    rgba(15, 38, 92, 0.00) 57%) !important;
 }
 /* Sombra sutil para que el texto blanco siga legible con el degradado más claro. */
 .hero__copy { text-shadow: 0 2px 18px rgba(4, 12, 40, 0.55); }
