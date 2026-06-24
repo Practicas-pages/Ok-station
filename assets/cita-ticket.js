@@ -15,6 +15,33 @@
   };
   var SUBTYPE = { mexicano: "Mexicano", americano: "Americano" };
   var STATUS = { pendiente: "Pendiente de confirmar", confirmada: "Confirmada", completada: "Completada", cancelada: "Cancelada", no_show: "No asistió" };
+
+  /* ── Precios OFICIALES de trámite/cita (MXN, por persona). Los no listados se cotizan. ── */
+  var CITA_PRICES = { pasaporte: 200, visa: 800, sentri: 900, ine: 80, curp: 35 };
+  function mxn0(n) { return new Intl.NumberFormat("es-MX", { style: "currency", currency: "MXN", maximumFractionDigits: 0 }).format(n); }
+  /* Devuelve {quote, unit, total, party}. quote=true → "se cotiza" (precio a confirmar). */
+  window.OKCitaPrice = function (tramite, subtype, party) {
+    party = Math.max(1, parseInt(party, 10) || 1);
+    var unit = CITA_PRICES[tramite];
+    if (tramite === "pasaporte" && subtype === "americano") unit = undefined; // pasaporte americano → cotizar
+    if (unit == null) return { quote: true, party: party };
+    return { quote: false, unit: unit, party: party, total: unit * party };
+  };
+  /* Texto listo para mostrar al cliente. */
+  window.OKCitaPriceText = function (tramite, subtype, party) {
+    var p = window.OKCitaPrice(tramite, subtype, party);
+    if (p.quote) return "Te confirmamos el precio";
+    if (p.party > 1) return mxn0(p.unit) + " por persona · Total estimado " + mxn0(p.total) + " (" + p.party + " personas)";
+    return mxn0(p.unit);
+  };
+  /* Filas [etiqueta, valor] de costo (Subtotal/Total) para resumen y ticket. */
+  window.OKCitaPriceRows = function (tramite, subtype, party) {
+    var p = window.OKCitaPrice(tramite, subtype, party);
+    if (p.quote) return [["Precio", "Te confirmamos el precio"]];
+    var sub = (p.party > 1) ? (mxn0(p.unit) + " × " + p.party + " = " + mxn0(p.total)) : mxn0(p.total);
+    return [["Subtotal", sub], ["Total estimado", mxn0(p.total)]];
+  };
+  window.OKMxn0 = mxn0;
   var DIAS = ["domingo", "lunes", "martes", "miércoles", "jueves", "viernes", "sábado"];
   var MESES = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
   function fmtDate(iso) {
@@ -60,6 +87,7 @@
     if (appt.phone) rows.push(["Teléfono", appt.phone]);
     rows.push(["Fecha", fmtDate(appt.date)]);
     rows.push(["Hora", (appt.time || "") + " hrs"]);
+    window.OKCitaPriceRows(appt.tramite, appt.passport_subtype, appt.party_size).forEach(function (pr) { rows.push(pr); });
     doc.setFontSize(10.5);
     rows.forEach(function (r) {
       doc.setFont("helvetica", "normal"); doc.setTextColor(muted[0], muted[1], muted[2]); doc.text(r[0], x, ty);

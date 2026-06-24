@@ -824,6 +824,11 @@
       rows.push(["Fecha",    sanitize(formatDate(state.fecha))]);
       rows.push(["Hora",     sanitize(state.hora) + " hrs"]);
       if (state.notas) rows.push(["Notas", sanitize(state.notas)]);
+      /* Precio (Subtotal + Total) para que el cliente lo vea antes de confirmar. */
+      (window.OKCitaPriceRows
+        ? window.OKCitaPriceRows(state.tramite, state.subtype, state.partySize)
+        : [["Precio", "Te confirmamos el precio"]]
+      ).forEach(function (pr) { rows.push([pr[0], sanitize(pr[1])]); });
 
       summaryEl.innerHTML = rows.map(function (r) {
         return '<div class="cita-summary__row">' +

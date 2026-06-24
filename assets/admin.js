@@ -41,6 +41,7 @@
     }
     var n = parseInt(a.party_size, 10) || 1;
     if (n > 1) html += '<br><span class="appt-extra">' + n + ' personas</span>';
+    if (window.OKCitaPriceText) html += '<br><span class="appt-extra" style="color:var(--brand-blue);font-weight:600">' + esc(window.OKCitaPriceText(a.tramite, a.passport_subtype, a.party_size)) + '</span>';
     return html;
   }
   function badge(status, labels) {
@@ -409,6 +410,12 @@
             (c.phone ? '<br><a href="tel:' + esc(c.phone) + '">' + esc(c.phone) + '</a>' : '') +
           '</p>' +
           (o.comments ? '<h4 style="margin:0 0 6px;font-size:.95rem">Indicaciones del cliente</h4><p style="margin:0 0 16px;font-size:.9rem;white-space:pre-wrap;background:#f8fafc;border-radius:8px;padding:10px 12px">' + esc(o.comments) + '</p>' : '') +
+          '<h4 style="margin:0 0 6px;font-size:.95rem">Importe</h4>' +
+          '<div style="display:flex;flex-direction:column;gap:6px;font-size:.9rem;background:#f8fafc;border-radius:8px;padding:12px 14px;margin:0 0 16px">' +
+            '<div style="display:flex;justify-content:space-between"><span style="color:var(--text-muted,#6b7280)">Subtotal</span><b class="mono">' + mxn(+o.subtotal || 0) + '</b></div>' +
+            '<div style="display:flex;justify-content:space-between"><span style="color:var(--text-muted,#6b7280)">IVA (16%)</span><b class="mono">' + mxn(+o.tax || 0) + '</b></div>' +
+            '<div style="display:flex;justify-content:space-between;border-top:1px solid #e5e7eb;padding-top:6px"><span>Total</span><b class="mono">' + mxn(+o.total || 0) + '</b></div>' +
+          '</div>' +
           paymentPanel(o) +
           '<h4 style="margin:0 0 10px;font-size:.95rem">Ticket del cliente</h4>' +
           '<div style="border:1px solid #eef0f4;border-radius:12px;padding:14px;margin-bottom:16px">' +
