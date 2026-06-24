@@ -596,6 +596,7 @@
                 <span class="tramite-btn__desc">Examen médico requerido para tu trámite.</span>
               </button>
             </div>
+            <div id="cita-requisitos" class="cita-reqs" hidden aria-live="polite"></div>
             <div class="cita-nav">
               <span></span>
               <button type="button" class="btn btn--primary" id="cita-next-0" data-cita-next disabled aria-disabled="true">Continuar
@@ -715,11 +716,18 @@
               <input type="checkbox" id="cita-acepto" name="cita-acepto">
               <span>Acepto que mis datos sean utilizados para confirmar mi cita y recibir comunicación relacionada. No se compartirán con terceros.</span>
             </label>
+            <div id="cita-docs" class="cita-docs" hidden></div>
             <div class="cita-nav">
               <button type="button" class="btn btn--ghost-dark" data-cita-back>Atrás</button>
-              <button type="button" class="btn btn--primary" id="cita-next-2" data-cita-next disabled aria-disabled="true">Continuar
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-              </button>
+              <span class="cita-nav__group">
+                <button type="button" class="btn btn--ghost-dark" id="cita-docs-toggle" aria-expanded="false" aria-controls="cita-docs">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                  Subir documentos
+                </button>
+                <button type="button" class="btn btn--primary" id="cita-next-2" data-cita-next disabled aria-disabled="true">Continuar
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                </button>
+              </span>
             </div>
           </div>
 
@@ -1093,6 +1101,7 @@
 </button>
 
 <!-- ============================ SCRIPTS ============================ -->
+<script src="assets/cita-expediente.js?v=20260624" defer></script>
 <script src="app.js?v=20260811" defer></script>
 <script src="assets/reviews.js?v=20260811" defer></script>
 <script src="assets/session-nav.js?v=20260811" defer></script>

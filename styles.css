@@ -5083,3 +5083,86 @@ body.admin::before, body.admin::after { display: none !important; }
 }
 .persona-check input { margin-top: 3px; width: 17px; height: 17px; flex: 0 0 auto; accent-color: #066CFF; }
 .persona-help--check { margin-left: 26px; }
+
+/* ============================================================
+   Expediente de cita — requisitos, documentos y venta cruzada
+   (Fase 1). Hereda el tema oscuro de la sección de citas; no
+   altera ningún estilo existente.
+   ============================================================ */
+.cita-reqs {
+  margin-top: 18px;
+  padding: 16px 18px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-left: 3px solid var(--brand-cyan);
+  border-radius: var(--radius-sm);
+  animation: cita-reqs-in .25s ease;
+}
+@keyframes cita-reqs-in { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
+.cita-reqs__head { display: flex; align-items: center; gap: 9px; color: #fff; font-size: 0.95rem; }
+.cita-reqs__head svg { width: 20px; height: 20px; color: var(--brand-cyan); flex: 0 0 auto; }
+.cita-reqs__note { color: rgba(255,255,255,0.7); font-size: 0.84rem; margin: 8px 0 0; }
+.cita-reqs__list { list-style: none; margin: 10px 0 0; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 4px 18px; }
+.cita-reqs__list li { position: relative; padding-left: 18px; color: rgba(255,255,255,0.85); font-size: 0.85rem; line-height: 1.5; }
+.cita-reqs__list li::before { content: ""; position: absolute; left: 2px; top: 9px; width: 6px; height: 6px; border-radius: 50%; background: var(--brand-cyan); }
+.cita-reqs__group { margin-top: 12px; }
+.cita-reqs__gtitle { display: block; color: #cfe0ff; font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 2px; }
+@media (max-width: 600px) { .cita-reqs__list { grid-template-columns: 1fr; } }
+
+/* Botones agrupados en la barra del paso (Subir documentos + Continuar) */
+.cita-nav__group { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: flex-end; }
+#cita-docs-toggle svg { width: 18px; height: 18px; }
+#cita-docs-toggle.is-open { background: rgba(255,255,255,0.16); }
+
+/* Sección de documentos */
+.cita-docs {
+  margin-top: 16px;
+  padding: 16px 18px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: var(--radius-sm);
+}
+.cita-docs__empty { color: rgba(255,255,255,0.7); font-size: 0.88rem; margin: 0; }
+.cita-docs__notice {
+  display: flex; gap: 10px; align-items: flex-start;
+  padding: 10px 12px; margin-bottom: 14px;
+  background: rgba(245,176,65,0.12); border: 1px solid rgba(245,176,65,0.30);
+  border-radius: var(--radius-sm); color: #ffe2b0; font-size: 0.82rem; line-height: 1.45;
+}
+.cita-docs__notice svg { width: 18px; height: 18px; color: #ffc46b; flex: 0 0 auto; margin-top: 1px; }
+.cita-docs__sub { color: rgba(255,255,255,0.62); font-size: 0.8rem; margin: 0 0 12px; }
+.cita-docs__list { display: grid; gap: 10px; }
+.doc-field { padding: 12px 14px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.12); border-radius: var(--radius-sm); }
+.doc-field__top { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.doc-field__name { color: #fff; font-size: 0.88rem; font-weight: 600; }
+.doc-field__btn {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 7px 13px; border-radius: var(--radius-sm); cursor: pointer;
+  background: rgba(255,255,255,0.10); border: 1px solid rgba(255,255,255,0.18);
+  color: #fff; font-size: 0.8rem; font-weight: 600; white-space: nowrap;
+  transition: background var(--transition-fast), border-color var(--transition-fast);
+}
+.doc-field__btn:hover { background: rgba(255,255,255,0.18); border-color: rgba(255,255,255,0.32); }
+.doc-field__btn svg { width: 16px; height: 16px; }
+.doc-field__status { display: none; align-items: center; gap: 7px; margin-top: 9px; font-size: 0.8rem; line-height: 1.4; word-break: break-word; }
+.doc-field__status.is-ok, .doc-field__status.is-error { display: flex; }
+.doc-field__status svg { width: 16px; height: 16px; flex: 0 0 auto; }
+.doc-field__status.is-ok { color: #7ee0b8; }
+.doc-field__status.is-error { color: #ff9a9a; }
+
+/* Venta cruzada */
+.cita-upsell { margin-top: 18px; padding-top: 16px; border-top: 1px solid rgba(255,255,255,0.12); }
+.cita-upsell__title { display: block; color: #fff; font-size: 0.9rem; font-weight: 600; margin-bottom: 10px; }
+.cita-upsell__list { display: grid; gap: 8px; }
+.upsell-row {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+  padding: 10px 12px; background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.12); border-radius: var(--radius-sm);
+  transition: border-color var(--transition-fast), background var(--transition-fast);
+}
+.upsell-row.is-on { background: rgba(6,108,255,0.14); border-color: rgba(6,108,255,0.45); }
+.upsell-row__q { color: rgba(255,255,255,0.85); font-size: 0.85rem; }
+.upsell-row__actions { display: flex; gap: 8px; flex: 0 0 auto; }
+.upsell-add { white-space: nowrap; }
+.upsell-row.is-on .upsell-add { background: var(--brand-blue); border-color: transparent; color: #fff; }
+.cita-upsell__note { color: rgba(255,255,255,0.55); font-size: 0.76rem; margin: 10px 0 0; }
