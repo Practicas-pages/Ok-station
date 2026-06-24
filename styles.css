@@ -4957,6 +4957,8 @@ body.admin::before, body.admin::after { display: none !important; }
 .hero__grid { justify-items: start !important; justify-content: start !important; }
 .hero__copy { text-align: left !important; max-width: 760px; justify-self: start !important; margin-left: 0 !important; margin-right: auto !important; }
 @media (max-width: 768px) { .hero__copy { justify-self: stretch !important; } }
+/* Recorre el bloque ligeramente a la derecha (solo escritorio; en móvil queda pegado para no desbordar). */
+@media (min-width: 769px) { .hero__copy { margin-left: clamp(24px, 4.5vw, 90px) !important; } }
 
 /* ── Contenido del hero MÁS GRANDE → abarca más espacio ── */
 .hero { min-height: clamp(620px, 88vh, 880px); display: flex; align-items: center; }
@@ -4987,6 +4989,22 @@ body.admin::before, body.admin::after { display: none !important; }
       rgba(8,22,58,0.82) 55%,
       rgba(12,34,99,0.55) 100%) !important;
   }
+}
+
+/* ── ANTI-DESBORDAMIENTO del hero (flexbox) en TODAS las pantallas ──
+   .hero es display:flex; su hijo necesita min-width:0 para poder encogerse por debajo
+   del ancho de su contenido (si no, el título grande se sale y se corta en móvil).
+   Además las palabras largas se parten en vez de empujar el ancho. */
+.hero__inner { min-width: 0; max-width: 100%; }
+.hero__copy, .hero__title, .hero__lead { min-width: 0; overflow-wrap: break-word; word-break: break-word; }
+.hero__eyebrow { max-width: 100%; flex-wrap: wrap; }
+.hero__chips { max-width: 100%; }
+
+@media (max-width: 480px) {
+  /* Teléfonos angostos: título y eyebrow un punto más compactos para que nunca se salgan. */
+  .hero__title { font-size: clamp(1.95rem, 8.5vw, 2.6rem) !important; letter-spacing: -0.02em; }
+  .hero__eyebrow { font-size: 0.78rem !important; }
+  .hero__chip { font-size: 0.8rem; }
 }
 
 /* ── Zona con BLUR a la derecha del hero (aquí va la foto de OK.station) ──
