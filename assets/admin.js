@@ -413,7 +413,7 @@
           '<h4 style="margin:0 0 6px;font-size:.95rem">Importe</h4>' +
           '<div style="display:flex;flex-direction:column;gap:6px;font-size:.9rem;background:#f8fafc;border-radius:8px;padding:12px 14px;margin:0 0 16px">' +
             '<div style="display:flex;justify-content:space-between"><span style="color:var(--text-muted,#6b7280)">Subtotal</span><b class="mono">' + mxn(+o.subtotal || 0) + '</b></div>' +
-            '<div style="display:flex;justify-content:space-between"><span style="color:var(--text-muted,#6b7280)">IVA (16%)</span><b class="mono">' + mxn(+o.tax || 0) + '</b></div>' +
+            '<div style="display:flex;justify-content:space-between"><span style="color:var(--text-muted,#6b7280)">IVA (8%)</span><b class="mono">' + mxn(+o.tax || 0) + '</b></div>' +
             '<div style="display:flex;justify-content:space-between;border-top:1px solid #e5e7eb;padding-top:6px"><span>Total</span><b class="mono">' + mxn(+o.total || 0) + '</b></div>' +
           '</div>' +
           paymentPanel(o) +

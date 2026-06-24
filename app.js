@@ -371,6 +371,9 @@
       state.step = next;
 
       if (next === TOTAL_STEPS - 1) buildSummary();
+      /* Al entrar al paso Fecha (índice 2) el calendario debe reflejar la cantidad
+         de personas ya elegida en el paso anterior. */
+      if (next === 2 && calGrid) { renderCalendar(); updateCalNav(); }
 
       renderSteps();
 
@@ -536,6 +539,14 @@
         b.classList.toggle("is-selected", on);
         b.setAttribute("aria-pressed", String(on));
       });
+      /* Cambiar la cantidad cambia la duración → re-evaluar qué días/horas caben.
+         (calGrid/loadSlots/resetSlots se definen más abajo pero ya existen cuando el
+         usuario interactúa con este paso.) */
+      if (calGrid) {
+        state.hora = "";
+        renderCalendar();
+        if (state.fecha) loadSlots(state.fecha); else resetSlots();
+      }
     }
     qsa(".party-opt").forEach(function (b) {
       b.addEventListener("click", function () {
@@ -586,11 +597,27 @@
       return date.getFullYear() + "-" + m + "-" + d;
     }
 
+    /* ── Duración de la cita ↔ horas del día ──────────────────────────────
+       Cada persona toma ~45 min y los slots del horario son de 60 min: una cita
+       de N personas necesita slotsNeeded(N) horas CONSECUTIVAS (igual que el
+       backend Availability::slotsNeeded). Esto deja contrastar las horas que pide
+       la cantidad de personas contra las horas que abre cada día. */
+    var SLOT_MIN = 60;
+    function slotsNeeded(party) {
+      return Math.max(1, Math.ceil((Math.max(1, party | 0) * MIN_PER_PERSON) / SLOT_MIN));
+    }
+    /* Nº de horas que abre una fecha según el horario semanal (0 si cerrada). */
+    function openHoursCount(date) {
+      var hrs = availCfg.weekly[String(date.getDay())];
+      return (hrs && hrs.length) ? hrs.length : 0;
+    }
+
     /* Nivel de disponibilidad "de base" (cosmético y DETERMINISTA por fecha) para que el
        calendario no se vea 100% libre y dé impresión de un negocio con demanda. La ocupación
        REAL del servidor (mid/none) siempre manda; esto solo varía los días que el backend
        reporta como totalmente libres. Mantiene la mayoría de días reservables (no aleatorio,
-       estable entre recargas). */
+       estable entre recargas). Ahora también es consciente de la CANTIDAD de personas:
+       a más personas, la cita ocupa más horas seguidas → más días se ven ocupados/sin cupo. */
     /* Hash entero con buena avalancha (lowbias32) sobre el día absoluto: días consecutivos
        caen en niveles distintos (un hash de la cadena ISO se agrupaba y dejaba 0 días "none"). */
     function dayHash(date) {
@@ -601,12 +628,20 @@
       return x % 100;
     }
     function baseLevelFor(date) {
+      var need = slotsNeeded(state.partySize);
+      var open = openHoursCount(date);
+      /* Si la cita no cabe ni en un día vacío (pide más horas seguidas de las que abre el día),
+         ese día NO sirve para esta cantidad de personas. */
+      if (open && need >= open) return "none";
       var diffDays = Math.round((date - today0) / 86400000);
       var h = dayHash(date);
-      if (diffDays <= 3) return h < 35 ? "mid" : "full";  /* días próximos: nunca "sin disponibilidad" */
-      if (h < 18) return "none";                          /* ~18% se ven sin disponibilidad */
-      if (h < 50) return "mid";                           /* ~32% disponibilidad media */
-      return "full";                                      /* ~50% disponibilidad total */
+      /* Sesgo por duración: cada hora extra que pide la cita sube la ocupación aparente
+         (~14 puntos por slot, tope 42) sin volverse aleatorio entre recargas. */
+      var bias = Math.min(42, (need - 1) * 14);
+      if (diffDays <= 3) return h < (35 + bias) ? "mid" : "full";  /* días próximos: nunca "sin disponibilidad" */
+      if (h < 18 + bias) return "none";                            /* ~18% (más con grupos) sin disponibilidad */
+      if (h < 50 + bias) return "mid";                             /* disponibilidad media */
+      return "full";                                               /* disponibilidad total */
     }
 
     function renderSlotsLoading() {
@@ -671,6 +706,10 @@
         /* La ocupación real del servidor manda; si reporta "full" (o nada), usamos el nivel de base. */
         var serverLvl = occByDate[iso];
         var lvl = (serverLvl && serverLvl !== "full") ? serverLvl : baseLevelFor(date);
+        /* Contraste horas ↔ personas: si la cita (por su duración) no cabe en las horas que
+           abre el día, ese día queda "sin disponibilidad" aunque el servidor lo reporte libre. */
+        var open = openHoursCount(date);
+        if (open && slotsNeeded(state.partySize) >= open) lvl = "none";
         var closed = !dayIsOpen(date) || date < minDate || date > maxDate;   /* cerrado/fuera de ventana */
         var disabled = closed || lvl === "none";                            /* "sin disponibilidad" no es reservable */
         /* Texto/icono además del color para usuarios daltónicos (A1):

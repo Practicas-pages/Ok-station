@@ -34,7 +34,7 @@ try {
         ]);
     }
     // Recalcula el IVA con la misma tasa efectiva del pedido original.
-    $taxRate = (float) $o['subtotal'] > 0 ? ((float) $o['tax'] / (float) $o['subtotal']) : 0.16;
+    $taxRate = (float) $o['subtotal'] > 0 ? ((float) $o['tax'] / (float) $o['subtotal']) : 0.08;
     $tax   = round($subtotal * $taxRate, 2);
     $total = round($subtotal + $tax, 2);
     $pdo->prepare('UPDATE orders SET code=?, subtotal=?, tax=?, total=? WHERE id=?')

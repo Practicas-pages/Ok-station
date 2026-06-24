@@ -50,7 +50,7 @@
   var FINISH = { ninguno: 0, engargolado: 45, enmicado: 20, grapado: 5 };  /* engargolado/enmicado: precio representativo (variantes por tamaño en mostrador) */
   var PAPERS = ["Bond", "Opalina", "Couché", "Fotográfico", "Cartulina", "Adhesivo"];
 
-  var TAX = 0.16;
+  var TAX = 0.08;   /* IVA 8% (los precios del catálogo ya lo incluyen) */
   var files = [];        // {fileId, name, mime, pages, size, thumb, cfg}
 
   /* ── Formatos permitidos (validación en cliente; el backend revalida) ── */
@@ -197,14 +197,18 @@
   }
 
   function renderSummary() {
-    var copies = 0, subtotal = 0;
-    files.forEach(function (f) { var p = priceOf(f); copies += f.cfg.copies; subtotal += p.line; });
-    var tax = Math.round(subtotal * TAX * 100) / 100;
+    var copies = 0, totalIncl = 0;
+    /* Los precios del catálogo son IVA INCLUIDO (como en el ticket de mostrador):
+       el TOTAL = suma de líneas; el subtotal y el IVA se desglosan a partir del total. */
+    files.forEach(function (f) { var p = priceOf(f); copies += f.cfg.copies; totalIncl += p.line; });
+    totalIncl = Math.round(totalIncl * 100) / 100;
+    var subtotal = Math.round(totalIncl / (1 + TAX) * 100) / 100;
+    var tax = Math.round((totalIncl - subtotal) * 100) / 100;
     $("#sum-files").textContent = files.length;
     $("#sum-copies").textContent = copies;
     $("#sum-subtotal").textContent = mxn(subtotal);
     $("#sum-tax").textContent = mxn(tax);
-    $("#sum-total").textContent = mxn(subtotal + tax);
+    $("#sum-total").textContent = mxn(totalIncl);
   }
 
   /* Precios de referencia por tamaño, visibles ANTES de subir archivos (U2). */
@@ -309,6 +313,15 @@
     doc.setFont("helvetica", "bold"); doc.setFontSize(24); doc.text("OK.station", x, 18);
     doc.setFont("helvetica", "normal"); doc.setFontSize(10.5); doc.text("Ticket de pedido", x, 26);
 
+    // ── Datos fiscales del negocio (como el ticket de mostrador) ──
+    function two(n) { return (n < 10 ? "0" : "") + n; }
+    function fmtDateTime(d) { return two(d.getDate()) + "/" + two(d.getMonth() + 1) + "/" + d.getFullYear() + " " + two(d.getHours()) + ":" + two(d.getMinutes()); }
+    var emitted = order.created_at ? new Date(String(order.created_at).replace(" ", "T")) : new Date();
+    doc.setTextColor(muted[0], muted[1], muted[2]); doc.setFont("helvetica", "normal"); doc.setFontSize(8.5);
+    doc.text("Aeropuerto 1900 G03, Ctro. Com. Otay, Tijuana, B.C.", x, 40);
+    doc.text("Tel. (664) 623-1595  ·  RFC: RUOJ6704222M5", x, 44.5);
+    doc.text("Emitido: " + fmtDateTime(emitted), x, 49);
+
     // ── QR (para consultar el pedido) ──
     try {
       var tmp = document.createElement("div");
@@ -350,8 +363,10 @@
     ty += 2;
     doc.setDrawColor(230, 233, 238); doc.line(x, ty, x + 95, ty); ty += 8;
     doc.setFont("helvetica", "normal"); doc.setFontSize(10); doc.setTextColor(dark[0], dark[1], dark[2]);
+    var artCount = (order.items || []).reduce(function (s, it) { return s + (parseInt(it.qty, 10) || 1); }, 0);
+    doc.text("No. de artículos", x, ty); doc.text(String(artCount), x + 95, ty, { align: "right" }); ty += 6;
     doc.text("Subtotal", x, ty); doc.text(mxn(order.subtotal), x + 95, ty, { align: "right" }); ty += 6;
-    doc.text("IVA (16%)", x, ty); doc.text(mxn(order.tax), x + 95, ty, { align: "right" }); ty += 9;
+    doc.text("IVA (8%)", x, ty); doc.text(mxn(order.tax), x + 95, ty, { align: "right" }); ty += 9;
     doc.setFont("helvetica", "bold"); doc.setFontSize(14); doc.setTextColor(blue[0], blue[1], blue[2]);
     doc.text("Total", x, ty); doc.text(mxn(order.total), x + 95, ty, { align: "right" });
 

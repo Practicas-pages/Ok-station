@@ -52,6 +52,6 @@ final class Pricing
     public static function taxRate(): float
     {
         $row = db()->query("SELECT `value` FROM settings WHERE `key`='tax_rate'")->fetch();
-        return $row ? (float) $row['value'] : 0.16;
+        return $row ? (float) $row['value'] : 0.08;
     }
 }

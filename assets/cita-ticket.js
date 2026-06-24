@@ -18,7 +18,9 @@
 
   /* ── Precios OFICIALES de trámite/cita (MXN, por persona). Los no listados se cotizan. ── */
   var CITA_PRICES = { pasaporte: 200, visa: 800, sentri: 900, ine: 80, curp: 35 };
+  var CITA_TAX = 0.08;   /* IVA 8% (los precios ya lo incluyen, como el ticket de mostrador) */
   function mxn0(n) { return new Intl.NumberFormat("es-MX", { style: "currency", currency: "MXN", maximumFractionDigits: 0 }).format(n); }
+  function mxn2(n) { return new Intl.NumberFormat("es-MX", { style: "currency", currency: "MXN", minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n); }
   /* Devuelve {quote, unit, total, party}. quote=true → "se cotiza" (precio a confirmar). */
   window.OKCitaPrice = function (tramite, subtype, party) {
     party = Math.max(1, parseInt(party, 10) || 1);
@@ -34,12 +36,20 @@
     if (p.party > 1) return mxn0(p.unit) + " por persona · Total estimado " + mxn0(p.total) + " (" + p.party + " personas)";
     return mxn0(p.unit);
   };
-  /* Filas [etiqueta, valor] de costo (Subtotal/Total) para resumen y ticket. */
+  /* Filas [etiqueta, valor] de costo para resumen y ticket. Desglosa el IVA 8%
+     a partir del total (precio IVA incluido, igual que el ticket de mostrador). */
   window.OKCitaPriceRows = function (tramite, subtype, party) {
     var p = window.OKCitaPrice(tramite, subtype, party);
     if (p.quote) return [["Precio", "Te confirmamos el precio"]];
-    var sub = (p.party > 1) ? (mxn0(p.unit) + " × " + p.party + " = " + mxn0(p.total)) : mxn0(p.total);
-    return [["Subtotal", sub], ["Total estimado", mxn0(p.total)]];
+    var total = p.total;
+    var sub = Math.round(total / (1 + CITA_TAX) * 100) / 100;
+    var iva = Math.round((total - sub) * 100) / 100;
+    var rows = [];
+    if (p.party > 1) rows.push(["Concepto", mxn0(p.unit) + " × " + p.party + " personas"]);
+    rows.push(["Subtotal", mxn2(sub)]);
+    rows.push(["IVA (8%)", mxn2(iva)]);
+    rows.push(["Total estimado", mxn0(total)]);
+    return rows;
   };
   window.OKMxn0 = mxn0;
   var DIAS = ["domingo", "lunes", "martes", "miércoles", "jueves", "viernes", "sábado"];
@@ -73,12 +83,19 @@
       var cv = tmp.querySelector("canvas");
       if (cv) doc.addImage(cv.toDataURL("image/png"), "PNG", PW - x - 38, 44, 38, 38);
     } catch (e) {}
-    doc.setTextColor(dark[0], dark[1], dark[2]); doc.setFont("helvetica", "bold"); doc.setFontSize(18); doc.text(String(appt.code || ""), x, 52);
+    /* ── Datos fiscales del negocio (como el ticket de mostrador) ── */
+    function two(n) { return (n < 10 ? "0" : "") + n; }
+    function fmtDateTime(d) { return two(d.getDate()) + "/" + two(d.getMonth() + 1) + "/" + d.getFullYear() + " " + two(d.getHours()) + ":" + two(d.getMinutes()); }
+    doc.setTextColor(muted[0], muted[1], muted[2]); doc.setFont("helvetica", "normal"); doc.setFontSize(8.5);
+    doc.text("Aeropuerto 1900 G03, Ctro. Com. Otay, Tijuana, B.C.", x, 40);
+    doc.text("Tel. (664) 623-1595  ·  RFC: RUOJ6704222M5", x, 44.5);
+    doc.text("Emitido: " + fmtDateTime(new Date()), x, 49);
+    doc.setTextColor(dark[0], dark[1], dark[2]); doc.setFont("helvetica", "bold"); doc.setFontSize(18); doc.text(String(appt.code || ""), x, 57);
     var label = STATUS[appt.status] || "Pendiente de confirmar";
     doc.setFont("helvetica", "bold"); doc.setFontSize(9); var lw = doc.getTextWidth(label) + 8;
-    doc.setFillColor(blue[0], blue[1], blue[2]); doc.roundedRect(x, 56, lw, 7, 3.5, 3.5, "F");
-    doc.setTextColor(255, 255, 255); doc.text(label, x + 4, 60.8);
-    var ty = 80;
+    doc.setFillColor(blue[0], blue[1], blue[2]); doc.roundedRect(x, 61, lw, 7, 3.5, 3.5, "F");
+    doc.setTextColor(255, 255, 255); doc.text(label, x + 4, 65.8);
+    var ty = 82;
     doc.setTextColor(blue[0], blue[1], blue[2]); doc.setFont("helvetica", "bold"); doc.setFontSize(12); doc.text("Detalle de la cita", x, ty); ty += 8;
     var svcName = SERVICE_NAMES[appt.tramite] || appt.tramite;
     if (appt.tramite === "pasaporte" && appt.passport_subtype) svcName += " (" + (SUBTYPE[appt.passport_subtype] || appt.passport_subtype) + ")";
