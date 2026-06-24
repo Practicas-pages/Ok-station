@@ -4772,25 +4772,36 @@ section[id] { scroll-margin-top: 84px; }
    degradando al bajar. Se eliminan los fondos por sección (efecto
    "diapositiva") y las ondas/líneas azul-púrpura. Solo paleta oficial.
    ============================================================ */
-/* El html lleva un color base para que el degradado del body NO se
-   propague al canvas como fijo: así se "revela" al hacer scroll. */
-html { background: #EAF2FB; }
-body {
-  /* Paleta de AZULES recorrida con el scroll: del azul más claro arriba al azul de
-     marca abajo. Se mantiene en rango claro/medio para que el texto oscuro de los
-     encabezados siga siendo legible; el contenido vive en tarjetas blancas. */
-  background: linear-gradient(180deg,
-    #E6F0F9 0%,
-    #CFE0EE 14%,
-    #AED5F2 32%,
-    #8FC9F0 50%,
-    #6FBEF8 68%,
-    #4FAAFB 85%,
-    #2E97FF 100%);
-  background-repeat: no-repeat;
-  background-attachment: scroll;   /* se mueve con el contenido → cambia al scrollear */
+/* ── FONDO ANIMADO TIPO AGUA (tema oscuro) en TODA la página excepto el panel admin ──
+   Degradado completo desplazándose suavemente (sin formas de olas dibujadas). */
+html { background: #0a1f4d; }
+body:not(.admin) {
+  background: linear-gradient(120deg, #0a1f4d, #143a82, #066CFF, #0e2a63, #1a4ba8, #0a1f4d);
+  background-size: 300% 300%;
+  animation: oks-water 16s ease infinite;
+  background-attachment: fixed;
 }
-body::before { display: none !important; }   /* fuera la aurora fija (azul/púrpura) */
+/* Capa de profundidad líquida: manchas radiales cyan + púrpura moviéndose en diagonal. */
+body:not(.admin)::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 30% 40%, rgba(0,200,255,0.18), transparent 55%),
+    radial-gradient(circle at 75% 65%, rgba(156,47,255,0.16), transparent 55%);
+  background-size: 200% 200%;
+  animation: oks-water-blobs 20s ease infinite;
+}
+/* En el panel admin NO aplica el fondo animado ni la aurora. */
+body.admin::before { display: none !important; }
+@keyframes oks-water { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+@keyframes oks-water-blobs { 0% { background-position: 0% 0%; } 50% { background-position: 100% 100%; } 100% { background-position: 0% 0%; } }
+@media (prefers-reduced-motion: reduce) {
+  body:not(.admin) { animation: none; }
+  body:not(.admin)::before { animation: none; }
+}
 
 /* Secciones sin fondo propio ni líneas que las dividan → lienzo continuo */
 .hero,
@@ -4815,20 +4826,22 @@ body::before { display: none !important; }   /* fuera la aurora fija (azul/púrp
     radial-gradient(55% 75% at 88% 28%, rgba(6, 108, 255, 0.20), transparent 60%) !important;
 }
 
-/* ── Texto sobre el lienzo ──
-   El lienzo es CLARO (azules suaves), así que los encabezados y el hero usan su
-   texto OSCURO de base (legible). Solo la sección de Citas (azul profundo) lleva
-   texto BLANCO en su encabezado. */
-.citas-section .section-head .eyebrow,
-.citas-section .section-head .text-h2,
-.citas-section .section-head .text-lead { color: #fff !important; }
-.citas-section .section-head .eyebrow::before { background: #fff !important; }
-.citas-section .section-head .hl,
-.citas-section .section-head .hl--cyan {
-  background: none !important;
-  -webkit-text-fill-color: #fff !important;
-  color: #fff !important;
-}
+/* ── Texto sobre el lienzo OSCURO → CLARO ──
+   El fondo animado es oscuro, así que todo el texto que va directamente sobre él
+   (encabezados de sección, hero, reseñas) va en blanco. El contenido vive en
+   tarjetas blancas y conserva su texto oscuro. Los resaltados .hl (degradado) se
+   mantienen porque lucen sobre oscuro. */
+.section-head .eyebrow { color: #7fd4ff !important; }
+.section-head .eyebrow::before { background: currentColor !important; }
+.section-head .text-h2 { color: #fff !important; }
+.section-head .text-lead { color: rgba(255,255,255,0.82) !important; }
+.reviews-empty, .reviews-bar, .reviews-bar .rating-summary,
+.rating-summary__label, .rating-summary__count { color: rgba(255,255,255,0.92) !important; }
+/* Hero (sobre la foto/overlay oscuro): texto claro. */
+.hero__eyebrow { color: #fff !important; background: rgba(255,255,255,0.14) !important; border-color: rgba(255,255,255,0.34) !important; }
+.hero__title { color: #fff !important; }
+.hero__lead { color: rgba(255,255,255,0.88) !important; }
+.hero__scroll { color: rgba(255,255,255,0.85) !important; }
 
 /* ── Borde del carrusel pulido ──
    Las tarjetas se desvanecen suavemente en los extremos en vez de cortarse en seco
@@ -4856,16 +4869,16 @@ body::before { display: none !important; }   /* fuera la aurora fija (azul/púrp
   filter: blur(3px) saturate(1.05) brightness(1.02);
   transform: scale(1.08);             /* cubre el borde que deja el desenfoque */
 }
-/* Degradado: claro y opaco a la izquierda (texto legible) → transparente a la derecha (se ve la foto). */
+/* Degradado OSCURO: opaco a la izquierda (texto claro legible) → translúcido a la
+   derecha (se ve la foto), integrado al tema oscuro del sitio. */
 .hero__bg-overlay {
   display: block !important;
   position: absolute; inset: 0;
   background: linear-gradient(100deg,
-    #E6F0F9 0%,
-    #E6F0F9 30%,
-    rgba(230,240,249,0.82) 48%,
-    rgba(230,240,249,0.40) 68%,
-    rgba(230,240,249,0.05) 100%) !important;
+    rgba(8,22,58,0.92) 0%,
+    rgba(8,22,58,0.86) 32%,
+    rgba(12,34,99,0.55) 58%,
+    rgba(12,34,99,0.20) 100%) !important;
 }
 /* Contenido pegado a la izquierda */
 .hero__inner { position: relative; z-index: 1; }
@@ -4879,8 +4892,21 @@ body::before { display: none !important; }   /* fuera la aurora fija (azul/púrp
   .hero__bg-img { object-position: center; }
   .hero__bg-overlay {
     background: linear-gradient(180deg,
-      rgba(230,240,249,0.93) 0%,
-      rgba(230,240,249,0.82) 55%,
-      rgba(230,240,249,0.55) 100%) !important;
+      rgba(8,22,58,0.90) 0%,
+      rgba(8,22,58,0.82) 55%,
+      rgba(12,34,99,0.55) 100%) !important;
   }
 }
+
+/* ── FAQ sobre el fondo animado oscuro: tarjetas blancas + texto azul-marino + botón "+" ── */
+#faq .eyebrow { color: #7fd4ff !important; text-transform: uppercase; letter-spacing: 0.12em; }
+#faq .hl { background: linear-gradient(95deg, #9C2FFF 0%, #00C8FF 100%) !important; -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: transparent; }
+#faq .faq-item { background: rgba(255,255,255,0.97) !important; border: none !important; box-shadow: 0 12px 30px rgba(4,12,40,0.18); }
+#faq .faq-item.is-open { box-shadow: 0 16px 40px rgba(4,12,40,0.26); }
+#faq .faq-question { color: #0b1f3a !important; font-weight: 700; }
+#faq .faq-item.is-open .faq-question { color: #066CFF !important; }
+#faq .faq-answer__inner { color: #2b3650 !important; }
+#faq .faq-icon { background: #eef3fb !important; }
+#faq .faq-icon svg { color: #066CFF !important; }
+#faq .faq-item.is-open .faq-icon { background: #066CFF !important; }
+#faq .faq-item.is-open .faq-icon svg { color: #fff !important; }
