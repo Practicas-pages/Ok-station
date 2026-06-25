@@ -129,6 +129,20 @@
 .order-pay__done { font-weight: 600; font-size: 0.85rem; color: #15803D; }
 .order-pay .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
 
+/* ============================================================
+   ANTI-DESBORDAMIENTO en móvil (configurador embebido en #fotos)
+   Los contenedores flex/grid necesitan min-width:0 para encogerse;
+   el input de teléfono no traía flex y empujaba el ancho → scroll lateral.
+   ============================================================ */
+.order-embed, #order-builder, .order-grid, .order-grid > *, .order-summary { min-width: 0; max-width: 100%; }
+.input-prefix { min-width: 0; max-width: 100%; }
+.input-prefix input { flex: 1 1 auto; min-width: 0; width: 100%; }
+/* Filas de precios: si la etiqueta es larga, que el precio baje en vez de desbordar. */
+.order-prices__list li { flex-wrap: wrap; }
+.order-prices, .order-files { max-width: 100%; overflow: hidden; }
+/* Nombres de archivo largos no rompen la tarjeta. */
+.file-card, .file-cfg { max-width: 100%; min-width: 0; }
+
 /* Chip de estado de pago */
 .opay { display: inline-flex; align-items: center; gap: 5px; font-size: 0.72rem; font-weight: 600; padding: 3px 10px; border-radius: var(--radius-full); white-space: nowrap; }
 .opay::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }

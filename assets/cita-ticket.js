@@ -246,6 +246,23 @@
       }
     }
 
+    /* ── Servicios adicionales seleccionados (venta cruzada) ── */
+    var services = (appt.services && appt.services.length) ? appt.services : null;
+    if (services) {
+      ty += 3; needSpace(14);
+      doc.setTextColor(blue[0], blue[1], blue[2]); doc.setFont("helvetica", "bold"); doc.setFontSize(12);
+      doc.text("Servicios adicionales", x, ty); ty += 7;
+      for (var si = 0; si < services.length; si++) {
+        var sv = services[si] || {};
+        var slabel = sv.label || sv.key || "";
+        var slines = doc.splitTextToSize("• " + slabel, 165);
+        needSpace(slines.length * 5 + 1);
+        doc.setFont("helvetica", "normal"); doc.setFontSize(10.5); doc.setTextColor(dark[0], dark[1], dark[2]);
+        doc.text(slines, x + 5, ty); ty += slines.length * 5;
+      }
+      ty += 2;
+    }
+
     needSpace(10);
     ty += 3; doc.setFont("helvetica", "normal"); doc.setFontSize(9); doc.setTextColor(muted[0], muted[1], muted[2]);
     doc.text(doc.splitTextToSize("Se requiere el anticipo del 100% para confirmar tu cita. Conserva este comprobante con tu folio.", 175), x, ty);

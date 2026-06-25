@@ -78,9 +78,15 @@
   </noscript>
 
   <!-- ===================== HOJA DE ESTILOS ===================== -->
+<<<<<<< HEAD
   <link rel="stylesheet" href="styles.css?v=20260812">
   <!-- Estilos del configurador de pedido embebido en #fotos -->
   <link rel="stylesheet" href="assets/order.css?v=20260812">
+=======
+  <link rel="stylesheet" href="styles.css?v=20260624i">
+  <!-- Estilos del configurador de pedido embebido en #fotos -->
+  <link rel="stylesheet" href="assets/order.css?v=20260624g">
+>>>>>>> fbaf0248d7321273f1073f680a95e61de5838e5c
 
   <!-- ===================== DATOS ESTRUCTURADOS (JSON-LD) ===================== -->
   <script type="application/ld+json">
@@ -203,7 +209,6 @@
 
         <a class="nav__link" href="#citas">Citas</a>
         <a class="nav__link" href="#fotos">Imprime tus fotos</a>
-        <a class="nav__link" href="#fotos">Haz tu pedido</a>
         <a class="nav__link" href="#testimonios">Reseñas</a>
         <a class="nav__link" href="#visitanos">Visítanos</a>
       </nav>
@@ -242,9 +247,9 @@
     <!-- ============================ HERO ============================ -->
     <section class="hero" aria-labelledby="hero-title">
       <div class="hero__bg" aria-hidden="true">
-        <!-- Foto de OK.station de fondo. Sube tu imagen como uploads/hero-okstation.jpg
-             (si no existe, se oculta sola y la zona con blur de la derecha sigue viéndose bien). -->
-        <img class="hero__bg-img" src="uploads/hero-okstation.jpg" alt="" loading="eager" decoding="async"
+        <!-- Foto de OK.station de fondo (en assets/img/hero-okstation.webp).
+             Si no existe, se oculta sola y el hero se ve con el degradado oscuro. -->
+        <img class="hero__bg-img" src="assets/img/provisional.webp" alt="" loading="eager" decoding="async"
           onerror="this.style.display='none'">
         <div class="hero__bg-overlay"></div>
         <div class="hero__photo-zone" aria-hidden="true"></div>
@@ -286,6 +291,21 @@
                 Agenda tu cita
               </a>
             </div>
+
+            <ul class="hero__chips" aria-label="Por qué elegirnos">
+              <li class="hero__chip">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                Listo al momento
+              </li>
+              <li class="hero__chip">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>
+                Calidad de laboratorio
+              </li>
+              <li class="hero__chip">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
+                Atención con una sonrisa
+              </li>
+            </ul>
 
           </div>
 
@@ -442,7 +462,7 @@
 
         <!-- INE -->
         <article class="service-card reveal">
-          <img src="assets/img/placeholder-servicio.svg" alt="Trámite de INE / credencial para votar en OK.station Tijuana" width="800" height="450" loading="lazy" decoding="async" class="service-card__img" data-img-slot="doc-ine">
+          <img src="assets/img/ine.webp" alt="Trámite de INE / credencial para votar en OK.station Tijuana" width="800" height="450" loading="lazy" decoding="async" class="service-card__img" data-img-slot="doc-ine">
           <h3>INE</h3>
           <p>Te orientamos con tu credencial para votar: citas, requisitos y copias listas para tu trámite.</p>
           <div class="service-tags"><span class="tag">Credencial</span><span class="tag">Citas</span><span class="tag">Copias</span></div>
@@ -451,7 +471,7 @@
 
         <!-- CURP -->
         <article class="service-card reveal">
-          <img src="assets/img/placeholder-servicio.svg" alt="Impresión de CURP certificada en OK.station Tijuana" width="800" height="450" loading="lazy" decoding="async" class="service-card__img" data-img-slot="doc-curp">
+          <img src="assets/img/curp.webp" alt="Impresión de CURP certificada en OK.station Tijuana" width="800" height="450" loading="lazy" decoding="async" class="service-card__img" data-img-slot="doc-curp">
           <h3>CURP</h3>
           <p>Descarga e impresión de tu CURP certificada al momento, lista para cualquier trámite.</p>
           <div class="service-tags"><span class="tag">Certificada</span><span class="tag">Impresión</span><span class="tag">Al momento</span></div>
@@ -460,16 +480,17 @@
 
         <!-- RFC -->
         <article class="service-card reveal">
-          <img src="assets/img/placeholder-servicio.svg" alt="Constancia de situación fiscal RFC en OK.station Tijuana" width="800" height="450" loading="lazy" decoding="async" class="service-card__img" data-img-slot="doc-rfc">
+          <img src="assets/img/rfc.webp" alt="Constancia de situación fiscal RFC en OK.station Tijuana" width="800" height="450" loading="lazy" decoding="async" class="service-card__img" data-img-slot="doc-rfc">
           <h3>RFC</h3>
           <p>Obtén o reimprime tu constancia de situación fiscal (RFC) sin filas ni complicaciones.</p>
           <div class="service-tags"><span class="tag">Constancia</span><span class="tag">SAT</span><span class="tag">Fiscal</span></div>
           <a href="https://wa.me/526647194117?text=Hola,%20quiero%20informaci%C3%B3n%20sobre%20la%20constancia%20de%20RFC" class="service-link" target="_blank" rel="noopener">Más información <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></a>
         </article>
 
+
         <!-- Semanas cotizadas IMSS -->
         <article class="service-card reveal">
-          <img src="assets/img/placeholder-servicio.svg" alt="Reporte de semanas cotizadas IMSS en OK.station Tijuana" width="800" height="450" loading="lazy" decoding="async" class="service-card__img" data-img-slot="doc-semanas-imss">
+          <img src="assets/img/imss.webp" alt="Reporte de semanas cotizadas IMSS en OK.station Tijuana" width="800" height="450" loading="lazy" decoding="async" class="service-card__img" data-img-slot="doc-semanas-imss">
           <h3>Semanas cotizadas IMSS</h3>
           <p>Imprime tu reporte de semanas cotizadas ante el IMSS para tu trámite o empleo.</p>
           <div class="service-tags"><span class="tag">IMSS</span><span class="tag">Reporte</span><span class="tag">Empleo</span></div>
@@ -478,7 +499,7 @@
 
         <!-- Número de Seguro Social (NSS) -->
         <article class="service-card reveal">
-          <img src="assets/img/placeholder-servicio.svg" alt="Número de Seguro Social NSS en OK.station Tijuana" width="800" height="450" loading="lazy" decoding="async" class="service-card__img" data-img-slot="doc-nss">
+          <img src="assets/img/numero ss.webp" alt="Número de Seguro Social NSS en OK.station Tijuana" width="800" height="450" loading="lazy" decoding="async" class="service-card__img" data-img-slot="doc-nss">
           <h3>Número de Seguro Social (NSS)</h3>
           <p>Te ayudamos a obtener e imprimir tu Número de Seguridad Social, listo para entregar.</p>
           <div class="service-tags"><span class="tag">IMSS</span><span class="tag">NSS</span><span class="tag">Asignación</span></div>
@@ -487,7 +508,7 @@
 
         <!-- Certificados escolares -->
         <article class="service-card reveal">
-          <img src="assets/img/placeholder-servicio.svg" alt="Impresión de certificados escolares en OK.station Tijuana" width="800" height="450" loading="lazy" decoding="async" class="service-card__img" data-img-slot="doc-certificados-escolares">
+          <img src="assets/img/certificados esc..webp" alt="Impresión de certificados escolares en OK.station Tijuana" width="800" height="450" loading="lazy" decoding="async" class="service-card__img" data-img-slot="doc-certificados-escolares">
           <h3>Certificados escolares</h3>
           <p>Impresión y enmicado de certificados y constancias escolares con la mejor calidad.</p>
           <div class="service-tags"><span class="tag">Primaria</span><span class="tag">Secundaria</span><span class="tag">Preparatoria</span></div>
@@ -496,7 +517,7 @@
 
         <!-- Actas de nacimiento -->
         <article class="service-card reveal">
-          <img src="assets/img/placeholder-servicio.svg" alt="Impresión de actas de nacimiento certificadas en OK.station Tijuana" width="800" height="450" loading="lazy" decoding="async" class="service-card__img" data-img-slot="doc-acta-nacimiento">
+          <img src="assets/img/acta nacimiento.webp" alt="Impresión de actas de nacimiento certificadas en OK.station Tijuana" width="800" height="450" loading="lazy" decoding="async" class="service-card__img" data-img-slot="doc-acta-nacimiento">
           <h3>Actas de nacimiento</h3>
           <p>Impresión de actas de nacimiento certificadas, válidas para tus trámites oficiales.</p>
           <div class="service-tags"><span class="tag">Certificada</span><span class="tag">Nacimiento</span><span class="tag">Oficial</span></div>
@@ -507,7 +528,7 @@
 
         <!-- Recargas telefónicas -->
         <article class="service-card reveal">
-          <img src="assets/img/placeholder-servicio.svg" alt="Recargas telefónicas de tiempo aire en OK.station Tijuana" width="800" height="450" loading="lazy" decoding="async" class="service-card__img" data-img-slot="serv-recargas">
+          <img src="assets/img/recargas telefonicas.webp" alt="Recargas telefónicas de tiempo aire en OK.station Tijuana" width="800" height="450" loading="lazy" decoding="async" class="service-card__img" data-img-slot="serv-recargas">
           <h3>Recargas telefónicas</h3>
           <p>Recargas de tiempo aire para todas las compañías, al instante y sin complicaciones.</p>
           <div class="service-tags"><span class="tag">Telcel</span><span class="tag">AT&amp;T</span><span class="tag">Movistar</span></div>
@@ -516,7 +537,7 @@
 
         <!-- Impresión en PVC -->
         <article class="service-card reveal">
-          <img src="assets/img/placeholder-servicio.svg" alt="Impresión en tarjetas PVC en OK.station Tijuana" width="800" height="450" loading="lazy" decoding="async" class="service-card__img" data-img-slot="serv-pvc">
+          <img src="assets/img/PVC-impresion.webp" alt="Impresión en tarjetas PVC en OK.station Tijuana" width="800" height="450" loading="lazy" decoding="async" class="service-card__img" data-img-slot="serv-pvc">
           <h3>Impresión en PVC</h3>
           <p>Impresión en tarjetas PVC de alta durabilidad: credenciales, gafetes y más.</p>
           <div class="service-tags"><span class="tag">Credenciales</span><span class="tag">Gafetes</span><span class="tag">Durable</span></div>
@@ -525,16 +546,37 @@
 
         <!-- Escaneado -->
         <article class="service-card reveal">
-          <img src="assets/img/placeholder-servicio.svg" alt="Escaneado y digitalización de documentos en OK.station Tijuana" width="800" height="450" loading="lazy" decoding="async" class="service-card__img" data-img-slot="serv-escaneado">
+          <img src="assets/img/escaneaado.webp" alt="Escaneado y digitalización de documentos en OK.station Tijuana" width="800" height="450" loading="lazy" decoding="async" class="service-card__img" data-img-slot="serv-escaneado">
           <h3>Escaneado</h3>
           <p>Digitalizamos tus documentos y fotos en alta resolución, listos para enviar por correo.</p>
           <div class="service-tags"><span class="tag">PDF</span><span class="tag">Alta resolución</span><span class="tag">Documentos</span></div>
           <a href="https://wa.me/526647194117?text=Hola,%20quiero%20informaci%C3%B3n%20sobre%20el%20servicio%20de%20escaneado" class="service-link" target="_blank" rel="noopener">Más información <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></a>
         </article>
-
+        <!-- Pago de servicios -->
+        <article class="service-card reveal">
+           <img src="assets/img/servicios.webp" alt="Pago de servicios en OK.station Tijuana" width="800" height="450" loading="lazy" decoding="async" class="service-card__img" data-img-slot="serv-pago-servicios">
+  
+            <h3>Pago de servicios</h3>
+  
+            <p>Realizamos pagos de agua, luz, internet y otros servicios, listos al instante y sin largas filas.</p>
+  
+            <div class="service-tags">
+            <span class="tag">Agua</span>
+            <span class="tag">Luz</span>
+            <span class="tag">Internet</span>
+          </div>
+  
+          <a href="https://wa.me/526647194117?text=Hola,%20quiero%20informaci%C3%B3n%20sobre%20el%20servicio%20de%20pago%20de%20servicios" class="service-link" target="_blank" rel="noopener">
+           Más información
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <line x1="5" y1="12" x2="19" y2="12"/>
+              <polyline points="12 5 19 12 12 19"/>
+            </svg>
+          </a>
+        </article>
         <!-- Recorte de hoja en guillotina -->
         <article class="service-card reveal">
-          <img src="assets/img/placeholder-servicio.svg" alt="Recorte de hoja en guillotina profesional en OK.station Tijuana" width="800" height="450" loading="lazy" decoding="async" class="service-card__img" data-img-slot="serv-guillotina">
+          <img src="assets/img/guillotina.webp" alt="Recorte de hoja en guillotina profesional en OK.station Tijuana" width="800" height="450" loading="lazy" decoding="async" class="service-card__img" data-img-slot="serv-guillotina">
           <h3>Recorte en guillotina</h3>
           <p>Cortes precisos a la medida con guillotina profesional para un acabado perfecto.</p>
           <div class="service-tags"><span class="tag">A medida</span><span class="tag">Preciso</span><span class="tag">Acabado</span></div>
@@ -543,7 +585,7 @@
       </div>
     </div>
   </section>
-
+        
     <!-- ============================ CITAS (WIZARD) ============================ -->
   <section class="section citas-section" id="citas" aria-labelledby="citas-title">
     <div class="wrap">
@@ -645,6 +687,7 @@
                 <span class="tramite-btn__desc">Examen médico requerido para tu trámite.</span>
               </button>
             </div>
+            <div id="cita-requisitos" class="cita-reqs" hidden aria-live="polite"></div>
             <div class="cita-nav">
               <span></span>
               <button type="button" class="btn btn--primary" id="cita-next-0" data-cita-next disabled aria-disabled="true">Continuar
@@ -764,11 +807,18 @@
               <input type="checkbox" id="cita-acepto" name="cita-acepto">
               <span>Acepto que mis datos sean utilizados para confirmar mi cita y recibir comunicación relacionada. No se compartirán con terceros.</span>
             </label>
+            <div id="cita-docs" class="cita-docs" hidden></div>
             <div class="cita-nav">
               <button type="button" class="btn btn--ghost-dark" data-cita-back>Atrás</button>
-              <button type="button" class="btn btn--primary" id="cita-next-2" data-cita-next disabled aria-disabled="true">Continuar
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-              </button>
+              <span class="cita-nav__group">
+                <button type="button" class="btn btn--ghost-dark" id="cita-docs-toggle" aria-expanded="false" aria-controls="cita-docs">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                  Subir documentos
+                </button>
+                <button type="button" class="btn btn--primary" id="cita-next-2" data-cita-next disabled aria-disabled="true">Continuar
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                </button>
+              </span>
             </div>
           </div>
 
@@ -1249,17 +1299,35 @@
       </div>
       <div class="footer-col">
         <h5>Servicios</h5>
-        <a href="#servicios">Copias e impresión</a>
-        <a href="#fotos">Impresión de fotos</a>
+        <a href="#servicios">Copias fotostáticas</a>
+        <a href="#fotos">Impresión de fotografías</a>
         <a href="#servicios">Fotos para trámites</a>
+        <a href="#servicios">Escaneado de documentos</a>
+        <a href="#servicios">Impresión en PVC</a>
         <a href="#servicios">Enmicado y engargolado</a>
-        <a href="#servicios">Papelería de oficina</a>
+        <a href="#servicios">Recorte en guillotina</a>
+        <a href="#servicios">Papelería para oficinas</a>
+        <a href="#servicios">Recargas telefónicas</a>
+        <a href="#servicios">Pago de servicios</a>
       </div>
       <div class="footer-col">
         <h5>Trámites</h5>
         <a href="#citas">Citas de pasaporte</a>
-        <a href="#citas">Citas de visa</a>
-        <a href="#citas">Citas SENTRI</a>
+        <a href="#citas">Visa americana</a>
+        <a href="#citas">SENTRI / Global Entry</a>
+        <a href="#citas">I-94 / Permiso de viaje</a>
+        <a href="#citas">INE / Credencial</a>
+        <a href="#citas">CURP y actas</a>
+        <a href="#citas">Licencia de conducir</a>
+        <a href="#citas">Apostille / Traducción</a>
+        <a href="#citas">Cita médica / Examen</a>
+      </div>
+      <div class="footer-col">
+        <h5>Documentos</h5>
+        <a href="#servicios">RFC</a>
+        <a href="#servicios">Semanas cotizadas IMSS</a>
+        <a href="#servicios">Número de Seguro Social</a>
+        <a href="#servicios">Certificados escolares</a>
       </div>
       <div class="footer-col">
         <h5>Contacto</h5>
@@ -1285,15 +1353,26 @@
   </button>
 
 <!-- ============================ SCRIPTS ============================ -->
+<<<<<<< HEAD
 <script src="app.js?v=20260812" defer></script>
 <script src="assets/reviews.js?v=20260812" defer></script>
 <script src="assets/session-nav.js?v=20260812" defer></script>
+=======
+<script src="assets/cita-expediente.js?v=20260624" defer></script>
+<script src="app.js?v=20260624b" defer></script>
+<script src="assets/reviews.js?v=20260811" defer></script>
+<script src="assets/session-nav.js?v=20260811" defer></script>
+>>>>>>> fbaf0248d7321273f1073f680a95e61de5838e5c
 <!-- Configurador de pedido embebido (#fotos): librerías de ticket PDF + QR y lógica -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" defer></script>
 <script src="assets/order.js?v=20260812" defer></script>
 <!-- Comprobante PDF de cita (compartido con perfil y admin) -->
+<<<<<<< HEAD
 <script src="assets/cita-ticket.js?v=20260812" defer></script>
+=======
+<script src="assets/cita-ticket.js?v=20260624" defer></script>
+>>>>>>> fbaf0248d7321273f1073f680a95e61de5838e5c
 </body>
 
 </html>

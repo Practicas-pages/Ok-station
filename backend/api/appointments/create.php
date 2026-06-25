@@ -78,6 +78,22 @@ if (is_array($guestsIn)) {
 }
 $guestsJson = $cleanGuests ? json_encode($cleanGuests, JSON_UNESCAPED_UNICODE) : null;
 
+/* Servicios adicionales (venta cruzada) que el cliente marcó: [{key, label}].
+   Validación tolerante (no se exige; compatibilidad con clientes antiguos). */
+$cleanServices = [];
+$svcIn = $b['services'] ?? [];
+if (is_array($svcIn)) {
+    foreach ($svcIn as $s) {
+        if (!is_array($s)) continue;
+        $sk = preg_replace('/[^a-z0-9_]/i', '', (string) ($s['key'] ?? ''));
+        if ($sk === '') continue;
+        $sl = trim((string) ($s['label'] ?? $sk));
+        $cleanServices[] = ['key' => $sk, 'label' => mb_substr($sl !== '' ? $sl : $sk, 0, 120)];
+        if (count($cleanServices) >= 20) break;
+    }
+}
+$servicesJson = $cleanServices ? json_encode($cleanServices, JSON_UNESCAPED_UNICODE) : null;
+
 /* Usuario opcional: si hay sesión válida, se asocia. */
 $userId = null;
 $hdr = $_SERVER['HTTP_AUTHORIZATION'] ?? ($_SERVER['REDIRECT_HTTP_AUTHORIZATION'] ?? '');
@@ -159,6 +175,10 @@ try {
     if ($guestsJson !== null && table_has_column('appointments', 'guests_json')) {
         $pdo->prepare('UPDATE appointments SET guests_json=? WHERE id=?')->execute([$guestsJson, $id]);
     }
+    /* Servicios adicionales: solo si la migración 0013 ya creó la columna (resiliente). */
+    if ($servicesJson !== null && table_has_column('appointments', 'services_json')) {
+        $pdo->prepare('UPDATE appointments SET services_json=? WHERE id=?')->execute([$servicesJson, $id]);
+    }
 
     $pdo->commit();
 } catch (Throwable $e) {
@@ -201,10 +221,11 @@ if ($email !== '') {
 respond([
     'ok' => true,
     'appointment' => [
-        'code' => $code, 'tramite' => $tramite,
+        'id' => $id, 'code' => $code, 'tramite' => $tramite,
         'passport_subtype' => ($subtype !== '' ? $subtype : null),
         'party_size' => $party,
         'guests' => $cleanGuests,
+        'services' => $cleanServices,
         'date' => $date, 'time' => $time, 'status' => 'pendiente',
     ],
 ], 201);

@@ -1078,10 +1078,27 @@
     var confirmBtn   = qs("#cita-confirm-btn");
     var successEl    = qs("#cita-success");
     var confirmIntro = qs("#cita-confirm-intro");
+    /* Sube cada documento adjunto a su cita (multipart). Best-effort: los errores
+       no afectan la cita ya creada; el cliente puede llevarlos físicamente. */
+    function uploadCitaDocs(apptId, exped) {
+      if (!apptId || !exped || !exped.documents || !exped.documents.length) return;
+      exped.documents.forEach(function (d) {
+        if (!d || !d.file) return;
+        var fd = new FormData();
+        fd.append("appointment_id", apptId);
+        fd.append("doc_key", d.key || "");
+        fd.append("doc_label", d.label || d.key || "");
+        fd.append("file", d.file);
+        try { fetch(API + "/appointments/upload.php", { method: "POST", body: fd }).catch(function () {}); } catch (e) {}
+      });
+    }
+
     function submitCita() {
       if (!confirmBtn || confirmBtn.disabled) return;
       var emailEl = qs("#cita-correo");
       var prefEl  = qs("input[name='cita-contacto']:checked", section);
+      /* Expediente (documentos + servicios) capturado por assets/cita-expediente.js. */
+      var exped = (window.OKCitaExpediente && window.OKCitaExpediente.getState) ? window.OKCitaExpediente.getState() : null;
       var payload = {
         tramite: state.tramite,
         passport_subtype: state.subtype || "",
@@ -1095,7 +1112,8 @@
         notes: state.notas || "",
         guests: (state.guests || []).map(function (g) {
           return { name: (g.name || "").trim(), dob: g.dob || "", doctype: g.doctype || "", answers: g.answers || {} };
-        })
+        }),
+        services: (exped && exped.services) ? exped.services : []
       };
       var prevText = confirmBtn.textContent;
       confirmBtn.disabled = true;
@@ -1118,11 +1136,14 @@
               /* Genera el comprobante PDF con el módulo compartido (si está disponible).
                  Usamos Blob URL (no data-URI) para que la descarga abra también en celular. */
               try {
+                /* Servicios adicionales que el cliente marcó (venta cruzada) para reflejarlos en el ticket. */
+                var citaServices = (exped && exped.services) ? exped.services : [];
                 var citaUri = window.OKCitaTicketBlobUrl ? window.OKCitaTicketBlobUrl({
                   code: j.appointment.code, tramite: j.appointment.tramite,
                   passport_subtype: j.appointment.passport_subtype, party_size: j.appointment.party_size,
                   date: j.appointment.date, time: j.appointment.time, status: j.appointment.status,
-                  name: state.nombre, phone: state.tel, guests: state.guests
+                  name: state.nombre, phone: state.tel, guests: state.guests,
+                  services: citaServices
                 }) : null;
                 var dlBtn = qs("#cita-ticket-dl", successEl);
                 if (citaUri && dlBtn) dlBtn.href = citaUri;
@@ -1137,6 +1158,8 @@
             confirmBtn.style.display = "none";
             showToast("¡Cita registrada! Folio " + j.appointment.code);
             try { sessionStorage.removeItem("okstation.cita.draft"); } catch (_) {}
+            /* Sube los documentos que el cliente adjuntó (best-effort: no bloquea la confirmación). */
+            uploadCitaDocs(j.appointment && j.appointment.id, exped);
           } else {
             showToast((j && j.error) || "No se pudo registrar la cita. Intenta de nuevo.");
             confirmBtn.disabled = false;

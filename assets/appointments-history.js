@@ -52,7 +52,7 @@
         Array.prototype.forEach.call(host.querySelectorAll(".cita-dl"), function (btn) {
           btn.addEventListener("click", function () {
             var a = list[+btn.dataset.i];
-            if (a) window.OKCitaTicketDownload({ code: a.code, tramite: a.tramite, passport_subtype: a.passport_subtype, party_size: a.party_size, date: a.date, time: a.time, status: a.status, name: a.contact_name, phone: a.contact_phone, guests: parseGuests(a.guests_json) });
+            if (a) window.OKCitaTicketDownload({ code: a.code, tramite: a.tramite, passport_subtype: a.passport_subtype, party_size: a.party_size, date: a.date, time: a.time, status: a.status, name: a.contact_name, phone: a.contact_phone, guests: parseGuests(a.guests_json), services: parseGuests(a.services_json) });
           });
         });
       })

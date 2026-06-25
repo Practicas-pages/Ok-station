@@ -627,10 +627,10 @@ h1, h2, h3, h4, h5, h6 {
   top: 0;
   z-index: 100;
   height: var(--header-height);
-  background: rgba(242,244,248,0.80);
-  backdrop-filter: saturate(180%) blur(16px);
-  -webkit-backdrop-filter: saturate(180%) blur(16px);
-  border-bottom: 1px solid transparent;
+  background: rgba(255,255,255,0.90);
+  backdrop-filter: saturate(180%) blur(18px);
+  -webkit-backdrop-filter: saturate(180%) blur(18px);
+  border-bottom: 1px solid rgba(15,38,92,0.06);
   transition:
     background var(--transition-base),
     border-color var(--transition-base),
@@ -2916,8 +2916,8 @@ h1, h2, h3, h4, h5, h6 {
 
 .footer-top {
   display: grid;
-  grid-template-columns: 1.5fr 1fr 1fr 1fr;
-  gap: clamp(24px, 4vw, 48px);
+  grid-template-columns: 1.6fr repeat(4, 1fr);
+  gap: clamp(24px, 3.5vw, 44px);
   padding-bottom: clamp(40px, 5vw, 60px);
   border-bottom: 1px solid rgba(255,255,255,0.08);
   margin-bottom: clamp(28px, 3vw, 40px);
@@ -3446,8 +3446,12 @@ h1, h2, h3, h4, h5, h6 {
   }
 
   .footer-top {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(2, 1fr);
     row-gap: var(--space-8);
+  }
+
+  .footer-brand {
+    grid-column: 1 / -1;
   }
 
   .cita-layout {
@@ -4901,26 +4905,89 @@ body.admin::before, body.admin::after { display: none !important; }
 .hero__bg-img {
   display: block; position: absolute; inset: 0;
   width: 100%; height: 100%;
-  object-fit: cover; object-position: 75% center;
-  filter: blur(3px) saturate(1.05) brightness(1.02);
-  transform: scale(1.08);             /* cubre el borde que deja el desenfoque */
+  object-fit: cover; object-position: center bottom;  /* sube la imagen: se ve hasta el límite inferior de la foto */
+  filter: brightness(1.04) contrast(1.06) saturate(1.14);  /* foto casi ORIGINAL (no lavada) */
 }
 /* Degradado OSCURO: opaco a la izquierda (texto claro legible) → translúcido a la
    derecha (se ve la foto), integrado al tema oscuro del sitio. */
-.hero__bg-overlay {
+/* Selector con MÁS especificidad (.hero .hero__bg-overlay) para ganar siempre a las
+   reglas duplicadas del tema claro viejo (líneas ~4250/4474) y al display:none de ~4845. */
+.hero .hero__bg-overlay {
   display: block !important;
   position: absolute; inset: 0;
-  background: linear-gradient(100deg,
-    rgba(8,22,58,0.92) 0%,
-    rgba(8,22,58,0.86) 32%,
-    rgba(12,34,99,0.55) 58%,
-    rgba(12,34,99,0.20) 100%) !important;
+  /* Degradado horizontal MÁS BRUSCO: navy sólido a la izquierda → transición CORTA →
+     foto a su claridad original (100%) en el lado derecho. Estilo referencia. */
+  background: linear-gradient(95deg,
+    rgba(15, 38, 92, 0.97) 0%,
+    rgba(15, 38, 92, 0.96) 43%,
+    rgba(15, 38, 92, 0.70) 48%,
+    rgba(15, 38, 92, 0.12) 52%,
+    rgba(15, 38, 92, 0.00) 56%) !important;
+}
+/* Sombra sutil para que el texto blanco siga legible con el degradado más claro. */
+.hero__copy { text-shadow: 0 2px 18px rgba(4, 12, 40, 0.55); }
+
+/* ── Fusión al pie del hero → se funde con la sección de abajo (sin corte brusco) ──
+   La foto se disuelve hacia el azul del fondo animado (#0a1f4d) en el último tramo.
+   display:block !important reactiva el pseudo-elemento que la línea ~4845 apagaba. */
+.hero.hero::after {
+  content: "";
+  display: block !important;
+  position: absolute; left: 0; right: 0; bottom: 0;
+  height: 55%;
+  background: linear-gradient(180deg,
+    rgba(10, 31, 77, 0.00) 0%,
+    rgba(10, 31, 77, 0.18) 38%,
+    rgba(10, 31, 77, 0.55) 72%,
+    rgba(10, 31, 77, 1.00) 100%);
+  z-index: 0; pointer-events: none;
+}
+
+/* ── Chips de confianza bajo los CTAs (llenan el espacio y refuerzan el mensaje) ── */
+.hero__chips {
+  list-style: none; margin: var(--space-6) 0 0; padding: 0;
+  display: flex; flex-wrap: wrap; gap: 10px;
+}
+.hero__chip {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 9px 15px; border-radius: 999px;
+  font-size: 0.92rem; font-weight: 600; color: #eaf2ff;
+  background: rgba(255, 255, 255, 0.10);
+  border: 1px solid rgba(255, 255, 255, 0.20);
+  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  text-shadow: none;
+}
+.hero__chip svg { width: 17px; height: 17px; color: #7fd4ff; flex: none; }
+@media (max-width: 768px) {
+  .hero__chips { gap: 8px; }
+  .hero__chip { font-size: 0.84rem; padding: 8px 12px; }
 }
 /* Contenido pegado a la izquierda */
-.hero__inner { position: relative; z-index: 1; }
+.hero__inner { position: relative; z-index: 1; width: 100%; }
 .hero__grid { justify-items: start !important; justify-content: start !important; }
-.hero__copy { text-align: left !important; max-width: 600px; justify-self: start !important; margin-left: 0 !important; margin-right: auto !important; }
+.hero__copy { text-align: left !important; max-width: 760px; justify-self: start !important; margin-left: 0 !important; margin-right: auto !important; }
 @media (max-width: 768px) { .hero__copy { justify-self: stretch !important; } }
+/* Recorre el bloque ligeramente a la derecha (solo escritorio; en móvil queda pegado para no desbordar). */
+@media (min-width: 769px) { .hero__copy { margin-left: clamp(24px, 4.5vw, 90px) !important; } }
+
+/* ── Contenido del hero MÁS GRANDE → abarca más espacio ── */
+.hero { min-height: clamp(620px, 88vh, 880px); display: flex; align-items: center; }
+.hero__title { font-size: clamp(2.8rem, 5.6vw, 4.7rem) !important; }
+/* Acento "Tú lo imaginas," más brillante y vibrante (no apagado) */
+.hero__title .accent {
+  background: linear-gradient(95deg, #7a4dff 0%, #2f9bff 45%, #35e0ff 100%) !important;
+  -webkit-background-clip: text !important; background-clip: text !important;
+  -webkit-text-fill-color: transparent !important; color: transparent !important;
+  filter: brightness(1.18) saturate(1.15);
+}
+.hero__lead  { font-size: clamp(1.12rem, 1.9vw, 1.4rem) !important; max-width: 600px !important; }
+.hero__eyebrow { font-size: 0.9rem !important; }
+.hero__cta .btn { font-size: 1.05rem; }
+@media (max-width: 768px) {
+  .hero { min-height: auto; }
+  .hero__title { font-size: clamp(2.2rem, 9vw, 3rem) !important; }
+  .hero__lead  { font-size: 1.05rem !important; }
+}
 
 @media (max-width: 768px) {
   /* En móvil la foto va más tenue para que el texto SIEMPRE se lea. */
@@ -4934,30 +5001,38 @@ body.admin::before, body.admin::after { display: none !important; }
   }
 }
 
+/* ── ANTI-DESBORDAMIENTO del hero (flexbox) en TODAS las pantallas ──
+   .hero es display:flex; su hijo necesita min-width:0 para poder encogerse por debajo
+   del ancho de su contenido (si no, el título grande se sale y se corta en móvil).
+   Además las palabras largas se parten en vez de empujar el ancho. */
+.hero__inner { min-width: 0; max-width: 100%; }
+.hero__copy, .hero__title, .hero__lead { min-width: 0; overflow-wrap: break-word; word-break: break-word; }
+.hero__eyebrow { max-width: 100%; flex-wrap: wrap; }
+.hero__chips { max-width: 100%; }
+
+@media (max-width: 480px) {
+  /* Teléfonos angostos: título y eyebrow un punto más compactos para que nunca se salgan. */
+  .hero__title { font-size: clamp(1.95rem, 8.5vw, 2.6rem) !important; letter-spacing: -0.02em; }
+  .hero__eyebrow { font-size: 0.78rem !important; }
+  .hero__chip { font-size: 0.8rem; }
+}
+
 /* ── Zona con BLUR a la derecha del hero (aquí va la foto de OK.station) ──
    Un panel esmerilado (frosted) en la mitad derecha: desenfoca el fondo animado
    para que, cuando se suba la foto a uploads/hero-okstation.jpg, quede integrada y
    suave. El borde izquierdo se desvanece para fundirse con el texto. */
-.hero__photo-zone {
-  position: absolute;
-  top: 0; right: 0; bottom: 0;
-  width: 46%;
-  z-index: 0;
-  pointer-events: none;
-  -webkit-backdrop-filter: blur(10px) saturate(1.05);
-          backdrop-filter: blur(10px) saturate(1.05);
-  background:
-    radial-gradient(60% 70% at 72% 32%, rgba(0, 198, 255, 0.18), transparent 70%),
-    radial-gradient(62% 72% at 86% 78%, rgba(156, 29, 255, 0.16), transparent 70%),
-    linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.05));
-  -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 30%);
-          mask-image: linear-gradient(90deg, transparent 0, #000 30%);
-}
+/* La foto va NÍTIDA (estilo "florería"): se desactiva el panel esmerilado cuyo
+   blur difuminaba la mitad derecha. Para volver al efecto frosted, reactívalo. */
+.hero__photo-zone { display: none; }
 @media (max-width: 860px) { .hero__photo-zone { display: none; } }
 
 /* ── FAQ sobre el fondo animado oscuro: tarjetas blancas + texto azul-marino + botón "+" ── */
 #faq .eyebrow { color: #7fd4ff !important; text-transform: uppercase; letter-spacing: 0.12em; }
-#faq .hl { background: linear-gradient(95deg, #9C2FFF 0%, #00C8FF 100%) !important; -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: transparent; }
+#faq .hl { background: linear-gradient(95deg, #9C2FFF 0%, #00C8FF 100%) !important; -webkit-background-clip: text !important; background-clip: text !important; -webkit-text-fill-color: transparent !important; color: transparent !important; }
+/* Respaldo: si el navegador no recorta el degradado al texto, las letras se ven en azul brillante en vez de quedar invisibles */
+@supports not ((-webkit-background-clip: text) or (background-clip: text)) {
+  #faq .hl { background: none !important; -webkit-text-fill-color: #2fa8ff !important; color: #2fa8ff !important; }
+}
 #faq .faq-item { background: rgba(255,255,255,0.97) !important; border: none !important; box-shadow: 0 12px 30px rgba(4,12,40,0.18); }
 #faq .faq-item.is-open { box-shadow: 0 16px 40px rgba(4,12,40,0.26); }
 #faq .faq-question { color: #0b1f3a !important; font-weight: 700; }
@@ -5036,3 +5111,86 @@ body.admin::before, body.admin::after { display: none !important; }
 }
 .persona-check input { margin-top: 3px; width: 17px; height: 17px; flex: 0 0 auto; accent-color: #066CFF; }
 .persona-help--check { margin-left: 26px; }
+
+/* ============================================================
+   Expediente de cita — requisitos, documentos y venta cruzada
+   (Fase 1). Hereda el tema oscuro de la sección de citas; no
+   altera ningún estilo existente.
+   ============================================================ */
+.cita-reqs {
+  margin-top: 18px;
+  padding: 16px 18px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-left: 3px solid var(--brand-cyan);
+  border-radius: var(--radius-sm);
+  animation: cita-reqs-in .25s ease;
+}
+@keyframes cita-reqs-in { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
+.cita-reqs__head { display: flex; align-items: center; gap: 9px; color: #fff; font-size: 0.95rem; }
+.cita-reqs__head svg { width: 20px; height: 20px; color: var(--brand-cyan); flex: 0 0 auto; }
+.cita-reqs__note { color: rgba(255,255,255,0.7); font-size: 0.84rem; margin: 8px 0 0; }
+.cita-reqs__list { list-style: none; margin: 10px 0 0; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 4px 18px; }
+.cita-reqs__list li { position: relative; padding-left: 18px; color: rgba(255,255,255,0.85); font-size: 0.85rem; line-height: 1.5; }
+.cita-reqs__list li::before { content: ""; position: absolute; left: 2px; top: 9px; width: 6px; height: 6px; border-radius: 50%; background: var(--brand-cyan); }
+.cita-reqs__group { margin-top: 12px; }
+.cita-reqs__gtitle { display: block; color: #cfe0ff; font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 2px; }
+@media (max-width: 600px) { .cita-reqs__list { grid-template-columns: 1fr; } }
+
+/* Botones agrupados en la barra del paso (Subir documentos + Continuar) */
+.cita-nav__group { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: flex-end; }
+#cita-docs-toggle svg { width: 18px; height: 18px; }
+#cita-docs-toggle.is-open { background: rgba(255,255,255,0.16); }
+
+/* Sección de documentos */
+.cita-docs {
+  margin-top: 16px;
+  padding: 16px 18px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: var(--radius-sm);
+}
+.cita-docs__empty { color: rgba(255,255,255,0.7); font-size: 0.88rem; margin: 0; }
+.cita-docs__notice {
+  display: flex; gap: 10px; align-items: flex-start;
+  padding: 10px 12px; margin-bottom: 14px;
+  background: rgba(245,176,65,0.12); border: 1px solid rgba(245,176,65,0.30);
+  border-radius: var(--radius-sm); color: #ffe2b0; font-size: 0.82rem; line-height: 1.45;
+}
+.cita-docs__notice svg { width: 18px; height: 18px; color: #ffc46b; flex: 0 0 auto; margin-top: 1px; }
+.cita-docs__sub { color: rgba(255,255,255,0.62); font-size: 0.8rem; margin: 0 0 12px; }
+.cita-docs__list { display: grid; gap: 10px; }
+.doc-field { padding: 12px 14px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.12); border-radius: var(--radius-sm); }
+.doc-field__top { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.doc-field__name { color: #fff; font-size: 0.88rem; font-weight: 600; }
+.doc-field__btn {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 7px 13px; border-radius: var(--radius-sm); cursor: pointer;
+  background: rgba(255,255,255,0.10); border: 1px solid rgba(255,255,255,0.18);
+  color: #fff; font-size: 0.8rem; font-weight: 600; white-space: nowrap;
+  transition: background var(--transition-fast), border-color var(--transition-fast);
+}
+.doc-field__btn:hover { background: rgba(255,255,255,0.18); border-color: rgba(255,255,255,0.32); }
+.doc-field__btn svg { width: 16px; height: 16px; }
+.doc-field__status { display: none; align-items: center; gap: 7px; margin-top: 9px; font-size: 0.8rem; line-height: 1.4; word-break: break-word; }
+.doc-field__status.is-ok, .doc-field__status.is-error { display: flex; }
+.doc-field__status svg { width: 16px; height: 16px; flex: 0 0 auto; }
+.doc-field__status.is-ok { color: #7ee0b8; }
+.doc-field__status.is-error { color: #ff9a9a; }
+
+/* Venta cruzada */
+.cita-upsell { margin-top: 18px; padding-top: 16px; border-top: 1px solid rgba(255,255,255,0.12); }
+.cita-upsell__title { display: block; color: #fff; font-size: 0.9rem; font-weight: 600; margin-bottom: 10px; }
+.cita-upsell__list { display: grid; gap: 8px; }
+.upsell-row {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+  padding: 10px 12px; background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.12); border-radius: var(--radius-sm);
+  transition: border-color var(--transition-fast), background var(--transition-fast);
+}
+.upsell-row.is-on { background: rgba(6,108,255,0.14); border-color: rgba(6,108,255,0.45); }
+.upsell-row__q { color: rgba(255,255,255,0.85); font-size: 0.85rem; }
+.upsell-row__actions { display: flex; gap: 8px; flex: 0 0 auto; }
+.upsell-add { white-space: nowrap; }
+.upsell-row.is-on .upsell-add { background: var(--brand-blue); border-color: transparent; color: #fff; }
+.cita-upsell__note { color: rgba(255,255,255,0.55); font-size: 0.76rem; margin: 10px 0 0; }

@@ -374,6 +374,160 @@
     document.removeEventListener("keydown", escClose);
   }
 
+  /* ============================================================
+     MODAL DE DETALLE DE CITA — previsualización del expediente.
+     Usa los datos que ya devuelve /admin/appointments.php (trámite,
+     personas, respuestas, contacto, notas). No requiere backend nuevo.
+     ============================================================ */
+  function apptEscClose(e) { if (e.key === "Escape") closeApptModal(); }
+  function closeApptModal() {
+    var m = document.getElementById("appt-modal");
+    if (m) {
+      (m._fileUrls || []).forEach(function (u) { try { URL.revokeObjectURL(u); } catch (e) {} });
+      m.remove();
+    }
+    document.body.style.overflow = "";
+    document.removeEventListener("keydown", apptEscClose);
+  }
+  function apptRow(label, valueHtml) {
+    if (!valueHtml) return "";
+    return '<div style="display:flex;justify-content:space-between;gap:12px;padding:5px 0"><span style="color:var(--text-muted,#6b7280)">' + esc(label) + '</span><span style="text-align:right;font-weight:600">' + valueHtml + '</span></div>';
+  }
+  function openApptModal(a) {
+    closeApptModal();
+    var svc = TRAMITE_LABEL[a.tramite] || a.tramite;
+    if (a.tramite === "pasaporte" && a.passport_subtype) svc += " (" + (SUBTYPE_LABEL[a.passport_subtype] || a.passport_subtype) + ")";
+    var waD = waDigits(a.contact_phone);
+    var phoneHtml = a.contact_phone
+      ? (waD ? '<a href="https://wa.me/' + waD + '" target="_blank" rel="noopener">' + esc(a.contact_phone) + '</a>' : esc(a.contact_phone))
+      : "";
+    var prefLbl = { whatsapp: "WhatsApp", llamada: "Llamada", correo: "Correo" };
+
+    var guests = parseGuests(a.guests_json);
+    var guestsHtml = "";
+    if (guests.length) {
+      guestsHtml = '<h4 style="margin:16px 0 6px;font-size:.95rem">Personas y requisitos</h4>' +
+        guests.map(function (g, i) {
+          var sub = [];
+          if (g.dob) sub.push("Nac. " + esc(g.dob));
+          if (g.doctype) sub.push(esc(DOCTYPE_LABEL[g.doctype] || g.doctype));
+          var ans = g.answers || {}, ak = Object.keys(ans);
+          var ansHtml = ak.length ? ak.map(function (k) {
+            var lbl = window.OKQ ? window.OKQ.label(k) : k;
+            var v = window.OKQ ? window.OKQ.valueText(ans[k]) : String(ans[k]);
+            return '<div style="font-size:.84rem;color:var(--text-muted,#6b7280);margin:3px 0 0 12px">• ' + esc(lbl) + ': <b style="color:var(--text-primary,#111)">' + esc(v) + '</b></div>';
+          }).join("") : '<div style="font-size:.82rem;color:var(--text-muted,#6b7280);margin-left:12px">Sin respuestas capturadas.</div>';
+          return '<div style="border:1px solid #eef0f4;border-radius:12px;padding:12px 14px;margin-bottom:10px">' +
+            '<div style="font-weight:700;font-size:.92rem">' + (i + 1) + '. ' + esc(g.name || "—") +
+              (sub.length ? ' <span style="font-weight:400;color:var(--text-muted,#6b7280)">· ' + sub.join(" · ") + '</span>' : '') + '</div>' +
+            ansHtml + '</div>';
+        }).join("");
+    }
+
+    /* Servicios adicionales (venta cruzada) — tipo ticket. parseGuests sirve como parser genérico de arreglo JSON. */
+    var services = parseGuests(a.services_json);
+    var servicesHtml = services.length
+      ? '<h4 style="margin:16px 0 6px;font-size:.95rem">Servicios adicionales</h4>' +
+        '<div style="font-size:.9rem;background:#f8fafc;border-radius:8px;padding:6px 14px;margin:0 0 16px">' +
+          services.map(function (s) {
+            return '<div style="display:flex;align-items:center;gap:8px;padding:4px 0"><span style="color:#1d9e75;font-weight:700">✓</span><span>' + esc(s.label || s.key || "") + '</span></div>';
+          }).join("") + '</div>'
+      : "";
+
+    /* Documentos que el cliente subió (preview + descarga). */
+    var files = (a.files && a.files.length) ? a.files : [];
+    var filesHtml = '<h4 style="margin:16px 0 6px;font-size:.95rem">Documentos del cliente</h4>';
+    if (!files.length) {
+      filesHtml += '<p style="margin:0 0 16px;font-size:.88rem;color:var(--text-muted,#6b7280)">El cliente no adjuntó documentos.</p>';
+    } else {
+      filesHtml += files.map(function (f, idx) {
+        return '<div style="border:1px solid #eef0f4;border-radius:12px;padding:12px 14px;margin-bottom:12px">' +
+          '<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:10px;flex-wrap:wrap">' +
+            '<div style="min-width:0"><b style="font-size:.9rem;word-break:break-word">' + esc(f.doc_label || f.doc_key || "Documento") + '</b>' +
+              '<div style="color:var(--text-muted,#6b7280);font-size:.8rem;margin-top:2px;word-break:break-word">' + esc(f.original_name || "") + '</div></div>' +
+            '<button type="button" class="btn btn--light btn--sm" data-apptfile-dl="' + idx + '" disabled>Descargar</button>' +
+          '</div>' +
+          '<div id="apptfilewrap-' + idx + '"><p style="color:var(--text-muted,#6b7280);font-size:.85rem;text-align:center;padding:18px 0;margin:0">Cargando…</p></div>' +
+        '</div>';
+      }).join("");
+    }
+
+    var ov = document.createElement("div");
+    ov.id = "appt-modal";
+    ov.setAttribute("role", "dialog"); ov.setAttribute("aria-modal", "true");
+    ov.style.cssText = "position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;padding:18px;background:rgba(15,23,42,.5);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px)";
+    ov.innerHTML =
+      '<div style="background:#fff;border-radius:16px;max-width:680px;width:100%;max-height:92vh;overflow:auto;box-shadow:0 20px 60px rgba(0,0,0,.3)">' +
+        '<div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:18px 20px;border-bottom:1px solid #eef0f4">' +
+          '<div><div class="mono" style="font-weight:700;font-size:1.05rem">' + esc(a.code) + '</div>' +
+          '<div style="font-size:.8rem;color:var(--text-muted,#6b7280)">Cita · ' + esc(a.date || "") + ' ' + esc(a.time || "") + '</div></div>' +
+          badge(a.status, APPT_STATUS) +
+        '</div>' +
+        '<div style="padding:18px 20px">' +
+          '<h4 style="margin:0 0 4px;font-size:.95rem">Trámite a realizar</h4>' +
+          '<div style="font-size:1.1rem;font-weight:700;color:var(--brand-blue,#066CFF);margin:0 0 10px">' + esc(svc) + '</div>' +
+          '<div style="font-size:.9rem;background:#f8fafc;border-radius:8px;padding:8px 14px;margin:0 0 16px">' +
+            apptRow("Personas", String(a.party_size || 1)) +
+            apptRow("Fecha", esc(a.date || "—")) +
+            apptRow("Hora", esc(a.time || "—")) +
+            (window.OKCitaPriceText ? apptRow("Precio estimado", esc(window.OKCitaPriceText(a.tramite, a.passport_subtype, a.party_size))) : "") +
+          '</div>' +
+          servicesHtml +
+          '<h4 style="margin:0 0 6px;font-size:.95rem">Contacto</h4>' +
+          '<div style="font-size:.9rem;background:#f8fafc;border-radius:8px;padding:8px 14px;margin:0 0 16px">' +
+            apptRow("Nombre", esc(a.contact_name || "—") + (a.account_name ? "" : ' <span style="font-weight:400;color:var(--text-muted,#6b7280)">(invitado)</span>')) +
+            apptRow("Teléfono", phoneHtml || "—") +
+            (a.contact_email ? apptRow("Correo", '<a href="mailto:' + esc(a.contact_email) + '">' + esc(a.contact_email) + '</a>') : "") +
+            (a.contact_pref ? apptRow("Prefiere contacto por", esc(prefLbl[a.contact_pref] || a.contact_pref)) : "") +
+          '</div>' +
+          (a.notes ? '<h4 style="margin:0 0 6px;font-size:.95rem">Notas del cliente</h4><p style="margin:0 0 16px;font-size:.9rem;white-space:pre-wrap;background:#f8fafc;border-radius:8px;padding:10px 12px">' + esc(a.notes) + '</p>' : "") +
+          (a.staff_notes ? '<h4 style="margin:0 0 6px;font-size:.95rem">Notas internas</h4><p style="margin:0 0 16px;font-size:.9rem;white-space:pre-wrap;background:#fff7ed;border:1px solid #fed7aa;border-radius:8px;padding:10px 12px">' + esc(a.staff_notes) + '</p>' : "") +
+          filesHtml +
+          guestsHtml +
+        '</div>' +
+        '<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:14px 20px;border-top:1px solid #eef0f4;flex-wrap:wrap">' +
+          (waD ? '<a class="btn btn--sm" style="background:#25D366;color:#fff;border-color:#25D366" href="https://wa.me/' + waD + '" target="_blank" rel="noopener">Escribir por WhatsApp</a>' : '<span></span>') +
+          '<span style="display:flex;gap:8px">' +
+            (window.OKCitaTicketDownload ? '<button type="button" class="btn btn--light btn--sm" id="appt-modal-pdf">Descargar PDF</button>' : '') +
+            '<button type="button" class="btn btn--primary btn--sm" id="appt-modal-close">Cerrar</button>' +
+          '</span>' +
+        '</div>' +
+      '</div>';
+    document.body.appendChild(ov);
+    document.body.style.overflow = "hidden";
+    ov.addEventListener("click", function (e) { if (e.target === ov) closeApptModal(); });
+    $("#appt-modal-close", ov).addEventListener("click", closeApptModal);
+    var pdfb = $("#appt-modal-pdf", ov);
+    if (pdfb) pdfb.addEventListener("click", function () {
+      window.OKCitaTicketDownload({ code: a.code, tramite: a.tramite, passport_subtype: a.passport_subtype, party_size: a.party_size, date: a.date, time: a.time, status: a.status, name: a.contact_name, phone: a.contact_phone, guests: parseGuests(a.guests_json), services: parseGuests(a.services_json) });
+    });
+    files.forEach(function (f, idx) { loadApptFileInto(ov, idx, f.id, f.original_name, f.mime_type); });
+    document.addEventListener("keydown", apptEscClose);
+  }
+
+  /* Carga un DOCUMENTO de la cita (con token) y habilita previsualizar/descargar.
+     Imágenes → <img>; PDF → <iframe>. Sirve desde /appointments/file.php. */
+  function loadApptFileInto(modal, idx, fileId, name, mime) {
+    var wrap = modal.querySelector("#apptfilewrap-" + idx);
+    var dl = modal.querySelector('[data-apptfile-dl="' + idx + '"]');
+    if (!wrap) return;
+    if (!fileId) { wrap.innerHTML = '<p style="color:var(--text-muted,#6b7280);font-size:.85rem;text-align:center;padding:18px 0;margin:0">Archivo no disponible.</p>'; return; }
+    fetch(API_BASE + "/appointments/file.php?id=" + encodeURIComponent(fileId), { headers: { Authorization: "Bearer " + token() } })
+      .then(function (r) { if (!r.ok) throw new Error(String(r.status)); return r.blob(); })
+      .then(function (blob) {
+        var url = URL.createObjectURL(blob);
+        (modal._fileUrls = modal._fileUrls || []).push(url);
+        var isImg = /^image\//.test(mime || "");
+        wrap.innerHTML = isImg
+          ? '<img src="' + url + '" alt="' + esc(name || "Documento") + '" style="max-width:100%;border:1px solid #eef0f4;border-radius:10px;background:#fff">'
+          : '<iframe src="' + url + '" style="width:100%;height:360px;border:1px solid #eef0f4;border-radius:10px;background:#fff" title="' + esc(name || "Documento") + '"></iframe>';
+        if (dl) { dl.disabled = false; dl.onclick = function () { var x = document.createElement("a"); x.href = url; x.download = name || ("documento-" + idx); document.body.appendChild(x); x.click(); x.remove(); }; }
+      })
+      .catch(function () {
+        wrap.innerHTML = '<p style="color:#b91c1c;font-size:.85rem;text-align:center;padding:18px 0;margin:0">No se pudo cargar el archivo.</p>';
+      });
+  }
+
   /* Carga el ARCHIVO del cliente (con token) en su visor y habilita descargar/imprimir. */
   function loadFileInto(modal, idx, fid, name) {
     var wrap = modal.querySelector("#filewrap-" + idx);
@@ -752,7 +906,11 @@
       }
       var canPdf = !!window.OKCitaTicketDownload;
       var body = list.map(function (a, i) {
-        var contacto = esc(a.contact_phone || "") + (a.contact_email ? '<br><span style="color:var(--text-muted);font-size:.82rem">' + esc(a.contact_email) + '</span>' : "");
+        var waD = waDigits(a.contact_phone);
+        var phoneHtml = a.contact_phone
+          ? (waD ? '<a href="https://wa.me/' + waD + '" target="_blank" rel="noopener" title="Escribir por WhatsApp" style="color:#1d9e75;font-weight:600">' + esc(a.contact_phone) + '</a>' : esc(a.contact_phone))
+          : "";
+        var contacto = phoneHtml + (a.contact_email ? '<br><span style="color:var(--text-muted);font-size:.82rem">' + esc(a.contact_email) + '</span>' : "");
         return '<tr>' +
           '<td class="mono">' + esc(a.code) + '</td>' +
           '<td>' + apptServiceCell(a) + '</td>' +
@@ -760,7 +918,7 @@
           '<td class="mono">' + esc(a.time) + '</td>' +
           '<td>' + clientCell(a.user_id, a.contact_name) + (a.account_name ? '' : ' <span style="color:var(--text-muted);font-size:.78rem">(invitado)</span>') + '</td>' +
           '<td>' + contacto + '</td>' +
-          '<td>' + apptStatusSelect(a) + (canPdf ? ' <button type="button" class="appt-pdf" data-i="' + i + '">PDF</button>' : '') + '</td>' +
+          '<td>' + apptStatusSelect(a) + ' <button type="button" class="appt-view" data-i="' + i + '">Ver</button>' + (canPdf ? ' <button type="button" class="appt-pdf" data-i="' + i + '">PDF</button>' : '') + '</td>' +
         '</tr>';
       }).join("");
       t.innerHTML = head + '<tbody>' + body + '</tbody>';
@@ -772,7 +930,13 @@
       $$(".appt-pdf", t).forEach(function (btn) {
         btn.addEventListener("click", function () {
           var a = list[+btn.dataset.i];
-          if (a) window.OKCitaTicketDownload({ code: a.code, tramite: a.tramite, passport_subtype: a.passport_subtype, party_size: a.party_size, date: a.date, time: a.time, status: a.status, name: a.contact_name, phone: a.contact_phone, guests: parseGuests(a.guests_json) });
+          if (a) window.OKCitaTicketDownload({ code: a.code, tramite: a.tramite, passport_subtype: a.passport_subtype, party_size: a.party_size, date: a.date, time: a.time, status: a.status, name: a.contact_name, phone: a.contact_phone, guests: parseGuests(a.guests_json), services: parseGuests(a.services_json) });
+        });
+      });
+      $$(".appt-view", t).forEach(function (btn) {
+        btn.addEventListener("click", function () {
+          var a = list[+btn.dataset.i];
+          if (a) openApptModal(a);
         });
       });
       bindClientLinks(t);
