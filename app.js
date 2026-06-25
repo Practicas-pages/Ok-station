@@ -333,7 +333,8 @@
       guests: [], activeGuest: 0   /* datos por persona (requisitos): [{name,dob,doctype}] */
     };
 
-    var TOTAL_STEPS = 6;           /* Servicio → Cantidad → Fecha → Datos → Requisitos → Confirmación */
+    var TOTAL_STEPS = 5;           /* Servicio → Cantidad → Fecha → Datos → Confirmación
+                                      (los requisitos/documentos por trámite los maneja cita-expediente.js). */
 
     /* Referencias DOM */
     var stepsEl   = qsa(".step-item");
@@ -375,8 +376,6 @@
       /* Al entrar al paso Fecha (índice 2) el calendario debe reflejar la cantidad
          de personas ya elegida en el paso anterior. */
       if (next === 2 && calGrid) { renderCalendar(); updateCalNav(); }
-      /* Al entrar al paso Requisitos (índice 4) construir un formulario por persona. */
-      if (next === 4) renderGuests();
 
       renderSteps();
 
@@ -1156,6 +1155,11 @@
             if (confirmIntro) confirmIntro.style.display = "none"; /* evita doble palomita */
             if (summaryEl) summaryEl.style.display = "none";
             confirmBtn.style.display = "none";
+            /* Dejar la vista EXACTAMENTE en el banner del comprobante (no saltar al inicio). */
+            if (successEl) requestAnimationFrame(function () {
+              var top = successEl.getBoundingClientRect().top + window.scrollY - 90;
+              window.scrollTo({ top: top, behavior: "smooth" });
+            });
             showToast("¡Cita registrada! Folio " + j.appointment.code);
             try { sessionStorage.removeItem("okstation.cita.draft"); } catch (_) {}
             /* Sube los documentos que el cliente adjuntó (best-effort: no bloquea la confirmación). */

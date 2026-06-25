@@ -294,14 +294,15 @@
         link.hidden = false;
       }
     }
-    /* Mostrar la confirmación donde está (antes saltaba al inicio de la página, lo
-       cual se sentía como un "brinco"). Solo se desplaza si quedó fuera de vista. */
+    /* Dejar la vista EXACTAMENTE en el banner del ticket (¡Pedido recibido! + botón
+       de descarga), no al inicio de la página. Esperamos un frame para que el layout
+       ya tenga su posición final tras ocultar el builder. */
     var confirmEl = $("#order-confirm");
     if (confirmEl) {
-      var cr = confirmEl.getBoundingClientRect();
-      if (cr.top < 80 || cr.top > window.innerHeight * 0.6) {
-        window.scrollTo({ top: cr.top + window.scrollY - 90, behavior: "smooth" });
-      }
+      requestAnimationFrame(function () {
+        var top = confirmEl.getBoundingClientRect().top + window.scrollY - 90;
+        window.scrollTo({ top: top, behavior: "smooth" });
+      });
     }
   }
 

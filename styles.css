@@ -627,18 +627,17 @@ h1, h2, h3, h4, h5, h6 {
   top: 0;
   z-index: 100;
   height: var(--header-height);
-  background: rgba(255,255,255,0.90);
-  backdrop-filter: saturate(180%) blur(18px);
-  -webkit-backdrop-filter: saturate(180%) blur(18px);
+  /* BLANCO SÓLIDO siempre: antes era 90% blanco y el lienzo animado se transparentaba
+     detrás, tiñendo el header de colores al hacer scroll. Opaco = blanco constante. */
+  background: #ffffff;
   border-bottom: 1px solid rgba(15,38,92,0.06);
   transition:
-    background var(--transition-base),
     border-color var(--transition-base),
     box-shadow var(--transition-base);
 }
 
 .site-header.is-scrolled {
-  background: rgba(255,255,255,0.92);
+  background: #ffffff;
   border-color: var(--border-light);
   box-shadow: var(--shadow-sm);
 }
@@ -1657,6 +1656,36 @@ h1, h2, h3, h4, h5, h6 {
 }
 .input-prefix__wa { width: 16px; height: 16px; color: #25D366; }
 .input-prefix input { border-radius: 0 var(--radius-sm) var(--radius-sm) 0 !important; }
+
+/* ── Teléfono en el resumen del PEDIDO (tarjeta CLARA) ── el .input-prefix base es
+   para el wizard oscuro (texto blanco); aquí va en tono claro para que se lea. */
+.order-summary .input-prefix { margin: 6px 0 2px; box-shadow: var(--shadow-sm); border-radius: 12px; }
+.order-summary .input-prefix__tag {
+  background: #eef3fb;
+  border: 1.5px solid #d7e2f2;
+  border-right: none;
+  color: #0b1f3a;
+  border-radius: 12px 0 0 12px;
+  padding: 12px 14px;
+}
+.order-summary .input-prefix__wa { color: #25D366; }
+.order-summary .input-prefix input {
+  flex: 1 1 auto;
+  min-width: 0;
+  border: 1.5px solid #d7e2f2 !important;
+  border-left: none !important;
+  border-radius: 0 12px 12px 0 !important;
+  padding: 12px 14px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #0b1f3a;
+  background: #fff;
+}
+.order-summary .input-prefix input::placeholder { color: #9aa6bd; font-weight: 400; }
+.order-summary .input-prefix:focus-within { box-shadow: 0 0 0 3px rgba(6,108,255,0.15); }
+.order-summary .input-prefix:focus-within .input-prefix__tag,
+.order-summary .input-prefix:focus-within input { border-color: var(--brand-blue) !important; }
+.order-summary .input-prefix input:focus { outline: none; }
 
 /* Chips: ¿cómo prefieres que te contactemos? (radios accesibles, sin JS) */
 .contact-pref { display: flex; flex-wrap: wrap; gap: var(--space-3); }
