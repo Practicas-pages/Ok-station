@@ -4896,7 +4896,7 @@ body.admin::before, body.admin::after { display: none !important; }
   display: block; position: absolute; inset: 0;
   width: 100%; height: 100%;
   object-fit: cover; object-position: center bottom;  /* sube la imagen: se ve hasta el límite inferior de la foto */
-  filter: brightness(1.5) contrast(1.02) saturate(1.12);  /* hero con más luz */
+  filter: brightness(1.04) contrast(1.06) saturate(1.14);  /* foto casi ORIGINAL (no lavada) */
 }
 /* Degradado OSCURO: opaco a la izquierda (texto claro legible) → translúcido a la
    derecha (se ve la foto), integrado al tema oscuro del sitio. */
@@ -4909,10 +4909,10 @@ body.admin::before, body.admin::after { display: none !important; }
      foto a su claridad original (100%) en el lado derecho. Estilo referencia. */
   background: linear-gradient(95deg,
     rgba(15, 38, 92, 0.97) 0%,
-    rgba(15, 38, 92, 0.96) 40%,
-    rgba(15, 38, 92, 0.78) 47%,
-    rgba(15, 38, 92, 0.22) 53%,
-    rgba(15, 38, 92, 0.00) 58%) !important;
+    rgba(15, 38, 92, 0.96) 43%,
+    rgba(15, 38, 92, 0.70) 48%,
+    rgba(15, 38, 92, 0.12) 52%,
+    rgba(15, 38, 92, 0.00) 56%) !important;
 }
 /* Sombra sutil para que el texto blanco siga legible con el degradado más claro. */
 .hero__copy { text-shadow: 0 2px 18px rgba(4, 12, 40, 0.55); }
