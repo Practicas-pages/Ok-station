@@ -4934,7 +4934,7 @@ body.admin::before, body.admin::after { display: none !important; }
 .hero__bg-img {
   display: block; position: absolute; inset: 0;
   width: 100%; height: 100%;
-  object-fit: cover; object-position: center bottom;  /* sube la imagen: se ve hasta el límite inferior de la foto */
+  object-fit: cover; object-position: center 85%;  /* imagen un poco más abajo (sin llegar al borde inferior) */
   opacity: 1 !important;  /* IMPORTANTE: anula el opacity:0.28 de la regla vieja (~línea 820) que la dejaba fantasmal */
   filter: brightness(1.04) contrast(1.06) saturate(1.14);  /* foto casi ORIGINAL (no lavada) */
 }
