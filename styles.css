@@ -4935,6 +4935,7 @@ body.admin::before, body.admin::after { display: none !important; }
   display: block; position: absolute; inset: 0;
   width: 100%; height: 100%;
   object-fit: cover; object-position: center bottom;  /* sube la imagen: se ve hasta el límite inferior de la foto */
+  opacity: 1 !important;  /* IMPORTANTE: anula el opacity:0.28 de la regla vieja (~línea 820) que la dejaba fantasmal */
   filter: brightness(1.04) contrast(1.06) saturate(1.14);  /* foto casi ORIGINAL (no lavada) */
 }
 /* Degradado OSCURO: opaco a la izquierda (texto claro legible) → translúcido a la
