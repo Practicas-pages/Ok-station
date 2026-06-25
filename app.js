@@ -1118,11 +1118,15 @@
               /* Genera el comprobante PDF con el módulo compartido (si está disponible).
                  Usamos Blob URL (no data-URI) para que la descarga abra también en celular. */
               try {
+                /* Servicios adicionales que el cliente marcó (venta cruzada) para reflejarlos en el ticket. */
+                var exped = (window.OKCitaExpediente && window.OKCitaExpediente.getState) ? window.OKCitaExpediente.getState() : null;
+                var citaServices = (exped && exped.services) ? exped.services : [];
                 var citaUri = window.OKCitaTicketBlobUrl ? window.OKCitaTicketBlobUrl({
                   code: j.appointment.code, tramite: j.appointment.tramite,
                   passport_subtype: j.appointment.passport_subtype, party_size: j.appointment.party_size,
                   date: j.appointment.date, time: j.appointment.time, status: j.appointment.status,
-                  name: state.nombre, phone: state.tel, guests: state.guests
+                  name: state.nombre, phone: state.tel, guests: state.guests,
+                  services: citaServices
                 }) : null;
                 var dlBtn = qs("#cita-ticket-dl", successEl);
                 if (citaUri && dlBtn) dlBtn.href = citaUri;
