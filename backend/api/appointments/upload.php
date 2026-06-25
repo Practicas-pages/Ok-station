@@ -42,7 +42,8 @@ $maxBytes = (int) ($CONFIG['max_upload_mb'] ?? 25) * 1024 * 1024;
 if ($f['size'] > $maxBytes) fail('El archivo supera el límite de ' . (int) $CONFIG['max_upload_mb'] . ' MB.');
 
 $allowed = ['application/pdf' => 'pdf', 'image/jpeg' => 'jpg', 'image/png' => 'png'];
-$mime = function_exists('mime_content_type') ? (mime_content_type($f['tmp_name']) ?: $f['type']) : $f['type'];
+$mime = Storage::detectMime($f['tmp_name']);   // por contenido, nunca el tipo del cliente
+if ($mime === '') fail('No se pudo verificar el tipo del archivo. Intenta de nuevo.', 422);
 if (!isset($allowed[$mime])) fail('Tipo no permitido. Sube PDF, JPG o PNG.');
 
 // Fuerza la extensión según el MIME detectado (anti subida de .php / RCE).

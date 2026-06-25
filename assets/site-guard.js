@@ -32,10 +32,14 @@
      ============================================================ */
   var GUARD = {
     /* true = modo mantenimiento activo | false = sitio público */
-    MAINTENANCE_MODE: true,
+    MAINTENANCE_MODE: false,
 
-    /* Clave del JWT en localStorage (igual que en maintenance.html) */
+    /* Claves del JWT en localStorage.
+       JWT_KEY  = la que usa maintenance.html (gate de mantenimiento).
+       JWT_KEY_APP = la que usa el login principal (auth.js → 'okstation.token').
+       Reconocer ambas evita rebotar a un admin que ya inició sesión en la app. */
     JWT_KEY: 'okstation_token',
+    JWT_KEY_APP: 'okstation.token',
     JWT_KEY_ALT: 'access_token',
 
     /* Roles con acceso durante mantenimiento.
@@ -76,6 +80,7 @@
   function getToken() {
     try {
       return localStorage.getItem(GUARD.JWT_KEY)
+          || localStorage.getItem(GUARD.JWT_KEY_APP)
           || localStorage.getItem(GUARD.JWT_KEY_ALT)
           || sessionStorage.getItem(GUARD.JWT_KEY)
           || null;
@@ -148,6 +153,7 @@
     /* Token inválido o expirado: limpiar y redirigir */
     try {
       localStorage.removeItem(GUARD.JWT_KEY);
+      localStorage.removeItem(GUARD.JWT_KEY_APP);
       localStorage.removeItem(GUARD.JWT_KEY_ALT);
     } catch (_) {}
     window.location.replace(GUARD.MAINTENANCE_URL);

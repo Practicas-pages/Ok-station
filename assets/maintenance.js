@@ -2,7 +2,7 @@
 // OK.station Maintenance Mode
 // =========================
 
-const MAINTENANCE_MODE = true;
+const MAINTENANCE_MODE = false;
 
 // Si el mantenimiento está desactivado
 // enviamos al inicio normal

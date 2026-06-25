@@ -1654,10 +1654,22 @@
      imágenes se ven normal y nunca se quedan invisibles. */
   function initImageFade() {
     document.documentElement.classList.add("img-fade");
+    /* Fallback de marca: si la imagen de una tarjeta de servicio no carga,
+       se sustituye por el placeholder en vez de mostrar el icono roto. La
+       galería del local se maneja aparte (initGallery: quita el <img>). */
+    var SERVICE_FALLBACK = "assets/img/placeholder-servicio.svg";
     qsa(".service-card__img, .store-gallery__item img").forEach(function (img) {
+      function onError() {
+        if (img.classList.contains("service-card__img") &&
+            img.getAttribute("src") !== SERVICE_FALLBACK) {
+          img.src = SERVICE_FALLBACK;
+        }
+        img.classList.add("is-loaded");
+      }
       if (img.complete && img.naturalWidth > 0) { img.classList.add("is-loaded"); return; }
+      if (img.complete && img.naturalWidth === 0) { onError(); return; }
       img.addEventListener("load", function () { img.classList.add("is-loaded"); });
-      img.addEventListener("error", function () { img.classList.add("is-loaded"); });
+      img.addEventListener("error", onError);
     });
   }
 

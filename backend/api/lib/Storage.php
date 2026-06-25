@@ -38,6 +38,26 @@ final class Storage
         return $path;
     }
 
+    /**
+     * Detecta el MIME REAL del archivo a partir de su contenido. Nunca usa el
+     * tipo que envía el cliente ($_FILES['file']['type']), que es falsificable
+     * (un atacante podría declarar image/jpeg para colar otro contenido).
+     * Devuelve '' si no se puede determinar; el llamador debe rechazar en ese caso.
+     */
+    public static function detectMime(string $tmpPath): string
+    {
+        if (is_readable($tmpPath) && class_exists('finfo')) {
+            $fi = new finfo(FILEINFO_MIME_TYPE);
+            $m  = $fi->file($tmpPath);
+            if (is_string($m) && $m !== '' && $m !== 'application/octet-stream') return $m;
+        }
+        if (function_exists('mime_content_type')) {
+            $m = @mime_content_type($tmpPath);
+            if (is_string($m) && $m !== '') return $m;
+        }
+        return '';
+    }
+
     /** Mueve un archivo subido ($_FILES[...]). $forceExt fuerza una extensión segura. */
     public static function moveUploaded(string $sub, array $file, ?string $forceExt = null): string
     {

@@ -22,7 +22,8 @@ $allowed = [
     'image/png'       => 'png',
     'image/webp'      => 'webp',
 ];
-$mime = function_exists('mime_content_type') ? (mime_content_type($f['tmp_name']) ?: $f['type']) : $f['type'];
+$mime = Storage::detectMime($f['tmp_name']);   // por contenido, nunca el tipo del cliente
+if ($mime === '') fail('No se pudo verificar el tipo del archivo. Intenta de nuevo.', 422);
 if (!isset($allowed[$mime])) fail('Tipo no permitido. Sube PDF, JPG, PNG o WEBP.');
 
 // Fuerza la extensión según el MIME detectado (anti subida de .php / RCE).
