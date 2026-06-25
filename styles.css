@@ -4549,7 +4549,7 @@ body {
   height: 220px;          /* ajusta a lo que quieras */
   object-fit: cover;
   display: block;
-  border-radius: var(--border-radius) var(--border-radius) 0 0; /* solo arriba si tienes esquinas */
+  border-radius: 16px;    /* las 4 esquinas curveadas (la tarjeta ya tiene padding, no se desborda) */
   margin-bottom: 1rem;
 }
 
@@ -4945,14 +4945,15 @@ body.admin::before, body.admin::after { display: none !important; }
 .hero .hero__bg-overlay {
   display: block !important;
   position: absolute; inset: 0;
-  /* Degradado horizontal MÁS BRUSCO: navy sólido a la izquierda → transición CORTA →
-     foto a su claridad original (100%) en el lado derecho. Estilo referencia. */
+  /* Degradado horizontal SUAVE y con MÁS cuerpo: navy sólido a la izquierda (texto
+     legible) → transición larga → la foto se ve a la derecha pero CON velo (≈40%),
+     para que no quede "totalmente clara". */
   background: linear-gradient(95deg,
     rgba(15, 38, 92, 0.97) 0%,
-    rgba(15, 38, 92, 0.96) 43%,
-    rgba(15, 38, 92, 0.70) 48%,
-    rgba(15, 38, 92, 0.12) 52%,
-    rgba(15, 38, 92, 0.00) 56%) !important;
+    rgba(15, 38, 92, 0.94) 30%,
+    rgba(15, 38, 92, 0.78) 50%,
+    rgba(15, 38, 92, 0.55) 72%,
+    rgba(15, 38, 92, 0.40) 100%) !important;
 }
 /* Sombra sutil para que el texto blanco siga legible con el degradado más claro. */
 .hero__copy { text-shadow: 0 2px 18px rgba(4, 12, 40, 0.55); }
