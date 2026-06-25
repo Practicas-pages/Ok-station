@@ -320,28 +320,11 @@
       wrap.innerHTML = '<p class="cita-docs__empty">Selecciona primero un trámite (paso 1) para ver los documentos que puedes adjuntar.</p>';
       return;
     }
-    var docs = DOCS[key] || [];
+    /* Los DOCUMENTOS de cada persona ahora se piden dentro del paso
+       "Información de cada persona" (app.js), integrados en el cuestionario.
+       Esta caja queda solo para los SERVICIOS ADICIONALES opcionales (venta cruzada). */
     var html = '';
 
-    /* Aviso de calidad (siempre visible) */
-    html += '<div class="cita-docs__notice" role="note"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg><span>Las fotografías y documentos deben ser completamente legibles, sin recortes, sombras, reflejos o información borrosa.</span></div>';
-
-    html += '<p class="cita-docs__sub">Documentos requeridos · formatos PDF, JPG o PNG · máx. ' + MAX_MB + ' MB c/u</p>';
-    html += '<div class="cita-docs__list">';
-    docs.forEach(function (d) {
-      var inputId = "doc-" + d.key;
-      html += '<div class="doc-field" data-doc="' + esc(d.key) + '">' +
-        '<div class="doc-field__top">' +
-          '<span class="doc-field__name">' + esc(d.label) + '</span>' +
-          '<label class="doc-field__btn" for="' + inputId + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>Elegir archivo</label>' +
-        '</div>' +
-        '<input type="file" id="' + inputId + '" class="doc-field__input" accept="' + ACCEPT + '" data-doc-input="' + esc(d.key) + '" hidden>' +
-        '<div class="doc-field__status" data-doc-status="' + esc(d.key) + '"></div>' +
-      '</div>';
-    });
-    html += '</div>';
-
-    /* Venta cruzada */
     var ups = UPSELL[key] || [];
     if (ups.length) {
       html += '<div class="cita-upsell"><span class="cita-upsell__title">¿Te falta algo? Lo resolvemos aquí</span><div class="cita-upsell__list">';
@@ -357,6 +340,8 @@
       });
       html += '</div><p class="cita-upsell__note">Los servicios que marques se incluirán en tu cita para que el equipo los tenga listos.</p></div>';
     }
+
+    if (!html) html = '<p class="cita-docs__empty">No hay servicios adicionales sugeridos para este trámite. Tus documentos los subes en el paso de cada persona.</p>';
 
     wrap.innerHTML = html;
     bindDocInputs();
@@ -474,7 +459,13 @@
       return { tramite: current, documents: docs, services: svc };
     },
     /* lista de documentos requeridos del trámite activo (para ticket/admin Fase 2) */
-    requiredDocs: function () { return (DOCS[current] || []).slice(); }
+    requiredDocs: function () { return (DOCS[current] || []).slice(); },
+    /* Catálogo de documentos para un trámite/subtipo dados (lo usa app.js para
+       pedir los documentos de cada persona dentro de su cuestionario). */
+    docsFor: function (tramite, subtype) {
+      var key = (tramite === "pasaporte") ? (subtype ? "pasaporte_" + subtype : "pasaporte") : tramite;
+      return (DOCS[key] || []).slice();
+    }
   };
 
   if (document.readyState === "loading") {

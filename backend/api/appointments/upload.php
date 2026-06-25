@@ -13,6 +13,10 @@ only_method('POST');
 $apptId   = (int) ($_POST['appointment_id'] ?? 0);
 $docKey   = preg_replace('/[^a-z0-9_]/i', '', (string) ($_POST['doc_key'] ?? ''));
 $docLabel = mb_substr(trim((string) ($_POST['doc_label'] ?? $docKey)), 0, 120);
+/* Persona (dentro de la cita) a la que pertenece el documento. Opcional y tolerante. */
+$guestName = mb_substr(trim((string) ($_POST['guest_name'] ?? '')), 0, 120);
+$guestIdx  = (isset($_POST['guest_index']) && $_POST['guest_index'] !== '') ? (int) $_POST['guest_index'] : null;
+if ($guestIdx !== null && ($guestIdx < 0 || $guestIdx > 50)) $guestIdx = null;
 if ($apptId < 1 || $docKey === '') fail('Solicitud inválida.');
 
 $appt = Appointment::find($apptId);
@@ -58,10 +62,20 @@ $fileId = UploadedFile::create([
     'pages'         => 1,
 ]);
 
-db()->prepare('INSERT INTO appointment_files (appointment_id, uploaded_file_id, doc_key, doc_label) VALUES (?,?,?,?)')
-    ->execute([$apptId, $fileId, $docKey, $docLabel]);
+/* Vincula el archivo a su cita y, si el esquema lo soporta (migración 0014), a la
+   persona concreta (guest_index/guest_name). Retrocompatible si aún no se aplicó. */
+$cols = ['appointment_id', 'uploaded_file_id', 'doc_key', 'doc_label'];
+$vals = [$apptId, $fileId, $docKey, $docLabel];
+if (function_exists('table_has_column') && table_has_column('appointment_files', 'guest_index')) {
+    $cols[] = 'guest_index'; $vals[] = $guestIdx;
+    $cols[] = 'guest_name';  $vals[] = ($guestName !== '' ? $guestName : null);
+}
+$ph = implode(',', array_fill(0, count($cols), '?'));
+db()->prepare('INSERT INTO appointment_files (' . implode(',', $cols) . ') VALUES (' . $ph . ')')
+    ->execute($vals);
 
 respond(['ok' => true, 'file' => [
     'id' => $fileId, 'doc_key' => $docKey, 'doc_label' => $docLabel,
+    'guest_index' => $guestIdx, 'guest_name' => $guestName,
     'original_name' => $f['name'], 'mime_type' => $mime, 'size_bytes' => (int) $f['size'],
 ]], 201);

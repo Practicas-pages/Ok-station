@@ -333,8 +333,10 @@
       guests: [], activeGuest: 0   /* datos por persona (requisitos): [{name,dob,doctype}] */
     };
 
-    var TOTAL_STEPS = 5;           /* Servicio → Cantidad → Fecha → Datos → Confirmación
-                                      (los requisitos/documentos por trámite los maneja cita-expediente.js). */
+    var TOTAL_STEPS = 6;           /* Servicio → Cantidad → Información de cada persona →
+                                      Fecha → Datos de contacto → Confirmación.
+                                      El cuestionario y los documentos de cada persona se piden
+                                      en el paso "Información de cada persona" (índice 2). */
 
     /* Referencias DOM */
     var stepsEl   = qsa(".step-item");
@@ -373,9 +375,12 @@
       state.step = next;
 
       if (next === TOTAL_STEPS - 1) buildSummary();
-      /* Al entrar al paso Fecha (índice 2) el calendario debe reflejar la cantidad
-         de personas ya elegida en el paso anterior. */
-      if (next === 2 && calGrid) { renderCalendar(); updateCalNav(); }
+      /* Al entrar al paso "Información de cada persona" (índice 2) se generan los
+         formularios y documentos por persona según la cantidad y el trámite. */
+      if (next === 2) renderGuests();
+      /* Al entrar al paso Fecha (índice 3) el calendario debe reflejar la cantidad
+         de personas ya elegida. */
+      if (next === 3 && calGrid) { renderCalendar(); updateCalNav(); }
 
       renderSteps();
 
@@ -877,7 +882,7 @@
     function ensureGuests() {
       var n = Math.max(1, state.partySize | 0);
       if (!Array.isArray(state.guests)) state.guests = [];
-      while (state.guests.length < n) state.guests.push({ name: "", dob: "", doctype: "", answers: {} });
+      while (state.guests.length < n) state.guests.push({ name: "", dob: "", doctype: "", answers: {}, files: {} });
       if (state.guests.length > n) state.guests.length = n;
       /* Prefill del nombre de la 1ª persona con el del contacto, si está vacío. */
       if (state.guests[0] && !state.guests[0].name && state.nombre) state.guests[0].name = state.nombre;
@@ -904,6 +909,50 @@
       }
       return '<div class="field"><label for="' + id + '">' + sanitize(f.q) + req + '</label>' + help + ctl + '</div>';
     }
+    /* Documentos que se piden a ESTA persona, integrados en su cuestionario.
+       Se obtienen del catálogo del trámite (window.OKCitaExpediente.docsFor).
+       Son OPCIONALES: si el cliente prefiere, los lleva físicamente a la cita. */
+    var DOC_ACCEPT = ".pdf,.jpg,.jpeg,.png";
+    var DOC_MAX_MB = 10;
+    function guestDocsList() {
+      return (window.OKCitaExpediente && window.OKCitaExpediente.docsFor)
+        ? window.OKCitaExpediente.docsFor(state.tramite, state.subtype) : [];
+    }
+    function fmtFileSize(b) {
+      if (b < 1024) return b + " B";
+      if (b < 1048576) return (b / 1024).toFixed(0) + " KB";
+      return (b / 1048576).toFixed(1) + " MB";
+    }
+    function setGuestDocStatus(el, msg, ok) {
+      if (!el) return;
+      if (!msg) { el.innerHTML = ""; el.className = "doc-field__status"; return; }
+      el.className = "doc-field__status " + (ok === false ? "is-error" : (ok ? "is-ok" : ""));
+      var icon = (ok === false)
+        ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>'
+        : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>';
+      el.innerHTML = icon + '<span>' + sanitize(msg) + '</span>';
+    }
+    function guestDocsHtml(i) {
+      var docs = guestDocsList();
+      if (!docs.length) return "";
+      var rows = docs.map(function (d) {
+        var inputId = "pg-" + i + "-doc-" + d.key;
+        return '<div class="doc-field" data-doc="' + sanitize(d.key) + '">' +
+          '<div class="doc-field__top">' +
+            '<span class="doc-field__name">' + sanitize(d.label) + ' <span class="field__opt">(opcional)</span></span>' +
+            '<label class="doc-field__btn" for="' + inputId + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>Elegir archivo</label>' +
+          '</div>' +
+          '<input type="file" id="' + inputId + '" class="doc-field__input" accept="' + DOC_ACCEPT + '" data-docfile="' + sanitize(d.key) + '" data-idx="' + i + '" hidden>' +
+          '<div class="doc-field__status" data-docstatus="' + i + '-' + sanitize(d.key) + '"></div>' +
+        '</div>';
+      }).join("");
+      return '<div class="persona-docs">' +
+        '<p class="persona-docs__title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg> Documentos de esta persona</p>' +
+        '<p class="persona-docs__sub">Sube tu CURP, identificación o los archivos del trámite (PDF, JPG o PNG · máx. ' + DOC_MAX_MB + ' MB c/u). Es opcional: también puedes llevarlos el día de tu cita. Deben verse completos y legibles.</p>' +
+        '<div class="cita-docs__list">' + rows + '</div>' +
+        '</div>';
+    }
+
     function guestCardHtml(i) {
       var radios = "";
       if (needsDoctype()) {
@@ -927,7 +976,7 @@
           '<input type="text" id="pg-' + i + '-name" data-pg="name" data-idx="' + i + '" autocomplete="off" placeholder="Ej. María González"></div>' +
           '<div class="field"><label for="pg-' + i + '-dob">Fecha de nacimiento</label>' +
           '<input type="date" id="pg-' + i + '-dob" data-pg="dob" data-idx="' + i + '"></div>' +
-        '</div>' + radios + qhtml +
+        '</div>' + radios + qhtml + guestDocsHtml(i) +
         '</div>';
     }
 
@@ -956,6 +1005,15 @@
           if (f.type === "check") el.checked = (val === true);
           else if (val != null) el.value = val;
         }
+        /* Restaurar el estado visual de los documentos ya elegidos por esta persona:
+           el <input type=file> no conserva su valor tras re-render, pero el File sí
+           vive en state.guests[k].files, así que repintamos su estado "✓ archivo.pdf". */
+        if (g.files) {
+          Object.keys(g.files).forEach(function (dk) {
+            var d = g.files[dk]; if (!d || !d.file) return;
+            setGuestDocStatus(qs('[data-docstatus="' + k + '-' + dk + '"]', personasHost), d.file.name + " · " + fmtFileSize(d.file.size), true);
+          });
+        }
       }
       /* Datos base (nombre/fecha/subtipo). Cambiar el subtipo re-renderiza porque el
          cuestionario depende de él (p. ej. la visa láser solo aparece en renovación). */
@@ -978,6 +1036,25 @@
           if (!state.guests[idx].answers) state.guests[idx].answers = {};
           state.guests[idx].answers[el.dataset.ans] = (el.type === "checkbox") ? el.checked : el.value;
           validateGuests();
+        });
+      });
+      /* Documentos por persona (archivos opcionales, integrados en el cuestionario). */
+      qsa("[data-docfile]", personasHost).forEach(function (inp) {
+        inp.addEventListener("change", function () {
+          var idx = parseInt(inp.dataset.idx, 10) || 0;
+          var key = inp.dataset.docfile;
+          if (!state.guests[idx]) state.guests[idx] = { name: "", dob: "", doctype: "", answers: {}, files: {} };
+          if (!state.guests[idx].files) state.guests[idx].files = {};
+          var statusEl = qs('[data-docstatus="' + idx + '-' + key + '"]', personasHost);
+          var f = inp.files && inp.files[0];
+          if (!f) { delete state.guests[idx].files[key]; setGuestDocStatus(statusEl, "", null); return; }
+          var okType = /\.(pdf|jpe?g|png)$/i.test(f.name) || ["application/pdf", "image/jpeg", "image/png"].indexOf(f.type) !== -1;
+          if (!okType) { inp.value = ""; delete state.guests[idx].files[key]; setGuestDocStatus(statusEl, "Formato no permitido. Usa PDF, JPG o PNG.", false); return; }
+          if (f.size > DOC_MAX_MB * 1024 * 1024) { inp.value = ""; delete state.guests[idx].files[key]; setGuestDocStatus(statusEl, "El archivo supera " + DOC_MAX_MB + " MB.", false); return; }
+          var docs = guestDocsList(), label = key;
+          for (var di = 0; di < docs.length; di++) if (docs[di].key === key) { label = docs[di].label; break; }
+          state.guests[idx].files[key] = { file: f, label: label };
+          setGuestDocStatus(statusEl, f.name + " · " + fmtFileSize(f.size), true);
         });
       });
       showGuest(state.activeGuest);
@@ -1077,18 +1154,26 @@
     var confirmBtn   = qs("#cita-confirm-btn");
     var successEl    = qs("#cita-success");
     var confirmIntro = qs("#cita-confirm-intro");
-    /* Sube cada documento adjunto a su cita (multipart). Best-effort: los errores
-       no afectan la cita ya creada; el cliente puede llevarlos físicamente. */
-    function uploadCitaDocs(apptId, exped) {
-      if (!apptId || !exped || !exped.documents || !exped.documents.length) return;
-      exped.documents.forEach(function (d) {
-        if (!d || !d.file) return;
-        var fd = new FormData();
-        fd.append("appointment_id", apptId);
-        fd.append("doc_key", d.key || "");
-        fd.append("doc_label", d.label || d.key || "");
-        fd.append("file", d.file);
-        try { fetch(API + "/appointments/upload.php", { method: "POST", body: fd }).catch(function () {}); } catch (e) {}
+    /* Sube los documentos de CADA persona a su cita (multipart), etiquetando cada
+       archivo con la persona a la que pertenece (guest_index + guest_name) y el tipo
+       de documento (doc_key/doc_label). Best-effort: los errores no afectan la cita ya
+       creada; el cliente puede llevar los documentos físicamente. */
+    function uploadCitaDocs(apptId, guests) {
+      if (!apptId || !Array.isArray(guests)) return;
+      guests.forEach(function (g, idx) {
+        if (!g || !g.files) return;
+        Object.keys(g.files).forEach(function (key) {
+          var d = g.files[key];
+          if (!d || !d.file) return;
+          var fd = new FormData();
+          fd.append("appointment_id", apptId);
+          fd.append("guest_index", idx);
+          fd.append("guest_name", (g.name || "").trim());
+          fd.append("doc_key", key);
+          fd.append("doc_label", d.label || key);
+          fd.append("file", d.file);
+          try { fetch(API + "/appointments/upload.php", { method: "POST", body: fd }).catch(function () {}); } catch (e) {}
+        });
       });
     }
 
@@ -1162,8 +1247,8 @@
             });
             showToast("¡Cita registrada! Folio " + j.appointment.code);
             try { sessionStorage.removeItem("okstation.cita.draft"); } catch (_) {}
-            /* Sube los documentos que el cliente adjuntó (best-effort: no bloquea la confirmación). */
-            uploadCitaDocs(j.appointment && j.appointment.id, exped);
+            /* Sube los documentos de cada persona (best-effort: no bloquea la confirmación). */
+            uploadCitaDocs(j.appointment && j.appointment.id, state.guests);
           } else {
             showToast((j && j.error) || "No se pudo registrar la cita. Intenta de nuevo.");
             confirmBtn.disabled = false;

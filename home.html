@@ -25,7 +25,7 @@
   <meta charset="UTF-8">
 
   <!-- Modo mantenimiento: bloquea el acceso directo sin credenciales válidas -->
-  <script src="assets/site-guard.js?v=20260813"></script>
+  <script src="assets/site-guard.js?v=20260625"></script>
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 
@@ -78,9 +78,9 @@
   </noscript>
 
   <!-- ===================== HOJA DE ESTILOS ===================== -->
-  <link rel="stylesheet" href="styles.css?v=20260813d">
+  <link rel="stylesheet" href="styles.css?v=20260625d">
   <!-- Estilos del configurador de pedido embebido en #fotos -->
-  <link rel="stylesheet" href="assets/order.css?v=20260813">
+  <link rel="stylesheet" href="assets/order.css?v=20260625">
 
   <!-- ===================== DATOS ESTRUCTURADOS (JSON-LD) ===================== -->
   <script type="application/ld+json">
@@ -595,9 +595,10 @@
           <div class="steps-rail" aria-hidden="true">
             <div class="step-item is-active"><span class="step-item__num">1</span> Elige el servicio</div>
             <div class="step-item"><span class="step-item__num">2</span> Cantidad</div>
-            <div class="step-item"><span class="step-item__num">3</span> Fecha y hora</div>
-            <div class="step-item"><span class="step-item__num">4</span> Tus datos</div>
-            <div class="step-item"><span class="step-item__num">5</span> Confirmación</div>
+            <div class="step-item"><span class="step-item__num">3</span> Datos de cada persona</div>
+            <div class="step-item"><span class="step-item__num">4</span> Fecha y hora</div>
+            <div class="step-item"><span class="step-item__num">5</span> Tus datos</div>
+            <div class="step-item"><span class="step-item__num">6</span> Confirmación</div>
           </div>
         </aside>
 
@@ -714,6 +715,24 @@
             </div>
           </div>
 
+          <!-- Paso 3: información de cada persona (cuestionario + documentos por persona) -->
+          <div class="cita-step" aria-hidden="true">
+            <h4 class="cita-step__title">Información de cada persona</h4>
+            <p class="cita-step__sub">Llena los datos y, si quieres, sube los documentos de cada persona que asistirá (CURP, identificación, etc.). Así llegamos con todo listo el día de tu cita.</p>
+            <div id="cita-personas" class="cita-personas"></div>
+            <div class="persona-pager">
+              <button type="button" class="btn btn--ghost-dark btn--sm" id="persona-prev">‹ Anterior</button>
+              <span class="persona-pager__label" id="persona-progress" aria-live="polite">Persona 1</span>
+              <button type="button" class="btn btn--ghost-dark btn--sm" id="persona-next">Siguiente ›</button>
+            </div>
+            <div class="cita-nav">
+              <button type="button" class="btn btn--ghost-dark" data-cita-back>Atrás</button>
+              <button type="button" class="btn btn--primary" id="cita-next-4" data-cita-next disabled aria-disabled="true">Continuar
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+              </button>
+            </div>
+          </div>
+
           <!-- Paso 3: fecha y hora -->
           <div class="cita-step" aria-hidden="true">
             <h4 class="cita-step__title">Elige fecha y hora</h4>
@@ -805,8 +824,8 @@
               <button type="button" class="btn btn--ghost-dark" data-cita-back>Atrás</button>
               <span class="cita-nav__group">
                 <button type="button" class="btn btn--ghost-dark" id="cita-docs-toggle" aria-expanded="false" aria-controls="cita-docs">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-                  Subir documentos
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+                  Servicios adicionales
                 </button>
                 <button type="button" class="btn btn--primary" id="cita-next-2" data-cita-next disabled aria-disabled="true">Continuar
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
@@ -1322,16 +1341,16 @@
   </button>
 
 <!-- ============================ SCRIPTS ============================ -->
-<script src="assets/cita-expediente.js?v=20260813" defer></script>
-<script src="app.js?v=20260813" defer></script>
-<script src="assets/reviews.js?v=20260813" defer></script>
-<script src="assets/session-nav.js?v=20260813" defer></script>
+<script src="assets/cita-expediente.js?v=20260625" defer></script>
+<script src="app.js?v=20260625" defer></script>
+<script src="assets/reviews.js?v=20260625" defer></script>
+<script src="assets/session-nav.js?v=20260625" defer></script>
 <!-- Configurador de pedido embebido (#fotos): librerías de ticket PDF + QR y lógica -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" defer></script>
-<script src="assets/order.js?v=20260813" defer></script>
+<script src="assets/order.js?v=20260625" defer></script>
 <!-- Comprobante PDF de cita (compartido con perfil y admin) -->
-<script src="assets/cita-ticket.js?v=20260813" defer></script>
+<script src="assets/cita-ticket.js?v=20260625" defer></script>
 </body>
 
 </html>
