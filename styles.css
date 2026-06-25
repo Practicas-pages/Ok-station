@@ -4945,15 +4945,15 @@ body.admin::before, body.admin::after { display: none !important; }
 .hero .hero__bg-overlay {
   display: block !important;
   position: absolute; inset: 0;
-  /* Degradado horizontal SUAVE y con MÁS cuerpo: navy sólido a la izquierda (texto
-     legible) → transición larga → la foto se ve a la derecha pero CON velo (≈40%),
-     para que no quede "totalmente clara". */
+  /* Degradado horizontal SUAVE: navy a la izquierda → transición gradual →
+     foto a su claridad original (100%) en el lado derecho. */
   background: linear-gradient(95deg,
-    rgba(15, 38, 92, 0.97) 0%,
-    rgba(15, 38, 92, 0.94) 30%,
-    rgba(15, 38, 92, 0.78) 50%,
-    rgba(15, 38, 92, 0.55) 72%,
-    rgba(15, 38, 92, 0.40) 100%) !important;
+    rgba(15, 38, 92, 0.96) 0%,
+    rgba(15, 38, 92, 0.88) 22%,
+    rgba(15, 38, 92, 0.62) 42%,
+    rgba(15, 38, 92, 0.30) 60%,
+    rgba(15, 38, 92, 0.08) 74%,
+    rgba(15, 38, 92, 0.00) 86%) !important;
 }
 /* Sombra sutil para que el texto blanco siga legible con el degradado más claro. */
 .hero__copy { text-shadow: 0 2px 18px rgba(4, 12, 40, 0.55); }
