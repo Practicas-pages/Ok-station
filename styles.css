@@ -3986,10 +3986,10 @@ body {
 
 /* ── Cohesión dentro del wizard de citas (sin cajas negras) ── */
 .citas-section .cita-layout {
-  background: rgba(12, 18, 52, 0.34);
+  background: rgba(10, 20, 56, 0.46);
   border-color: rgba(255, 255, 255, 0.12);
-  -webkit-backdrop-filter: blur(10px);
-  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
 }
 .citas-section .field input,
 .citas-section .field select,
@@ -4780,17 +4780,23 @@ html { background: #0a1f4d; }
    veía quieta en celular. Con capas fijas el movimiento se aprecia en TODOS los
    dispositivos. Las capas van detrás de todo (z-index negativo) y no tapan toques. */
 body:not(.admin) { background: #0a1f4d; }
+/* Capa BASE: degradado navy que se desplaza lentamente. Se mantiene OSCURO en
+   todo su recorrido para que el texto claro sea legible sobre cualquier sección
+   transparente; el color vivo y el movimiento perceptible vienen de los glows. */
 body:not(.admin)::before {
   content: "";
   position: fixed;
   inset: 0;
   z-index: -2;
   pointer-events: none;
-  background: linear-gradient(120deg, #0a1f4d, #143a82, #066CFF, #0e2a63, #1a4ba8, #0a1f4d);
-  background-size: 300% 300%;
-  animation: oks-water 16s ease infinite;
+  background: linear-gradient(135deg, #07153a 0%, #0c2358 28%, #143c88 50%, #0c2358 72%, #07153a 100%);
+  background-size: 280% 280%;
+  /* !important para que el fondo SIEMPRE se mueva, aun con "reducir movimiento"
+     activado (el reset global *::before lo apagaba). Es más específico que *. */
+  animation: oks-water 22s ease-in-out infinite !important;
 }
-/* Capa de profundidad líquida: manchas radiales cyan + púrpura moviéndose en diagonal. */
+/* Capa de GLOWS de color (cyan/azul/púrpura) que derivan sobre el navy: aquí se
+   PERCIBE el movimiento (estilo Linear/Vercel) sin restar legibilidad al texto. */
 body:not(.admin)::after {
   content: "";
   position: fixed;
@@ -4798,51 +4804,55 @@ body:not(.admin)::after {
   z-index: -1;
   pointer-events: none;
   background:
-    radial-gradient(circle at 30% 40%, rgba(0,200,255,0.18), transparent 55%),
-    radial-gradient(circle at 75% 65%, rgba(156,47,255,0.16), transparent 55%);
+    radial-gradient(38% 42% at 22% 26%, rgba(0, 198, 255, 0.30), transparent 60%),
+    radial-gradient(42% 48% at 82% 40%, rgba(156, 47, 255, 0.28), transparent 62%),
+    radial-gradient(46% 52% at 58% 90%, rgba(6, 108, 255, 0.32), transparent 64%);
   background-size: 200% 200%;
-  animation: oks-water-blobs 20s ease infinite;
+  animation: oks-water-blobs 26s ease-in-out infinite !important;
 }
 /* En el panel admin NO aplica el fondo animado ni la aurora. */
 body.admin::before, body.admin::after { display: none !important; }
 @keyframes oks-water { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
 @keyframes oks-water-blobs { 0% { background-position: 0% 0%; } 50% { background-position: 100% 100%; } 100% { background-position: 0% 0%; } }
-@media (prefers-reduced-motion: reduce) {
-  body:not(.admin)::before, body:not(.admin)::after { animation: none; }
-}
 
-/* Secciones sin fondo propio ni líneas que las dividan → lienzo continuo */
+/* ── LIENZO CONTINUO: ninguna sección tiene fondo opaco propio ──
+   Todo el sitio comparte el MISMO canvas animado oscuro. Las secciones son
+   transparentes y se diferencian por espaciado, tipografía y tarjetas — NO por
+   rectángulos de color (eso causaba el efecto "diapositiva"). Donde una zona
+   necesita más oscuridad para legibilidad (Citas, footer) se usa un velo
+   SEMITRANSPARENTE que se desvanece en los bordes (sin línea dura) y deja ver el
+   canvas (y su animación) a través de él. */
 .hero,
 .section,
 .section--alt { background: transparent !important; }
-/* La sección de Citas conserva tema oscuro (texto claro) pero en AZUL profundo
-   de la marca (no navy negruzco), para mantenerse dentro de la paleta.
-   Sus bordes superior/inferior se DESVANECEN a transparente (no líneas duras):
-   los ~90px de relleno superior y ~100px inferior funden el azul profundo con
-   el lienzo animado, evitando el corte tipo "diapositiva". El contenido (título,
-   tarjetas) queda donde el fondo ya es sólido, así que la legibilidad no cambia. */
+
+/* Citas: velo oscuro muy suave que se desvanece arriba y abajo (sin corte). */
 .citas-section {
   background: linear-gradient(180deg,
-    transparent 0,
-    #082A6E 90px,
-    #04153C calc(100% - 100px),
+    transparent 0%,
+    rgba(6, 17, 48, 0.55) 16%,
+    rgba(6, 17, 48, 0.60) 84%,
     transparent 100%) !important;
 }
-/* El footer también se funde por arriba con el lienzo (sin línea dura). */
+/* Footer: velo que entra suave desde transparente (sin línea superior dura). */
 .site-footer {
   background: linear-gradient(180deg,
-    transparent 0,
-    #230B5E 96px,
-    #142A7E 60%,
-    #0B2E9E 100%) !important;
+    transparent 0%,
+    rgba(7, 16, 42, 0.66) 45%,
+    rgba(7, 16, 42, 0.82) 100%) !important;
+}
+
+/* El hero se DISUELVE por abajo hacia el canvas (elimina la línea dura hero→Servicios). */
+.hero__bg {
+  -webkit-mask-image: linear-gradient(180deg, #000 68%, transparent 100%);
+          mask-image: linear-gradient(180deg, #000 68%, transparent 100%);
 }
 
 /* Fuera las ondas/auroras (las "líneas" azul y púrpura) y los tintes por sección */
 .section::after,
 .section--alt::after,
 .section--alt::before,
-.hero::after,
-.hero__bg-overlay { display: none !important; }
+.hero::after { display: none !important; }
 
 /* Brillo de las zonas oscuras (citas/footer): solo azul/púrpura, sin cian */
 .citas-section::before,
