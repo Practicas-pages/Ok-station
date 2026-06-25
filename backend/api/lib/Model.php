@@ -115,3 +115,4 @@ final class Order extends Model {
 final class OrderItem extends Model { protected static $table = 'order_items'; }
 
 final class Appointment extends Model { protected static $table = 'appointments'; }
+final class AppointmentFile extends Model { protected static $table = 'appointment_files'; }
