@@ -5255,4 +5255,106 @@ body.admin::before, body.admin::after { display: none !important; }
 .upsell-row__actions { display: flex; gap: 8px; flex: 0 0 auto; }
 .upsell-add { white-space: nowrap; }
 .upsell-row.is-on .upsell-add { background: var(--brand-blue); border-color: transparent; color: #fff; }
+
+/* ============================================================
+   30. MEJORAS INTERACTIVAS (jun 2026)
+   - Fondo reactivo al cursor (resplandor que sigue el mouse)
+   - Botones con barrido de brillo + elevación más viva
+   - Encuadre de la foto del hero en escritorio (que se vea COMPLETA)
+   Todo aditivo: no reescribe reglas previas; solo realza.
+   ============================================================ */
+
+/* ── Fondo reactivo al cursor ──────────────────────────────
+   app.js inyecta <div id="oks-cursor-glow"> y actualiza su posición.
+   Capa fija detrás del contenido; no captura toques. */
+#oks-cursor-glow {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 620px;
+  height: 620px;
+  margin: -310px 0 0 -310px;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: -1;
+  opacity: 0;
+  will-change: transform, opacity;
+  background: radial-gradient(circle,
+    rgba(0, 198, 255, 0.18) 0%,
+    rgba(6, 108, 255, 0.12) 38%,
+    rgba(156, 47, 255, 0.07) 58%,
+    transparent 72%);
+  filter: blur(34px);
+  transition: opacity 0.4s ease;
+}
+#oks-cursor-glow.is-on { opacity: 1; }
+/* En el panel admin no aplica (como el resto del fondo animado). */
+body.admin #oks-cursor-glow { display: none !important; }
+
+/* ── Botones: barrido de brillo al pasar el cursor ─────────
+   .btn ya trae position:relative + overflow:hidden, así que el
+   barrido queda recortado dentro del botón. */
+.btn::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -130%;
+  width: 55%;
+  height: 100%;
+  background: linear-gradient(100deg, transparent 0%, rgba(255, 255, 255, 0.38) 50%, transparent 100%);
+  transform: skewX(-18deg);
+  pointer-events: none;
+  z-index: 1;
+  transition: left 0.6s cubic-bezier(0.22, 0.7, 0.2, 1);
+}
+.btn:hover::after { left: 150%; }
+/* El SVG y el texto deben quedar por encima del barrido. */
+.btn > svg { position: relative; z-index: 2; }
+/* Botones claros: el barrido blanco no se ve; usamos uno tenue oscuro. */
+.btn--light::after,
+.btn--light\.active::after {
+  background: linear-gradient(100deg, transparent 0%, rgba(12, 20, 50, 0.10) 50%, transparent 100%);
+}
+/* Sin barrido ni movimiento en botones deshabilitados. */
+.btn:disabled::after,
+.btn[aria-disabled="true"]::after { display: none; }
+
+/* Elevación un poco más viva en los primarios/marca (respeta tus sombras). */
+.btn--primary:hover,
+.btn--brand:hover,
+.btn--wa:hover { transform: translateY(-3px) scale(1.02); }
+
+@media (prefers-reduced-motion: reduce) {
+  .btn::after { display: none; }
+  .btn--primary:hover,
+  .btn--brand:hover,
+  .btn--wa:hover { transform: none; }
+}
+
+/* ── Hero: que la FOTO se vea COMPLETA en escritorio ───────
+   La foto es vertical (2:3). En celular el hero es alto y `cover`
+   la muestra bien. En escritorio `cover` la "acercaba" (solo una
+   franja). Aquí usamos `contain` anclada a la derecha + desvanecido
+   para que se vea entera junto al texto, sin recorte. */
+@media (min-width: 861px) {
+  .hero__bg-img {
+    object-fit: contain;
+    object-position: right bottom;
+    opacity: 0.55;
+    -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 40%);
+            mask-image: linear-gradient(90deg, transparent 0%, #000 40%);
+  }
+  /* Overlay: oscuro a la izquierda (texto legible) y más claro a la
+     derecha (se aprecia la fachada). */
+  .hero__bg-overlay {
+    background:
+      radial-gradient(ellipse 55% 75% at 16% 38%, rgba(6, 108, 255, 0.30) 0%, transparent 60%),
+      radial-gradient(ellipse 45% 60% at 92% 30%, rgba(156, 29, 255, 0.20) 0%, transparent 64%),
+      linear-gradient(90deg, rgba(8, 12, 28, 0.92) 0%, rgba(8, 12, 28, 0.80) 40%, rgba(8, 12, 28, 0.42) 72%, rgba(8, 12, 28, 0.28) 100%);
+  }
+}
+/* Pantallas muy anchas: mantener la foto cerca del contenido centrado. */
+@media (min-width: 1400px) {
+  .hero__bg-img { object-position: 88% bottom; }
+}
 .cita-upsell__note { color: rgba(255,255,255,0.55); font-size: 0.76rem; margin: 10px 0 0; }
