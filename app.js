@@ -1849,6 +1849,35 @@
     });
   }
 
+  // Fondo reactivo: un resplandor de marca sigue el cursor (solo en
+  // dispositivos con puntero fino y si el usuario no pidió menos movimiento).
+  function initCursorGlow() {
+    try {
+      if (document.body.classList.contains("admin")) return;
+      var fine = window.matchMedia && window.matchMedia("(pointer: fine)").matches;
+      var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      if (!fine || reduce) return;
+
+      var glow = document.createElement("div");
+      glow.id = "oks-cursor-glow";
+      document.body.appendChild(glow);
+
+      var x = 0, y = 0, ticking = false;
+      function paint() {
+        ticking = false;
+        glow.style.transform = "translate(" + x + "px," + y + "px)";
+      }
+      window.addEventListener("pointermove", function (e) {
+        if (e.pointerType === "touch") return;
+        x = e.clientX;
+        y = e.clientY;
+        if (!glow.classList.contains("is-on")) glow.classList.add("is-on");
+        if (!ticking) { ticking = true; requestAnimationFrame(paint); }
+      }, { passive: true });
+      window.addEventListener("blur", function () { glow.classList.remove("is-on"); });
+    } catch (_) {}
+  }
+
   function init() {
     initHeader();
     initReveal();
@@ -1859,6 +1888,7 @@
     initImageFade();
     initGallery();
     initCarousels();
+    initCursorGlow();
   }
 
   if (document.readyState === "loading") {
