@@ -50,29 +50,41 @@ $mime = Storage::detectMime($f['tmp_name']);   // por contenido, nunca el tipo d
 if ($mime === '') fail('No se pudo verificar el tipo del archivo. Intenta de nuevo.', 422);
 if (!isset($allowed[$mime])) fail('Tipo no permitido. Sube PDF, JPG o PNG.');
 
-// Fuerza la extensión según el MIME detectado (anti subida de .php / RCE).
-$path = Storage::moveUploaded('appointments', $f, $allowed[$mime]);
-
-$fileId = UploadedFile::create([
-    'user_id'       => ($appt['user_id'] ? (int) $appt['user_id'] : null),
-    'original_name' => $f['name'],
-    'stored_path'   => $path,
-    'mime_type'     => $mime,
-    'size_bytes'    => (int) $f['size'],
-    'pages'         => 1,
-]);
-
-/* Vincula el archivo a su cita y, si el esquema lo soporta (migración 0014), a la
-   persona concreta (guest_index/guest_name). Retrocompatible si aún no se aplicó. */
-$cols = ['appointment_id', 'uploaded_file_id', 'doc_key', 'doc_label'];
-$vals = [$apptId, $fileId, $docKey, $docLabel];
-if (function_exists('table_has_column') && table_has_column('appointment_files', 'guest_index')) {
-    $cols[] = 'guest_index'; $vals[] = $guestIdx;
-    $cols[] = 'guest_name';  $vals[] = ($guestName !== '' ? $guestName : null);
+/* Comprobación clara del almacenamiento ANTES de mover (evita un 500 críptico).
+   Si STORAGE_PATH no existe o no se puede escribir, devolvemos un error legible. */
+if (!is_writable(Storage::dir('appointments'))) {
+    fail('No se pudieron guardar los documentos: el almacenamiento del servidor no tiene permiso de escritura. Revisa STORAGE_PATH en backend/.env (debe existir y ser escribible por el usuario del sitio).', 503);
 }
-$ph = implode(',', array_fill(0, count($cols), '?'));
-db()->prepare('INSERT INTO appointment_files (' . implode(',', $cols) . ') VALUES (' . $ph . ')')
-    ->execute($vals);
+
+try {
+    // Fuerza la extensión según el MIME detectado (anti subida de .php / RCE).
+    $path = Storage::moveUploaded('appointments', $f, $allowed[$mime]);
+
+    $fileId = UploadedFile::create([
+        'user_id'       => ($appt['user_id'] ? (int) $appt['user_id'] : null),
+        'original_name' => $f['name'],
+        'stored_path'   => $path,
+        'mime_type'     => $mime,
+        'size_bytes'    => (int) $f['size'],
+        'pages'         => 1,
+    ]);
+
+    /* Vincula el archivo a su cita y, si el esquema lo soporta (migración 0014), a la
+       persona concreta (guest_index/guest_name). Retrocompatible si aún no se aplicó. */
+    $cols = ['appointment_id', 'uploaded_file_id', 'doc_key', 'doc_label'];
+    $vals = [$apptId, $fileId, $docKey, $docLabel];
+    if (function_exists('table_has_column') && table_has_column('appointment_files', 'guest_index')) {
+        $cols[] = 'guest_index'; $vals[] = $guestIdx;
+        $cols[] = 'guest_name';  $vals[] = ($guestName !== '' ? $guestName : null);
+    }
+    $ph = implode(',', array_fill(0, count($cols), '?'));
+    db()->prepare('INSERT INTO appointment_files (' . implode(',', $cols) . ') VALUES (' . $ph . ')')
+        ->execute($vals);
+} catch (Throwable $e) {
+    global $CONFIG;
+    $detail = !empty($CONFIG['dev_mode']) ? (' [' . $e->getMessage() . ']') : '';
+    fail('No se pudo guardar el documento en el servidor (almacenamiento/base de datos).' . $detail, 500);
+}
 
 respond(['ok' => true, 'file' => [
     'id' => $fileId, 'doc_key' => $docKey, 'doc_label' => $docLabel,

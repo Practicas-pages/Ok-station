@@ -1160,6 +1160,7 @@
        creada; el cliente puede llevar los documentos físicamente. */
     function uploadCitaDocs(apptId, guests) {
       if (!apptId || !Array.isArray(guests)) return;
+      var pending = 0, failed = 0;
       guests.forEach(function (g, idx) {
         if (!g || !g.files) return;
         Object.keys(g.files).forEach(function (key) {
@@ -1172,7 +1173,33 @@
           fd.append("doc_key", key);
           fd.append("doc_label", d.label || key);
           fd.append("file", d.file);
-          try { fetch(API + "/appointments/upload.php", { method: "POST", body: fd }).catch(function () {}); } catch (e) {}
+          pending++;
+          fetch(API + "/appointments/upload.php", { method: "POST", body: fd })
+            .then(function (r) {
+              return r.json().then(
+                function (j) { return { status: r.status, body: j }; },
+                function () { return { status: r.status, body: null }; }
+              );
+            })
+            .then(function (res) {
+              if (!(res.status === 201 && res.body && res.body.ok)) {
+                failed++;
+                console.warn("[OK.station] No se pudo subir el documento «" + (d.label || key) +
+                  "» (persona " + (idx + 1) + ") → HTTP " + res.status + ": " +
+                  ((res.body && res.body.error) || "respuesta inesperada del servidor"));
+              }
+            })
+            .catch(function (e) {
+              failed++;
+              console.warn("[OK.station] Error de red al subir «" + (d.label || key) + "»:", e && e.message);
+            })
+            .then(function () {
+              pending--;
+              if (pending === 0 && failed > 0) {
+                showToast("Tu cita quedó registrada, pero no pudimos guardar " + failed +
+                  " documento(s) en línea. Puedes llevarlos el día de tu cita.");
+              }
+            });
         });
       });
     }

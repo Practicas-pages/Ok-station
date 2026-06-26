@@ -26,26 +26,36 @@ $mime = Storage::detectMime($f['tmp_name']);   // por contenido, nunca el tipo d
 if ($mime === '') fail('No se pudo verificar el tipo del archivo. Intenta de nuevo.', 422);
 if (!isset($allowed[$mime])) fail('Tipo no permitido. Sube PDF, JPG, PNG o WEBP.');
 
-// Fuerza la extensión según el MIME detectado (anti subida de .php / RCE).
-$path = Storage::moveUploaded('uploads', $f, $allowed[$mime]);
-
-// Nº de páginas: lo manda el cliente (pdf.js) o se estima para PDF.
-$pages = isset($_POST['pages']) ? max(1, (int) $_POST['pages']) : 1;
-if ($mime === 'application/pdf' && !isset($_POST['pages'])) {
-    $c = @file_get_contents($path);
-    if ($c !== false && preg_match_all('/\/Type\s*\/Page[^s]/', $c, $m)) {
-        $pages = max(1, count($m[0]));
-    }
+/* Comprobación clara del almacenamiento ANTES de mover (evita un 500 críptico). */
+if (!is_writable(Storage::dir('uploads'))) {
+    fail('No se pudo guardar el archivo: el almacenamiento del servidor no tiene permiso de escritura. Revisa STORAGE_PATH en backend/.env.', 503);
 }
 
-$id = UploadedFile::create([
-    'user_id'       => (int) $user['id'],
-    'original_name' => $f['name'],
-    'stored_path'   => $path,
-    'mime_type'     => $mime,
-    'size_bytes'    => (int) $f['size'],
-    'pages'         => $pages,
-]);
+try {
+    // Fuerza la extensión según el MIME detectado (anti subida de .php / RCE).
+    $path = Storage::moveUploaded('uploads', $f, $allowed[$mime]);
+
+    // Nº de páginas: lo manda el cliente (pdf.js) o se estima para PDF.
+    $pages = isset($_POST['pages']) ? max(1, (int) $_POST['pages']) : 1;
+    if ($mime === 'application/pdf' && !isset($_POST['pages'])) {
+        $c = @file_get_contents($path);
+        if ($c !== false && preg_match_all('/\/Type\s*\/Page[^s]/', $c, $m)) {
+            $pages = max(1, count($m[0]));
+        }
+    }
+
+    $id = UploadedFile::create([
+        'user_id'       => (int) $user['id'],
+        'original_name' => $f['name'],
+        'stored_path'   => $path,
+        'mime_type'     => $mime,
+        'size_bytes'    => (int) $f['size'],
+        'pages'         => $pages,
+    ]);
+} catch (Throwable $e) {
+    $detail = !empty($CONFIG['dev_mode']) ? (' [' . $e->getMessage() . ']') : '';
+    fail('No se pudo guardar el archivo en el servidor (almacenamiento).' . $detail, 500);
+}
 
 respond(['ok' => true, 'file' => [
     'id' => $id, 'original_name' => $f['name'], 'pages' => $pages,
