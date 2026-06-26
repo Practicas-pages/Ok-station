@@ -4948,24 +4948,25 @@ body.admin::before, body.admin::after { display: none !important; }
   width: 100%; height: 100%;
   object-fit: cover; object-position: center 60%;  /* MÓVIL: imagen un poco más abajo (se ve bien) */
   opacity: 1 !important;  /* IMPORTANTE: anula el opacity:0.28 de la regla vieja (~línea 820) que la dejaba fantasmal */
-  filter: brightness(1.04) contrast(1.06) saturate(1.14);  /* foto casi ORIGINAL (no lavada) */
+  filter: brightness(1.02) contrast(1.05) saturate(1.10);  /* foto casi ORIGINAL (no lavada) */
+  /* Movimiento sutil tipo "Ken Burns": la foto respira (zoom + leve deriva) para
+     que NO se vea estática. Se detiene si el usuario pide menos movimiento. */
+  transform-origin: 60% 40%;
+  animation: hero-kenburns 32s ease-in-out infinite;
 }
-/* PC (pantalla ancha): la foto es VERTICAL (2:3). Con `cover` se recortaba y se
-   veía "acercada" (solo una franja del letrero). Con `contain` anclada a la
-   DERECHA se ve la fachada COMPLETA junto al degradado oscuro de la izquierda,
-   donde va el texto. Una máscara desvanece el borde izquierdo de la foto. */
+@keyframes hero-kenburns {
+  0%   { transform: scale(1.06) translate(0, 0); }
+  50%  { transform: scale(1.13) translate(-1.6%, -1.2%); }
+  100% { transform: scale(1.06) translate(0, 0); }
+}
+/* PC (pantalla ancha): la foto sigue a PANTALLA COMPLETA (cover) para que cubra
+   todo el hero y se funda con el fondo; subimos el encuadre para que se vea la
+   fachada/letrero (no solo los estantes de abajo) y se sienta menos "acercada". */
 @media (min-width: 769px) {
-  .hero__bg-img {
-    object-fit: contain;
-    object-position: right center;
-    -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 34%);
-            mask-image: linear-gradient(90deg, transparent 0%, #000 34%);
-  }
+  .hero__bg-img { object-position: center 36%; transform-origin: 65% 38%; }
 }
-/* Pantallas muy anchas: la foto se separa del borde para quedar cerca del
-   contenido centrado (máx-width del sitio = 1240px). */
-@media (min-width: 1400px) {
-  .hero__bg-img { object-position: 86% center; }
+@media (min-width: 1200px) {
+  .hero__bg-img { object-position: center 32%; }
 }
 /* Degradado OSCURO: opaco a la izquierda (texto claro legible) → translúcido a la
    derecha (se ve la foto), integrado al tema oscuro del sitio. */
@@ -4974,15 +4975,25 @@ body.admin::before, body.admin::after { display: none !important; }
 .hero .hero__bg-overlay {
   display: block !important;
   position: absolute; inset: 0;
-  /* Degradado horizontal SUAVE: navy a la izquierda → transición gradual →
-     foto a su claridad original (100%) en el lado derecho. */
-  background: linear-gradient(95deg,
-    rgba(15, 38, 92, 0.96) 0%,
-    rgba(15, 38, 92, 0.88) 22%,
-    rgba(15, 38, 92, 0.62) 42%,
-    rgba(15, 38, 92, 0.30) 60%,
-    rgba(15, 38, 92, 0.08) 74%,
-    rgba(15, 38, 92, 0.00) 86%) !important;
+  /* Degradado en TODA la pantalla: la foto se FUNDE con el azul de marca para
+     que se vea integrada y profesional (no como un bloque/foto pegada).
+     Capa 1 (horizontal): muy oscuro a la izquierda (texto legible) → un velo
+     suave a la derecha (la foto se ve bien, pero nunca "cruda").
+     Capa 2 (vertical): leve viñeta arriba y abajo para fundir bordes. */
+  background:
+    linear-gradient(95deg,
+      rgba(15, 38, 92, 0.96) 0%,
+      rgba(15, 38, 92, 0.86) 24%,
+      rgba(15, 38, 92, 0.60) 46%,
+      rgba(15, 38, 92, 0.34) 64%,
+      rgba(15, 38, 92, 0.20) 82%,
+      rgba(15, 38, 92, 0.14) 100%),
+    linear-gradient(0deg,
+      rgba(10, 31, 77, 0.55) 0%,
+      rgba(10, 31, 77, 0.10) 28%,
+      rgba(10, 31, 77, 0.00) 55%,
+      rgba(10, 31, 77, 0.24) 88%,
+      rgba(10, 31, 77, 0.46) 100%) !important;
 }
 /* Sombra sutil para que el texto blanco siga legible con el degradado más claro. */
 .hero__copy { text-shadow: 0 2px 18px rgba(4, 12, 40, 0.55); }
