@@ -205,6 +205,7 @@
     reviews:  function () { return DEMO ? Promise.resolve(MOCK.reviews)  : apiGet("/admin/reviews.php").then(function (j) { return j.reviews || []; }); },
     moderateReview: function (id, action) { return DEMO ? Promise.resolve({ ok: true }) : apiPost("/admin/review-moderate.php", { id: id, action: action }); },
     toggleUser: function (id, active) { return DEMO ? Promise.resolve({ ok: true }) : apiPost("/admin/user-toggle.php", { id: id, active: active }); },
+    setUserRole: function (id, role) { return DEMO ? Promise.resolve({ ok: true }) : apiPost("/admin/user-role.php", { id: id, role: role }); },
     appointments: function (status, date) {
       if (DEMO) return Promise.resolve(MOCK.appointments.filter(function (a) {
         return (!status || a.status === status) && (!date || a.date === date);
@@ -800,20 +801,38 @@
     });
   }
   var userSearch = "";
+  /* Rol "principal" a partir de la lista de roles (string CSV o arreglo). */
+  function primaryRole(roles) {
+    var arr = Array.isArray(roles) ? roles : String(roles || "").split(",");
+    arr = arr.map(function (s) { return String(s).trim(); });
+    if (arr.indexOf("directivo") >= 0) return "directivo";
+    if (arr.indexOf("administrador") >= 0) return "administrador";
+    if (arr.indexOf("empleado") >= 0) return "empleado";
+    return "cliente";
+  }
+  var ROLE_OPTS = [["cliente", "Cliente"], ["empleado", "Empleado"], ["administrador", "Administrador"], ["directivo", "Directivo"]];
+  function roleSelectHtml(current, disabled) {
+    return '<select class="role-select"' + (disabled ? " disabled title=\"No puedes cambiar tu propio rol\"" : "") + '>' +
+      ROLE_OPTS.map(function (o) { return '<option value="' + o[0] + '"' + (o[0] === current ? " selected" : "") + '>' + o[1] + '</option>'; }).join("") +
+      '</select>';
+  }
   function renderUsers() {
-    var head = '<thead><tr><th>Nombre</th><th>Correo</th><th>Teléfono</th><th>Pedidos</th><th>Estado</th><th>Alta</th><th></th></tr></thead>';
+    var head = '<thead><tr><th>Nombre</th><th>Correo</th><th>Teléfono</th><th>Pedidos</th><th>Rol</th><th>Estado</th><th>Alta</th><th></th></tr></thead>';
+    var meId = String((cachedUser() || {}).id || "");
     DataSource.users().then(function (list) {
       var q = (userSearch || "").trim().toLowerCase();
       if (q) list = list.filter(function (u) {
         return (String(u.name || "") + " " + String(u.email || "") + " " + String(u.phone || "")).toLowerCase().indexOf(q) >= 0;
       });
       if (!list.length) {
-        $("#users-table").innerHTML = head + '<tbody><tr><td colspan="7" style="text-align:center;color:var(--text-muted);padding:24px">' + (q ? 'No se encontraron usuarios para “' + esc(userSearch.trim()) + '”.' : "No hay usuarios.") + '</td></tr></tbody>';
+        $("#users-table").innerHTML = head + '<tbody><tr><td colspan="8" style="text-align:center;color:var(--text-muted);padding:24px">' + (q ? 'No se encontraron usuarios para “' + esc(userSearch.trim()) + '”.' : "No hay usuarios.") + '</td></tr></tbody>';
         return;
       }
       var body = list.map(function (u) {
         var active = +u.active ? 1 : 0;
+        var isSelf = String(u.id) === meId;
         return '<tr><td><b>' + esc(u.name) + '</b></td><td>' + esc(u.email) + '</td><td>' + esc(u.phone) + '</td><td>' + (u.orders || 0) + '</td>' +
+          '<td data-urole="' + esc(u.id) + '">' + roleSelectHtml(primaryRole(u.roles), isSelf) + '</td>' +
           '<td><span class="badge badge--' + (active ? "listo" : "cancelado") + '">' + (active ? "Activo" : "Inactivo") + '</span></td>' +
           '<td>' + esc(u.joined) + '</td><td><button class="admin-btn-sm" data-uview="' + esc(u.id) + '">Historial</button> ' +
           '<button class="admin-btn-sm" data-utoggle="' + esc(u.id) + '" data-active="' + (active ? 0 : 1) + '">' + (active ? "Desactivar" : "Reactivar") + '</button></td></tr>';
@@ -824,6 +843,17 @@
       });
       $$("[data-uview]", t).forEach(function (b) {
         b.addEventListener("click", function () { viewUser(b.dataset.uview); });
+      });
+      /* Cambiar rol: el backend mantiene 'cliente' y aplica salvaguardas. */
+      $$("[data-urole] .role-select", t).forEach(function (sel) {
+        sel.addEventListener("change", function () {
+          var id = sel.parentNode.getAttribute("data-urole");
+          sel.disabled = true;
+          DataSource.setUserRole(id, sel.value).then(function (j) {
+            if (!j || !j.ok) window.alert((j && (j.error || j.message)) || "No se pudo cambiar el rol.");
+            renderUsers();
+          }).catch(function () { window.alert("Sin conexión al cambiar el rol."); renderUsers(); });
+        });
       });
     });
   }
