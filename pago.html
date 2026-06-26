@@ -5,13 +5,38 @@
   <script src="assets/site-guard.js?v=20260625m"></script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="robots" content="noindex, nofollow">
-  <title>Pago de tu pedido — OK.station</title>
+  <title>Pago seguro — OK.station</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap">
   <link rel="stylesheet" href="styles.css?v=20260625">
   <link rel="stylesheet" href="assets/auth.css?v=20260625">
   <link rel="stylesheet" href="assets/order.css?v=20260625">
+  <style>
+    /* ── Formulario de tarjeta (demo). Reusa .auth-field/.auth-row de auth.css;
+       aquí solo lo específico de la tarjeta. Todo con variables del tema. ── */
+    .cc-input { position: relative; display: flex; align-items: center; }
+    .cc-input input { width: 100%; padding-right: 70px; letter-spacing: 0.04em; font-variant-numeric: tabular-nums; }
+    .cc-brand {
+      position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
+      font-size: 0.68rem; font-weight: 800; letter-spacing: 0.04em; color: var(--text-muted);
+      padding: 3px 7px; border-radius: var(--radius-sm); background: #fff; pointer-events: none; min-height: 16px;
+    }
+    .cc-brand[data-brand="visa"]       { color: #1A1F71; }
+    .cc-brand[data-brand="mastercard"] { color: #EB001B; }
+    .cc-brand[data-brand="amex"]       { color: #2E77BC; }
+    .cc-brand[data-brand="discover"]   { color: #E8731C; }
+    .card-type { display: inline-flex; gap: 6px; }
+    .card-type__opt {
+      flex: 0 0 auto; padding: 8px 18px; border: 1.5px solid var(--border-light); border-radius: var(--radius-sm);
+      background: #fff; font: inherit; font-size: 0.85rem; font-weight: 600; color: var(--text-secondary);
+      cursor: pointer; transition: border-color 0.15s, color 0.15s, background 0.15s;
+    }
+    .card-type__opt.is-active { border-color: var(--brand-blue); color: var(--brand-blue); background: rgba(6, 108, 255, 0.06); }
+    .card-type__opt:focus-visible { outline: 3px solid var(--brand-cyan); outline-offset: 2px; }
+    .cc-secure { display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: 10px; font-size: 0.76rem; color: var(--text-muted); }
+    .cc-secure svg { width: 13px; height: 13px; flex: 0 0 auto; }
+  </style>
 </head>
 <body class="auth-page">
 
@@ -27,7 +52,7 @@
     <div class="auth-card">
       <div class="auth-head">
         <h1>Pago seguro</h1>
-        <p id="pago-intro">Revisa el resumen y confirma el pago.</p>
+        <p id="pago-intro">Revisa el resumen y completa los datos de tu tarjeta.</p>
       </div>
 
       <div class="auth-alert" id="pago-alert" role="alert" hidden></div>
@@ -37,9 +62,54 @@
       </div>
 
       <div id="pago-actions" hidden>
-        <button type="button" class="btn btn--primary btn--block" id="pago-pay">Pagar ahora</button>
-        <button type="button" class="btn btn--light btn--block" id="pago-cancel" style="margin-top:10px">Cancelar</button>
-        <p class="auth-foot" id="pago-note" style="margin-top:12px"></p>
+        <form id="pago-form" novalidate autocomplete="on">
+          <div id="pago-fields">
+            <div class="auth-field">
+              <label>Tipo de tarjeta</label>
+              <div class="card-type" role="group" aria-label="Tipo de tarjeta">
+                <button type="button" class="card-type__opt is-active" data-type="credito" aria-pressed="true">Crédito</button>
+                <button type="button" class="card-type__opt" data-type="debito" aria-pressed="false">Débito</button>
+              </div>
+            </div>
+
+            <div class="auth-field">
+              <label for="cc-number">Número de tarjeta</label>
+              <div class="cc-input">
+                <input id="cc-number" type="text" inputmode="numeric" autocomplete="cc-number" maxlength="23" placeholder="1234 5678 9012 3456" aria-describedby="err-number">
+                <span class="cc-brand" id="cc-brand" data-brand="" aria-hidden="true"></span>
+              </div>
+              <span class="auth-field__error" id="err-number" hidden>Número de tarjeta inválido.</span>
+            </div>
+
+            <div class="auth-field">
+              <label for="cc-name">Nombre del titular</label>
+              <input id="cc-name" type="text" autocomplete="cc-name" maxlength="60" placeholder="Como aparece en la tarjeta" aria-describedby="err-name">
+              <span class="auth-field__error" id="err-name" hidden>Ingresa el nombre del titular.</span>
+            </div>
+
+            <div class="auth-row">
+              <div class="auth-field">
+                <label for="cc-exp">Vencimiento</label>
+                <input id="cc-exp" type="text" inputmode="numeric" autocomplete="cc-exp" maxlength="5" placeholder="MM/AA" aria-describedby="err-exp">
+                <span class="auth-field__error" id="err-exp" hidden>Fecha inválida.</span>
+              </div>
+              <div class="auth-field">
+                <label for="cc-cvv">CVV</label>
+                <input id="cc-cvv" type="text" inputmode="numeric" autocomplete="cc-csc" maxlength="4" placeholder="123" aria-describedby="err-cvv">
+                <span class="auth-field__error" id="err-cvv" hidden>Código de seguridad inválido.</span>
+              </div>
+            </div>
+          </div>
+
+          <button type="submit" class="btn btn--primary btn--block" id="pago-pay">Pagar</button>
+          <button type="button" class="btn btn--light btn--block" id="pago-cancel" style="margin-top:10px">Cancelar</button>
+
+          <div class="cc-secure" id="pago-secure">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            <span>Conexión cifrada · datos protegidos</span>
+          </div>
+        </form>
+        <p class="auth-foot" id="pago-note" style="margin-top:14px"></p>
       </div>
     </div>
   </main>
@@ -53,27 +123,31 @@
     function esc(s) { var d = document.createElement("div"); d.textContent = s == null ? "" : s; return d.innerHTML; }
     function mxn(n) { return new Intl.NumberFormat("es-MX", { style: "currency", currency: "MXN", minimumFractionDigits: 2 }).format(+n || 0); }
     function alertBox(msg) { var a = document.getElementById("pago-alert"); a.textContent = msg; a.hidden = false; }
+    function $(id) { return document.getElementById(id); }
 
     if (!token()) { location.href = "cuenta.html"; return; }
 
     /* La página cobra un PEDIDO (?order=) o el ANTICIPO de una CITA (?appt=). */
     var orderId = qs("order"), apptId = qs("appt"), ref = qs("ref");
-    var isAppt  = !!apptId;
+    var isAppt   = !!apptId;
     var entityId = isAppt ? apptId : orderId;
     var statusQS = isAppt ? "appointment_id=" + encodeURIComponent(apptId) : "order_id=" + encodeURIComponent(orderId);
     var backHref = isAppt ? "perfil.html#citas" : "perfil.html#pedidos";
     var noun     = isAppt ? "cita" : "pedido";
     var payWord  = isAppt ? "anticipo" : "pago";
 
-    var summary = document.getElementById("pago-summary");
-    var actions = document.getElementById("pago-actions");
-    var note = document.getElementById("pago-note");
+    var summary = $("pago-summary");
+    var actions = $("pago-actions");
+    var fields  = $("pago-fields");
+    var form    = $("pago-form");
+    var payBtn  = $("pago-pay");
+    var note    = $("pago-note");
 
     /* Encabezado y enlaces según la entidad. */
-    document.getElementById("pago-intro").textContent = "Revisa el resumen y confirma el " + payWord + " de tu " + noun + ".";
-    var backEl = document.getElementById("pago-back");
+    $("pago-intro").textContent = "Revisa el resumen y completa los datos de tu tarjeta para tu " + noun + ".";
+    var backEl = $("pago-back");
     if (backEl) backEl.setAttribute("href", backHref);
-    var backLabel = document.getElementById("pago-back-label");
+    var backLabel = $("pago-back-label");
     if (backLabel) backLabel.textContent = isAppt ? "Volver a mis citas" : "Volver a mis pedidos";
 
     if (!entityId) { summary.innerHTML = ""; alertBox("Falta el identificador del " + noun + "."); return; }
@@ -84,10 +158,12 @@
         if (!res || !res.ok) { summary.innerHTML = ""; alertBox((res && res.error) || "No se pudo cargar el " + noun + "."); return; }
         if (res.payment_status === "pagado") {
           summary.innerHTML = '<div class="order-pay order-pay--paid"><div class="order-pay__head"><span class="order-pay__title">Este ' + esc(noun) + ' ya está pagado</span><span class="opay opay--pagado">Pagado</span></div></div>';
-          note.innerHTML = '<a href="' + esc(backHref) + '">' + (isAppt ? "Volver a mis citas" : "Volver a mis pedidos") + '</a>';
           actions.hidden = false;
-          document.getElementById("pago-pay").hidden = true;
-          document.getElementById("pago-cancel").textContent = "Volver";
+          if (fields) fields.hidden = true;
+          payBtn.hidden = true;
+          var sec = $("pago-secure"); if (sec) sec.hidden = true;
+          $("pago-cancel").textContent = "Volver";
+          note.innerHTML = '<a href="' + esc(backHref) + '">' + (isAppt ? "Volver a mis citas" : "Volver a mis pedidos") + '</a>';
           return;
         }
         summary.innerHTML =
@@ -97,26 +173,130 @@
             '<div class="order-pay__row"><span>' + (isAppt ? "Anticipo a pagar" : "Total a pagar") + '</span><b>' + mxn(res.total) + '</b></div>' +
           '</div></div>';
         actions.hidden = false;
-        note.textContent = "Entorno de demostración (sandbox): no se realiza ningún cargo real.";
+        payBtn.textContent = "Pagar " + mxn(res.total);
+        note.textContent = "Entorno de demostración (sandbox): no se realiza ningún cargo real y los datos de tu tarjeta no se envían ni se guardan.";
       })
       .catch(function () { summary.innerHTML = ""; alertBox("Sin conexión con el servidor."); });
 
-    function confirm(result, btn) {
-      var orig = btn.textContent;
-      btn.disabled = true; btn.textContent = "Procesando…";
+    /* ──────────────── Lógica de la tarjeta (solo en el navegador) ──────────────── */
+
+    /* Tipo de tarjeta (crédito/débito): valor cosmético para el demo. */
+    var cardType = "credito";
+    Array.prototype.forEach.call(document.querySelectorAll(".card-type__opt"), function (b) {
+      b.addEventListener("click", function () {
+        Array.prototype.forEach.call(document.querySelectorAll(".card-type__opt"), function (x) {
+          x.classList.remove("is-active"); x.setAttribute("aria-pressed", "false");
+        });
+        b.classList.add("is-active"); b.setAttribute("aria-pressed", "true");
+        cardType = b.dataset.type;
+      });
+    });
+
+    var numEl = $("cc-number"), nameEl = $("cc-name"), expEl = $("cc-exp"), cvvEl = $("cc-cvv"), brandEl = $("cc-brand");
+    var BRAND_LABEL = { visa: "VISA", mastercard: "Mastercard", amex: "AMEX", discover: "Discover" };
+
+    function detectBrand(value) {
+      var n = (value || "").replace(/\D/g, "");
+      if (/^4/.test(n)) return "visa";
+      if (/^(5[1-5]|2[2-7])/.test(n)) return "mastercard";
+      if (/^3[47]/.test(n)) return "amex";
+      if (/^(6011|65|64[4-9]|622)/.test(n)) return "discover";
+      return "";
+    }
+    function isAmex() { return detectBrand(numEl.value) === "amex"; }
+    function formatNumber(value, brand) {
+      var n = (value || "").replace(/\D/g, "").slice(0, brand === "amex" ? 15 : 16);
+      var groups = brand === "amex" ? [4, 6, 5] : [4, 4, 4, 4];
+      var out = [], i = 0;
+      for (var g = 0; g < groups.length && i < n.length; g++) { out.push(n.substr(i, groups[g])); i += groups[g]; }
+      return out.join(" ");
+    }
+    /* Algoritmo de Luhn: validación estándar del número de tarjeta. */
+    function luhnOk(value) {
+      var n = (value || "").replace(/\D/g, "");
+      if (n.length < 13) return false;
+      var sum = 0, alt = false;
+      for (var i = n.length - 1; i >= 0; i--) {
+        var d = +n.charAt(i);
+        if (alt) { d *= 2; if (d > 9) d -= 9; }
+        sum += d; alt = !alt;
+      }
+      return sum % 10 === 0;
+    }
+    function validExp(value) {
+      var m = (value || "").match(/^(\d{2})\/(\d{2})$/);
+      if (!m) return false;
+      var mm = +m[1], yy = 2000 + (+m[2]);
+      if (mm < 1 || mm > 12) return false;
+      var now = new Date();
+      var firstThisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+      var firstAfterExp  = new Date(yy, mm, 1);   /* mm es 1-12 → primer día del mes SIGUIENTE al de vencimiento */
+      return firstAfterExp > firstThisMonth;
+    }
+
+    function setError(fieldId, errId, show) {
+      var f = $(fieldId), e = $(errId);
+      if (e) e.hidden = !show;
+      if (f) { if (show) f.setAttribute("aria-invalid", "true"); else f.removeAttribute("aria-invalid"); }
+    }
+
+    /* Número: formatea, detecta marca y ajusta el largo del CVV. */
+    numEl.addEventListener("input", function () {
+      var brand = detectBrand(numEl.value);
+      numEl.value = formatNumber(numEl.value, brand);
+      brandEl.setAttribute("data-brand", brand);
+      brandEl.textContent = BRAND_LABEL[brand] || "";
+      cvvEl.setAttribute("maxlength", brand === "amex" ? "4" : "3");
+      cvvEl.setAttribute("placeholder", brand === "amex" ? "1234" : "123");
+      setError("cc-number", "err-number", false);
+    });
+    expEl.addEventListener("input", function () {
+      var n = expEl.value.replace(/\D/g, "").slice(0, 4);
+      expEl.value = n.length >= 3 ? n.slice(0, 2) + "/" + n.slice(2) : n;
+      setError("cc-exp", "err-exp", false);
+    });
+    cvvEl.addEventListener("input", function () {
+      cvvEl.value = cvvEl.value.replace(/\D/g, "").slice(0, isAmex() ? 4 : 3);
+      setError("cc-cvv", "err-cvv", false);
+    });
+    nameEl.addEventListener("input", function () { setError("cc-name", "err-name", false); });
+
+    function validateAll() {
+      var ok = true;
+      if (!luhnOk(numEl.value))                 { setError("cc-number", "err-number", true); ok = false; }
+      if (nameEl.value.trim().length < 3)       { setError("cc-name", "err-name", true);     ok = false; }
+      if (!validExp(expEl.value))               { setError("cc-exp", "err-exp", true);       ok = false; }
+      var cvvLen = isAmex() ? 4 : 3;
+      if (cvvEl.value.replace(/\D/g, "").length !== cvvLen) { setError("cc-cvv", "err-cvv", true); ok = false; }
+      return ok;
+    }
+
+    /* ──────────────── Confirmación del pago (sandbox) ────────────────
+       IMPORTANTE: los datos de la tarjeta NO se transmiten. En este entorno de
+       demostración solo se confirma el pago por referencia (igual que antes).
+       Cuando se integre una pasarela real (Stripe, etc.), aquí se tokeniza la
+       tarjeta del lado del proveedor y el cargo se confirma por webhook. */
+    function confirmPayment() {
+      var orig = payBtn.textContent;
+      payBtn.disabled = true; payBtn.textContent = "Procesando…";
       fetch(API + "/payments/sandbox-confirm.php", {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: "Bearer " + token() },
-        body: JSON.stringify({ reference: ref, result: result })
+        body: JSON.stringify({ reference: ref, result: "pagado" })
       }).then(function (r) { return r.json(); }).then(function (res) {
         if (res && res.ok) { location.href = backHref; return; }
-        btn.disabled = false; btn.textContent = orig;
+        payBtn.disabled = false; payBtn.textContent = orig;
         alertBox((res && res.error) || "No se pudo confirmar el pago.");
-      }).catch(function () { btn.disabled = false; btn.textContent = orig; alertBox("Sin conexión con el servidor."); });
+      }).catch(function () { payBtn.disabled = false; payBtn.textContent = orig; alertBox("Sin conexión con el servidor."); });
     }
 
-    document.getElementById("pago-pay").addEventListener("click", function () { confirm("pagado", this); });
-    document.getElementById("pago-cancel").addEventListener("click", function () { location.href = backHref; });
+    form.addEventListener("submit", function (e) {
+      e.preventDefault();
+      $("pago-alert").hidden = true;
+      if (!validateAll()) return;
+      confirmPayment();
+    });
+    $("pago-cancel").addEventListener("click", function () { location.href = backHref; });
   })();
   </script>
 </body>
