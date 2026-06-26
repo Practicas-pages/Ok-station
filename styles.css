@@ -154,6 +154,9 @@ html {
   font-size: 16px;
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
+  /* Refuerza el clip horizontal: <body> no recorta elementos position:fixed
+     (como el menú lateral cerrado), por eso el clip va también aquí. */
+  overflow-x: hidden;
 }
 
 body {
@@ -3351,6 +3354,15 @@ h1, h2, h3, h4, h5, h6 {
   .nav__actions .btn--wa {
     display: none;
   }
+
+  /* Compactar header: logo + botón Cuenta + hamburguesa deben caber en 375px
+     sin que el contenido toque o rebase el borde. */
+  .nav { gap: var(--space-3); }
+  .logo { font-size: 1.25rem; }
+  .nav__actions { gap: var(--space-2); }
+
+  /* Área táctil mínima recomendada (≥44px) en enlaces de texto de las tarjetas. */
+  .service-link { min-height: 44px; }
 
   /* Hero */
   .hero__grid {
