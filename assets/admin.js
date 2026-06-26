@@ -425,13 +425,20 @@
     /* Tarjeta de un documento: preview (img/PDF) + descarga. Usa el índice GLOBAL
        del archivo en a.files para el id del wrap, así loadApptFileInto lo localiza. */
     function fileCardHtml(f, gi) {
-      return '<div style="border:1px solid #eef0f4;border-radius:12px;padding:12px 14px;margin-bottom:12px">' +
-        '<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:10px;flex-wrap:wrap">' +
-          '<div style="min-width:0"><b style="font-size:.9rem;word-break:break-word">' + esc(f.doc_label || f.doc_key || "Documento") + '</b>' +
-            '<div style="color:var(--text-muted,#6b7280);font-size:.8rem;margin-top:2px;word-break:break-word">' + esc(f.original_name || "") + '</div></div>' +
-          '<button type="button" class="btn btn--light btn--sm" data-apptfile-dl="' + gi + '" disabled>Descargar</button>' +
+      var isImg = /^image\//.test(f.mime_type || "");
+      var icon = isImg
+        ? '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="M21 15l-3.1-3.1a2 2 0 00-2.8 0L6 21"/></svg>'
+        : '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/></svg>';
+      return '<div class="doc-item">' +
+        '<div class="doc-item__head">' +
+          '<span class="doc-item__icon">' + icon + '</span>' +
+          '<span class="doc-item__name"><b>' + esc(f.doc_label || f.doc_key || "Documento") + '</b>' +
+            '<span>' + esc(f.original_name || "") + '</span></span>' +
+          '<span class="doc-item__actions">' +
+            '<button type="button" class="btn btn--light btn--sm" data-apptfile-dl="' + gi + '" disabled>Descargar</button>' +
+          '</span>' +
         '</div>' +
-        '<div id="apptfilewrap-' + gi + '"><p style="color:var(--text-muted,#6b7280);font-size:.85rem;text-align:center;padding:18px 0;margin:0">Cargando…</p></div>' +
+        '<div class="doc-item__preview" id="apptfilewrap-' + gi + '"><p>Cargando vista previa…</p></div>' +
       '</div>';
     }
     /* Agrupar documentos por persona (guest_index). Los que no traen persona
@@ -452,27 +459,29 @@
 
     var guestsHtml = "";
     if (guestList.length) {
-      guestsHtml = '<h4 style="margin:16px 0 6px;font-size:.95rem">Personas, requisitos y documentos</h4>' +
+      guestsHtml = '<h4 style="margin:16px 0 8px;font-size:.95rem">Personas, requisitos y documentos</h4>' +
         guestList.map(function (g, i) {
-          var sub = [];
-          if (g.dob) sub.push("Nac. " + esc(g.dob));
-          if (g.doctype) sub.push(esc(DOCTYPE_LABEL[g.doctype] || g.doctype));
+          var meta = [];
+          if (g.dob) meta.push("Nac. " + esc(g.dob));
+          if (g.doctype) meta.push(esc(DOCTYPE_LABEL[g.doctype] || g.doctype));
           var ans = g.answers || {}, ak = Object.keys(ans);
-          var ansHtml = ak.length ? ak.map(function (k) {
-            var lbl = window.OKQ ? window.OKQ.label(k) : k;
-            var v = window.OKQ ? window.OKQ.valueText(ans[k]) : String(ans[k]);
-            return '<div style="font-size:.84rem;color:var(--text-muted,#6b7280);margin:3px 0 0 12px">• ' + esc(lbl) + ': <b style="color:var(--text-primary,#111)">' + esc(v) + '</b></div>';
-          }).join("") : '<div style="font-size:.82rem;color:var(--text-muted,#6b7280);margin-left:12px">Sin respuestas capturadas.</div>';
+          var kvHtml = ak.length
+            ? '<div class="kv">' + ak.map(function (k) {
+                var lbl = window.OKQ ? window.OKQ.label(k) : k;
+                var v = window.OKQ ? window.OKQ.valueText(ans[k]) : String(ans[k]);
+                return '<div class="kv__row"><span class="kv__k">' + esc(lbl) + '</span><span class="kv__v">' + esc(v || "—") + '</span></div>';
+              }).join("") + '</div>'
+            : '<div class="kv__empty">Sin respuestas capturadas.</div>';
           var gFiles = filesByGuest[i] || [];
-          var docsHtml = '<div style="margin-top:10px;padding-top:8px;border-top:1px dashed #e5e7eb">' +
-            '<div style="font-size:.82rem;font-weight:700;color:#0b1f3a;margin-bottom:6px">📎 Documentos subidos (' + gFiles.length + ')</div>' +
+          var docsHtml = '<div class="guest-docs">' +
+            '<div class="guest-docs__title">📎 Documentos subidos (' + gFiles.length + ')</div>' +
             (gFiles.length ? gFiles.map(function (x) { return fileCardHtml(x.f, x.idx); }).join("")
-              : '<div style="font-size:.82rem;color:var(--text-muted,#6b7280);margin-left:12px">No subió documentos (puede traerlos en físico).</div>') +
+              : '<div class="doc-empty">No subió documentos (puede traerlos en físico).</div>') +
             '</div>';
-          return '<div style="border:1px solid #eef0f4;border-radius:12px;padding:12px 14px;margin-bottom:10px">' +
-            '<div style="font-weight:700;font-size:.92rem">' + (i + 1) + '. ' + esc(g.name || "—") +
-              (sub.length ? ' <span style="font-weight:400;color:var(--text-muted,#6b7280)">· ' + sub.join(" · ") + '</span>' : '') + '</div>' +
-            ansHtml + docsHtml + '</div>';
+          return '<div class="guest-card">' +
+            '<div class="guest-card__head">' + (i + 1) + '. ' + esc(g.name || "—") +
+              (meta.length ? '<span class="guest-card__meta">· ' + meta.join(" · ") + '</span>' : '') + '</div>' +
+            kvHtml + docsHtml + '</div>';
         }).join("");
     }
 
@@ -534,7 +543,7 @@
         '<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:14px 20px;border-top:1px solid #eef0f4;flex-wrap:wrap">' +
           (waD ? '<a class="btn btn--sm" style="background:#25D366;color:#fff;border-color:#25D366" href="https://wa.me/' + waD + '" target="_blank" rel="noopener">Escribir por WhatsApp</a>' : '<span></span>') +
           '<span style="display:flex;gap:8px">' +
-            (window.OKCitaTicketDownload ? '<button type="button" class="btn btn--light btn--sm" id="appt-modal-pdf">Descargar PDF</button>' : '') +
+            (window.OKCitaTicketDownload ? '<button type="button" class="btn btn--light btn--sm" id="appt-modal-pdf">Descargar expediente (PDF)</button>' : '') +
             '<button type="button" class="btn btn--primary btn--sm" id="appt-modal-close">Cerrar</button>' +
           '</span>' +
         '</div>' +
@@ -557,7 +566,7 @@
     var wrap = modal.querySelector("#apptfilewrap-" + idx);
     var dl = modal.querySelector('[data-apptfile-dl="' + idx + '"]');
     if (!wrap) return;
-    if (!fileId) { wrap.innerHTML = '<p style="color:var(--text-muted,#6b7280);font-size:.85rem;text-align:center;padding:18px 0;margin:0">Archivo no disponible.</p>'; return; }
+    if (!fileId) { wrap.innerHTML = '<p>Archivo no disponible.</p>'; return; }
     fetch(API_BASE + "/appointments/file.php?id=" + encodeURIComponent(fileId), { headers: { Authorization: "Bearer " + token() } })
       .then(function (r) { if (!r.ok) throw new Error(String(r.status)); return r.blob(); })
       .then(function (blob) {
@@ -565,12 +574,12 @@
         (modal._fileUrls = modal._fileUrls || []).push(url);
         var isImg = /^image\//.test(mime || "");
         wrap.innerHTML = isImg
-          ? '<img src="' + url + '" alt="' + esc(name || "Documento") + '" style="max-width:100%;border:1px solid #eef0f4;border-radius:10px;background:#fff">'
-          : '<iframe src="' + url + '" style="width:100%;height:360px;border:1px solid #eef0f4;border-radius:10px;background:#fff" title="' + esc(name || "Documento") + '"></iframe>';
+          ? '<img src="' + url + '" alt="' + esc(name || "Documento") + '">'
+          : '<iframe src="' + url + '" title="' + esc(name || "Documento") + '"></iframe>';
         if (dl) { dl.disabled = false; dl.onclick = function () { var x = document.createElement("a"); x.href = url; x.download = name || ("documento-" + idx); document.body.appendChild(x); x.click(); x.remove(); }; }
       })
       .catch(function () {
-        wrap.innerHTML = '<p style="color:#b91c1c;font-size:.85rem;text-align:center;padding:18px 0;margin:0">No se pudo cargar el archivo.</p>';
+        wrap.innerHTML = '<p style="color:#b91c1c">No se pudo cargar el archivo.</p>';
       });
   }
 
