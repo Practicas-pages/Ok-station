@@ -50,8 +50,11 @@ $mime = Storage::detectMime($f['tmp_name']);   // por contenido, nunca el tipo d
 if ($mime === '') fail('No se pudo verificar el tipo del archivo. Intenta de nuevo.', 422);
 if (!isset($allowed[$mime])) fail('Tipo no permitido. Sube PDF, JPG o PNG.');
 
-/* DIAGNÓSTICO TEMPORAL: envolvemos el guardado en try/catch para capturar la
-   excepción real. En APP_ENV=development devolvemos mensaje + archivo + línea. */
+/* Guardado del documento. user_id puede ser NULL en citas de INVITADO (sin
+   sesión): la columna uploaded_files.user_id es NULLABLE desde la migración 0019.
+   Robustez: si el registro en BD falla tras mover el archivo, no dejamos el
+   archivo huérfano y devolvemos un error limpio. */
+$path = null;
 try {
     // Fuerza la extensión según el MIME detectado (anti subida de .php / RCE).
     $path = Storage::moveUploaded('appointments', $f, $allowed[$mime]);
@@ -77,16 +80,9 @@ try {
     db()->prepare('INSERT INTO appointment_files (' . implode(',', $cols) . ') VALUES (' . $ph . ')')
         ->execute($vals);
 } catch (Throwable $e) {
-    error_log('[OKS-UPLOAD] EXCEPTION: ' . $e->getMessage() . ' @ ' . $e->getFile() . ':' . $e->getLine());
-    global $CONFIG;
-    $isDev = (($CONFIG['app_env'] ?? '') === 'development') || !empty($CONFIG['dev_mode']);
-    $extra = $isDev ? [
-        'debug_message' => $e->getMessage(),
-        'debug_file'    => $e->getFile(),
-        'debug_line'    => $e->getLine(),
-        'debug_class'   => get_class($e),
-    ] : [];
-    fail('No se pudo guardar el documento en el servidor.', 500, $extra);
+    if ($path && is_file($path)) @unlink($path);   // no dejar archivo huérfano
+    error_log('[appointments/upload] ' . $e->getMessage() . ' @ ' . $e->getFile() . ':' . $e->getLine());
+    fail('No se pudo guardar el documento. Inténtalo de nuevo.', 500);
 }
 
 respond(['ok' => true, 'file' => [

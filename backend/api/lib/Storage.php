@@ -61,35 +61,9 @@ final class Storage
     /** Mueve un archivo subido ($_FILES[...]). $forceExt fuerza una extensión segura. */
     public static function moveUploaded(string $sub, array $file, ?string $forceExt = null): string
     {
-        $dir  = self::dir($sub);
-        $path = $dir . '/' . self::safeName($file['name'], $forceExt);
-        $tmp  = (string) ($file['tmp_name'] ?? '');
-
-        /* ── DIAGNÓSTICO TEMPORAL (quitar cuando se resuelva el HTTP 500) ──
-           Escribe en el error_log de PHP-FPM toda la información del intento. */
-        error_log('[OKS-UPLOAD] sub=' . $sub . ' dir=' . $dir . ' dir_writable=' . (is_writable($dir) ? '1' : '0'));
-        error_log('[OKS-UPLOAD] _FILES=' . json_encode($file));
-        error_log('[OKS-UPLOAD] dest=' . $path);
-        error_log('[OKS-UPLOAD] is_uploaded_file=' . (is_uploaded_file($tmp) ? '1' : '0') . ' tmp=' . $tmp);
-
-        $ok = move_uploaded_file($tmp, $path);
-        error_log('[OKS-UPLOAD] move_uploaded_file=' . ($ok ? '1' : '0'));
-
-        if (!$ok) {
-            $tmpDir = ini_get('upload_tmp_dir') ?: sys_get_temp_dir();
-            error_log('[OKS-UPLOAD] error_get_last=' . json_encode(error_get_last()));
-            error_log('[OKS-UPLOAD] file_error=' . ($file['error'] ?? 'n/a')
-                . ' upload_max_filesize=' . ini_get('upload_max_filesize')
-                . ' post_max_size=' . ini_get('post_max_size')
-                . ' upload_tmp_dir=' . (ini_get('upload_tmp_dir') ?: '(vacío)')
-                . ' sys_get_temp_dir=' . sys_get_temp_dir()
-                . ' tmp_dir_writable=' . (is_writable($tmpDir) ? '1' : '0'));
-            throw new RuntimeException(
-                'move_uploaded_file=false; dest=' . $path . '; tmp=' . $tmp .
-                '; is_uploaded_file=' . (is_uploaded_file($tmp) ? '1' : '0') .
-                '; file_error=' . ($file['error'] ?? 'n/a') .
-                '; tmp_dir=' . $tmpDir . '; tmp_dir_writable=' . (is_writable($tmpDir) ? '1' : '0')
-            );
+        $path = self::dir($sub) . '/' . self::safeName($file['name'], $forceExt);
+        if (!move_uploaded_file($file['tmp_name'], $path)) {
+            throw new RuntimeException('No se pudo guardar el archivo.');
         }
         return $path;
     }
