@@ -7,6 +7,7 @@
  * Campos: appointment_id, doc_key, doc_label, file
  */
 require __DIR__ . '/../_bootstrap.php';
+require __DIR__ . '/../lib/Model.php';    // define Appointment y UploadedFile (sin esto: HTTP 500)
 require __DIR__ . '/../lib/Storage.php';
 only_method('POST');
 
