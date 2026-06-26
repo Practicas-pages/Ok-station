@@ -6,49 +6,12 @@
  */
 final class Storage
 {
-    /**
-     * Carpeta base de almacenamiento. Resiliente al hosting: intenta primero la
-     * ruta de STORAGE_PATH (.env); si no existe o no se puede escribir, usa como
-     * respaldo `backend/storage` (que viaja con el despliegue y casi siempre es
-     * escribible por el usuario del sitio). Así las subidas no se rompen aunque
-     * STORAGE_PATH apunte a una ruta inválida en este servidor.
-     */
     public static function base(): string
     {
         global $CONFIG;
-        static $resolved = null;
-        if ($resolved !== null) return $resolved;
-
-        $candidates = [];
-        $configured = trim((string) ($CONFIG['storage_path'] ?? ''));
-        if ($configured !== '') $candidates[] = rtrim($configured, '/');
-        /* Respaldo siempre disponible: <proyecto>/backend/storage */
-        $candidates[] = rtrim(dirname(__DIR__, 2), '/') . '/storage';
-
-        foreach ($candidates as $p) {
-            if (!is_dir($p)) @mkdir($p, 0775, true);
-            if (is_dir($p) && is_writable($p)) {
-                self::protect($p);
-                return $resolved = $p;
-            }
-        }
-        /* Ninguna escribible: devolvemos la 1ª (el endpoint mostrará un error claro). */
-        return $resolved = ($candidates[0] ?? (rtrim(dirname(__DIR__, 2), '/') . '/storage'));
-    }
-
-    /** Bloquea el acceso web directo a la carpeta (defensa en profundidad, Apache). */
-    private static function protect(string $dir): void
-    {
-        $ht = $dir . '/.htaccess';
-        if (!file_exists($ht)) {
-            @file_put_contents(
-                $ht,
-                "<IfModule mod_authz_core.c>\n  Require all denied\n</IfModule>\n" .
-                "<IfModule !mod_authz_core.c>\n  Order allow,deny\n  Deny from all\n</IfModule>\n"
-            );
-        }
-        $idx = $dir . '/index.html';
-        if (!file_exists($idx)) @file_put_contents($idx, '');
+        $p = $CONFIG['storage_path'] ?? (__DIR__ . '/../../storage');
+        if (!is_dir($p)) @mkdir($p, 0775, true);
+        return rtrim($p, '/');
     }
 
     public static function dir(string $sub): string
@@ -98,9 +61,35 @@ final class Storage
     /** Mueve un archivo subido ($_FILES[...]). $forceExt fuerza una extensión segura. */
     public static function moveUploaded(string $sub, array $file, ?string $forceExt = null): string
     {
-        $path = self::dir($sub) . '/' . self::safeName($file['name'], $forceExt);
-        if (!move_uploaded_file($file['tmp_name'], $path)) {
-            throw new RuntimeException('No se pudo guardar el archivo.');
+        $dir  = self::dir($sub);
+        $path = $dir . '/' . self::safeName($file['name'], $forceExt);
+        $tmp  = (string) ($file['tmp_name'] ?? '');
+
+        /* ── DIAGNÓSTICO TEMPORAL (quitar cuando se resuelva el HTTP 500) ──
+           Escribe en el error_log de PHP-FPM toda la información del intento. */
+        error_log('[OKS-UPLOAD] sub=' . $sub . ' dir=' . $dir . ' dir_writable=' . (is_writable($dir) ? '1' : '0'));
+        error_log('[OKS-UPLOAD] _FILES=' . json_encode($file));
+        error_log('[OKS-UPLOAD] dest=' . $path);
+        error_log('[OKS-UPLOAD] is_uploaded_file=' . (is_uploaded_file($tmp) ? '1' : '0') . ' tmp=' . $tmp);
+
+        $ok = move_uploaded_file($tmp, $path);
+        error_log('[OKS-UPLOAD] move_uploaded_file=' . ($ok ? '1' : '0'));
+
+        if (!$ok) {
+            $tmpDir = ini_get('upload_tmp_dir') ?: sys_get_temp_dir();
+            error_log('[OKS-UPLOAD] error_get_last=' . json_encode(error_get_last()));
+            error_log('[OKS-UPLOAD] file_error=' . ($file['error'] ?? 'n/a')
+                . ' upload_max_filesize=' . ini_get('upload_max_filesize')
+                . ' post_max_size=' . ini_get('post_max_size')
+                . ' upload_tmp_dir=' . (ini_get('upload_tmp_dir') ?: '(vacío)')
+                . ' sys_get_temp_dir=' . sys_get_temp_dir()
+                . ' tmp_dir_writable=' . (is_writable($tmpDir) ? '1' : '0'));
+            throw new RuntimeException(
+                'move_uploaded_file=false; dest=' . $path . '; tmp=' . $tmp .
+                '; is_uploaded_file=' . (is_uploaded_file($tmp) ? '1' : '0') .
+                '; file_error=' . ($file['error'] ?? 'n/a') .
+                '; tmp_dir=' . $tmpDir . '; tmp_dir_writable=' . (is_writable($tmpDir) ? '1' : '0')
+            );
         }
         return $path;
     }

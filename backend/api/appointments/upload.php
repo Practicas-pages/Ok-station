@@ -50,12 +50,8 @@ $mime = Storage::detectMime($f['tmp_name']);   // por contenido, nunca el tipo d
 if ($mime === '') fail('No se pudo verificar el tipo del archivo. Intenta de nuevo.', 422);
 if (!isset($allowed[$mime])) fail('Tipo no permitido. Sube PDF, JPG o PNG.');
 
-/* Comprobación clara del almacenamiento ANTES de mover (evita un 500 críptico).
-   Si STORAGE_PATH no existe o no se puede escribir, devolvemos un error legible. */
-if (!is_writable(Storage::dir('appointments'))) {
-    fail('No se pudieron guardar los documentos: el almacenamiento del servidor no tiene permiso de escritura. Revisa STORAGE_PATH en backend/.env (debe existir y ser escribible por el usuario del sitio).', 503);
-}
-
+/* DIAGNÓSTICO TEMPORAL: envolvemos el guardado en try/catch para capturar la
+   excepción real. En APP_ENV=development devolvemos mensaje + archivo + línea. */
 try {
     // Fuerza la extensión según el MIME detectado (anti subida de .php / RCE).
     $path = Storage::moveUploaded('appointments', $f, $allowed[$mime]);
@@ -81,9 +77,16 @@ try {
     db()->prepare('INSERT INTO appointment_files (' . implode(',', $cols) . ') VALUES (' . $ph . ')')
         ->execute($vals);
 } catch (Throwable $e) {
+    error_log('[OKS-UPLOAD] EXCEPTION: ' . $e->getMessage() . ' @ ' . $e->getFile() . ':' . $e->getLine());
     global $CONFIG;
-    $detail = !empty($CONFIG['dev_mode']) ? (' [' . $e->getMessage() . ']') : '';
-    fail('No se pudo guardar el documento en el servidor (almacenamiento/base de datos).' . $detail, 500);
+    $isDev = (($CONFIG['app_env'] ?? '') === 'development') || !empty($CONFIG['dev_mode']);
+    $extra = $isDev ? [
+        'debug_message' => $e->getMessage(),
+        'debug_file'    => $e->getFile(),
+        'debug_line'    => $e->getLine(),
+        'debug_class'   => get_class($e),
+    ] : [];
+    fail('No se pudo guardar el documento en el servidor.', 500, $extra);
 }
 
 respond(['ok' => true, 'file' => [
