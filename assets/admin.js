@@ -97,8 +97,11 @@
   function clientWaBtn(o) {
     var d = waDigits(o && o.contact_phone);
     if (!d) return "";
+    /* Mensaje listo para el trabajador, con el folio del pedido. */
+    var msg = "Hola, le escribimos de OK.station sobre su pedido " + ((o && o.code) || "") + ".";
+    var href = "https://wa.me/" + d + "?text=" + encodeURIComponent(msg);
     return ' <a class="admin-btn-sm" style="background:#25D366;color:#fff;border-color:#25D366" ' +
-      'href="https://wa.me/' + d + '" target="_blank" rel="noopener" title="Escribir al cliente por WhatsApp">WhatsApp</a>';
+      'href="' + href + '" target="_blank" rel="noopener" title="Escribir al cliente por WhatsApp">WhatsApp</a>';
   }
 
   /* ============================================================
@@ -403,11 +406,39 @@
       : "";
     var prefLbl = { whatsapp: "WhatsApp", llamada: "Llamada", correo: "Correo" };
 
+    var files = (a.files && a.files.length) ? a.files : [];
+    /* Tarjeta de un documento: preview (img/PDF) + descarga. Usa el índice GLOBAL
+       del archivo en a.files para el id del wrap, así loadApptFileInto lo localiza. */
+    function fileCardHtml(f, gi) {
+      return '<div style="border:1px solid #eef0f4;border-radius:12px;padding:12px 14px;margin-bottom:12px">' +
+        '<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:10px;flex-wrap:wrap">' +
+          '<div style="min-width:0"><b style="font-size:.9rem;word-break:break-word">' + esc(f.doc_label || f.doc_key || "Documento") + '</b>' +
+            '<div style="color:var(--text-muted,#6b7280);font-size:.8rem;margin-top:2px;word-break:break-word">' + esc(f.original_name || "") + '</div></div>' +
+          '<button type="button" class="btn btn--light btn--sm" data-apptfile-dl="' + gi + '" disabled>Descargar</button>' +
+        '</div>' +
+        '<div id="apptfilewrap-' + gi + '"><p style="color:var(--text-muted,#6b7280);font-size:.85rem;text-align:center;padding:18px 0;margin:0">Cargando…</p></div>' +
+      '</div>';
+    }
+    /* Agrupar documentos por persona (guest_index). Los que no traen persona
+       (citas anteriores a la mejora) van a "Documentos generales de la cita". */
+    var filesByGuest = {}, generalFiles = [];
+    files.forEach(function (f, idx) {
+      var gi = (f.guest_index === 0 || f.guest_index) ? parseInt(f.guest_index, 10) : NaN;
+      if (isNaN(gi)) generalFiles.push({ f: f, idx: idx });
+      else (filesByGuest[gi] = filesByGuest[gi] || []).push({ f: f, idx: idx });
+    });
+
     var guests = parseGuests(a.guests_json);
+    /* Si llegan documentos por persona pero la cita no trae guests_json, se crean
+       tarjetas mínimas para que ningún documento quede oculto. */
+    var guestList = guests.slice();
+    var maxGi = -1; Object.keys(filesByGuest).forEach(function (k) { maxGi = Math.max(maxGi, parseInt(k, 10)); });
+    while (guestList.length <= maxGi) guestList.push({});
+
     var guestsHtml = "";
-    if (guests.length) {
-      guestsHtml = '<h4 style="margin:16px 0 6px;font-size:.95rem">Personas y requisitos</h4>' +
-        guests.map(function (g, i) {
+    if (guestList.length) {
+      guestsHtml = '<h4 style="margin:16px 0 6px;font-size:.95rem">Personas, requisitos y documentos</h4>' +
+        guestList.map(function (g, i) {
           var sub = [];
           if (g.dob) sub.push("Nac. " + esc(g.dob));
           if (g.doctype) sub.push(esc(DOCTYPE_LABEL[g.doctype] || g.doctype));
@@ -417,10 +448,16 @@
             var v = window.OKQ ? window.OKQ.valueText(ans[k]) : String(ans[k]);
             return '<div style="font-size:.84rem;color:var(--text-muted,#6b7280);margin:3px 0 0 12px">• ' + esc(lbl) + ': <b style="color:var(--text-primary,#111)">' + esc(v) + '</b></div>';
           }).join("") : '<div style="font-size:.82rem;color:var(--text-muted,#6b7280);margin-left:12px">Sin respuestas capturadas.</div>';
+          var gFiles = filesByGuest[i] || [];
+          var docsHtml = '<div style="margin-top:10px;padding-top:8px;border-top:1px dashed #e5e7eb">' +
+            '<div style="font-size:.82rem;font-weight:700;color:#0b1f3a;margin-bottom:6px">📎 Documentos subidos (' + gFiles.length + ')</div>' +
+            (gFiles.length ? gFiles.map(function (x) { return fileCardHtml(x.f, x.idx); }).join("")
+              : '<div style="font-size:.82rem;color:var(--text-muted,#6b7280);margin-left:12px">No subió documentos (puede traerlos en físico).</div>') +
+            '</div>';
           return '<div style="border:1px solid #eef0f4;border-radius:12px;padding:12px 14px;margin-bottom:10px">' +
             '<div style="font-weight:700;font-size:.92rem">' + (i + 1) + '. ' + esc(g.name || "—") +
               (sub.length ? ' <span style="font-weight:400;color:var(--text-muted,#6b7280)">· ' + sub.join(" · ") + '</span>' : '') + '</div>' +
-            ansHtml + '</div>';
+            ansHtml + docsHtml + '</div>';
         }).join("");
     }
 
@@ -434,22 +471,15 @@
           }).join("") + '</div>'
       : "";
 
-    /* Documentos que el cliente subió (preview + descarga). */
-    var files = (a.files && a.files.length) ? a.files : [];
-    var filesHtml = '<h4 style="margin:16px 0 6px;font-size:.95rem">Documentos del cliente</h4>';
-    if (!files.length) {
-      filesHtml += '<p style="margin:0 0 16px;font-size:.88rem;color:var(--text-muted,#6b7280)">El cliente no adjuntó documentos.</p>';
-    } else {
-      filesHtml += files.map(function (f, idx) {
-        return '<div style="border:1px solid #eef0f4;border-radius:12px;padding:12px 14px;margin-bottom:12px">' +
-          '<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:10px;flex-wrap:wrap">' +
-            '<div style="min-width:0"><b style="font-size:.9rem;word-break:break-word">' + esc(f.doc_label || f.doc_key || "Documento") + '</b>' +
-              '<div style="color:var(--text-muted,#6b7280);font-size:.8rem;margin-top:2px;word-break:break-word">' + esc(f.original_name || "") + '</div></div>' +
-            '<button type="button" class="btn btn--light btn--sm" data-apptfile-dl="' + idx + '" disabled>Descargar</button>' +
-          '</div>' +
-          '<div id="apptfilewrap-' + idx + '"><p style="color:var(--text-muted,#6b7280);font-size:.85rem;text-align:center;padding:18px 0;margin:0">Cargando…</p></div>' +
-        '</div>';
-      }).join("");
+    /* Documentos sin persona asignada (citas anteriores a la mejora por-persona);
+       si no hay personas ni archivos, se muestra el aviso de "sin documentos". */
+    var generalFilesHtml = "";
+    if (generalFiles.length) {
+      generalFilesHtml = '<h4 style="margin:16px 0 6px;font-size:.95rem">Documentos generales de la cita</h4>' +
+        generalFiles.map(function (x) { return fileCardHtml(x.f, x.idx); }).join("");
+    } else if (!guestList.length && !files.length) {
+      generalFilesHtml = '<h4 style="margin:16px 0 6px;font-size:.95rem">Documentos del cliente</h4>' +
+        '<p style="margin:0 0 16px;font-size:.88rem;color:var(--text-muted,#6b7280)">El cliente no adjuntó documentos.</p>';
     }
 
     var ov = document.createElement("div");
@@ -482,8 +512,8 @@
           '</div>' +
           (a.notes ? '<h4 style="margin:0 0 6px;font-size:.95rem">Notas del cliente</h4><p style="margin:0 0 16px;font-size:.9rem;white-space:pre-wrap;background:#f8fafc;border-radius:8px;padding:10px 12px">' + esc(a.notes) + '</p>' : "") +
           (a.staff_notes ? '<h4 style="margin:0 0 6px;font-size:.95rem">Notas internas</h4><p style="margin:0 0 16px;font-size:.9rem;white-space:pre-wrap;background:#fff7ed;border:1px solid #fed7aa;border-radius:8px;padding:10px 12px">' + esc(a.staff_notes) + '</p>' : "") +
-          filesHtml +
           guestsHtml +
+          generalFilesHtml +
         '</div>' +
         '<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:14px 20px;border-top:1px solid #eef0f4;flex-wrap:wrap">' +
           (waD ? '<a class="btn btn--sm" style="background:#25D366;color:#fff;border-color:#25D366" href="https://wa.me/' + waD + '" target="_blank" rel="noopener">Escribir por WhatsApp</a>' : '<span></span>') +

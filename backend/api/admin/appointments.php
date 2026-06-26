@@ -39,9 +39,13 @@ $appointments = $st->fetchAll();
 $ids = array_column($appointments, 'id');
 if ($ids) {
     try {
+        /* guest_index/guest_name (migración 0014) pueden no existir aún (resiliente). */
+        $guestFileCols = table_has_column('appointment_files', 'guest_index')
+            ? 'af.guest_index, af.guest_name,' : '';
         $in = implode(',', array_fill(0, count($ids), '?'));
         $fq = db()->prepare(
             "SELECT af.appointment_id, af.uploaded_file_id AS id, af.doc_key, af.doc_label,
+                    $guestFileCols
                     uf.original_name, uf.mime_type, uf.size_bytes
                FROM appointment_files af
                JOIN uploaded_files uf ON uf.id = af.uploaded_file_id
