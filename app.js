@@ -597,6 +597,7 @@
 
     /* ¿La fecha es un día atendido (según horario semanal y días bloqueados)? */
     function dayIsOpen(date) {
+      if (date.getDay() === 6) return false;                        /* sábados: sin citas (solo pedidos) */
       var hrs = availCfg.weekly[String(date.getDay())];
       if (!hrs || !hrs.length) return false;                        /* día sin horario */
       if (availCfg.blackout.indexOf(isoOf(date)) >= 0) return false; /* día bloqueado */
@@ -620,6 +621,7 @@
     }
     /* Nº de horas que abre una fecha según el horario semanal (0 si cerrada). */
     function openHoursCount(date) {
+      if (date.getDay() === 6) return 0;   /* sábados: sin citas */
       var hrs = availCfg.weekly[String(date.getDay())];
       return (hrs && hrs.length) ? hrs.length : 0;
     }

@@ -99,7 +99,11 @@ final class Availability
         $max   = strtotime('+' . $cfg['advance'] . ' days', $today);
         if ($ts < $today || $ts > $max) return [];                 // pasada o fuera de ventana
         if (in_array($date, $cfg['blackout'], true)) return [];    // día bloqueado
-        $dow   = (string) ((int) date('w', $ts));                  // 0=Dom..6=Sáb
+        $dowN  = (int) date('w', $ts);                             // 0=Dom..6=Sáb
+        // Sábados: NO se atienden citas (solo pedidos). Regla fija para todos los
+        // calendarios; el navegador no puede saltársela porque esta es la autoridad.
+        if ($dowN === 6) return [];
+        $dow   = (string) $dowN;
         $hours = $cfg['weekly'][$dow] ?? [];
         if (!is_array($hours)) return [];
         return array_values(array_unique(array_map([self::class, 'normTime'], $hours)));
