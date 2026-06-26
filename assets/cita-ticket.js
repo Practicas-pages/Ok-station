@@ -112,18 +112,31 @@
   var WA_URL = "https://wa.me/526647194117?text=" + encodeURIComponent("Hola OK.station, tengo una cita agendada y quiero confirmar / hacer mi anticipo.");
   var MAPS_URL = "https://www.google.com/maps/place/Ok.station/@32.5292376,-116.9514835,17z/data=!4m6!3m5!1s0x80d9475a2b534615:0x80c51bb5b3fe8f55!8m2!3d32.5292376!4d-116.9514835!16s%2Fg%2F11k63fhrhb";
 
-  /* ── Precios OFICIALES de trámite/cita (MXN, por persona). Los no listados se cotizan. ── */
+  /* ── Precios de trámite/cita (MXN, por persona, IVA incluido). Los no listados se cotizan. ──
+     Estos valores por defecto coinciden con la semilla del servidor (settings appt.prices);
+     al cargar la página se sincronizan con el panel vía /appointments/prices.php (abajo). */
   var CITA_PRICES = { pasaporte: 200, visa: 800, sentri: 900, ine: 80, curp: 35 };
   var CITA_TAX = 0.08;   /* IVA 8% (los precios ya lo incluyen, como el ticket de mostrador) */
   function mxn0(n) { return new Intl.NumberFormat("es-MX", { style: "currency", currency: "MXN", maximumFractionDigits: 0 }).format(n); }
   function mxn2(n) { return new Intl.NumberFormat("es-MX", { style: "currency", currency: "MXN", minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n); }
+  /* Resuelve el precio unitario: usa el catálogo del servidor (OK_APPT_PRICES, claves
+     'pasaporte_mexicano'…) si ya se cargó; si no, los valores por defecto de arriba. */
+  function apptUnit(tramite, subtype) {
+    var srv = window.OK_APPT_PRICES;
+    if (srv && typeof srv === "object") {
+      var key = (tramite === "pasaporte") ? ("pasaporte_" + (subtype === "americano" ? "americano" : "mexicano")) : tramite;
+      return srv[key];
+    }
+    var unit = CITA_PRICES[tramite];
+    if (tramite === "pasaporte" && subtype === "americano") unit = undefined; // pasaporte americano → cotizar
+    return unit;
+  }
   /* Devuelve {quote, unit, total, party}. quote=true → "se cotiza" (precio a confirmar). */
   window.OKCitaPrice = function (tramite, subtype, party) {
     party = Math.max(1, parseInt(party, 10) || 1);
-    var unit = CITA_PRICES[tramite];
-    if (tramite === "pasaporte" && subtype === "americano") unit = undefined; // pasaporte americano → cotizar
-    if (unit == null) return { quote: true, party: party };
-    return { quote: false, unit: unit, party: party, total: unit * party };
+    var unit = apptUnit(tramite, subtype);
+    if (unit == null || +unit <= 0) return { quote: true, party: party };
+    return { quote: false, unit: +unit, party: party, total: +unit * party };
   };
   /* Texto listo para mostrar al cliente. */
   window.OKCitaPriceText = function (tramite, subtype, party) {
@@ -148,6 +161,17 @@
     return rows;
   };
   window.OKMxn0 = mxn0;
+  /* Sincroniza precios/IVA con el panel (público). Si falla, se quedan los defaults.
+     No bloquea el render: el resumen del wizard se construye al llegar al último paso. */
+  try {
+    fetch("/backend/api/appointments/prices.php")
+      .then(function (r) { return r.json(); })
+      .then(function (j) {
+        if (j && j.ok && j.prices) window.OK_APPT_PRICES = j.prices;
+        if (j && j.tax_rate) CITA_TAX = +j.tax_rate;
+      })
+      .catch(function () {});
+  } catch (e) {}
   var DIAS = ["domingo", "lunes", "martes", "miércoles", "jueves", "viernes", "sábado"];
   var MESES = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
   function fmtDate(iso) {

@@ -17,9 +17,9 @@
 
   <header class="auth-top">
     <a href="index.html" class="logo"><img src="assets/img/okstation-logo.webp" alt="OK.station" class="logo__img" width="158" height="24"></a>
-    <a href="perfil.html#pedidos" class="auth-back">
+    <a href="perfil.html#pedidos" class="auth-back" id="pago-back">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
-      Volver a mis pedidos
+      <span id="pago-back-label">Volver a mis pedidos</span>
     </a>
   </header>
 
@@ -27,13 +27,13 @@
     <div class="auth-card">
       <div class="auth-head">
         <h1>Pago seguro</h1>
-        <p>Revisa el resumen y confirma el pago de tu pedido.</p>
+        <p id="pago-intro">Revisa el resumen y confirma el pago.</p>
       </div>
 
       <div class="auth-alert" id="pago-alert" role="alert" hidden></div>
 
       <div id="pago-summary" style="display:flex;flex-direction:column;gap:8px;margin-bottom:18px">
-        <p style="color:var(--text-muted)">Cargando pedido…</p>
+        <p style="color:var(--text-muted)">Cargando…</p>
       </div>
 
       <div id="pago-actions" hidden>
@@ -56,30 +56,45 @@
 
     if (!token()) { location.href = "cuenta.html"; return; }
 
-    var orderId = qs("order"), ref = qs("ref");
+    /* La página cobra un PEDIDO (?order=) o el ANTICIPO de una CITA (?appt=). */
+    var orderId = qs("order"), apptId = qs("appt"), ref = qs("ref");
+    var isAppt  = !!apptId;
+    var entityId = isAppt ? apptId : orderId;
+    var statusQS = isAppt ? "appointment_id=" + encodeURIComponent(apptId) : "order_id=" + encodeURIComponent(orderId);
+    var backHref = isAppt ? "perfil.html#citas" : "perfil.html#pedidos";
+    var noun     = isAppt ? "cita" : "pedido";
+    var payWord  = isAppt ? "anticipo" : "pago";
+
     var summary = document.getElementById("pago-summary");
     var actions = document.getElementById("pago-actions");
     var note = document.getElementById("pago-note");
 
-    if (!orderId) { summary.innerHTML = ""; alertBox("Falta el identificador del pedido."); return; }
+    /* Encabezado y enlaces según la entidad. */
+    document.getElementById("pago-intro").textContent = "Revisa el resumen y confirma el " + payWord + " de tu " + noun + ".";
+    var backEl = document.getElementById("pago-back");
+    if (backEl) backEl.setAttribute("href", backHref);
+    var backLabel = document.getElementById("pago-back-label");
+    if (backLabel) backLabel.textContent = isAppt ? "Volver a mis citas" : "Volver a mis pedidos";
 
-    fetch(API + "/payments/status.php?order_id=" + encodeURIComponent(orderId), { headers: { Authorization: "Bearer " + token() } })
+    if (!entityId) { summary.innerHTML = ""; alertBox("Falta el identificador del " + noun + "."); return; }
+
+    fetch(API + "/payments/status.php?" + statusQS, { headers: { Authorization: "Bearer " + token() } })
       .then(function (r) { return r.json(); })
       .then(function (res) {
-        if (!res || !res.ok) { summary.innerHTML = ""; alertBox((res && res.error) || "No se pudo cargar el pedido."); return; }
+        if (!res || !res.ok) { summary.innerHTML = ""; alertBox((res && res.error) || "No se pudo cargar el " + noun + "."); return; }
         if (res.payment_status === "pagado") {
-          summary.innerHTML = '<div class="order-pay order-pay--paid"><div class="order-pay__head"><span class="order-pay__title">Este pedido ya está pagado</span><span class="opay opay--pagado">Pagado</span></div></div>';
-          note.innerHTML = '<a href="perfil.html#pedidos">Volver a mis pedidos</a>';
+          summary.innerHTML = '<div class="order-pay order-pay--paid"><div class="order-pay__head"><span class="order-pay__title">Este ' + esc(noun) + ' ya está pagado</span><span class="opay opay--pagado">Pagado</span></div></div>';
+          note.innerHTML = '<a href="' + esc(backHref) + '">' + (isAppt ? "Volver a mis citas" : "Volver a mis pedidos") + '</a>';
           actions.hidden = false;
           document.getElementById("pago-pay").hidden = true;
           document.getElementById("pago-cancel").textContent = "Volver";
           return;
         }
         summary.innerHTML =
-          '<div class="order-pay"><div class="order-pay__head"><span class="order-pay__title">Resumen del pedido</span><span class="opay opay--' + esc(res.payment_status) + '">' + esc(res.payment_status) + '</span></div>' +
+          '<div class="order-pay"><div class="order-pay__head"><span class="order-pay__title">Resumen de tu ' + esc(noun) + '</span><span class="opay opay--' + esc(res.payment_status) + '">' + esc(res.payment_status) + '</span></div>' +
           '<div class="order-pay__body">' +
             (ref ? '<div class="order-pay__row order-pay__muted"><span>Referencia</span><span class="mono">' + esc(ref) + '</span></div>' : '') +
-            '<div class="order-pay__row"><span>Total a pagar</span><b>' + mxn(res.total) + '</b></div>' +
+            '<div class="order-pay__row"><span>' + (isAppt ? "Anticipo a pagar" : "Total a pagar") + '</span><b>' + mxn(res.total) + '</b></div>' +
           '</div></div>';
         actions.hidden = false;
         note.textContent = "Entorno de demostración (sandbox): no se realiza ningún cargo real.";
@@ -94,14 +109,14 @@
         headers: { "Content-Type": "application/json", Authorization: "Bearer " + token() },
         body: JSON.stringify({ reference: ref, result: result })
       }).then(function (r) { return r.json(); }).then(function (res) {
-        if (res && res.ok) { location.href = "perfil.html#pedidos"; return; }
+        if (res && res.ok) { location.href = backHref; return; }
         btn.disabled = false; btn.textContent = orig;
         alertBox((res && res.error) || "No se pudo confirmar el pago.");
       }).catch(function () { btn.disabled = false; btn.textContent = orig; alertBox("Sin conexión con el servidor."); });
     }
 
     document.getElementById("pago-pay").addEventListener("click", function () { confirm("pagado", this); });
-    document.getElementById("pago-cancel").addEventListener("click", function () { location.href = "perfil.html#pedidos"; });
+    document.getElementById("pago-cancel").addEventListener("click", function () { location.href = backHref; });
   })();
   </script>
 </body>

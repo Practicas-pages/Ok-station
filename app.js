@@ -1177,6 +1177,54 @@
       });
     }
 
+    /* Inicia el pago del anticipo de una cita (requiere sesión; el servidor verifica
+       propiedad y recalcula el monto). Redirige al checkout (pago.html / pasarela). */
+    function startApptPayment(apptId, btn) {
+      var tk = authToken();
+      if (!tk) { showToast("Inicia sesión para pagar tu anticipo en línea."); return; }
+      var orig = btn ? btn.textContent : "";
+      if (btn) { btn.disabled = true; btn.textContent = "Conectando…"; }
+      fetch(API + "/payments/create.php", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: "Bearer " + tk },
+        body: JSON.stringify({ appointment_id: apptId })
+      })
+        .then(function (r) { return r.json().then(function (j) { return { status: r.status, body: j || {} }; }); })
+        .then(function (res) {
+          if (res.body && res.body.ok && res.body.checkout_url) { location.href = res.body.checkout_url; return; }
+          showToast((res.body && res.body.error) || "No se pudo iniciar el pago.");
+          if (btn) { btn.disabled = false; btn.textContent = orig; }
+        })
+        .catch(function () {
+          showToast("Sin conexión. Intenta de nuevo.");
+          if (btn) { btn.disabled = false; btn.textContent = orig; }
+        });
+    }
+
+    /* Bloque "Pagar anticipo" en el comprobante de éxito: si el trámite tiene precio
+       fijo y hay sesión → botón de pago; si no hay sesión → invitación a iniciarla;
+       si el trámite se cotiza (appt.payable=false) → no muestra nada. */
+    function renderCitaPayCTA(container, appt) {
+      if (!container || !appt || !appt.payable) return;
+      var amount = window.OKMxn0 ? window.OKMxn0(appt.amount_total) : ("$" + appt.amount_total);
+      var box = document.createElement("div");
+      box.className = "cita-pay";
+      box.style.cssText = "margin-top:16px;text-align:center";
+      var head = '<p style="margin:0 0 8px;color:var(--text-muted)">Anticipo del trámite: <b style="color:var(--brand-blue)">' + sanitize(amount) + '</b></p>';
+      if (appt.logged_in) {
+        box.innerHTML = head +
+          '<button type="button" class="btn btn--primary btn--sm" id="cita-pay-btn">Pagar anticipo ahora</button>' +
+          '<p style="margin:8px 0 0;font-size:.8rem;color:var(--text-muted)">También puedes pagarlo después desde “Mis citas”.</p>';
+      } else {
+        box.innerHTML = head +
+          '<a class="btn btn--primary btn--sm" href="cuenta.html">Inicia sesión para pagar en línea</a>' +
+          '<p style="margin:8px 0 0;font-size:.8rem;color:var(--text-muted)">O realiza tu anticipo por WhatsApp / en sucursal.</p>';
+      }
+      container.appendChild(box);
+      var pb = box.querySelector("#cita-pay-btn");
+      if (pb) pb.addEventListener("click", function () { startApptPayment(appt.id, this); });
+    }
+
     function submitCita() {
       if (!confirmBtn || confirmBtn.disabled) return;
       var emailEl = qs("#cita-correo");
@@ -1236,6 +1284,8 @@
                 var dlErr = qs("#cita-ticket-dl", successEl);
                 if (dlErr) dlErr.style.display = "none";
               }
+              /* Anticipo: botón de pago según el trámite (precio fijo) y la sesión. */
+              try { renderCitaPayCTA(successEl, j.appointment); } catch (e) {}
             }
             if (confirmIntro) confirmIntro.style.display = "none"; /* evita doble palomita */
             if (summaryEl) summaryEl.style.display = "none";

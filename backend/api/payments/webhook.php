@@ -31,18 +31,26 @@ if (!$event) {
     respond(['ok' => false], 400);
 }
 
-$order = Order::findBy('payment_reference', (string) $event['order_ref']);
-if (!$order) {
-    // 200 para que el proveedor no reintente indefinidamente un pedido inexistente.
+/* La referencia identifica un pedido o una cita; buscamos en ambas tablas. */
+$ref    = (string) $event['order_ref'];
+$kind   = 'order';
+$entity = Order::findBy('payment_reference', $ref);
+if (!$entity) {
+    $entity = Appointment::findBy('payment_reference', $ref);
+    $kind   = 'appointment';
+}
+if (!$entity) {
+    // 200 para que el proveedor no reintente indefinidamente una referencia inexistente.
     respond(['ok' => true, 'ignored' => 'reference_not_found']);
 }
 
 $ok = Payments::finalize(
-    (int) $order['id'],
+    (int) $entity['id'],
     (string) $event['status'],
     $event['transaction_id'] ?? null,
     'webhook',
-    null
+    null,
+    $kind
 );
 
 respond(['ok' => (bool) $ok]);

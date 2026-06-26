@@ -5,11 +5,15 @@ require __DIR__ . '/../lib/authz.php';
 only_method('GET');
 
 $user = current_user();
-/* guests_json (0011) y services_json (0013) pueden no existir aún (resiliente). */
+/* Columnas que pueden no existir aún según la migración aplicada (resiliente):
+   guests_json (0011), services_json (0013), pago (0015). */
 $guestsCol   = table_has_column('appointments', 'guests_json')   ? 'guests_json,'   : '';
 $servicesCol = table_has_column('appointments', 'services_json') ? 'services_json,' : '';
+$payCols     = table_has_column('appointments', 'amount_total')
+    ? 'id, amount_total, payment_status, payment_reference,'
+    : '';
 $st = db()->prepare(
-    "SELECT code, tramite, passport_subtype, party_size, $guestsCol $servicesCol contact_name, contact_phone,
+    "SELECT $payCols code, tramite, passport_subtype, party_size, $guestsCol $servicesCol contact_name, contact_phone,
             DATE_FORMAT(appt_date,'%Y-%m-%d') AS date,
             TIME_FORMAT(appt_time,'%H:%i')    AS time,
             status, created_at

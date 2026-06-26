@@ -23,6 +23,20 @@ final class Payments
     /* Estados válidos del pago (espejo del ENUM de la BD). */
     const STATUSES = ['pendiente', 'procesando', 'pagado', 'error', 'reembolsado'];
 
+    /* Entidades cobrables. El motor sirve por igual pedidos y citas (anticipo).
+       Cada una declara su tabla, la columna del monto, la FK en payment_logs y el
+       ancla de retorno en perfil.html. Los nombres son INTERNOS (no vienen del
+       cliente), así que es seguro interpolarlos en SQL. */
+    const TARGETS = [
+        'order'       => ['table' => 'orders',       'amount' => 'total',        'fk' => 'order_id',       'hash' => 'pedidos', 'noun' => 'pedido'],
+        'appointment' => ['table' => 'appointments', 'amount' => 'amount_total', 'fk' => 'appointment_id', 'hash' => 'citas',   'noun' => 'cita'],
+    ];
+
+    private static function target(string $kind): array
+    {
+        return self::TARGETS[$kind] ?? self::TARGETS['order'];
+    }
+
     public static function provider(): string
     {
         global $CONFIG;
@@ -48,19 +62,19 @@ final class Payments
     }
 
     /**
-     * Crea (o reabre) una sesión de checkout para un pedido.
+     * Crea (o reabre) una sesión de checkout para un pedido o una cita.
      * Devuelve ['ok'=>true,'checkout_url'=>..,'reference'=>..,'provider'=>..,'transaction_id'=>..]
-     * El monto se toma del pedido en la BD; el cliente NO puede alterarlo.
+     * El monto se toma de la BD (orders.total / appointments.amount_total); el cliente NO lo altera.
      */
-    public static function createSession(array $order, array $user): array
+    public static function createSession(array $entity, array $user, string $kind = 'order'): array
     {
-        global $CONFIG;
-        $amount    = round((float) $order['total'], 2);
-        $reference = self::makeReference($order);
+        $t         = self::target($kind);
+        $amount    = round((float) ($entity[$t['amount']] ?? 0), 2);
+        $reference = self::makeReference($entity);
         $provider  = self::provider();
 
         if ($provider === 'stripe') {
-            $session = self::stripeCreateSession($order, $user, $amount, $reference);
+            $session = self::stripeCreateSession($entity, $user, $amount, $reference, $kind);
             return [
                 'ok'             => true,
                 'provider'       => 'stripe',
@@ -72,8 +86,10 @@ final class Payments
         }
 
         // ── Sandbox: checkout alojado localmente (pago.html). URL relativa para
-        //    funcionar en cualquier entorno (local, staging, producción). ──
-        $url = 'pago.html?ref=' . rawurlencode($reference) . '&order=' . (int) $order['id'];
+        //    funcionar en cualquier entorno (local, staging, producción). El
+        //    parámetro (order|appt) le dice a pago.html qué entidad cobrar. ──
+        $param = ($kind === 'appointment') ? 'appt' : 'order';
+        $url   = 'pago.html?ref=' . rawurlencode($reference) . '&' . $param . '=' . (int) $entity['id'];
         return [
             'ok'             => true,
             'provider'       => 'sandbox',
@@ -88,19 +104,22 @@ final class Payments
      * Marca un pedido como en proceso de pago y registra el intento.
      * Idempotente respecto a 'pagado': no reabre un pedido ya pagado.
      */
-    public static function startIntent(array $order, array $session, int $userId, string $source = 'cliente'): void
+    public static function startIntent(array $entity, array $session, int $userId, string $source = 'cliente', string $kind = 'order'): void
     {
-        $orderId = (int) $order['id'];
-        $prev    = (string) ($order['payment_status'] ?? 'pendiente');
-        Order::update($orderId, [
-            'payment_status'         => 'procesando',
-            'payment_provider'       => $session['provider'],
-            'payment_reference'      => $session['reference'],
-            'payment_amount'         => $session['amount'],
-            'payment_transaction_id' => $session['transaction_id'],
+        $t   = self::target($kind);
+        $id  = (int) $entity['id'];
+        $prev = (string) ($entity['payment_status'] ?? 'pendiente');
+        db()->prepare(
+            'UPDATE ' . $t['table'] . '
+                SET payment_status = ?, payment_provider = ?, payment_reference = ?,
+                    payment_amount = ?, payment_transaction_id = ?
+              WHERE id = ?'
+        )->execute([
+            'procesando', $session['provider'], $session['reference'],
+            $session['amount'], $session['transaction_id'], $id,
         ]);
-        self::log($orderId, $prev, 'procesando', $session['provider'], $session['reference'],
-            $session['transaction_id'], $session['amount'], $source, $userId);
+        self::log($id, $prev, 'procesando', $session['provider'], $session['reference'],
+            $session['transaction_id'], $session['amount'], $source, $userId, [], $kind);
     }
 
     /**
@@ -108,34 +127,38 @@ final class Payments
      * El estado y el monto son los del SERVIDOR; ignora cualquier dato del cliente.
      * Idempotente: si ya está 'pagado', no hace nada y devuelve true.
      */
-    public static function finalize(int $orderId, string $newStatus, ?string $transactionId, string $source, ?int $userId): bool
+    public static function finalize(int $entityId, string $newStatus, ?string $transactionId, string $source, ?int $userId, string $kind = 'order'): bool
     {
         if (!in_array($newStatus, self::STATUSES, true)) return false;
+
+        $t         = self::target($kind);
+        $table     = $t['table'];
+        $amountCol = $t['amount'];
 
         $pdo = db();
         $pdo->beginTransaction();
         try {
             // Bloqueo de fila para evitar condiciones de carrera (doble confirmación).
-            $st = $pdo->prepare('SELECT * FROM orders WHERE id = ? FOR UPDATE');
-            $st->execute([$orderId]);
-            $order = $st->fetch();
-            if (!$order) { $pdo->rollBack(); return false; }
+            $st = $pdo->prepare('SELECT * FROM ' . $table . ' WHERE id = ? FOR UPDATE');
+            $st->execute([$entityId]);
+            $row = $st->fetch();
+            if (!$row) { $pdo->rollBack(); return false; }
 
-            $prev = (string) ($order['payment_status'] ?? 'pendiente');
+            $prev = (string) ($row['payment_status'] ?? 'pendiente');
             if ($prev === 'pagado') { $pdo->commit(); return true; } // ya finalizado: idempotente
 
             $data = [
                 'payment_status'         => $newStatus,
-                'payment_transaction_id' => $transactionId ?: $order['payment_transaction_id'],
+                'payment_transaction_id' => $transactionId ?: $row['payment_transaction_id'],
             ];
             if ($newStatus === 'pagado') {
                 $data['payment_date']   = date('Y-m-d H:i:s');
-                $data['payment_amount'] = round((float) $order['total'], 2);
+                $data['payment_amount'] = round((float) $row[$amountCol], 2);
             }
             $set = []; $params = [];
             foreach ($data as $k => $v) { $set[] = "$k = ?"; $params[] = $v; }
-            $params[] = $orderId;
-            $pdo->prepare('UPDATE orders SET ' . implode(',', $set) . ' WHERE id = ?')->execute($params);
+            $params[] = $entityId;
+            $pdo->prepare('UPDATE ' . $table . ' SET ' . implode(',', $set) . ' WHERE id = ?')->execute($params);
 
             $pdo->commit();
         } catch (Throwable $e) {
@@ -143,69 +166,80 @@ final class Payments
             return false;
         }
 
-        self::log($orderId, $prev ?? null, $newStatus, (string) ($order['payment_provider'] ?? self::provider()),
-            (string) ($order['payment_reference'] ?? ''), $transactionId, round((float) $order['total'], 2), $source, $userId);
+        self::log($entityId, $prev ?? null, $newStatus, (string) ($row['payment_provider'] ?? self::provider()),
+            (string) ($row['payment_reference'] ?? ''), $transactionId, round((float) $row[$amountCol], 2), $source, $userId, [], $kind);
 
-        // Notificación al cliente cuando el pago se confirma.
-        if ($newStatus === 'pagado') {
+        // Notificación al cliente cuando el pago se confirma (solo si la cuenta existe).
+        if ($newStatus === 'pagado' && (int) ($row['user_id'] ?? 0) > 0) {
             try {
+                $isAppt = ($kind === 'appointment');
+                $title  = $isAppt ? 'Anticipo recibido' : 'Pago confirmado';
+                $body   = $isAppt
+                    ? 'Recibimos el anticipo de tu cita ' . $row['code'] . '. ¡Gracias!'
+                    : 'Recibimos el pago de tu pedido ' . $row['code'] . '. ¡Gracias!';
                 db()->prepare('INSERT INTO notifications (user_id, type, title, body) VALUES (?,?,?,?)')
-                    ->execute([(int) $order['user_id'], 'payment', 'Pago confirmado',
-                        'Recibimos el pago de tu pedido ' . $order['code'] . '. ¡Gracias!']);
+                    ->execute([(int) $row['user_id'], ($isAppt ? 'appointment' : 'payment'), $title, $body]);
             } catch (Throwable $e) { /* best-effort */ }
         }
         return true;
     }
 
     /** Inserta una entrada en la bitácora de pagos (nunca rompe la petición). */
-    public static function log(int $orderId, ?string $prev, string $status, ?string $provider, ?string $reference,
-                              ?string $txnId, ?float $amount, string $source, ?int $userId, array $meta = []): void
+    public static function log(int $entityId, ?string $prev, string $status, ?string $provider, ?string $reference,
+                              ?string $txnId, ?float $amount, string $source, ?int $userId, array $meta = [], string $kind = 'order'): void
     {
+        $orderId = ($kind === 'order')       ? $entityId : null;
+        $apptId  = ($kind === 'appointment') ? $entityId : null;
         try {
             db()->prepare(
                 'INSERT INTO payment_logs
-                 (order_id, previous_status, payment_status, provider, reference, transaction_id, amount, source, updated_by, meta_json, ip)
-                 VALUES (?,?,?,?,?,?,?,?,?,?,?)'
+                 (order_id, appointment_id, previous_status, payment_status, provider, reference, transaction_id, amount, source, updated_by, meta_json, ip)
+                 VALUES (?,?,?,?,?,?,?,?,?,?,?,?)'
             )->execute([
-                $orderId, $prev, $status, $provider, $reference, $txnId, $amount, $source, $userId,
+                $orderId, $apptId, $prev, $status, $provider, $reference, $txnId, $amount, $source, $userId,
                 $meta ? json_encode($meta, JSON_UNESCAPED_UNICODE) : null,
                 $_SERVER['REMOTE_ADDR'] ?? null,
             ]);
         } catch (Throwable $e) { /* la auditoría no debe afectar la respuesta */ }
     }
 
-    /** Historial de pagos de un pedido (para el detalle administrativo). */
-    public static function logsFor(int $orderId): array
+    /** Historial de pagos de un pedido o cita (para el detalle administrativo). */
+    public static function logsFor(int $entityId, string $kind = 'order'): array
     {
-        $st = db()->prepare('SELECT previous_status, payment_status, provider, reference, transaction_id, amount, source, created_at
-                             FROM payment_logs WHERE order_id = ? ORDER BY id DESC');
-        $st->execute([$orderId]);
+        $col = self::target($kind)['fk'];
+        $st  = db()->prepare('SELECT previous_status, payment_status, provider, reference, transaction_id, amount, source, created_at
+                              FROM payment_logs WHERE ' . $col . ' = ? ORDER BY id DESC');
+        $st->execute([$entityId]);
         return $st->fetchAll();
     }
 
     /* ============================================================
        Proveedor Stripe (Checkout Session vía API REST con cURL).
        ============================================================ */
-    private static function stripeCreateSession(array $order, array $user, float $amount, string $reference): array
+    private static function stripeCreateSession(array $entity, array $user, float $amount, string $reference, string $kind = 'order'): array
     {
         global $CONFIG;
         $secret  = (string) ($CONFIG['payment']['stripe_secret'] ?? '');
         if ($secret === '') {
             throw new RuntimeException('Stripe no está configurado (falta STRIPE_SECRET_KEY).');
         }
-        $base = rtrim((string) ($CONFIG['app_url'] ?? ''), '/');
+        $t       = self::target($kind);
+        $isAppt  = ($kind === 'appointment');
+        $base    = rtrim((string) ($CONFIG['app_url'] ?? ''), '/');
+        $prodName = ($isAppt ? 'Anticipo cita ' : 'Pedido ') . $entity['code'] . ' — OK.station';
         $params = [
             'mode'                                 => 'payment',
             'client_reference_id'                  => $reference,
-            'success_url'                          => $base . '/perfil.html?pago=ok#pedidos',
-            'cancel_url'                           => $base . '/perfil.html?pago=cancelado#pedidos',
+            'success_url'                          => $base . '/perfil.html?pago=ok#' . $t['hash'],
+            'cancel_url'                           => $base . '/perfil.html?pago=cancelado#' . $t['hash'],
             'customer_email'                       => $user['email'] ?? null,
-            'metadata[order_id]'                   => (int) $order['id'],
+            'metadata[' . $t['fk'] . ']'           => (int) $entity['id'],
+            'metadata[kind]'                       => $kind,
             'metadata[reference]'                  => $reference,
             'line_items[0][quantity]'             => 1,
             'line_items[0][price_data][currency]' => strtolower(self::currency()),
             'line_items[0][price_data][unit_amount]'         => (int) round($amount * 100),
-            'line_items[0][price_data][product_data][name]'  => 'Pedido ' . $order['code'] . ' — OK.station',
+            'line_items[0][price_data][product_data][name]'  => $prodName,
         ];
         $params = array_filter($params, function ($v) { return $v !== null && $v !== ''; });
 

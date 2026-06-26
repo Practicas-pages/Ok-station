@@ -54,4 +54,64 @@ final class Pricing
         $row = db()->query("SELECT `value` FROM settings WHERE `key`='tax_rate'")->fetch();
         return $row ? (float) $row['value'] : 0.08;
     }
+
+    /* ============================================================
+       Precios de TRÁMITES (citas). Anticipo 100% según el trámite.
+       MXN por persona, IVA incluido (igual que el ticket de mostrador).
+       Espejo de assets/cita-ticket.js (CITA_PRICES) para que coincidan.
+       ============================================================ */
+
+    /** Precios por defecto si no hay setting `appt.prices` (mismos que el front). */
+    const APPT_PRICE_DEFAULTS = [
+        'pasaporte_mexicano' => 200.0,
+        'visa'               => 800.0,
+        'sentri'             => 900.0,
+        'ine'                => 80.0,
+        'curp'               => 35.0,
+    ];
+
+    /** Catálogo de precios vigente (settings `appt.prices`, con respaldo en los defaults). */
+    public static function apptPrices(): array
+    {
+        $out = self::APPT_PRICE_DEFAULTS;
+        $row = db()->query("SELECT `value` FROM settings WHERE `key`='appt.prices'")->fetch();
+        if ($row) {
+            $j = json_decode((string) $row['value'], true);
+            if (is_array($j)) {
+                foreach ($j as $k => $v) {
+                    $k = preg_replace('/[^a-z0-9_]/i', '', (string) $k);
+                    if ($k !== '' && is_numeric($v)) $out[$k] = round((float) $v, 2);
+                }
+            }
+        }
+        return $out;
+    }
+
+    /** Clave de precio para un trámite (pasaporte se distingue por subtipo). */
+    public static function apptPriceKey(string $tramite, ?string $subtype): string
+    {
+        if ($tramite === 'pasaporte') {
+            return 'pasaporte_' . ($subtype === 'americano' ? 'americano' : 'mexicano');
+        }
+        return $tramite;
+    }
+
+    /**
+     * Precio de una cita según trámite + subtipo + personas.
+     * Devuelve ['quote'=>bool, 'unit'=>?float, 'party'=>int, 'total'=>?float].
+     * quote=true → el trámite NO tiene precio fijo (se cotiza; sin cobro en línea).
+     */
+    public static function appointmentPricing(string $tramite, ?string $subtype, int $party): array
+    {
+        $party  = max(1, $party);
+        $prices = self::apptPrices();
+        $key    = self::apptPriceKey($tramite, $subtype);
+        $unit   = $prices[$key] ?? null;
+
+        if ($unit === null || (float) $unit <= 0) {
+            return ['quote' => true, 'unit' => null, 'party' => $party, 'total' => null];
+        }
+        $unit = round((float) $unit, 2);
+        return ['quote' => false, 'unit' => $unit, 'party' => $party, 'total' => round($unit * $party, 2)];
+    }
 }

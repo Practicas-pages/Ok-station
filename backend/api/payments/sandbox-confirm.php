@@ -20,12 +20,18 @@ $ref  = trim((string) ($b['reference'] ?? ''));
 $res  = ($b['result'] ?? 'pagado') === 'error' ? 'error' : 'pagado';
 if ($ref === '') fail('Referencia no especificada.');
 
-$order = Order::findBy('payment_reference', $ref);
-if (!$order) fail('Pago no encontrado.', 404);
-if ((int) $order['user_id'] !== (int) $user['id']) fail('No autorizado.', 403);
+/* La referencia es única; puede pertenecer a un pedido o a una cita. Buscamos en ambos. */
+$kind   = 'order';
+$entity = Order::findBy('payment_reference', $ref);
+if (!$entity) {
+    $entity = Appointment::findBy('payment_reference', $ref);
+    $kind   = 'appointment';
+}
+if (!$entity) fail('Pago no encontrado.', 404);
+if ((int) ($entity['user_id'] ?? 0) !== (int) $user['id']) fail('No autorizado.', 403);
 
-$ok = Payments::finalize((int) $order['id'], $res, 'SBX-' . substr(bin2hex(random_bytes(6)), 0, 12), 'cliente', (int) $user['id']);
+$ok = Payments::finalize((int) $entity['id'], $res, 'SBX-' . substr(bin2hex(random_bytes(6)), 0, 12), 'cliente', (int) $user['id'], $kind);
 if (!$ok) fail('No se pudo confirmar el pago.', 500);
 
-log_activity((int) $user['id'], 'payment.sandbox_confirm', 'orders', (int) $order['id'], ['result' => $res]);
-respond(['ok' => true, 'payment_status' => $res, 'order_id' => (int) $order['id']]);
+log_activity((int) $user['id'], 'payment.sandbox_confirm', ($kind === 'appointment' ? 'appointments' : 'orders'), (int) $entity['id'], ['result' => $res]);
+respond(['ok' => true, 'payment_status' => $res, 'kind' => $kind, 'id' => (int) $entity['id']]);

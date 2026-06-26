@@ -8,6 +8,7 @@
 require __DIR__ . '/../_bootstrap.php';
 require __DIR__ . '/../lib/authz.php';
 require __DIR__ . '/../lib/Availability.php';
+require __DIR__ . '/../lib/Pricing.php';
 only_method('POST');
 
 $b       = body();
@@ -134,6 +135,11 @@ if (count($activeTramites) >= 2) {
 if (!$ok) fail($err, 409);
 
 $time = Availability::normTime($time);
+
+/* Precio del anticipo (autoridad del servidor): precio del trámite × personas.
+   quote=true → el trámite se cotiza (no cobra en línea). */
+$pricing = Pricing::appointmentPricing($tramite, ($subtype !== '' ? $subtype : null), $party);
+
 $pdo  = db();
 
 $pdo->beginTransaction();
@@ -178,6 +184,13 @@ try {
     /* Servicios adicionales: solo si la migración 0013 ya creó la columna (resiliente). */
     if ($servicesJson !== null && table_has_column('appointments', 'services_json')) {
         $pdo->prepare('UPDATE appointments SET services_json=? WHERE id=?')->execute([$servicesJson, $id]);
+    }
+
+    /* MONTO DEL ANTICIPO (autoridad del servidor): precio del trámite × personas.
+       Solo si la migración 0015 ya creó la columna (resiliente). Trámite que se
+       cotiza → amount_total queda NULL (no cobra en línea). */
+    if (!$pricing['quote'] && table_has_column('appointments', 'amount_total')) {
+        $pdo->prepare('UPDATE appointments SET amount_total=? WHERE id=?')->execute([$pricing['total'], $id]);
     }
 
     $pdo->commit();
@@ -227,5 +240,11 @@ respond([
         'guests' => $cleanGuests,
         'services' => $cleanServices,
         'date' => $date, 'time' => $time, 'status' => 'pendiente',
+        /* Cobro del anticipo: 'payable' indica si tiene precio fijo (se puede pagar
+           en línea). Si se cotiza, queda en false y el anticipo se coordina aparte. */
+        'amount_total'   => $pricing['quote'] ? null : $pricing['total'],
+        'payable'        => !$pricing['quote'],
+        'payment_status' => 'pendiente',
+        'logged_in'      => ($userId !== null),
     ],
 ], 201);

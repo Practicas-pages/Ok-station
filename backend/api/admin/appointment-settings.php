@@ -7,12 +7,13 @@
 require __DIR__ . '/../_bootstrap.php';
 require __DIR__ . '/../lib/authz.php';
 require __DIR__ . '/../lib/Availability.php';
+require __DIR__ . '/../lib/Pricing.php';
 
 $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
 
 if ($method === 'GET') {
     require_permission('appointments.view');
-    respond(['ok' => true, 'config' => Availability::config()]);
+    respond(['ok' => true, 'config' => Availability::config(), 'prices' => Pricing::apptPrices()]);
 }
 
 if ($method === 'POST') {
@@ -45,8 +46,22 @@ if ($method === 'POST') {
         $set->execute(['appt.blackout_dates', json_encode(array_values(array_unique($bo)))]);
     }
 
+    /* Precios de trámites (anticipo): clave alfanumérica → monto (MXN, IVA incluido).
+       0 / vacío = el trámite se cotiza (sin cobro en línea). Requiere settings.manage. */
+    if (isset($b['prices']) && is_array($b['prices'])) {
+        $clean = [];
+        foreach ($b['prices'] as $k => $v) {
+            $k = preg_replace('/[^a-z0-9_]/i', '', (string) $k);
+            if ($k === '' || !is_numeric($v)) continue;
+            $amount = round((float) $v, 2);
+            if ($amount > 0) $clean[$k] = $amount;   // solo precios positivos; lo demás se cotiza
+            if (count($clean) >= 40) break;
+        }
+        $set->execute(['appt.prices', json_encode($clean, JSON_UNESCAPED_UNICODE)]);
+    }
+
     log_activity((int) $user['id'], 'appointments.settings_updated', 'settings', null);
-    respond(['ok' => true, 'config' => Availability::config()]);
+    respond(['ok' => true, 'config' => Availability::config(), 'prices' => Pricing::apptPrices()]);
 }
 
 fail('Método no permitido.', 405);
