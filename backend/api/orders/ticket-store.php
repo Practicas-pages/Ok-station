@@ -17,7 +17,10 @@ if ((int) $o['user_id'] !== (int) $user['id']) fail('No autorizado.', 403);
 // Acepta "data:application/pdf;base64,...." o base64 puro
 if (strpos($data, ',') !== false) $data = substr($data, strpos($data, ',') + 1);
 $bytes = base64_decode($data, true);
-if ($bytes === false || strlen($bytes) < 100) fail('Ticket inválido.');
+// Debe ser un PDF real (cabecera %PDF-) y de tamaño razonable; así no se guarda
+// contenido arbitrario que luego ticket.php sirve como application/pdf.
+if ($bytes === false || strlen($bytes) < 100 || substr($bytes, 0, 5) !== '%PDF-') fail('Ticket inválido.');
+if (strlen($bytes) > 5 * 1024 * 1024) fail('Ticket demasiado grande.');
 
 $path = Storage::put('tickets', $o['code'] . '.pdf', $bytes);
 Order::update($id, ['ticket_path' => $path]);

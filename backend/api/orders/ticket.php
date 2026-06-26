@@ -19,5 +19,6 @@ header_remove('Content-Type');
 header('Content-Type: application/pdf');
 header('Content-Disposition: inline; filename="ticket-' . $o['code'] . '.pdf"');
 header('Content-Length: ' . filesize($o['ticket_path']));
+header('X-Content-Type-Options: nosniff');
 readfile($o['ticket_path']);
 exit;
