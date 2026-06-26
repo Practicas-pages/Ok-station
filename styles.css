@@ -4934,9 +4934,17 @@ body.admin::before, body.admin::after { display: none !important; }
 .hero__bg-img {
   display: block; position: absolute; inset: 0;
   width: 100%; height: 100%;
-  object-fit: cover; object-position: center 60%;  /* imagen más abajo */
+  object-fit: cover; object-position: center 60%;  /* MÓVIL: imagen un poco más abajo (se ve bien) */
   opacity: 1 !important;  /* IMPORTANTE: anula el opacity:0.28 de la regla vieja (~línea 820) que la dejaba fantasmal */
   filter: brightness(1.04) contrast(1.06) saturate(1.14);  /* foto casi ORIGINAL (no lavada) */
+}
+/* PC (pantalla ancha): object-fit:cover recorta más y hace zoom; subimos el encuadre
+   para que se vea la fachada/letrero del local y no solo los estantes de abajo. */
+@media (min-width: 769px) {
+  .hero__bg-img { object-position: center 38%; }
+}
+@media (min-width: 1200px) {
+  .hero__bg-img { object-position: center 34%; }
 }
 /* Degradado OSCURO: opaco a la izquierda (texto claro legible) → translúcido a la
    derecha (se ve la foto), integrado al tema oscuro del sitio. */
