@@ -22,7 +22,8 @@ if (strlen(preg_replace('/\D/', '', $phone)) < 10) fail('Ingresa un teléfono v�
 
 $taxRate  = Pricing::taxRate();
 $pdo      = db();
-$fileStmt = $pdo->prepare('SELECT id, pages FROM uploaded_files WHERE id = ? AND user_id = ?');
+$fileStmt = $pdo->prepare('SELECT id, pages, original_name FROM uploaded_files WHERE id = ? AND user_id = ?');
+$mailItems = [];   // resumen de ítems para el ticket del correo
 
 $pdo->beginTransaction();
 try {
@@ -49,6 +50,14 @@ try {
         // PRECIO RECALCULADO EN EL SERVIDOR (se ignora cualquier monto del navegador).
         $price = Pricing::line($cfg, $pages, $qty);
         $subtotal += $price['line'];
+
+        $mailItems[] = [
+            'label' => trim((string) ($cfg['size'] ?? '')) !== ''
+                ? strtoupper((string) $cfg['size'])
+                : mb_substr((string) ($file['original_name'] ?? 'Archivo'), 0, 40),
+            'qty'  => $qty,
+            'line' => $price['line'],
+        ];
 
         $ins->execute([
             $orderId,
@@ -80,20 +89,43 @@ log_activity((int) $user['id'], 'order.create', 'orders', $orderId);
 db()->prepare('INSERT INTO notifications (user_id, type, title, body) VALUES (?,?,?,?)')
     ->execute([(int) $user['id'], 'order', 'Pedido recibido', 'Tu pedido ' . $code . ' fue recibido.']);
 
+/* Token de confirmación: el cliente confirma su pedido desde el correo (enlace con
+   token). Solo si la migración 0017 ya creó la columna (resiliente). */
+$confirmToken = null;
+if (table_has_column('orders', 'confirm_token')) {
+    try {
+        require_once __DIR__ . '/../lib/Emails.php';
+        $confirmToken = Emails::token();
+        db()->prepare('UPDATE orders SET confirm_token = ? WHERE id = ?')->execute([$confirmToken, $orderId]);
+    } catch (Throwable $e) { $confirmToken = null; }
+}
+
 /* Correo de confirmación al usuario (best-effort: si el SMTP falla, no afecta el pedido). */
 if (!empty($user['email'])) {
     try {
         require_once __DIR__ . '/../lib/Mailer.php';
-        $mailBody =
-            "Hola " . ($user['full_name'] ?? '') . ",\n\n" .
-            "Recibimos tu pedido de impresión en OK.station.\n\n" .
-            "Folio: $code\n" .
-            "Subtotal estimado: $" . number_format($subtotal, 2) . " MXN\n" .
-            "IVA estimado: $" . number_format($tax, 2) . " MXN\n" .
-            "Total estimado: $" . number_format($total, 2) . " MXN\n\n" .
-            "El total es un estimado; confirmamos el precio final al revisar tus archivos. Te avisaremos cuando esté listo para recoger.\n\n" .
-            "Gracias,\nOK.station · Centro Comercial Otay, Tijuana\nokstation.mx";
-        (new Mailer($CONFIG['smtp'] ?? []))->send($user['email'], 'Tu pedido en OK.station — ' . $code, $mailBody);
+        require_once __DIR__ . '/../lib/Emails.php';
+        $clientName = (string) ($user['full_name'] ?? '');
+        $mailer = new Mailer($CONFIG['smtp'] ?? []);
+
+        if ($confirmToken) {
+            /* Correo HTML con el ticket y el botón "Confirmar mi pedido". */
+            $html = Emails::pedidoHtml([
+                'name' => $clientName, 'code' => $code, 'items' => $mailItems,
+                'subtotal' => $subtotal, 'tax' => $tax, 'total' => $total,
+                'confirmUrl' => Emails::confirmUrl('pedido', $code, $confirmToken),
+            ]);
+            $mailer->sendHtml($user['email'], 'Confirma tu pedido en OK.station — ' . $code, $html);
+        } else {
+            /* Respaldo en texto plano (si la migración 0017 aún no se ha aplicado). */
+            $mailBody =
+                "Hola " . $clientName . ",\n\nRecibimos tu pedido de impresión en OK.station.\n\n" .
+                "Folio: $code\nSubtotal estimado: $" . number_format($subtotal, 2) . " MXN\n" .
+                "IVA estimado: $" . number_format($tax, 2) . " MXN\nTotal estimado: $" . number_format($total, 2) . " MXN\n\n" .
+                "El total es un estimado; confirmamos el precio final al revisar tus archivos.\n\n" .
+                "Gracias,\nOK.station · Centro Comercial Otay, Tijuana\nokstation.mx";
+            $mailer->send($user['email'], 'Tu pedido en OK.station — ' . $code, $mailBody);
+        }
     } catch (Throwable $e) { /* correo best-effort */ }
 }
 

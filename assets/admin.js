@@ -81,6 +81,18 @@
     var s = status || "pendiente";
     return '<span class="badge badge--pay-' + s + '">' + esc(PAY_STATUS[s] || s) + '</span>';
   }
+  /* Señal de "confirmado por el cliente" (vía correo). Verde si confirmó, ámbar si falta. */
+  function confirmChip(when) {
+    return when
+      ? '<span class="badge badge--listo" title="El cliente confirmó por correo el ' + esc(String(when)) + '">✓ Confirmado por el cliente</span>'
+      : '<span class="badge badge--pendiente" title="Aún no confirma desde su correo">⏳ Sin confirmar (cliente)</span>';
+  }
+  /* Banner de confirmación para los modales de detalle. */
+  function confirmBanner(when) {
+    return when
+      ? '<div style="display:flex;align-items:center;gap:8px;background:#ecfdf5;border:1px solid #a7f3d0;color:#047857;border-radius:8px;padding:9px 12px;font-size:.86rem;font-weight:600;margin:0 0 14px">✓ Confirmado por el cliente <span style="font-weight:400;color:#059669">· ' + esc(String(when)) + '</span></div>'
+      : '<div style="display:flex;align-items:center;gap:8px;background:#fffbeb;border:1px solid #fde68a;color:#b45309;border-radius:8px;padding:9px 12px;font-size:.86rem;font-weight:600;margin:0 0 14px">⏳ El cliente aún no confirma desde su correo</div>';
+  }
   /* Nombre de cliente: enlace al historial si tiene cuenta (user_id); si es invitado, texto plano. */
   function clientCell(userId, name) {
     return userId
@@ -338,7 +350,10 @@
       var refCell = money
         ? '<td class="mono" style="font-size:.78rem;color:var(--text-muted)">' + (o.payment_reference ? esc(o.payment_reference) : "—") + '</td>'
         : '';
-      return '<tr><td class="mono">' + esc(o.code) + '</td><td>' + clientCell(o.user_id, o.client) + '</td><td>' + o.items + '</td>' +
+      var oConfirm = o.client_confirmed_at
+        ? '<br><span style="color:#047857;font-size:.78rem;font-weight:600" title="Confirmó por correo el ' + esc(String(o.client_confirmed_at)) + '">✓ Confirmó</span>'
+        : '<br><span style="color:#b45309;font-size:.78rem" title="Aún no confirma desde su correo">⏳ Sin confirmar</span>';
+      return '<tr><td class="mono">' + esc(o.code) + '</td><td>' + clientCell(o.user_id, o.client) + oConfirm + '</td><td>' + o.items + '</td>' +
         '<td class="mono">' + mxn(o.total) + '</td><td>' + statusCell + '</td>' +
         '<td>' + payBadge(o.payment_status) + '</td>' + refCell + '<td>' + esc(o.date) + '</td>' +
         '<td><button class="admin-btn-sm" data-view-order="' + esc(o.id || o.code) + '">Previsualizar</button>' + clientWaBtn(o) + '</td></tr>';
@@ -494,6 +509,7 @@
           badge(a.status, APPT_STATUS) +
         '</div>' +
         '<div style="padding:18px 20px">' +
+          confirmBanner(a.client_confirmed_at) +
           '<h4 style="margin:0 0 4px;font-size:.95rem">Trámite a realizar</h4>' +
           '<div style="font-size:1.1rem;font-weight:700;color:var(--brand-blue,#066CFF);margin:0 0 10px">' + esc(svc) + '</div>' +
           '<div style="font-size:.9rem;background:#f8fafc;border-radius:8px;padding:8px 14px;margin:0 0 16px">' +
@@ -629,6 +645,7 @@
           badge(o.status) +
         '</div>' +
         '<div style="padding:18px 20px">' +
+          confirmBanner(o.client_confirmed_at) +
           '<h4 style="margin:0 0 6px;font-size:.95rem">Cliente</h4>' +
           '<p style="margin:0 0 16px;font-size:.9rem;line-height:1.5">' + esc(c.name || o.client_name || "—") +
             (c.email ? '<br><a href="mailto:' + esc(c.email) + '">' + esc(c.email) + '</a>' : '') +
@@ -940,7 +957,10 @@
         var phoneHtml = a.contact_phone
           ? (waD ? '<a href="https://wa.me/' + waD + '" target="_blank" rel="noopener" title="Escribir por WhatsApp" style="color:#1d9e75;font-weight:600">' + esc(a.contact_phone) + '</a>' : esc(a.contact_phone))
           : "";
-        var contacto = phoneHtml + (a.contact_email ? '<br><span style="color:var(--text-muted);font-size:.82rem">' + esc(a.contact_email) + '</span>' : "");
+        var confirmInline = a.client_confirmed_at
+          ? '<br><span style="color:#047857;font-size:.78rem;font-weight:600" title="Confirmó por correo el ' + esc(String(a.client_confirmed_at)) + '">✓ Confirmó</span>'
+          : '<br><span style="color:#b45309;font-size:.78rem" title="Aún no confirma desde su correo">⏳ Sin confirmar</span>';
+        var contacto = phoneHtml + (a.contact_email ? '<br><span style="color:var(--text-muted);font-size:.82rem">' + esc(a.contact_email) + '</span>' : "") + confirmInline;
         return '<tr>' +
           '<td class="mono">' + esc(a.code) + '</td>' +
           '<td>' + apptServiceCell(a) + '</td>' +

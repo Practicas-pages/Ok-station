@@ -13,10 +13,13 @@ $status = $_GET['status'] ?? null;
 $date   = $_GET['date'] ?? null;
 $valid  = ['pendiente', 'confirmada', 'cancelada', 'completada', 'no_show'];
 
-/* guests_json (0011) y services_json (0013) pueden no existir aún (resiliente). */
+/* guests_json (0011), services_json (0013) y la confirmación por correo (0017)
+   pueden no existir aún (resiliente). */
 $guestsCol   = table_has_column('appointments', 'guests_json')   ? 'a.guests_json,'   : '';
 $servicesCol = table_has_column('appointments', 'services_json') ? 'a.services_json,' : '';
-$sql = "SELECT a.id, a.code, a.tramite, a.passport_subtype, a.party_size, $guestsCol $servicesCol
+$confirmCol  = table_has_column('appointments', 'client_confirmed_at')
+    ? "DATE_FORMAT(a.client_confirmed_at,'%Y-%m-%d %H:%i') AS client_confirmed_at," : '';
+$sql = "SELECT a.id, a.code, a.tramite, a.passport_subtype, a.party_size, $guestsCol $servicesCol $confirmCol
                DATE_FORMAT(a.appt_date,'%Y-%m-%d') AS date,
                TIME_FORMAT(a.appt_time,'%H:%i')    AS time,
                a.status, a.contact_name, a.contact_phone, a.contact_email,
