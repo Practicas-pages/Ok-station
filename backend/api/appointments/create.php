@@ -187,7 +187,7 @@ try {
     }
 
     /* MONTO DEL ANTICIPO (autoridad del servidor): precio del trámite × personas.
-       Solo si la migración 0015 ya creó la columna (resiliente). Trámite que se
+       Solo si la migración 0016 ya creó la columna (resiliente). Trámite que se
        cotiza → amount_total queda NULL (no cobra en línea). */
     if (!$pricing['quote'] && table_has_column('appointments', 'amount_total')) {
         $pdo->prepare('UPDATE appointments SET amount_total=? WHERE id=?')->execute([$pricing['total'], $id]);

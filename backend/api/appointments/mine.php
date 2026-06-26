@@ -6,7 +6,7 @@ only_method('GET');
 
 $user = current_user();
 /* Columnas que pueden no existir aún según la migración aplicada (resiliente):
-   guests_json (0011), services_json (0013), pago (0015). */
+   guests_json (0011), services_json (0013), pago (0016). */
 $guestsCol   = table_has_column('appointments', 'guests_json')   ? 'guests_json,'   : '';
 $servicesCol = table_has_column('appointments', 'services_json') ? 'services_json,' : '';
 $payCols     = table_has_column('appointments', 'amount_total')

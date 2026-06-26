@@ -1,4 +1,4 @@
--- 0015 — Pago en línea del ANTICIPO de citas (anticipo 100% según trámite).
+-- 0016 — Pago en línea del ANTICIPO de citas (anticipo 100% según trámite).
 -- Reusa el mismo motor de pagos de los pedidos:
 --   - Extiende `appointments` con el monto y el estado de pago (espejo de `orders`).
 --   - Generaliza `payment_logs` para que registre TAMBIÉN citas (no solo pedidos).
