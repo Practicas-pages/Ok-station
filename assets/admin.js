@@ -268,6 +268,14 @@
   }
   /* El directivo tiene acceso total (igual que un administrador). */
   function isDirectivo() { return accessRoles().indexOf("directivo") >= 0; }
+  /* Empleado "puro": tiene rol empleado pero NO administrador ni directivo.
+     Estos no ven Usuarios, Reportes, ni datos financieros (ventas/usuarios). */
+  function isEmpleadoOnly() {
+    var r = accessRoles();
+    return r.indexOf("empleado") >= 0 && r.indexOf("administrador") < 0 && r.indexOf("directivo") < 0;
+  }
+  /* Vistas restringidas para empleado puro (se ocultan en el sidebar y se bloquean). */
+  var EMPLEADO_BLOCKED_VIEWS = ["usuarios", "reportes"];
   function enforceAccess() {
     if (DEMO) return true;             // demo: se permite ver el panel
     if (!token()) { window.location.href = "cuenta.html"; return false; }
@@ -292,11 +300,13 @@
 
   function renderStats(s) {
     var cards = [
-      { label: "Pedidos totales", value: s.orders, delta: s.dOrders, color: "var(--brand-blue)", bg: "var(--brand-blue-light)", icon: '<path d="M6 2h9l5 5v13a2 2 0 01-2 2H6a2 2 0 01-2-2V4a2 2 0 012-2z"/>' },
-      { label: "Ventas del mes", value: mxn(s.sales), delta: s.dSales, color: "#15803D", bg: "#DCFCE7", icon: '<line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/>' },
-      { label: "Usuarios", value: s.users, delta: s.dUsers, color: "#7C3AED", bg: "#F3E8FF", icon: '<path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/>' },
-      { label: "Pendientes", value: s.pending, delta: s.dPending, color: "#B45309", bg: "#FEF3C7", icon: '<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>' }
+      { key: "orders", label: "Pedidos totales", value: s.orders, delta: s.dOrders, color: "var(--brand-blue)", bg: "var(--brand-blue-light)", icon: '<path d="M6 2h9l5 5v13a2 2 0 01-2 2H6a2 2 0 01-2-2V4a2 2 0 012-2z"/>' },
+      { key: "sales", label: "Ventas del mes", value: mxn(s.sales), delta: s.dSales, color: "#15803D", bg: "#DCFCE7", icon: '<line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/>' },
+      { key: "users", label: "Usuarios", value: s.users, delta: s.dUsers, color: "#7C3AED", bg: "#F3E8FF", icon: '<path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/>' },
+      { key: "pending", label: "Pendientes", value: s.pending, delta: s.dPending, color: "#B45309", bg: "#FEF3C7", icon: '<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>' }
     ];
+    /* El empleado puro no ve ni Ventas del mes ni Usuarios. */
+    if (isEmpleadoOnly()) cards = cards.filter(function (c) { return c.key !== "sales" && c.key !== "users"; });
     $("#stat-grid").innerHTML = cards.map(function (c) {
       var up = c.delta >= 0;
       return '<div class="stat-card">' +
@@ -1110,6 +1120,8 @@
   var TITLES = { dashboard: "Dashboard", pedidos: "Pedidos", citas: "Citas", usuarios: "Usuarios", servicios: "Servicios", resenas: "Reseñas", reportes: "Reportes" };
   var rendered = {};
   function showView(view) {
+    /* Blindaje: el empleado puro no entra a Usuarios ni Reportes aunque fuerce la URL/nav. */
+    if (isEmpleadoOnly() && EMPLEADO_BLOCKED_VIEWS.indexOf(view) >= 0) view = "dashboard";
     $$("[data-view]").forEach(function (el) {
       if (el.tagName === "SECTION") el.hidden = el.dataset.view !== view;
     });
@@ -1131,14 +1143,33 @@
   function openNav() { document.body.classList.add("is-nav-open"); $("#admin-overlay").hidden = false; }
   function closeNav() { document.body.classList.remove("is-nav-open"); $("#admin-overlay").hidden = true; }
 
+  /* Aplica restricciones de interfaz por rol. El empleado puro:
+     - no ve los accesos del sidebar a Usuarios ni Reportes,
+     - no ve la tarjeta "Ventas (últimos 7 días)" del dashboard.
+     (El backend además bloquea esos endpoints/datos: defensa en profundidad.) */
+  function applyRoleUI() {
+    if (!isEmpleadoOnly()) return;
+    EMPLEADO_BLOCKED_VIEWS.forEach(function (v) {
+      var b = $(".admin-nav__item[data-view='" + v + "']");
+      if (b) { b.hidden = true; b.style.display = "none"; }
+    });
+    var chart = $("#chart-sales");
+    if (chart) {
+      var card = chart.closest(".admin-card");
+      if (card) card.style.display = "none";
+    }
+  }
+
   /* ── Init ── */
   function init() {
     if (!enforceAccess()) return;
     renderUserChip();
+    applyRoleUI();
 
     DataSource.dashboard().then(function (d) {
       renderStats(d.stats);
-      renderSalesChart(d.sales7);
+      /* El empleado puro no ve la gráfica de ventas (tarjeta ya oculta por applyRoleUI). */
+      if (!isEmpleadoOnly()) renderSalesChart(d.sales7);
       renderServiceBars(d.topServices);
       renderUpcoming(d.upcoming);
     });

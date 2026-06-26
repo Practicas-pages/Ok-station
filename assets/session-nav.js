@@ -21,6 +21,9 @@
 
   var roles = u.roles || [];
   var isStaff = roles.indexOf("administrador") >= 0 || roles.indexOf("empleado") >= 0 || roles.indexOf("directivo") >= 0;
+  /* El empleado puro ve "Panel de empleado"; admin/directivo ven "Panel administrativo". */
+  var isEmpOnly = roles.indexOf("empleado") >= 0 && roles.indexOf("administrador") < 0 && roles.indexOf("directivo") < 0;
+  var panelLabel = isEmpOnly ? "Panel de empleado" : "Panel administrativo";
   var first = (u.full_name || "Mi cuenta").trim().split(/\s+/)[0];
   var initial = (u.full_name || "U").trim().charAt(0).toUpperCase();
 
@@ -36,7 +39,7 @@
       '<div class="acct__head"><b>' + esc(u.full_name || "") + '</b><span>' + esc(u.email || "") + '</span></div>' +
       '<a role="menuitem" href="perfil.html">Mi perfil</a>' +
       '<a role="menuitem" href="perfil.html#pedidos">Mis pedidos</a>' +
-      (isStaff ? '<a role="menuitem" href="admin.html" class="acct__admin">Panel administrativo</a>' : '') +
+      (isStaff ? '<a role="menuitem" href="admin.html" class="acct__admin">' + panelLabel + '</a>' : '') +
       '<button role="menuitem" id="acct-logout" type="button">Cerrar sesión</button>' +
     '</div>';
   acct.appendChild(wrap);

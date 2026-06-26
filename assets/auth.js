@@ -296,7 +296,13 @@
     var adminLink = qs("#profile-admin-link");
     if (adminLink) {
       var roles = (u && u.roles) || [];
-      adminLink.hidden = !(roles.indexOf("administrador") >= 0 || roles.indexOf("empleado") >= 0 || roles.indexOf("directivo") >= 0);
+      var staff = roles.indexOf("administrador") >= 0 || roles.indexOf("empleado") >= 0 || roles.indexOf("directivo") >= 0;
+      adminLink.hidden = !staff;
+      if (staff) {
+        /* El empleado puro ve "Panel de empleado"; admin/directivo "Panel administrativo". */
+        var empOnly = roles.indexOf("empleado") >= 0 && roles.indexOf("administrador") < 0 && roles.indexOf("directivo") < 0;
+        adminLink.textContent = "▸ " + (empOnly ? "Panel de empleado" : "Panel administrativo");
+      }
     }
   }
 

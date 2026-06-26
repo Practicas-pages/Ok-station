@@ -36,7 +36,7 @@ INSERT INTO role_permissions (role_id, permission_id)
 SELECT r.id, p.id FROM roles r, permissions p
 WHERE r.slug = 'empleado'
   AND p.slug IN ('orders.view','orders.update_status','orders.edit','orders.notes',
-                 'users.view','users.edit','reviews.moderate','stats.view')
+                 'users.view','users.edit','reviews.moderate')
 ON DUPLICATE KEY UPDATE role_id = role_id;
 
 -- ── Permisos del rol ADMINISTRADOR (todos) ──
