@@ -56,18 +56,10 @@
         var sub = [];
         if (g.dob) sub.push("Nac. " + esc(g.dob));
         if (g.doctype) sub.push(esc(DOCTYPE_LABEL[g.doctype] || g.doctype));
-        var head = '<div class="appt-guest" style="font-size:.82rem">' + (i + 1) + '. <b>' + esc(g.name || "—") + '</b>' +
+        /* Solo nombre + nacimiento/tipo de trámite. Las RESPUESTAS del cuestionario
+           NO se muestran aquí: van únicamente en el expediente (PDF). */
+        return '<div class="appt-guest" style="font-size:.82rem">' + (i + 1) + '. <b>' + esc(g.name || "—") + '</b>' +
           (sub.length ? ' <span style="color:var(--text-muted)">· ' + sub.join(" · ") + '</span>' : '') + '</div>';
-        var ans = g.answers || {}, ak = Object.keys(ans), ansHtml = "";
-        if (ak.length) {
-          ansHtml = '<div class="appt-guest-ans" style="font-size:.76rem;margin:2px 0 6px 14px">' +
-            ak.map(function (k) {
-              var lbl = window.OKQ ? window.OKQ.label(k) : k;
-              var v = window.OKQ ? window.OKQ.valueText(ans[k]) : String(ans[k]);
-              return '<div style="color:var(--text-muted)">• ' + esc(lbl) + ': <b style="color:var(--text-primary)">' + esc(v) + '</b></div>';
-            }).join("") + '</div>';
-        }
-        return head + ansHtml;
       }).join("") + '</div>';
     }
     return html;
