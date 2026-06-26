@@ -24,6 +24,16 @@
 <head>
   <meta charset="UTF-8">
 
+  <!-- ============================================================
+       MODO MANTENIMIENTO — redirección temporal
+       Mientras el sitio está en mantenimiento, index.html reenvía
+       a maintenance.html. Desde ahí, tras validar credenciales, se
+       accede a home.html. Para LANZAR: elimina este bloque (el
+       contenido real ya está sincronizado abajo, listo para producción).
+       ============================================================ -->
+  <script>(function(){ window.location.replace('maintenance.html'); })();</script>
+  <noscript><meta http-equiv="refresh" content="0; url=maintenance.html"></noscript>
+
   <!-- Modo mantenimiento: bloquea el acceso directo sin credenciales válidas -->
   <script src="assets/site-guard.js?v=20260625m"></script>
 
