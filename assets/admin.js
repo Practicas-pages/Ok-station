@@ -554,7 +554,7 @@
         '<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:14px 20px;border-top:1px solid #eef0f4;flex-wrap:wrap">' +
           (waD ? '<a class="btn btn--sm" style="background:#25D366;color:#fff;border-color:#25D366" href="https://wa.me/' + waD + '" target="_blank" rel="noopener">Escribir por WhatsApp</a>' : '<span></span>') +
           '<span style="display:flex;gap:8px">' +
-            (window.OKCitaTicketDownload ? '<button type="button" class="btn btn--light btn--sm" id="appt-modal-pdf">Descargar expediente (PDF)</button>' : '') +
+            (window.OKCitaExpedienteDownload ? '<button type="button" class="btn btn--light btn--sm" id="appt-modal-pdf">Descargar expediente (PDF)</button>' : '') +
             '<button type="button" class="btn btn--primary btn--sm" id="appt-modal-close">Cerrar</button>' +
           '</span>' +
         '</div>' +
@@ -565,7 +565,7 @@
     $("#appt-modal-close", ov).addEventListener("click", closeApptModal);
     var pdfb = $("#appt-modal-pdf", ov);
     if (pdfb) pdfb.addEventListener("click", function () {
-      window.OKCitaTicketDownload({ code: a.code, tramite: a.tramite, passport_subtype: a.passport_subtype, party_size: a.party_size, date: a.date, time: a.time, status: a.status, name: a.contact_name, phone: a.contact_phone, guests: parseGuests(a.guests_json), services: parseGuests(a.services_json) });
+      window.OKCitaExpedienteDownload({ code: a.code, tramite: a.tramite, passport_subtype: a.passport_subtype, party_size: a.party_size, date: a.date, time: a.time, status: a.status, name: a.contact_name, phone: a.contact_phone, guests: parseGuests(a.guests_json), services: parseGuests(a.services_json), files: a.files });
     });
     files.forEach(function (f, idx) { loadApptFileInto(ov, idx, f.id, f.original_name, f.mime_type); });
     document.addEventListener("keydown", apptEscClose);
@@ -1000,7 +1000,7 @@
         var msg = q ? 'No se encontraron citas para “' + esc(apptSearch.trim()) + '”.' : "No hay citas para este filtro.";
         t.innerHTML = head + '<tbody><tr><td colspan="7" style="text-align:center;color:var(--text-muted);padding:24px">' + msg + '</td></tr></tbody>'; return;
       }
-      var canPdf = !!window.OKCitaTicketDownload;
+      var canPdf = !!window.OKCitaExpedienteDownload;
       var body = list.map(function (a, i) {
         var waD = waDigits(a.contact_phone);
         var phoneHtml = a.contact_phone
@@ -1029,7 +1029,7 @@
       $$(".appt-pdf", t).forEach(function (btn) {
         btn.addEventListener("click", function () {
           var a = list[+btn.dataset.i];
-          if (a) window.OKCitaTicketDownload({ code: a.code, tramite: a.tramite, passport_subtype: a.passport_subtype, party_size: a.party_size, date: a.date, time: a.time, status: a.status, name: a.contact_name, phone: a.contact_phone, guests: parseGuests(a.guests_json), services: parseGuests(a.services_json) });
+          if (a) window.OKCitaExpedienteDownload({ code: a.code, tramite: a.tramite, passport_subtype: a.passport_subtype, party_size: a.party_size, date: a.date, time: a.time, status: a.status, name: a.contact_name, phone: a.contact_phone, guests: parseGuests(a.guests_json), services: parseGuests(a.services_json), files: a.files });
         });
       });
       $$(".appt-view", t).forEach(function (btn) {

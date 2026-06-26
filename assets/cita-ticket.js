@@ -330,4 +330,142 @@
     setTimeout(function () { URL.revokeObjectURL(url); }, 60000);
     return true;
   };
+
+  /* ============================================================
+     EXPEDIENTE (PDF para el TRABAJADOR) — distinto del comprobante/ticket.
+     Documento limpio con TODA la información que llenó el cliente de CADA
+     persona de la cita (datos, respuestas del cuestionario y documentos
+     subidos). Sin QR, sin precio, sin datos fiscales: es para operar el trámite.
+     appt: { code, tramite, passport_subtype, party_size, date, time, status,
+             name, phone, guests:[{name,dob,doctype,answers}], files:[...] }
+     ============================================================ */
+  window.OKCitaExpedientePDF = function (appt) {
+    if (!appt || !window.jspdf || !window.jspdf.jsPDF) return null;   /* no requiere QRCode */
+    var doc = new window.jspdf.jsPDF({ unit: "mm", format: "a4" });
+    var PW = 210, x = 16, RIGHT = PW - 16;
+    var blue = [6, 108, 255], dark = [15, 23, 42], muted = [110, 122, 140], rule = [225, 229, 238];
+    var ty, CONTENT_BOTTOM = 280;
+    function two(n) { return (n < 10 ? "0" : "") + n; }
+    function nowStr() { var d = new Date(); return two(d.getDate()) + "/" + two(d.getMonth() + 1) + "/" + d.getFullYear() + " " + two(d.getHours()) + ":" + two(d.getMinutes()); }
+    function needSpace(h) { if (ty + h > CONTENT_BOTTOM) { doc.addPage(); ty = 22; } }
+
+    /* Encabezado sobrio (navy) */
+    doc.setFillColor(10, 31, 77); doc.rect(0, 0, PW, 24, "F");
+    doc.setTextColor(255, 255, 255); doc.setFont("helvetica", "bold"); doc.setFontSize(15); doc.text("OK.station", x, 11);
+    doc.setFont("helvetica", "normal"); doc.setFontSize(10); doc.text("Expediente de la cita", x, 18);
+    doc.setFont("helvetica", "bold"); doc.setFontSize(13); doc.text(String(appt.code || ""), RIGHT, 15, { align: "right" });
+
+    ty = 34;
+    var svcName = SERVICE_NAMES[appt.tramite] || appt.tramite;
+    if (appt.tramite === "pasaporte" && appt.passport_subtype) svcName += " (" + (SUBTYPE[appt.passport_subtype] || appt.passport_subtype) + ")";
+    var nPeople = appt.party_size || (appt.guests && appt.guests.length) || 1;
+    var info = [
+      ["Servicio", svcName],
+      ["Fecha", fmtDate(appt.date) + (appt.time ? "   ·   " + appt.time + " hrs" : "")],
+      ["Personas", String(nPeople)],
+      ["Contacto", (appt.name || "—") + (appt.phone ? "   ·   " + appt.phone : "")],
+    ];
+    doc.setFontSize(10);
+    info.forEach(function (r) {
+      doc.setFont("helvetica", "normal"); doc.setTextColor(muted[0], muted[1], muted[2]); doc.text(r[0], x, ty);
+      doc.setFont("helvetica", "bold"); doc.setTextColor(dark[0], dark[1], dark[2]); doc.text(doc.splitTextToSize(String(r[1]), 135), x + 32, ty);
+      ty += 7;
+    });
+    ty += 1; doc.setDrawColor(rule[0], rule[1], rule[2]); doc.line(x, ty, RIGHT, ty); ty += 9;
+
+    /* Documentos agrupados por persona (guest_index). */
+    var filesByGuest = {};
+    (appt.files || []).forEach(function (f) {
+      var gi = (f.guest_index === 0 || f.guest_index) ? parseInt(f.guest_index, 10) : NaN;
+      if (!isNaN(gi)) (filesByGuest[gi] = filesByGuest[gi] || []).push(f);
+    });
+
+    var guests = (appt.guests && appt.guests.length) ? appt.guests : [{}];
+    doc.setTextColor(blue[0], blue[1], blue[2]); doc.setFont("helvetica", "bold"); doc.setFontSize(12);
+    needSpace(10); doc.text("Información de las personas (" + guests.length + ")", x, ty); ty += 8;
+
+    for (var gi = 0; gi < guests.length; gi++) {
+      var g = guests[gi] || {};
+      needSpace(18);
+      doc.setFont("helvetica", "bold"); doc.setFontSize(11); doc.setTextColor(dark[0], dark[1], dark[2]);
+      doc.text(doc.splitTextToSize((gi + 1) + ".  " + (g.name || "—"), 175), x, ty); ty += 5.5;
+      var sub = [];
+      if (g.dob) sub.push("Nac. " + fmtDate(g.dob));
+      if (g.doctype) sub.push(DOCTYPE[g.doctype] || g.doctype);
+      if (sub.length) { doc.setFont("helvetica", "normal"); doc.setFontSize(9); doc.setTextColor(muted[0], muted[1], muted[2]); doc.text(sub.join("   ·   "), x + 5, ty); ty += 6; }
+
+      /* Respuestas del cuestionario (etiqueta tenue, valor en negrita). */
+      var ans = g.answers || {}, akeys = Object.keys(ans);
+      if (akeys.length) {
+        for (var ai = 0; ai < akeys.length; ai++) {
+          var lbl = window.OKQ ? window.OKQ.label(akeys[ai]) : akeys[ai];
+          var val = window.OKQ ? window.OKQ.valueText(ans[akeys[ai]]) : String(ans[akeys[ai]]);
+          var lblLines = doc.splitTextToSize(lbl, 168);
+          var valLines = doc.splitTextToSize(String(val || "—"), 168);
+          needSpace((lblLines.length + valLines.length) * 4.4 + 3);
+          doc.setFont("helvetica", "normal"); doc.setFontSize(8.5); doc.setTextColor(muted[0], muted[1], muted[2]);
+          doc.text(lblLines, x + 5, ty); ty += lblLines.length * 4.2;
+          doc.setFont("helvetica", "bold"); doc.setFontSize(9.5); doc.setTextColor(dark[0], dark[1], dark[2]);
+          doc.text(valLines, x + 5, ty); ty += valLines.length * 4.6 + 2;
+        }
+      } else {
+        doc.setFont("helvetica", "italic"); doc.setFontSize(9); doc.setTextColor(muted[0], muted[1], muted[2]);
+        doc.text("Sin respuestas capturadas.", x + 5, ty); ty += 6;
+      }
+
+      /* Documentos subidos por esta persona. */
+      var gf = filesByGuest[gi] || [];
+      needSpace(8);
+      doc.setFont("helvetica", "bold"); doc.setFontSize(9); doc.setTextColor(blue[0], blue[1], blue[2]);
+      doc.text("Documentos subidos:", x + 5, ty); ty += 5;
+      if (gf.length) {
+        for (var fi = 0; fi < gf.length; fi++) {
+          var dn = (gf[fi].doc_label || gf[fi].doc_key || "Documento") + (gf[fi].original_name ? "  (" + gf[fi].original_name + ")" : "");
+          var dlines = doc.splitTextToSize("•  " + dn, 163);
+          needSpace(dlines.length * 4.4);
+          doc.setFont("helvetica", "normal"); doc.setFontSize(8.5); doc.setTextColor(dark[0], dark[1], dark[2]);
+          doc.text(dlines, x + 8, ty); ty += dlines.length * 4.4;
+        }
+      } else {
+        doc.setFont("helvetica", "normal"); doc.setFontSize(8.5); doc.setTextColor(muted[0], muted[1], muted[2]);
+        doc.text("Ninguno (el cliente puede traerlos físicos el día de la cita).", x + 8, ty); ty += 5;
+      }
+
+      ty += 4;
+      if (gi < guests.length - 1) { doc.setDrawColor(rule[0], rule[1], rule[2]); doc.line(x, ty, RIGHT, ty); ty += 7; }
+    }
+
+    /* Pie con numeración en todas las páginas. */
+    var total = doc.getNumberOfPages();
+    for (var p = 1; p <= total; p++) {
+      doc.setPage(p);
+      doc.setDrawColor(rule[0], rule[1], rule[2]); doc.line(x, 286, RIGHT, 286);
+      doc.setFont("helvetica", "normal"); doc.setFontSize(8); doc.setTextColor(muted[0], muted[1], muted[2]);
+      doc.text("Expediente generado el " + nowStr() + "  ·  OK.station", x, 291);
+      doc.text("Página " + p + " de " + total, RIGHT, 291, { align: "right" });
+    }
+    return doc.output("datauristring");
+  };
+
+  window.OKCitaExpedienteBlobUrl = function (appt) {
+    var uri = window.OKCitaExpedientePDF(appt);
+    if (!uri) return null;
+    try {
+      var b64 = uri.split(",")[1], bin = atob(b64), len = bin.length, bytes = new Uint8Array(len);
+      for (var i = 0; i < len; i++) bytes[i] = bin.charCodeAt(i);
+      return URL.createObjectURL(new Blob([bytes], { type: "application/pdf" }));
+    } catch (e) { return null; }
+  };
+
+  /** Descarga/visualiza el EXPEDIENTE (datos de las personas) para el trabajador. */
+  window.OKCitaExpedienteDownload = function (appt) {
+    var url = window.OKCitaExpedienteBlobUrl(appt);
+    if (!url) return false;
+    var a = document.createElement("a");
+    a.href = url; a.download = "expediente-" + (appt.code || "okstation") + ".pdf";
+    a.rel = "noopener"; a.target = "_blank";
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(function () { URL.revokeObjectURL(url); }, 60000);
+    return true;
+  };
 })();
