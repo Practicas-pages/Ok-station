@@ -3,6 +3,7 @@
  *  Requiere permiso 'appointments.update_status'. */
 require __DIR__ . '/../_bootstrap.php';
 require __DIR__ . '/../lib/authz.php';
+require __DIR__ . '/../lib/Pricing.php';
 only_method('POST');
 
 $user   = require_permission('appointments.update_status');
@@ -16,6 +17,17 @@ if (!in_array($status, $valid, true)) fail('Estado inválido.');
 
 $a = Appointment::find($id);
 if (!$a) fail('Cita no encontrada.', 404);
+
+/* REGLA: visa y pasaporte (config appt.require_payment) NO se confirman sin el
+   anticipo del 100% pagado. Aplica también a 'completada' (no se completa lo no pagado).
+   Solo si la cita tiene un monto a cobrar (los que se cotizan no quedan bloqueados). */
+if (in_array($status, ['confirmada', 'completada'], true)
+    && Pricing::requiresPayment((string) $a['tramite'])
+    && round((float) ($a['amount_total'] ?? 0), 2) > 0
+    && ($a['payment_status'] ?? 'pendiente') !== 'pagado') {
+    fail('Esta cita de ' . $a['tramite'] . ' requiere el anticipo del 100% pagado antes de confirmarse.', 409,
+        ['reason' => 'payment_required', 'payment_status' => $a['payment_status'] ?? 'pendiente']);
+}
 
 $data = ['status' => $status];
 if ($note !== '') {

@@ -13,19 +13,17 @@
   <link rel="stylesheet" href="assets/auth.css?v=20260625">
   <link rel="stylesheet" href="assets/order.css?v=20260625">
   <style>
-    /* ── Formulario de tarjeta (demo). Reusa .auth-field/.auth-row de auth.css;
+    /* ── Checkout de tarjeta (demo). Reusa .auth-field/.auth-row de auth.css;
        aquí solo lo específico de la tarjeta. Todo con variables del tema. ── */
+    .cc-brands { display: flex; gap: 6px; margin-bottom: 4px; }
+    .cc-brands svg { width: 38px; height: 24px; border: 1px solid var(--border-light); border-radius: 5px; background: #fff; transition: opacity 0.18s, filter 0.18s; }
+    .cc-brands[data-active] svg { opacity: 0.32; filter: grayscale(0.6); }
+    .cc-brands[data-active="visa"]       svg[data-b="visa"],
+    .cc-brands[data-active="mastercard"] svg[data-b="mastercard"],
+    .cc-brands[data-active="amex"]       svg[data-b="amex"],
+    .cc-brands[data-active="discover"]   svg[data-b="discover"] { opacity: 1; filter: none; }
     .cc-input { position: relative; display: flex; align-items: center; }
-    .cc-input input { width: 100%; padding-right: 70px; letter-spacing: 0.04em; font-variant-numeric: tabular-nums; }
-    .cc-brand {
-      position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
-      font-size: 0.68rem; font-weight: 800; letter-spacing: 0.04em; color: var(--text-muted);
-      padding: 3px 7px; border-radius: var(--radius-sm); background: #fff; pointer-events: none; min-height: 16px;
-    }
-    .cc-brand[data-brand="visa"]       { color: #1A1F71; }
-    .cc-brand[data-brand="mastercard"] { color: #EB001B; }
-    .cc-brand[data-brand="amex"]       { color: #2E77BC; }
-    .cc-brand[data-brand="discover"]   { color: #E8731C; }
+    .cc-input input { width: 100%; letter-spacing: 0.04em; font-variant-numeric: tabular-nums; }
     .card-type { display: inline-flex; gap: 6px; }
     .card-type__opt {
       flex: 0 0 auto; padding: 8px 18px; border: 1.5px solid var(--border-light); border-radius: var(--radius-sm);
@@ -36,6 +34,18 @@
     .card-type__opt:focus-visible { outline: 3px solid var(--brand-cyan); outline-offset: 2px; }
     .cc-secure { display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: 10px; font-size: 0.76rem; color: var(--text-muted); }
     .cc-secure svg { width: 13px; height: 13px; flex: 0 0 auto; }
+    /* Spinner del botón mientras procesa. */
+    .cc-spin { display: inline-block; width: 15px; height: 15px; vertical-align: -2px; margin-right: 8px;
+      border: 2px solid rgba(255, 255, 255, 0.45); border-top-color: #fff; border-radius: 50%; animation: cc-rot 0.7s linear infinite; }
+    @keyframes cc-rot { to { transform: rotate(360deg); } }
+    /* Estado de éxito. */
+    #pago-done { text-align: center; padding: 14px 0 6px; }
+    .cc-check { width: 66px; height: 66px; margin: 0 auto 14px; border-radius: 50%; background: #DCFCE7;
+      display: flex; align-items: center; justify-content: center; animation: cc-pop 0.3s ease-out; }
+    .cc-check svg { width: 34px; height: 34px; color: #15803D; stroke-dasharray: 30; stroke-dashoffset: 30; animation: cc-draw 0.4s 0.15s ease-out forwards; }
+    @keyframes cc-pop { from { transform: scale(0.6); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+    @keyframes cc-draw { to { stroke-dashoffset: 0; } }
+    @media (prefers-reduced-motion: reduce) { .cc-spin, .cc-check, .cc-check svg { animation: none; } .cc-check svg { stroke-dashoffset: 0; } }
   </style>
 </head>
 <body class="auth-page">
@@ -61,6 +71,13 @@
         <p style="color:var(--text-muted)">Cargando…</p>
       </div>
 
+      <!-- Estado de éxito (oculto hasta confirmar) -->
+      <div id="pago-done" hidden>
+        <div class="cc-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg></div>
+        <h2 style="margin:0 0 4px;font-size:1.2rem">¡Pago recibido!</h2>
+        <p style="color:var(--text-muted);font-size:0.88rem" id="pago-done-msg">Procesando tu confirmación…</p>
+      </div>
+
       <div id="pago-actions" hidden>
         <form id="pago-form" novalidate autocomplete="on">
           <div id="pago-fields">
@@ -74,9 +91,13 @@
 
             <div class="auth-field">
               <label for="cc-number">Número de tarjeta</label>
+              <div class="cc-brands" id="cc-brands" aria-hidden="true">
+                <svg data-b="visa" viewBox="0 0 48 30"><rect width="48" height="30" rx="4" fill="#fff"/><text x="24" y="20" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-weight="bold" font-style="italic" font-size="13" fill="#1A1F71">VISA</text></svg>
+                <svg data-b="mastercard" viewBox="0 0 48 30"><rect width="48" height="30" rx="4" fill="#fff"/><circle cx="20" cy="15" r="8.5" fill="#EB001B"/><circle cx="28" cy="15" r="8.5" fill="#F79E1B" fill-opacity="0.9"/></svg>
+                <svg data-b="amex" viewBox="0 0 48 30"><rect width="48" height="30" rx="4" fill="#2E77BC"/><text x="24" y="19" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-weight="bold" font-size="9" fill="#fff">AMEX</text></svg>
+              </div>
               <div class="cc-input">
                 <input id="cc-number" type="text" inputmode="numeric" autocomplete="cc-number" maxlength="23" placeholder="1234 5678 9012 3456" aria-describedby="err-number">
-                <span class="cc-brand" id="cc-brand" data-brand="" aria-hidden="true"></span>
               </div>
               <span class="auth-field__error" id="err-number" hidden>Número de tarjeta inválido.</span>
             </div>
@@ -134,7 +155,6 @@
     var statusQS = isAppt ? "appointment_id=" + encodeURIComponent(apptId) : "order_id=" + encodeURIComponent(orderId);
     var backHref = isAppt ? "perfil.html#citas" : "perfil.html#pedidos";
     var noun     = isAppt ? "cita" : "pedido";
-    var payWord  = isAppt ? "anticipo" : "pago";
 
     var summary = $("pago-summary");
     var actions = $("pago-actions");
@@ -192,8 +212,7 @@
       });
     });
 
-    var numEl = $("cc-number"), nameEl = $("cc-name"), expEl = $("cc-exp"), cvvEl = $("cc-cvv"), brandEl = $("cc-brand");
-    var BRAND_LABEL = { visa: "VISA", mastercard: "Mastercard", amex: "AMEX", discover: "Discover" };
+    var numEl = $("cc-number"), nameEl = $("cc-name"), expEl = $("cc-exp"), cvvEl = $("cc-cvv"), brandsEl = $("cc-brands");
 
     function detectBrand(value) {
       var n = (value || "").replace(/\D/g, "");
@@ -240,12 +259,11 @@
       if (f) { if (show) f.setAttribute("aria-invalid", "true"); else f.removeAttribute("aria-invalid"); }
     }
 
-    /* Número: formatea, detecta marca y ajusta el largo del CVV. */
+    /* Número: formatea, resalta la marca y ajusta el largo del CVV. */
     numEl.addEventListener("input", function () {
       var brand = detectBrand(numEl.value);
       numEl.value = formatNumber(numEl.value, brand);
-      brandEl.setAttribute("data-brand", brand);
-      brandEl.textContent = BRAND_LABEL[brand] || "";
+      if (brand) brandsEl.setAttribute("data-active", brand); else brandsEl.removeAttribute("data-active");
       cvvEl.setAttribute("maxlength", brand === "amex" ? "4" : "3");
       cvvEl.setAttribute("placeholder", brand === "amex" ? "1234" : "123");
       setError("cc-number", "err-number", false);
@@ -262,12 +280,13 @@
     nameEl.addEventListener("input", function () { setError("cc-name", "err-name", false); });
 
     function validateAll() {
-      var ok = true;
-      if (!luhnOk(numEl.value))                 { setError("cc-number", "err-number", true); ok = false; }
-      if (nameEl.value.trim().length < 3)       { setError("cc-name", "err-name", true);     ok = false; }
-      if (!validExp(expEl.value))               { setError("cc-exp", "err-exp", true);       ok = false; }
+      var ok = true, firstBad = null;
+      if (!luhnOk(numEl.value))                 { setError("cc-number", "err-number", true); ok = false; firstBad = firstBad || numEl; }
+      if (nameEl.value.trim().length < 3)       { setError("cc-name", "err-name", true);     ok = false; firstBad = firstBad || nameEl; }
+      if (!validExp(expEl.value))               { setError("cc-exp", "err-exp", true);       ok = false; firstBad = firstBad || expEl; }
       var cvvLen = isAmex() ? 4 : 3;
-      if (cvvEl.value.replace(/\D/g, "").length !== cvvLen) { setError("cc-cvv", "err-cvv", true); ok = false; }
+      if (cvvEl.value.replace(/\D/g, "").length !== cvvLen) { setError("cc-cvv", "err-cvv", true); ok = false; firstBad = firstBad || cvvEl; }
+      if (firstBad) try { firstBad.focus(); } catch (e) {}
       return ok;
     }
 
@@ -276,18 +295,29 @@
        demostración solo se confirma el pago por referencia (igual que antes).
        Cuando se integre una pasarela real (Stripe, etc.), aquí se tokeniza la
        tarjeta del lado del proveedor y el cargo se confirma por webhook. */
+    function showSuccess() {
+      summary.style.display = "none";
+      actions.hidden = true;
+      var done = $("pago-done");
+      done.hidden = false;
+      $("pago-done-msg").textContent = isAppt
+        ? "Registramos tu anticipo. Te llevamos a tus citas…"
+        : "Registramos tu pago. Te llevamos a tus pedidos…";
+      setTimeout(function () { location.href = backHref; }, 1300);
+    }
+
     function confirmPayment() {
-      var orig = payBtn.textContent;
-      payBtn.disabled = true; payBtn.textContent = "Procesando…";
+      payBtn.disabled = true;
+      payBtn.innerHTML = '<span class="cc-spin" aria-hidden="true"></span>Procesando…';
       fetch(API + "/payments/sandbox-confirm.php", {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: "Bearer " + token() },
         body: JSON.stringify({ reference: ref, result: "pagado" })
       }).then(function (r) { return r.json(); }).then(function (res) {
-        if (res && res.ok) { location.href = backHref; return; }
-        payBtn.disabled = false; payBtn.textContent = orig;
+        if (res && res.ok) { showSuccess(); return; }
+        payBtn.disabled = false; payBtn.textContent = "Reintentar pago";
         alertBox((res && res.error) || "No se pudo confirmar el pago.");
-      }).catch(function () { payBtn.disabled = false; payBtn.textContent = orig; alertBox("Sin conexión con el servidor."); });
+      }).catch(function () { payBtn.disabled = false; payBtn.textContent = "Reintentar pago"; alertBox("Sin conexión con el servidor."); });
     }
 
     form.addEventListener("submit", function (e) {
