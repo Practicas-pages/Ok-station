@@ -32,7 +32,7 @@
      ============================================================ */
   var GUARD = {
     /* true = modo mantenimiento activo | false = sitio público */
-    MAINTENANCE_MODE: false,
+    MAINTENANCE_MODE: true,
 
     /* Claves del JWT en localStorage.
        JWT_KEY  = la que usa maintenance.html (gate de mantenimiento).
