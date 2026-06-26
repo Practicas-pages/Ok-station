@@ -116,7 +116,13 @@
       setLoading(btn, true);
       api("login.php", "POST", payload).then(function (res) {
         setLoading(btn, false, "Iniciar sesión");
-        if (res.body.ok) { setSession(res.body.token, res.body.user); window.location.href = "perfil.html"; }
+        if (res.body.ok) {
+          setSession(res.body.token, res.body.user);
+          /* El staff (empleado/administrador/directivo) entra directo a su panel; el cliente, a su perfil. */
+          var roles = (res.body.user && res.body.user.roles) || [];
+          var staff = roles.indexOf("administrador") >= 0 || roles.indexOf("empleado") >= 0 || roles.indexOf("directivo") >= 0;
+          window.location.href = staff ? "admin.html" : "perfil.html";
+        }
         else showAlert(box, "error", res.body.error || "No se pudo iniciar sesión.");
       });
     });
