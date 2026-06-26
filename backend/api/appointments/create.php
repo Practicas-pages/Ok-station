@@ -262,10 +262,12 @@ respond([
         'services' => $cleanServices,
         'date' => $date, 'time' => $time, 'status' => 'pendiente',
         /* Cobro del anticipo: 'payable' indica si tiene precio fijo (se puede pagar
-           en línea). Si se cotiza, queda en false y el anticipo se coordina aparte. */
-        'amount_total'   => $pricing['quote'] ? null : $pricing['total'],
-        'payable'        => !$pricing['quote'],
-        'payment_status' => 'pendiente',
-        'logged_in'      => ($userId !== null),
+           en línea). Si se cotiza, queda en false y el anticipo se coordina aparte.
+           'requires_payment' → trámite (visa/pasaporte) que NO se confirma sin anticipo. */
+        'amount_total'     => $pricing['quote'] ? null : $pricing['total'],
+        'payable'          => !$pricing['quote'],
+        'requires_payment' => Pricing::requiresPayment($tramite),
+        'payment_status'   => 'pendiente',
+        'logged_in'        => ($userId !== null),
     ],
 ], 201);

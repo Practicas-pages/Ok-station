@@ -1,9 +1,11 @@
 <?php
-/** GET /backend/api/admin/users.php — lista de usuarios REAL. Requiere staff. */
+/** GET /backend/api/admin/users.php — lista de usuarios REAL.
+ *  Solo administrador/directivo. El empleado NO gestiona usuarios
+ *  (sí puede ver el resumen puntual de un cliente vía user-detail.php). */
 require __DIR__ . '/../_bootstrap.php';
 require __DIR__ . '/../lib/authz.php';
 only_method('GET');
-require_role(['empleado', 'administrador', 'directivo']);
+require_role(['administrador', 'directivo']);
 
 $rows = db()->query(
     "SELECT u.id, u.full_name AS name, u.email, u.phone, u.is_active AS active, DATE(u.created_at) AS joined,

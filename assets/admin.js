@@ -205,6 +205,7 @@
     reviews:  function () { return DEMO ? Promise.resolve(MOCK.reviews)  : apiGet("/admin/reviews.php").then(function (j) { return j.reviews || []; }); },
     moderateReview: function (id, action) { return DEMO ? Promise.resolve({ ok: true }) : apiPost("/admin/review-moderate.php", { id: id, action: action }); },
     toggleUser: function (id, active) { return DEMO ? Promise.resolve({ ok: true }) : apiPost("/admin/user-toggle.php", { id: id, active: active }); },
+    setUserRole: function (id, role) { return DEMO ? Promise.resolve({ ok: true }) : apiPost("/admin/user-role.php", { id: id, role: role }); },
     appointments: function (status, date) {
       if (DEMO) return Promise.resolve(MOCK.appointments.filter(function (a) {
         return (!status || a.status === status) && (!date || a.date === date);
@@ -268,6 +269,14 @@
   }
   /* El directivo tiene acceso total (igual que un administrador). */
   function isDirectivo() { return accessRoles().indexOf("directivo") >= 0; }
+  /* Empleado "puro": tiene rol empleado pero NO administrador ni directivo.
+     Estos no ven Usuarios, Reportes, ni datos financieros (ventas/usuarios). */
+  function isEmpleadoOnly() {
+    var r = accessRoles();
+    return r.indexOf("empleado") >= 0 && r.indexOf("administrador") < 0 && r.indexOf("directivo") < 0;
+  }
+  /* Vistas restringidas para empleado puro (se ocultan en el sidebar y se bloquean). */
+  var EMPLEADO_BLOCKED_VIEWS = ["usuarios", "reportes"];
   function enforceAccess() {
     if (DEMO) return true;             // demo: se permite ver el panel
     if (!token()) { window.location.href = "cuenta.html"; return false; }
@@ -292,11 +301,13 @@
 
   function renderStats(s) {
     var cards = [
-      { label: "Pedidos totales", value: s.orders, delta: s.dOrders, color: "var(--brand-blue)", bg: "var(--brand-blue-light)", icon: '<path d="M6 2h9l5 5v13a2 2 0 01-2 2H6a2 2 0 01-2-2V4a2 2 0 012-2z"/>' },
-      { label: "Ventas del mes", value: mxn(s.sales), delta: s.dSales, color: "#15803D", bg: "#DCFCE7", icon: '<line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/>' },
-      { label: "Usuarios", value: s.users, delta: s.dUsers, color: "#7C3AED", bg: "#F3E8FF", icon: '<path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/>' },
-      { label: "Pendientes", value: s.pending, delta: s.dPending, color: "#B45309", bg: "#FEF3C7", icon: '<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>' }
+      { key: "orders", label: "Pedidos totales", value: s.orders, delta: s.dOrders, color: "var(--brand-blue)", bg: "var(--brand-blue-light)", icon: '<path d="M6 2h9l5 5v13a2 2 0 01-2 2H6a2 2 0 01-2-2V4a2 2 0 012-2z"/>' },
+      { key: "sales", label: "Ventas del mes", value: mxn(s.sales), delta: s.dSales, color: "#15803D", bg: "#DCFCE7", icon: '<line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/>' },
+      { key: "users", label: "Usuarios", value: s.users, delta: s.dUsers, color: "#7C3AED", bg: "#F3E8FF", icon: '<path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/>' },
+      { key: "pending", label: "Pendientes", value: s.pending, delta: s.dPending, color: "#B45309", bg: "#FEF3C7", icon: '<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>' }
     ];
+    /* El empleado puro no ve ni Ventas del mes ni Usuarios. */
+    if (isEmpleadoOnly()) cards = cards.filter(function (c) { return c.key !== "sales" && c.key !== "users"; });
     $("#stat-grid").innerHTML = cards.map(function (c) {
       var up = c.delta >= 0;
       return '<div class="stat-card">' +
@@ -790,20 +801,38 @@
     });
   }
   var userSearch = "";
+  /* Rol "principal" a partir de la lista de roles (string CSV o arreglo). */
+  function primaryRole(roles) {
+    var arr = Array.isArray(roles) ? roles : String(roles || "").split(",");
+    arr = arr.map(function (s) { return String(s).trim(); });
+    if (arr.indexOf("directivo") >= 0) return "directivo";
+    if (arr.indexOf("administrador") >= 0) return "administrador";
+    if (arr.indexOf("empleado") >= 0) return "empleado";
+    return "cliente";
+  }
+  var ROLE_OPTS = [["cliente", "Cliente"], ["empleado", "Empleado"], ["administrador", "Administrador"], ["directivo", "Directivo"]];
+  function roleSelectHtml(current, disabled) {
+    return '<select class="role-select"' + (disabled ? " disabled title=\"No puedes cambiar tu propio rol\"" : "") + '>' +
+      ROLE_OPTS.map(function (o) { return '<option value="' + o[0] + '"' + (o[0] === current ? " selected" : "") + '>' + o[1] + '</option>'; }).join("") +
+      '</select>';
+  }
   function renderUsers() {
-    var head = '<thead><tr><th>Nombre</th><th>Correo</th><th>Teléfono</th><th>Pedidos</th><th>Estado</th><th>Alta</th><th></th></tr></thead>';
+    var head = '<thead><tr><th>Nombre</th><th>Correo</th><th>Teléfono</th><th>Pedidos</th><th>Rol</th><th>Estado</th><th>Alta</th><th></th></tr></thead>';
+    var meId = String((cachedUser() || {}).id || "");
     DataSource.users().then(function (list) {
       var q = (userSearch || "").trim().toLowerCase();
       if (q) list = list.filter(function (u) {
         return (String(u.name || "") + " " + String(u.email || "") + " " + String(u.phone || "")).toLowerCase().indexOf(q) >= 0;
       });
       if (!list.length) {
-        $("#users-table").innerHTML = head + '<tbody><tr><td colspan="7" style="text-align:center;color:var(--text-muted);padding:24px">' + (q ? 'No se encontraron usuarios para “' + esc(userSearch.trim()) + '”.' : "No hay usuarios.") + '</td></tr></tbody>';
+        $("#users-table").innerHTML = head + '<tbody><tr><td colspan="8" style="text-align:center;color:var(--text-muted);padding:24px">' + (q ? 'No se encontraron usuarios para “' + esc(userSearch.trim()) + '”.' : "No hay usuarios.") + '</td></tr></tbody>';
         return;
       }
       var body = list.map(function (u) {
         var active = +u.active ? 1 : 0;
+        var isSelf = String(u.id) === meId;
         return '<tr><td><b>' + esc(u.name) + '</b></td><td>' + esc(u.email) + '</td><td>' + esc(u.phone) + '</td><td>' + (u.orders || 0) + '</td>' +
+          '<td data-urole="' + esc(u.id) + '">' + roleSelectHtml(primaryRole(u.roles), isSelf) + '</td>' +
           '<td><span class="badge badge--' + (active ? "listo" : "cancelado") + '">' + (active ? "Activo" : "Inactivo") + '</span></td>' +
           '<td>' + esc(u.joined) + '</td><td><button class="admin-btn-sm" data-uview="' + esc(u.id) + '">Historial</button> ' +
           '<button class="admin-btn-sm" data-utoggle="' + esc(u.id) + '" data-active="' + (active ? 0 : 1) + '">' + (active ? "Desactivar" : "Reactivar") + '</button></td></tr>';
@@ -814,6 +843,17 @@
       });
       $$("[data-uview]", t).forEach(function (b) {
         b.addEventListener("click", function () { viewUser(b.dataset.uview); });
+      });
+      /* Cambiar rol: el backend mantiene 'cliente' y aplica salvaguardas. */
+      $$("[data-urole] .role-select", t).forEach(function (sel) {
+        sel.addEventListener("change", function () {
+          var id = sel.parentNode.getAttribute("data-urole");
+          sel.disabled = true;
+          DataSource.setUserRole(id, sel.value).then(function (j) {
+            if (!j || !j.ok) window.alert((j && (j.error || j.message)) || "No se pudo cambiar el rol.");
+            renderUsers();
+          }).catch(function () { window.alert("Sin conexión al cambiar el rol."); renderUsers(); });
+        });
       });
     });
   }
@@ -1110,6 +1150,8 @@
   var TITLES = { dashboard: "Dashboard", pedidos: "Pedidos", citas: "Citas", usuarios: "Usuarios", servicios: "Servicios", resenas: "Reseñas", reportes: "Reportes" };
   var rendered = {};
   function showView(view) {
+    /* Blindaje: el empleado puro no entra a Usuarios ni Reportes aunque fuerce la URL/nav. */
+    if (isEmpleadoOnly() && EMPLEADO_BLOCKED_VIEWS.indexOf(view) >= 0) view = "dashboard";
     $$("[data-view]").forEach(function (el) {
       if (el.tagName === "SECTION") el.hidden = el.dataset.view !== view;
     });
@@ -1131,14 +1173,33 @@
   function openNav() { document.body.classList.add("is-nav-open"); $("#admin-overlay").hidden = false; }
   function closeNav() { document.body.classList.remove("is-nav-open"); $("#admin-overlay").hidden = true; }
 
+  /* Aplica restricciones de interfaz por rol. El empleado puro:
+     - no ve los accesos del sidebar a Usuarios ni Reportes,
+     - no ve la tarjeta "Ventas (últimos 7 días)" del dashboard.
+     (El backend además bloquea esos endpoints/datos: defensa en profundidad.) */
+  function applyRoleUI() {
+    if (!isEmpleadoOnly()) return;
+    EMPLEADO_BLOCKED_VIEWS.forEach(function (v) {
+      var b = $(".admin-nav__item[data-view='" + v + "']");
+      if (b) { b.hidden = true; b.style.display = "none"; }
+    });
+    var chart = $("#chart-sales");
+    if (chart) {
+      var card = chart.closest(".admin-card");
+      if (card) card.style.display = "none";
+    }
+  }
+
   /* ── Init ── */
   function init() {
     if (!enforceAccess()) return;
     renderUserChip();
+    applyRoleUI();
 
     DataSource.dashboard().then(function (d) {
       renderStats(d.stats);
-      renderSalesChart(d.sales7);
+      /* El empleado puro no ve la gráfica de ventas (tarjeta ya oculta por applyRoleUI). */
+      if (!isEmpleadoOnly()) renderSalesChart(d.sales7);
       renderServiceBars(d.topServices);
       renderUpcoming(d.upcoming);
     });

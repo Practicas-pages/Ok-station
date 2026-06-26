@@ -168,6 +168,7 @@
       .then(function (r) { return r.json(); })
       .then(function (j) {
         if (j && j.ok && j.prices) window.OK_APPT_PRICES = j.prices;
+        if (j && j.require_payment) window.OK_APPT_REQUIRE_PAY = j.require_payment;
         if (j && j.tax_rate) CITA_TAX = +j.tax_rate;
       })
       .catch(function () {});

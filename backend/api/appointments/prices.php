@@ -9,8 +9,9 @@ require __DIR__ . '/../lib/Pricing.php';
 only_method('GET');
 
 respond([
-    'ok'       => true,
-    'prices'   => Pricing::apptPrices(),   // { "pasaporte_mexicano":200, "visa":800, ... }
-    'currency' => 'MXN',
-    'tax_rate' => Pricing::taxRate(),
+    'ok'              => true,
+    'prices'          => Pricing::apptPrices(),          // { "pasaporte_mexicano":200, "visa":800, ... }
+    'require_payment' => Pricing::apptRequirePayment(),  // ["visa","pasaporte"]
+    'currency'        => 'MXN',
+    'tax_rate'        => Pricing::taxRate(),
 ]);

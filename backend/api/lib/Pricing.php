@@ -96,6 +96,33 @@ final class Pricing
         return $tramite;
     }
 
+    /** Trámites que EXIGEN anticipo del 100% para confirmar (default: visa, pasaporte). */
+    const APPT_REQUIRE_PAYMENT_DEFAULTS = ['visa', 'pasaporte'];
+
+    /** Lista vigente de trámites que exigen anticipo (settings appt.require_payment). */
+    public static function apptRequirePayment(): array
+    {
+        $row = db()->query("SELECT `value` FROM settings WHERE `key`='appt.require_payment'")->fetch();
+        if ($row) {
+            $j = json_decode((string) $row['value'], true);
+            if (is_array($j)) {
+                $out = [];
+                foreach ($j as $t) {
+                    $t = preg_replace('/[^a-z0-9_]/i', '', (string) $t);
+                    if ($t !== '') $out[] = $t;
+                }
+                return $out;   // puede ser [] si el admin lo vacía (nadie exige anticipo)
+            }
+        }
+        return self::APPT_REQUIRE_PAYMENT_DEFAULTS;
+    }
+
+    /** ¿Este trámite exige el anticipo del 100% para poder confirmar la cita? */
+    public static function requiresPayment(string $tramite): bool
+    {
+        return in_array($tramite, self::apptRequirePayment(), true);
+    }
+
     /**
      * Precio de una cita según trámite + subtipo + personas.
      * Devuelve ['quote'=>bool, 'unit'=>?float, 'party'=>int, 'total'=>?float].

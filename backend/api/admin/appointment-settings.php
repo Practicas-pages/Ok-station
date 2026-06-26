@@ -13,7 +13,7 @@ $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
 
 if ($method === 'GET') {
     require_permission('appointments.view');
-    respond(['ok' => true, 'config' => Availability::config(), 'prices' => Pricing::apptPrices()]);
+    respond(['ok' => true, 'config' => Availability::config(), 'prices' => Pricing::apptPrices(), 'require_payment' => Pricing::apptRequirePayment()]);
 }
 
 if ($method === 'POST') {
@@ -60,8 +60,19 @@ if ($method === 'POST') {
         $set->execute(['appt.prices', json_encode($clean, JSON_UNESCAPED_UNICODE)]);
     }
 
+    /* Trámites que exigen anticipo para confirmar (lista de claves de trámite). */
+    if (isset($b['require_payment']) && is_array($b['require_payment'])) {
+        $rp = [];
+        foreach ($b['require_payment'] as $t) {
+            $t = preg_replace('/[^a-z0-9_]/i', '', (string) $t);
+            if ($t !== '' && !in_array($t, $rp, true)) $rp[] = $t;
+            if (count($rp) >= 20) break;
+        }
+        $set->execute(['appt.require_payment', json_encode($rp, JSON_UNESCAPED_UNICODE)]);
+    }
+
     log_activity((int) $user['id'], 'appointments.settings_updated', 'settings', null);
-    respond(['ok' => true, 'config' => Availability::config(), 'prices' => Pricing::apptPrices()]);
+    respond(['ok' => true, 'config' => Availability::config(), 'prices' => Pricing::apptPrices(), 'require_payment' => Pricing::apptRequirePayment()]);
 }
 
 fail('Método no permitido.', 405);

@@ -65,18 +65,25 @@
              cita no está cancelada/no asistió. Estado de pago según payment_status. */
           var amount = (a.amount_total != null && +a.amount_total > 0) ? +a.amount_total : 0;
           var closed = (a.status === "cancelada" || a.status === "no_show");
+          /* Visa/pasaporte: el anticipo es REQUISITO para confirmar la cita. */
+          var requiresPay = (window.OK_APPT_REQUIRE_PAY || ["visa", "pasaporte"]).indexOf(a.tramite) >= 0;
+          var unpaid = (a.payment_status !== "pagado");
           var payHtml = "";
           if (amount > 0 && !closed) {
             if (a.payment_status === "pagado") {
               payHtml = '<span class="opay opay--pagado">Anticipo pagado</span>';
             } else {
-              var lbl = (a.payment_status === "procesando") ? "Continuar pago" : ("Pagar anticipo · " + mxn(amount));
+              var lbl = (a.payment_status === "procesando") ? "Continuar pago"
+                      : ((requiresPay ? "Pagar para confirmar · " : "Pagar anticipo · ") + mxn(amount));
               payHtml = '<button type="button" class="btn btn--primary btn--sm cita-pay" data-i="' + i + '">' + esc(lbl) + '</button>';
             }
           }
+          /* Aviso cuando falta el anticipo obligatorio (visa/pasaporte sin pagar). */
+          var warn = (requiresPay && amount > 0 && !closed && unpaid)
+            ? ' · <span style="color:#B45309;font-weight:600">Falta anticipo para confirmar</span>' : '';
           return '<div class="order-row">' +
             '<div><div class="order-row__code">' + esc(a.code) + '</div>' +
-            '<div class="order-row__meta">' + svc + ppl + ' · ' + esc(a.date) + ' · ' + esc(a.time) + ' hrs · creada ' + String(a.created_at).slice(0, 10) + '</div></div>' +
+            '<div class="order-row__meta">' + svc + ppl + ' · ' + esc(a.date) + ' · ' + esc(a.time) + ' hrs · creada ' + String(a.created_at).slice(0, 10) + warn + '</div></div>' +
             '<div class="order-row__actions">' +
               '<span class="ostatus ostatus--' + esc(a.status) + '">' + (LABELS[a.status] || a.status) + '</span>' +
               payHtml +

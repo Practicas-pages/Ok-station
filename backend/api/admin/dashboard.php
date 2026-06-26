@@ -3,15 +3,18 @@
 require __DIR__ . '/../_bootstrap.php';
 require __DIR__ . '/../lib/authz.php';
 only_method('GET');
-require_role(['empleado', 'administrador', 'directivo']);
+$me = require_role(['empleado', 'administrador', 'directivo']);
+// Solo quien tiene 'stats.view' (administrador/directivo) ve ventas, usuarios y la
+// gráfica. El empleado recibe esos campos en 0/[] — no se filtra información financiera.
+$canSeeMoney = user_has_permission((int) $me['id'], 'stats.view');
 
 $pdo = db();
 $num = function (string $sql) use ($pdo) { return $pdo->query($sql)->fetch(); };
 
 $ordersTotal = (int) $num("SELECT COUNT(*) c FROM orders")['c'];
 $pending     = (int) $num("SELECT COUNT(*) c FROM orders WHERE status IN ('recibido','en_revision')")['c'];
-$usersTotal  = (int) $num("SELECT COUNT(*) c FROM users")['c'];
-$salesMonth  = (float) $num("SELECT COALESCE(SUM(total),0) s FROM orders WHERE status = 'entregado' AND created_at >= DATE_FORMAT(NOW(),'%Y-%m-01')")['s'];
+$usersTotal  = $canSeeMoney ? (int) $num("SELECT COUNT(*) c FROM users")['c'] : 0;
+$salesMonth  = $canSeeMoney ? (float) $num("SELECT COALESCE(SUM(total),0) s FROM orders WHERE status = 'entregado' AND created_at >= DATE_FORMAT(NOW(),'%Y-%m-01')")['s'] : 0;
 
 // Deltas mes actual vs mes anterior
 $oCur = (int) $num("SELECT COUNT(*) c FROM orders WHERE created_at >= DATE_FORMAT(NOW(),'%Y-%m-01')")['c'];
@@ -21,16 +24,18 @@ $uCur = (int) $num("SELECT COUNT(*) c FROM users WHERE created_at >= DATE_FORMAT
 $uPre = (int) $num("SELECT COUNT(*) c FROM users WHERE created_at >= DATE_FORMAT(NOW() - INTERVAL 1 MONTH,'%Y-%m-01') AND created_at < DATE_FORMAT(NOW(),'%Y-%m-01')")['c'];
 $pct = function ($cur, $pre) { if ($pre <= 0) return $cur > 0 ? 100 : 0; return (int) round((($cur - $pre) / $pre) * 100); };
 
-// Ventas de los últimos 7 días
-$byDate = [];
-foreach ($pdo->query("SELECT DATE(created_at) d, COALESCE(SUM(total),0) v FROM orders WHERE status = 'entregado' AND created_at >= DATE_SUB(CURDATE(), INTERVAL 6 DAY) GROUP BY DATE(created_at)")->fetchAll() as $r) {
-    $byDate[$r['d']] = (float) $r['v'];
-}
-$dow = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+// Ventas de los últimos 7 días (solo para quien ve montos)
 $sales7 = [];
-for ($i = 6; $i >= 0; $i--) {
-    $ts = strtotime("-$i day");
-    $sales7[] = ['d' => $dow[(int) date('w', $ts)], 'v' => $byDate[date('Y-m-d', $ts)] ?? 0];
+if ($canSeeMoney) {
+    $byDate = [];
+    foreach ($pdo->query("SELECT DATE(created_at) d, COALESCE(SUM(total),0) v FROM orders WHERE status = 'entregado' AND created_at >= DATE_SUB(CURDATE(), INTERVAL 6 DAY) GROUP BY DATE(created_at)")->fetchAll() as $r) {
+        $byDate[$r['d']] = (float) $r['v'];
+    }
+    $dow = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+    for ($i = 6; $i >= 0; $i--) {
+        $ts = strtotime("-$i day");
+        $sales7[] = ['d' => $dow[(int) date('w', $ts)], 'v' => $byDate[date('Y-m-d', $ts)] ?? 0];
+    }
 }
 
 // Tamaños más solicitados (desde la config de cada ítem)
@@ -69,7 +74,9 @@ respond([
     'ok' => true,
     'stats' => [
         'orders' => $ordersTotal, 'sales' => $salesMonth, 'users' => $usersTotal, 'pending' => $pending,
-        'dOrders' => $pct($oCur, $oPre), 'dSales' => $pct((int) $salesMonth, (int) $sPre), 'dUsers' => $pct($uCur, $uPre), 'dPending' => 0,
+        'dOrders' => $pct($oCur, $oPre), 'dPending' => 0,
+        'dSales' => $canSeeMoney ? $pct((int) $salesMonth, (int) $sPre) : 0,
+        'dUsers' => $canSeeMoney ? $pct($uCur, $uPre) : 0,
         'appointments' => $apptUpcoming,
     ],
     'sales7' => $sales7,
