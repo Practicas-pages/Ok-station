@@ -28,7 +28,10 @@ INSERT INTO permissions (slug, name) VALUES
   ('reviews.moderate',       'Moderar reseñas'),
   ('settings.manage',        'Gestionar configuración'),
   ('employees.manage',       'Gestionar empleados'),
-  ('stats.view',             'Ver estadísticas')
+  ('stats.view',             'Ver estadísticas'),
+  ('appointments.view',          'Ver citas'),
+  ('appointments.update_status', 'Actualizar estado de citas'),
+  ('appointments.manage',        'Gestionar disponibilidad de citas')
 ON DUPLICATE KEY UPDATE name = VALUES(name);
 
 -- ── Permisos del rol EMPLEADO ──
@@ -36,6 +39,7 @@ INSERT INTO role_permissions (role_id, permission_id)
 SELECT r.id, p.id FROM roles r, permissions p
 WHERE r.slug = 'empleado'
   AND p.slug IN ('orders.view','orders.update_status','orders.edit','orders.notes',
+                 'appointments.view','appointments.update_status',
                  'users.view','users.edit','reviews.moderate')
 ON DUPLICATE KEY UPDATE role_id = role_id;
 
