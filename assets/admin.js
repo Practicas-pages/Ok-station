@@ -470,19 +470,15 @@
 
     var guestsHtml = "";
     if (guestList.length) {
-      guestsHtml = '<h4 style="margin:16px 0 8px;font-size:.95rem">Personas, requisitos y documentos</h4>' +
+      /* Las RESPUESTAS del cuestionario ya NO se muestran aquí: van en el
+         expediente (PDF). En el panel solo dejamos a cada persona y sus
+         documentos (que el trabajador puede ver y descargar). */
+      guestsHtml = '<h4 style="margin:16px 0 4px;font-size:.95rem">Personas y documentos</h4>' +
+        '<p style="margin:0 0 10px;font-size:.8rem;color:var(--text-muted,#6b7280)">Las respuestas del cuestionario están en el <b>expediente (PDF)</b> — botón de abajo.</p>' +
         guestList.map(function (g, i) {
           var meta = [];
           if (g.dob) meta.push("Nac. " + esc(g.dob));
           if (g.doctype) meta.push(esc(DOCTYPE_LABEL[g.doctype] || g.doctype));
-          var ans = g.answers || {}, ak = Object.keys(ans);
-          var kvHtml = ak.length
-            ? '<div class="kv">' + ak.map(function (k) {
-                var lbl = window.OKQ ? window.OKQ.label(k) : k;
-                var v = window.OKQ ? window.OKQ.valueText(ans[k]) : String(ans[k]);
-                return '<div class="kv__row"><span class="kv__k">' + esc(lbl) + '</span><span class="kv__v">' + esc(v || "—") + '</span></div>';
-              }).join("") + '</div>'
-            : '<div class="kv__empty">Sin respuestas capturadas.</div>';
           var gFiles = filesByGuest[i] || [];
           var docsHtml = '<div class="guest-docs">' +
             '<div class="guest-docs__title">📎 Documentos subidos (' + gFiles.length + ')</div>' +
@@ -492,7 +488,7 @@
           return '<div class="guest-card">' +
             '<div class="guest-card__head">' + (i + 1) + '. ' + esc(g.name || "—") +
               (meta.length ? '<span class="guest-card__meta">· ' + meta.join(" · ") + '</span>' : '') + '</div>' +
-            kvHtml + docsHtml + '</div>';
+            docsHtml + '</div>';
         }).join("");
     }
 

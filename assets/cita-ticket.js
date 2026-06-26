@@ -235,41 +235,10 @@
       ty += 8;
     });
 
-    /* ── Datos de cada persona (requisitos + respuestas del cuestionario del trámite) ──
-       Con saltos de página automáticos para que NUNCA se trunque la información
-       (los trabajadores la necesitan completa). El pie se dibuja en la última página. */
-    var guests = (appt.guests && appt.guests.length) ? appt.guests : null;
+    /* El detalle por persona (datos del cuestionario) NO va en el comprobante:
+       este es el RECIBO del cliente. Toda esa información va en el EXPEDIENTE
+       (window.OKCitaExpedientePDF), que descarga el trabajador desde el panel. */
     function needSpace(h) { if (ty + h > FOOTER_TOP) { doc.addPage(); ty = 22; } }
-    if (guests) {
-      ty += 3; needSpace(14);
-      doc.setTextColor(blue[0], blue[1], blue[2]); doc.setFont("helvetica", "bold"); doc.setFontSize(12);
-      doc.text("Datos de las personas", x, ty); ty += 7;
-      for (var gi = 0; gi < guests.length; gi++) {
-        var g = guests[gi] || {};
-        var dt = g.doctype ? (DOCTYPE[g.doctype] || g.doctype) : "";
-        var sub = [];
-        if (g.dob) sub.push("Nac. " + fmtDate(g.dob));
-        if (dt) sub.push(dt);
-        needSpace(12);
-        doc.setFont("helvetica", "bold"); doc.setFontSize(10.5); doc.setTextColor(dark[0], dark[1], dark[2]);
-        doc.text(doc.splitTextToSize((gi + 1) + ". " + (g.name || "—"), 170), x, ty); ty += 5;
-        if (sub.length) {
-          doc.setFont("helvetica", "normal"); doc.setFontSize(9); doc.setTextColor(muted[0], muted[1], muted[2]);
-          doc.text(sub.join("  ·  "), x + 5, ty); ty += 5;
-        }
-        var ans = g.answers || {};
-        var akeys = Object.keys(ans);
-        for (var ai = 0; ai < akeys.length; ai++) {
-          var lbl = (window.OKQ ? window.OKQ.label(akeys[ai]) : akeys[ai]);
-          var valTxt = (window.OKQ ? window.OKQ.valueText(ans[akeys[ai]]) : String(ans[akeys[ai]]));
-          var lines = doc.splitTextToSize("• " + lbl + ": " + valTxt, 165);
-          needSpace(lines.length * 4.2 + 1);
-          doc.setFont("helvetica", "normal"); doc.setFontSize(8.5); doc.setTextColor(muted[0], muted[1], muted[2]);
-          doc.text(lines, x + 5, ty); ty += lines.length * 4.2;
-        }
-        ty += 3;
-      }
-    }
 
     /* ── Servicios adicionales seleccionados (venta cruzada) ── */
     var services = (appt.services && appt.services.length) ? appt.services : null;
