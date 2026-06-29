@@ -5530,6 +5530,34 @@ html, body, #top { background: #FFFFFF !important; }
   border-color: transparent;
 }
 .citas-section .time-grid__empty { color: var(--text-muted) !important; }
+
+/* Contenido dinámico del wizard (requisitos, documentos, upsell, extras,
+   contador) que estaba en blanco para el fondo oscuro → texto oscuro legible.
+   Se mantiene blanco SOLO donde hay fondo de marca (check, día seleccionado,
+   botones primarios). */
+.cita-reqs__head { color: var(--text-primary) !important; }
+.cita-reqs__note,
+.cita-reqs__list li { color: var(--text-secondary) !important; }
+.cita-extra { color: var(--text-secondary) !important; }
+.cita-extra__label { color: var(--text-muted) !important; }
+.cita-extra__chip {
+  background: var(--brand-blue-light) !important;
+  color: var(--brand-blue) !important;
+}
+.party-counter .qty-val { color: var(--text-primary) !important; }
+.persona-docs__sub,
+.cita-docs__empty,
+.cita-docs__sub,
+.upsell-row__q { color: var(--text-secondary) !important; }
+.cita-upsell__title { color: var(--text-primary) !important; }
+/* Resumen de reseñas (sección testimonios, ahora sobre blanco) */
+.rating-summary__label,
+.rating-summary__count { color: var(--text-secondary) !important; }
+.rating-summary__score { color: var(--text-primary) !important; }
+/* Mensaje "aún no hay reseñas" y lead de Visítanos (sobre blanco) */
+.reviews-empty { color: var(--text-muted) !important; }
+#visitanos .text-lead { color: var(--text-secondary) !important; }
+
 /* Calendario: días y textos legibles sobre blanco */
 .citas-section .okcal__grid,
 .citas-section .okcal__grid button,
