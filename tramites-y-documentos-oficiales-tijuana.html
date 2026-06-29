@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<!-- OK.station — Página de servicio: Documentos oficiales y trámites. Mismo design system que index/home. -->
+<html lang="es-MX">
+<head>
+  <meta charset="UTF-8">
+  <script src="assets/site-guard.js?v=20260625m"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+
+  <title>Documentos Oficiales y Trámites en Tijuana (INE, CURP, RFC, Actas) | OK.station</title>
+  <meta name="description" content="Imprimimos tus documentos oficiales en Tijuana: INE, CURP, constancia RFC, semanas cotizadas IMSS, número de seguro social, certificados y actas de nacimiento. Centro Comercial Otay.">
+  <meta name="author" content="OK.station — OK Dock">
+  <meta name="robots" content="index, follow, max-image-preview:large">
+  <meta name="theme-color" content="#066CFF">
+  <meta name="geo.region" content="MX-BCN">
+  <meta name="geo.placename" content="Tijuana, Baja California">
+  <meta name="geo.position" content="32.5360;-116.9690">
+  <meta name="ICBM" content="32.5360, -116.9690">
+  <link rel="canonical" href="https://okstation.mx/tramites-y-documentos-oficiales-tijuana.html">
+
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="OK.station">
+  <meta property="og:locale" content="es_MX">
+  <meta property="og:title" content="Documentos Oficiales y Trámites en Tijuana (INE, CURP, RFC, Actas) | OK.station">
+  <meta property="og:description" content="Impresión de documentos oficiales y trámites en Tijuana: INE, CURP, RFC, IMSS, NSS, certificados y actas de nacimiento. Centro Comercial Otay.">
+  <meta property="og:url" content="https://okstation.mx/tramites-y-documentos-oficiales-tijuana.html">
+  <meta property="og:image" content="https://okstation.mx/assets/img/hero-okstation.webp">
+  <meta property="og:image:alt" content="Impresión de documentos oficiales y trámites en OK.station Tijuana">
+
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Documentos Oficiales y Trámites en Tijuana (INE, CURP, RFC, Actas) | OK.station">
+  <meta name="twitter:description" content="Imprimimos INE, CURP, RFC, semanas cotizadas IMSS, NSS, certificados y actas de nacimiento en Centro Comercial Otay, Tijuana.">
+  <meta name="twitter:image" content="https://okstation.mx/assets/img/hero-okstation.webp">
+  <meta name="twitter:image:alt" content="Impresión de documentos oficiales y trámites en OK.station Tijuana">
+
+  <link rel="icon" href="/favicon.ico" sizes="any">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" media="print" onload="this.media='all'">
+  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap"></noscript>
+
+  <link rel="stylesheet" href="styles.css?v=20260625">
+  <style>
+    .breadcrumb { padding: 14px 0 0; }
+    .breadcrumb ol { list-style: none; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin: 0; padding: 0; font-size: 0.8125rem; color: var(--text-muted, #6B7280); }
+    .breadcrumb li { display: inline-flex; align-items: center; gap: 6px; }
+    .breadcrumb li + li::before { content: "/"; opacity: 0.5; }
+    .breadcrumb a { color: inherit; text-decoration: none; }
+    .breadcrumb a:hover { color: var(--brand-blue, #066CFF); text-decoration: underline; }
+    .breadcrumb [aria-current="page"] { color: var(--brand-blue, #066CFF); font-weight: 600; }
+    .svc-meta { color: var(--brand-blue, #066CFF); font-weight: 600; }
+
+    /* Breadcrumb dentro del hero oscuro → texto claro */
+    .breadcrumb--hero { padding: 0 0 14px; }
+    .breadcrumb--hero ol { color: rgba(255,255,255,0.78); }
+    .breadcrumb--hero a { color: rgba(255,255,255,0.78); }
+    .breadcrumb--hero a:hover { color: #fff; }
+    .breadcrumb--hero [aria-current="page"] { color: #fff; }
+
+    /* Tarjeta de precios de referencia */
+    .price-card { max-width: 620px; margin: 0 auto; background: #fff; border: 1px solid var(--border-light, #e6eaf2); border-radius: var(--radius-lg, 18px); box-shadow: 0 18px 50px rgba(4,12,40,0.16); padding: 26px clamp(20px,4vw,34px); }
+    .price-card ul { list-style: none; margin: 0; padding: 0; }
+    .price-card li { display: flex; justify-content: space-between; gap: 16px; align-items: baseline; padding: 13px 0; border-bottom: 1px dashed var(--border-light, #e6eaf2); }
+    .price-card li:last-of-type { border-bottom: none; }
+    .price-card li span { color: var(--text-secondary, #475569); font-weight: 500; }
+    .price-card li b { color: var(--text-primary, #0b1f3a); font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .price-note { margin: 14px 0 0; font-size: 0.82rem; color: var(--text-muted, #6B7280); }
+  </style>
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Service",
+    "name": "Impresión de documentos oficiales y trámites",
+    "serviceType": "Impresión de documentos oficiales y trámites",
+    "url": "https://okstation.mx/tramites-y-documentos-oficiales-tijuana.html",
+    "description": "Impresión de documentos oficiales y de trámites en Tijuana: INE, CURP, constancia RFC, semanas cotizadas IMSS, número de seguro social, certificados escolares y actas de nacimiento.",
+    "provider": { "@type": "LocalBusiness", "@id": "https://okstation.mx/#business" },
+    "areaServed": { "@type": "City", "name": "Tijuana" }
+  }
+  </script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      { "@type": "ListItem", "position": 1, "name": "Inicio", "item": "https://okstation.mx/" },
+      { "@type": "ListItem", "position": 2, "name": "Documentos oficiales y trámites", "item": "https://okstation.mx/tramites-y-documentos-oficiales-tijuana.html" }
+    ]
+  }
+  </script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      { "@type": "Question", "name": "¿Qué documentos pueden imprimir?", "acceptedAnswer": { "@type": "Answer", "text": "Imprimimos INE, CURP, constancia de situación fiscal (RFC), reporte de semanas cotizadas del IMSS, número de seguro social (NSS), certificados escolares y actas de nacimiento, entre otros documentos oficiales." } },
+      { "@type": "Question", "name": "¿Me ayudan a obtenerlos o descargarlos?", "acceptedAnswer": { "@type": "Answer", "text": "Sí. Si traes tus datos te apoyamos a descargar el documento desde el portal oficial y te lo dejamos impreso, listo para tu trámite." } },
+      { "@type": "Question", "name": "¿Necesito traer algo?", "acceptedAnswer": { "@type": "Answer", "text": "Trae el documento ya descargado en tu USB, correo o WhatsApp, o los datos que el portal te pida (CURP, RFC, NSS) para ayudarte a obtenerlo en sucursal." } },
+      { "@type": "Question", "name": "¿Cuánto cuesta?", "acceptedAnswer": { "@type": "Answer", "text": "La impresión se cobra por hoja, en blanco y negro o a color. El apoyo para descargar el documento es muy económico; pregúntanos por tu cotización exacta." } }
+    ]
+  }
+  </script>
+</head>
+
+<body id="top">
+<a class="skip-link" href="#main">Saltar al contenido principal</a>
+<div class="header-bar">
+  Te atendemos con gusto y una sonrisa — tú lo imaginas, nosotros lo hacemos. Aquí en Centro Comercial Otay, Tijuana.
+</div>
+<header class="site-header">
+  <div class="wrap nav">
+    <a href="index.html" class="logo" aria-label="OK.station — Ir al inicio"><img src="assets/img/okstation-logo.webp" alt="OK.station" class="logo__img" width="158" height="24"></a>
+    <nav class="nav__links" id="nav-menu" aria-label="Navegación principal">
+
+      <a class="nav__link" href="index.html#citas">Citas</a>
+      <a class="nav__link" href="index.html#fotos">Imprime tus fotos</a>
+      <a class="nav__link" href="pedido.html">Haz tu pedido</a>
+      <a class="nav__link" href="index.html#visitanos">Visítanos</a>
+    </nav>
+    <div class="nav__actions">
+
+      <a class="btn btn--wa btn--sm" href="https://wa.me/526647194117?text=Hola,%20quiero%20solicitar%20informaci%C3%B3n" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M.057 24l1.687-6.163a11.867 11.867 0 01-1.587-5.945C.16 5.335 5.495 0 12.05 0a11.82 11.82 0 018.413 3.488 11.82 11.82 0 013.48 8.414c-.003 6.557-5.338 11.892-11.893 11.892a11.9 11.9 0 01-5.688-1.448L.057 24z"/></svg>WhatsApp</a>
+      <button class="nav__toggle" aria-label="Abrir menú de navegación" aria-expanded="false" aria-controls="nav-menu"><span class="nav__toggle-bar"></span><span class="nav__toggle-bar"></span><span class="nav__toggle-bar"></span></button>
+    </div>
+  </div>
+</header>
+
+<main id="main">
+  <!-- HERO premium (estética actual): imagen de fondo + degradado + título con acento -->
+  <section class="hero" aria-labelledby="svc-title" style="min-height:clamp(520px,72vh,760px)">
+    <div class="hero__bg" aria-hidden="true">
+      <img class="hero__bg-img" src="assets/img/acta nacimiento.webp" alt="" loading="eager" decoding="async" onerror="this.style.display='none'">
+      <div class="hero__bg-overlay"></div>
+    </div>
+    <div class="hero__inner wrap">
+      <div class="hero__grid">
+        <div class="hero__copy reveal">
+          <nav class="breadcrumb breadcrumb--hero" aria-label="Ruta de navegación"><ol><li><a href="index.html">Inicio</a></li><li><span aria-current="page">Documentos oficiales y trámites</span></li></ol></nav>
+          <span class="hero__eyebrow">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            Documentos oficiales · Tijuana
+          </span>
+          <h1 class="hero__title" id="svc-title"><span class="accent">Documentos oficiales y trámites</span> en Tijuana</h1>
+          <p class="hero__lead">Imprimimos tus documentos oficiales: INE, CURP, constancia RFC, semanas cotizadas IMSS, número de seguro social, certificados y actas de nacimiento. Te apoyamos a descargarlos en Centro Comercial Otay.</p>
+          <div class="hero__cta">
+            <a href="pedido.html" class="btn btn--primary btn--lg">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+              Haz tu pedido
+            </a>
+            <a href="#contacto" class="btn btn--light btn--lg">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+              Cómo llegar
+            </a>
+          </div>
+          <ul class="hero__chips" aria-label="Por qué con nosotros">
+            <li class="hero__chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg> Listos al momento</li>
+            <li class="hero__chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg> Te ayudamos a descargarlos</li>
+            <li class="hero__chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg> Para todos tus trámites</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section section--alt" aria-labelledby="docs-title">
+    <div class="wrap">
+      <div class="section-head section-head--center reveal"><span class="eyebrow">Lo que imprimimos</span><h2 class="text-h2" id="docs-title">Documentos para todos tus trámites</h2></div>
+      <div class="services-grid reveal-stagger">
+
+        <article class="service-card reveal">
+          <img src="assets/img/ine.webp" alt="Impresión de credencial INE en OK.station Tijuana" width="800" height="450" loading="lazy" decoding="async" class="service-card__img">
+          <h3>INE</h3>
+          <p>Tu credencial para votar, impresa a color por ambos lados, lista para identificarte en cualquier trámite.</p>
+          <div class="service-tags"><span class="tag">Identificación</span><span class="tag">Color</span></div>
+          <a href="https://wa.me/526647194117" class="service-link" target="_blank" rel="noopener">Más información <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></a>
+        </article>
+
+        <article class="service-card reveal">
+          <img src="assets/img/curp.webp" alt="Impresión de CURP en OK.station Tijuana" width="800" height="450" loading="lazy" decoding="async" class="service-card__img">
+          <h3>CURP</h3>
+          <p>Tu Clave Única de Registro de Población actualizada, descargada del portal oficial e impresa al momento.</p>
+          <div class="service-tags"><span class="tag">Oficial</span><span class="tag">Al momento</span></div>
+          <a href="https://wa.me/526647194117" class="service-link" target="_blank" rel="noopener">Más información <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></a>
+        </article>
+
+        <article class="service-card reveal">
+          <img src="assets/img/rfc.webp" alt="Impresión de constancia de situación fiscal RFC en OK.station Tijuana" width="800" height="450" loading="lazy" decoding="async" class="service-card__img">
+          <h3>RFC (Constancia de situación fiscal)</h3>
+          <p>Tu constancia de situación fiscal del SAT, indispensable para empleo, facturación y trámites bancarios.</p>
+          <div class="service-tags"><span class="tag">SAT</span><span class="tag">Empleo</span></div>
+          <a href="https://wa.me/526647194117" class="service-link" target="_blank" rel="noopener">Más información <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></a>
+        </article>
+
+        <article class="service-card reveal">
+          <img src="assets/img/imss.webp" alt="Impresión de semanas cotizadas del IMSS en OK.station Tijuana" width="800" height="450" loading="lazy" decoding="async" class="service-card__img">
+          <h3>Semanas cotizadas IMSS</h3>
+          <p>Tu reporte de semanas cotizadas ante el IMSS, útil para trámites de pensión, crédito y comprobación laboral.</p>
+          <div class="service-tags"><span class="tag">IMSS</span><span class="tag">Reporte</span></div>
+          <a href="https://wa.me/526647194117" class="service-link" target="_blank" rel="noopener">Más información <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></a>
+        </article>
+
+        <article class="service-card reveal">
+          <img src="assets/img/numero ss.webp" alt="Impresión de número de seguro social NSS en OK.station Tijuana" width="800" height="450" loading="lazy" decoding="async" class="service-card__img">
+          <h3>Número de Seguro Social (NSS)</h3>
+          <p>Tu constancia con el Número de Seguridad Social, requisito común para empleo y servicios médicos.</p>
+          <div class="service-tags"><span class="tag">NSS</span><span class="tag">Empleo</span></div>
+          <a href="https://wa.me/526647194117" class="service-link" target="_blank" rel="noopener">Más información <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></a>
+        </article>
+
+        <article class="service-card reveal">
+          <img src="assets/img/certificados esc..webp" alt="Impresión de certificados escolares en OK.station Tijuana" width="800" height="450" loading="lazy" decoding="async" class="service-card__img">
+          <h3>Certificados escolares</h3>
+          <p>Tus certificados y constancias de estudios, impresos con nitidez para inscripciones, becas y trámites.</p>
+          <div class="service-tags"><span class="tag">Escolar</span><span class="tag">Constancias</span></div>
+          <a href="https://wa.me/526647194117" class="service-link" target="_blank" rel="noopener">Más información <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></a>
+        </article>
+
+        <article class="service-card reveal">
+          <img src="assets/img/acta nacimiento.webp" alt="Impresión de acta de nacimiento en OK.station Tijuana" width="800" height="450" loading="lazy" decoding="async" class="service-card__img">
+          <h3>Actas de nacimiento</h3>
+          <p>Tu acta de nacimiento certificada en formato oficial, descargada e impresa lista para cualquier trámite.</p>
+          <div class="service-tags"><span class="tag">Certificada</span><span class="tag">Oficial</span></div>
+          <a href="https://wa.me/526647194117" class="service-link" target="_blank" rel="noopener">Más información <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></a>
+        </article>
+
+      </div>
+    </div>
+  </section>
+
+  <section class="section" aria-labelledby="precios-title">
+    <div class="wrap">
+      <div class="section-head section-head--center reveal"><span class="eyebrow">Precios de referencia</span><h2 class="text-h2" id="precios-title">Impresión económica por hoja</h2></div>
+      <div class="price-card reveal">
+        <ul>
+          <li><span>Impresión B/N — carta</span><b>desde $1.30</b></li>
+          <li><span>Impresión a color — carta</span><b>según cobertura</b></li>
+          <li><span>Apoyo para descargar documento</span><b>muy económico</b></li>
+          <li><span>Acta de nacimiento certificada</span><b>según trámite</b></li>
+          <li><span>Varios documentos / paquete</span><b>precio especial</b></li>
+        </ul>
+        <p class="price-note">Precios de referencia; el final depende del color, el papel y la cantidad. Pregúntanos por tu cotización exacta.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section section--alt" aria-labelledby="faq-title">
+    <div class="wrap">
+      <div class="section-head section-head--center reveal"><span class="eyebrow">Preguntas frecuentes</span><h2 class="text-h2" id="faq-title">Dudas sobre documentos y trámites</h2></div>
+      <div class="faq-list reveal" style="margin:0 auto">
+        <div class="faq-item"><button type="button" class="faq-question">¿Qué documentos pueden imprimir?<span class="faq-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></span></button><div class="faq-answer"><div class="faq-answer__inner">Imprimimos INE, CURP, constancia de situación fiscal (RFC), reporte de semanas cotizadas del IMSS, número de seguro social (NSS), certificados escolares y actas de nacimiento, entre otros documentos oficiales.</div></div></div>
+        <div class="faq-item"><button type="button" class="faq-question">¿Me ayudan a obtenerlos o descargarlos?<span class="faq-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></span></button><div class="faq-answer"><div class="faq-answer__inner">Sí. Si traes tus datos te apoyamos a descargar el documento desde el portal oficial y te lo dejamos impreso, listo para tu trámite.</div></div></div>
+        <div class="faq-item"><button type="button" class="faq-question">¿Necesito traer algo?<span class="faq-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></span></button><div class="faq-answer"><div class="faq-answer__inner">Trae el documento ya descargado en tu USB, correo o WhatsApp, o los datos que el portal te pida (CURP, RFC, NSS) para ayudarte a obtenerlo en sucursal.</div></div></div>
+        <div class="faq-item"><button type="button" class="faq-question">¿Cuánto cuesta?<span class="faq-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></span></button><div class="faq-answer"><div class="faq-answer__inner">La impresión se cobra por hoja, en blanco y negro o a color. El apoyo para descargar el documento es muy económico; pregúntanos por tu cotización exacta.</div></div></div>
+      </div>
+      <p class="text-lead reveal" style="text-align:center;margin-top:32px">¿Buscas otra cosa? También hacemos <a href="copias-e-impresiones-tijuana.html" class="svc-meta">copias e impresiones</a> y <a href="fotos-para-pasaporte-tijuana.html" class="svc-meta">fotos para pasaporte y trámites</a>.</p>
+    </div>
+  </section>
+
+  <section class="section" id="contacto" aria-labelledby="cta-title">
+    <div class="wrap">
+      <div class="contact-grid reveal">
+        <div class="contact-cta">
+          <h3 id="cta-title">¿Listo para imprimir tus documentos?</h3>
+          <p>Envíanos tu archivo por WhatsApp o pásate por el local en Centro Comercial Otay. Te apoyamos a descargarlo e imprimirlo el mismo día.</p>
+        </div>
+        <div class="contact-cards">
+          <div class="map-wrap"><iframe loading="lazy" referrerpolicy="no-referrer-when-downgrade" src="https://www.google.com/maps?q=Otay+Centro+Comercial,+Carretera+Aeropuerto+1900,+Tijuana&output=embed" title="Mapa de ubicación de OK.station en Centro Comercial Otay, Tijuana"></iframe></div>
+          <div class="info-card"><span class="info-card__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg></span><div><b>Centro Comercial Otay</b><span>Local G-03 · Carretera Aeropuerto 1900 · Tijuana, B.C.</span></div></div>
+          <div class="info-card"><span class="info-card__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></span><div><b>Lun–Vie 8:00–19:00</b><span>Sábados 8:00–16:00</span></div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap">
+    <div class="footer-top">
+      <div class="footer-brand">
+        <a href="index.html" class="logo logo--dark"><img src="assets/img/okstation-logo.webp" alt="OK.station" class="logo__img" width="158" height="24"></a>
+        <p class="footer-tagline">Materializa tus ideas en físico. Copias, impresiones y servicios de papelería, en un solo lugar.</p>
+      </div>
+      <div class="footer-col"><h5>Servicios</h5>
+        <a href="copias-e-impresiones-tijuana.html">Copias e impresión</a>
+        <a href="impresion-de-fotografias-tijuana.html">Impresión de fotos</a>
+        <a href="fotos-para-pasaporte-tijuana.html">Fotos para trámites</a>
+        <a href="escaneado-y-digitalizacion-tijuana.html">Escaneado y digitalización</a>
+        <a href="enmicado-y-engargolado-tijuana.html">Enmicado y engargolado</a>
+        <a href="papeleria-para-oficinas-tijuana.html">Papelería de oficina</a>
+        <a href="impresion-gran-formato-planos-tijuana.html">Gran formato y planos</a>
+        <a href="impresion-tarjetas-pvc-tijuana.html">Tarjetas PVC</a>
+        <a href="recorte-guillotina-tijuana.html">Recorte en guillotina</a>
+        <a href="tramites-y-documentos-oficiales-tijuana.html">Documentos oficiales</a>
+      </div>
+      <div class="footer-col"><h5>Trámites</h5>
+        <a href="citas-tramites-tijuana.html">Citas de pasaporte</a>
+        <a href="citas-tramites-tijuana.html">Citas de visa</a>
+        <a href="citas-tramites-tijuana.html">Citas SENTRI</a>
+      </div>
+      <div class="footer-col"><h5>Contacto</h5>
+        <a href="tel:+5216647194117">Tel. (664) 719-4117</a>
+        <a href="mailto:station@okdock.mx">station@okdock.mx</a>
+        <a href="index.html#visitanos">Centro Comercial Otay</a>
+      </div>
+    </div>
+    <div class="footer-bottom"><span>© 2026 OK.station · Una marca de OK Dock · Tijuana, B.C.</span><span class="footer-brand-line">You say tech, we listen.</span></div>
+  </div>
+</footer>
+
+<button type="button" class="scroll-top" aria-label="Volver arriba"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg></button>
+
+<script src="app.js?v=20260627a" defer></script>
+<script src="assets/session-nav.js?v=20260626" defer></script>
+</body>
+</html>

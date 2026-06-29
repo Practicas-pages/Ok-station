@@ -51,6 +51,22 @@
     .breadcrumb a:hover { color: var(--brand-blue, #066CFF); text-decoration: underline; }
     .breadcrumb [aria-current="page"] { color: var(--brand-blue, #066CFF); font-weight: 600; }
     .svc-meta { color: var(--brand-blue, #066CFF); font-weight: 600; }
+
+    /* Breadcrumb dentro del hero oscuro → texto claro */
+    .breadcrumb--hero { padding: 0 0 14px; }
+    .breadcrumb--hero ol { color: rgba(255,255,255,0.78); }
+    .breadcrumb--hero a { color: rgba(255,255,255,0.78); }
+    .breadcrumb--hero a:hover { color: #fff; }
+    .breadcrumb--hero [aria-current="page"] { color: #fff; }
+
+    /* Tarjeta de precios de referencia */
+    .price-card { max-width: 620px; margin: 0 auto; background: #fff; border: 1px solid var(--border-light, #e6eaf2); border-radius: var(--radius-lg, 18px); box-shadow: 0 18px 50px rgba(4,12,40,0.16); padding: 26px clamp(20px,4vw,34px); }
+    .price-card ul { list-style: none; margin: 0; padding: 0; }
+    .price-card li { display: flex; justify-content: space-between; gap: 16px; align-items: baseline; padding: 13px 0; border-bottom: 1px dashed var(--border-light, #e6eaf2); }
+    .price-card li:last-of-type { border-bottom: none; }
+    .price-card li span { color: var(--text-secondary, #475569); font-weight: 500; }
+    .price-card li b { color: var(--text-primary, #0b1f3a); font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .price-note { margin: 14px 0 0; font-size: 0.82rem; color: var(--text-muted, #6B7280); }
   </style>
 
   <script type="application/ld+json">
@@ -113,15 +129,37 @@
 </header>
 
 <main id="main">
-  <section class="section" aria-labelledby="svc-title">
-    <div class="wrap">
-      <nav class="breadcrumb" aria-label="Ruta de navegación"><ol><li><a href="index.html">Inicio</a></li><li><span aria-current="page">Escaneado y digitalización</span></li></ol></nav>
-      <div class="section-head reveal">
-        <span class="eyebrow">Servicios · Tijuana</span>
-        <h1 class="text-h2" id="svc-title">Escaneado y digitalización de documentos en <span class="hl">Tijuana</span></h1>
-        <p class="text-lead">Convierte tus documentos en papel a archivos digitales en alta resolución. Te entregamos PDF o JPG listos para enviar, guardar o usar en trámites en línea. En Centro Comercial Otay.</p>
-        <div class="hero__cta" style="margin-top:24px">
-          <a href="index.html#visitanos" class="btn btn--light btn--lg"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>Cómo llegar</a>
+  <!-- HERO premium (estética actual): imagen de fondo + degradado + título con acento -->
+  <section class="hero" aria-labelledby="svc-title" style="min-height:clamp(520px,72vh,760px)">
+    <div class="hero__bg" aria-hidden="true">
+      <img class="hero__bg-img" src="assets/img/escaneaado.webp" alt="" loading="eager" decoding="async" onerror="this.style.display='none'">
+      <div class="hero__bg-overlay"></div>
+    </div>
+    <div class="hero__inner wrap">
+      <div class="hero__grid">
+        <div class="hero__copy reveal">
+          <nav class="breadcrumb breadcrumb--hero" aria-label="Ruta de navegación"><ol><li><a href="index.html">Inicio</a></li><li><span aria-current="page">Escaneado y digitalización</span></li></ol></nav>
+          <span class="hero__eyebrow">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            Escaneado y digitalización · Tijuana
+          </span>
+          <h1 class="hero__title" id="svc-title">Escaneado y <span class="accent">digitalización</span> de documentos en Tijuana</h1>
+          <p class="hero__lead">Convierte tus documentos en papel a archivos digitales en alta resolución. Te entregamos PDF o JPG listos para enviar, guardar o usar en trámites en línea. En Centro Comercial Otay.</p>
+          <div class="hero__cta">
+            <a href="pedido.html" class="btn btn--primary btn--lg">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+              Haz tu pedido
+            </a>
+            <a href="#contacto" class="btn btn--light btn--lg">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+              Cómo llegar
+            </a>
+          </div>
+          <ul class="hero__chips" aria-label="Por qué con nosotros">
+            <li class="hero__chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg> Alta resolución</li>
+            <li class="hero__chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H6a2 2 0 00-2 2v14a2 2 0 002 2h12a2 2 0 002-2V9z"/><path d="M14 3v6h6"/></svg> PDF o JPG</li>
+            <li class="hero__chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg> Por correo o USB</li>
+          </ul>
         </div>
       </div>
     </div>
@@ -139,7 +177,22 @@
     </div>
   </section>
 
-  <section class="section" aria-labelledby="faq-title">
+  <section class="section" aria-labelledby="precios-title">
+    <div class="wrap">
+      <div class="section-head section-head--center reveal"><span class="eyebrow">Precios de referencia</span><h2 class="text-h2" id="precios-title">Desde unos pesos por hoja</h2></div>
+      <div class="price-card reveal">
+        <ul>
+          <li><span>Escaneo por hoja (carta / oficio)</span><b>desde unos pesos</b></li>
+          <li><span>Identificaciones (por pieza)</span><b>pregúntanos</b></li>
+          <li><span>Por volumen</span><b>precio especial</b></li>
+          <li><span>Entrega en USB</span><b>según capacidad</b></li>
+        </ul>
+        <p class="price-note">Precios de referencia; el final depende del tipo de documento, la cantidad y el formato de entrega. Pregúntanos por tu cotización exacta.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section section--alt" aria-labelledby="faq-title">
     <div class="wrap">
       <div class="section-head section-head--center reveal"><span class="eyebrow">Preguntas frecuentes</span><h2 class="text-h2" id="faq-title">Dudas sobre escaneado y digitalización</h2></div>
       <div class="faq-list reveal" style="margin:0 auto">
@@ -151,7 +204,7 @@
     </div>
   </section>
 
-  <section class="section section--alt" id="contacto" aria-labelledby="cta-title">
+  <section class="section" id="contacto" aria-labelledby="cta-title">
     <div class="wrap">
       <div class="contact-grid reveal">
         <div class="contact-cta">
@@ -181,6 +234,10 @@
         <a href="escaneado-y-digitalizacion-tijuana.html">Escaneado y digitalización</a>
         <a href="enmicado-y-engargolado-tijuana.html">Enmicado y engargolado</a>
         <a href="papeleria-para-oficinas-tijuana.html">Papelería de oficina</a>
+        <a href="impresion-gran-formato-planos-tijuana.html">Gran formato y planos</a>
+        <a href="impresion-tarjetas-pvc-tijuana.html">Tarjetas PVC</a>
+        <a href="recorte-guillotina-tijuana.html">Recorte en guillotina</a>
+        <a href="tramites-y-documentos-oficiales-tijuana.html">Documentos oficiales</a>
       </div>
       <div class="footer-col"><h5>Trámites</h5>
         <a href="citas-tramites-tijuana.html">Citas de pasaporte</a>
