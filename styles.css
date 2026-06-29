@@ -1881,7 +1881,7 @@ h1, h2, h3, h4, h5, h6 {
   border: 1.5px solid transparent;
   border-radius: var(--radius-sm);
   background: rgba(255,255,255,0.04);
-  color: rgba(255,255,255,0.88);
+  color: #14151A;
   font-size: 0.85rem;
   font-weight: 500;
   font-family: inherit;
@@ -2070,7 +2070,7 @@ h1, h2, h3, h4, h5, h6 {
 
 .cita-confirm h4 {
   font-size: 1.5rem;
-  color: #fff;
+  color: #14151A;
   margin-bottom: 8px;
 }
 
@@ -2082,8 +2082,9 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Resumen de cita */
 .cita-summary {
-  background: var(--surface-dark-3);
-  border: 1px solid var(--border-dark-2);
+  background:#FFFFFF;
+  border-bottom:1px solid #E5E7EB;
+  box-shadow:0 8px 24px rgba(0,0,0,.08);
   border-radius: var(--radius-md);
   overflow: hidden;
   margin-bottom: var(--space-5);
@@ -4031,8 +4032,9 @@ body {
 
 /* ── Cohesión dentro del wizard de citas (sin cajas negras) ── */
 .citas-section .cita-layout {
-  background: rgba(10, 20, 56, 0.46);
-  border-color: rgba(255, 255, 255, 0.12);
+  background:#FFFFFF;
+  border:1px solid #E5E7EB;
+  backdrop-filter:none;
   -webkit-backdrop-filter: blur(12px);
   backdrop-filter: blur(12px);
 }
@@ -4052,7 +4054,7 @@ body {
 /* El subtítulo del encabezado (componente claro) debe ser legible sobre el gradiente */
 .citas-section .section-head .text-lead,
 .citas-section .section-head p {
-  color: rgba(255, 255, 255, 0.78);
+  color:#6B7280;
 }
 
 /* Las tarjetas blancas (servicios, testimonios, fotos, contacto, FAQ)
