@@ -5777,3 +5777,37 @@ body::before, body::after,
 .citas-section input[type="checkbox"]{
     accent-color:#066CFF;
 }
+
+/* Forzar color de todos los textos del calendario */
+.okcal__day,
+.okcal__day *,
+.okcal__day span,
+.okcal__day strong{
+    color:#14151A !important;
+}
+
+.okcal__day.is-selected,
+.okcal__day.is-selected *{
+    color:#FFFFFF !important;
+}
+
+/* ===== Corrección resumen de cita ===== */
+
+.cita-summary,
+.cita-summary *,
+.cita-confirm,
+.cita-confirm *{
+    color:#14151A !important;
+}
+
+.cita-summary small{
+    color:#6B7280 !important;
+}
+
+.cita-summary strong{
+    color:#111827 !important;
+}
+
+.cita-summary b{
+    color:#111827 !important;
+}
