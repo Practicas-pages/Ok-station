@@ -41,7 +41,7 @@ final class Payments
     {
         global $CONFIG;
         $p = strtolower((string) ($CONFIG['payment']['provider'] ?? 'sandbox'));
-        return in_array($p, ['sandbox', 'stripe'], true) ? $p : 'sandbox';
+        return in_array($p, ['sandbox', 'stripe', 'mercadopago'], true) ? $p : 'sandbox';
     }
 
     public static function isSandbox(): bool
@@ -72,6 +72,18 @@ final class Payments
         $amount    = round((float) ($entity[$t['amount']] ?? 0), 2);
         $reference = self::makeReference($entity);
         $provider  = self::provider();
+
+        if ($provider === 'mercadopago') {
+            $session = self::mpCreatePreference($entity, $user, $amount, $reference, $kind);
+            return [
+                'ok'             => true,
+                'provider'       => 'mercadopago',
+                'reference'      => $reference,
+                'checkout_url'   => $session['url'],
+                'transaction_id' => $session['id'],
+                'amount'         => $amount,
+            ];
+        }
 
         if ($provider === 'stripe') {
             $session = self::stripeCreateSession($entity, $user, $amount, $reference, $kind);
@@ -262,6 +274,69 @@ final class Payments
         return ['url' => (string) $json['url'], 'id' => (string) $json['id']];
     }
 
+    /* ============================================================
+       Proveedor Mercado Pago (Checkout Pro — preferencia vía API REST).
+       Redirige al checkout alojado de MP (init_point). La confirmación
+       llega por webhook y se VERIFICA consultando el pago en la API de MP
+       (fuente de verdad), no en el cuerpo de la notificación.
+       ============================================================ */
+    private static function mpCreatePreference(array $entity, array $user, float $amount, string $reference, string $kind = 'order'): array
+    {
+        global $CONFIG;
+        $token = (string) ($CONFIG['payment']['mp_access_token'] ?? '');
+        if ($token === '') {
+            throw new RuntimeException('Mercado Pago no está configurado (falta MP_ACCESS_TOKEN).');
+        }
+        $t      = self::target($kind);
+        $isAppt = ($kind === 'appointment');
+        $base   = rtrim((string) ($CONFIG['app_url'] ?? ''), '/');
+        $title  = ($isAppt ? 'Anticipo cita ' : 'Pedido ') . $entity['code'] . ' — OK.station';
+
+        $payload = [
+            'items' => [[
+                'title'       => $title,
+                'quantity'    => 1,
+                'currency_id' => self::currency(),
+                'unit_price'  => round($amount, 2),
+            ]],
+            'external_reference' => $reference,
+            'back_urls' => [
+                'success' => $base . '/perfil.html?pago=ok#' . $t['hash'],
+                'failure' => $base . '/perfil.html?pago=cancelado#' . $t['hash'],
+                'pending' => $base . '/perfil.html?pago=pendiente#' . $t['hash'],
+            ],
+            'auto_return'      => 'approved',
+            'notification_url' => $base . '/backend/api/payments/webhook.php',
+            'metadata'         => ['kind' => $kind, 'reference' => $reference, $t['fk'] => (int) $entity['id']],
+        ];
+        if (!empty($user['email'])) {
+            $payload['payer'] = ['email' => $user['email']];
+        }
+
+        $ch = curl_init('https://api.mercadopago.com/checkout/preferences');
+        curl_setopt_array($ch, [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_POST           => true,
+            CURLOPT_POSTFIELDS     => json_encode($payload, JSON_UNESCAPED_UNICODE),
+            CURLOPT_HTTPHEADER     => ['Authorization: Bearer ' . $token, 'Content-Type: application/json'],
+            CURLOPT_TIMEOUT        => 20,
+        ]);
+        $res  = curl_exec($ch);
+        $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+
+        $json = json_decode((string) $res, true);
+        if ($code >= 300 || !is_array($json) || !isset($json['id'])) {
+            throw new RuntimeException('No se pudo crear la preferencia de Mercado Pago.');
+        }
+        // init_point sirve tanto en prueba (con credenciales TEST) como en producción.
+        $url = (string) ($json['init_point'] ?? $json['sandbox_init_point'] ?? '');
+        if ($url === '') {
+            throw new RuntimeException('Mercado Pago no devolvió un init_point.');
+        }
+        return ['url' => $url, 'id' => (string) $json['id']];
+    }
+
     /**
      * Verifica y normaliza un evento de webhook del proveedor.
      * Devuelve ['order_ref'=>, 'transaction_id'=>, 'status'=>] o null si no es válido.
@@ -269,6 +344,11 @@ final class Payments
     public static function verifyWebhook(string $rawBody, array $headers): ?array
     {
         global $CONFIG;
+
+        if (self::provider() === 'mercadopago') {
+            return self::mpVerifyWebhook($rawBody, $headers);
+        }
+
         if (self::provider() === 'stripe') {
             $secret = (string) ($CONFIG['payment']['stripe_webhook_secret'] ?? '');
             $sig    = $headers['Stripe-Signature'] ?? ($headers['stripe-signature'] ?? '');
@@ -324,5 +404,88 @@ final class Payments
             if (hash_equals($expected, $candidate)) return true;
         }
         return false;
+    }
+
+    /* ============================================================
+       Webhook de Mercado Pago.
+       La notificación solo trae el ID del pago; el estado REAL se obtiene
+       consultando GET /v1/payments/{id} con nuestro Access Token (un atacante
+       no puede falsificar un pago aprobado de NUESTRA cuenta). Opcionalmente,
+       si hay MP_WEBHOOK_SECRET, validamos también la firma x-signature.
+       ============================================================ */
+    private static function mpVerifyWebhook(string $rawBody, array $headers): ?array
+    {
+        global $CONFIG;
+        $token = (string) ($CONFIG['payment']['mp_access_token'] ?? '');
+        if ($token === '') return null;
+
+        // El id del pago puede venir por query (?type=payment&data.id=##) o en el body JSON.
+        $type  = (string) ($_GET['type'] ?? $_GET['topic'] ?? '');
+        $payId = (string) ($_GET['data.id'] ?? $_GET['id'] ?? $_GET['data_id'] ?? '');
+        if ($rawBody !== '') {
+            $body = json_decode($rawBody, true);
+            if (is_array($body)) {
+                if ($type === '')  $type  = (string) ($body['type'] ?? $body['topic'] ?? '');
+                if ($payId === '') $payId = (string) ($body['data']['id'] ?? $body['id'] ?? '');
+            }
+        }
+        $type  = strtolower($type);
+        if ($type !== '' && strpos($type, 'payment') === false) return null;  // solo notificaciones de pago
+        $payId = preg_replace('/[^0-9]/', '', $payId);
+        if ($payId === '') return null;
+
+        // Firma opcional (si está configurada en el panel de MP).
+        $secret = (string) ($CONFIG['payment']['mp_webhook_secret'] ?? '');
+        if ($secret !== '' && !self::mpVerifySignature($headers, $payId, $secret)) return null;
+
+        // Fuente de verdad: consultar el pago real en la API de Mercado Pago.
+        $ch = curl_init('https://api.mercadopago.com/v1/payments/' . $payId);
+        curl_setopt_array($ch, [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_HTTPHEADER     => ['Authorization: Bearer ' . $token],
+            CURLOPT_TIMEOUT        => 20,
+        ]);
+        $res  = curl_exec($ch);
+        $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+
+        $pay = json_decode((string) $res, true);
+        if ($code >= 300 || !is_array($pay) || !isset($pay['status'])) return null;
+
+        $map = [
+            'approved'     => 'pagado',
+            'authorized'   => 'pagado',
+            'refunded'     => 'reembolsado',
+            'charged_back' => 'reembolsado',
+            'rejected'     => 'error',
+            'cancelled'    => 'error',
+        ];
+        $status = $map[(string) $pay['status']] ?? 'procesando';
+
+        return [
+            'order_ref'      => (string) ($pay['external_reference'] ?? ''),
+            'transaction_id' => (string) ($pay['id'] ?? $payId),
+            'status'         => $status,
+        ];
+    }
+
+    /** Firma de Mercado Pago: header x-signature (ts, v1) + x-request-id. */
+    private static function mpVerifySignature(array $headers, string $payId, string $secret): bool
+    {
+        $sig   = $headers['X-Signature']  ?? ($headers['x-signature']  ?? '');
+        $reqId = $headers['X-Request-Id'] ?? ($headers['x-request-id'] ?? '');
+        if ($sig === '') return false;
+        $ts = null; $v1 = null;
+        foreach (explode(',', $sig) as $part) {
+            $kv = explode('=', trim($part), 2);
+            if (count($kv) === 2) {
+                if ($kv[0] === 'ts') $ts = $kv[1];
+                if ($kv[0] === 'v1') $v1 = $kv[1];
+            }
+        }
+        if (!$ts || !$v1) return false;
+        $manifest = 'id:' . $payId . ';request-id:' . $reqId . ';ts:' . $ts . ';';
+        $expected = hash_hmac('sha256', $manifest, $secret);
+        return hash_equals($expected, (string) $v1);
     }
 }

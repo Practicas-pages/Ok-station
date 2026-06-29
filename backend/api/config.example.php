@@ -52,10 +52,15 @@ return [
     /* Pago en línea. Por defecto 'sandbox' (checkout local de demo, sin pasarela).
        Para cobrar de verdad: PAYMENT_PROVIDER=stripe y completa las llaves. */
     'payment' => [
-        'provider'              => env('PAYMENT_PROVIDER', 'sandbox'),   // sandbox | stripe
+        'provider'              => env('PAYMENT_PROVIDER', 'sandbox'),   // sandbox | stripe | mercadopago
         'currency'              => env('PAYMENT_CURRENCY', 'MXN'),
         'sandbox_secret'        => env('PAYMENT_SANDBOX_SECRET', ''),     // secreto del webhook de sandbox
         'stripe_secret'         => env('STRIPE_SECRET_KEY', ''),
         'stripe_webhook_secret' => env('STRIPE_WEBHOOK_SECRET', ''),
+        /* Mercado Pago (Checkout Pro). access_token = secreto de servidor;
+           public_key solo se usa si el front llega a usar el SDK/Bricks de MP. */
+        'mp_access_token'       => env('MP_ACCESS_TOKEN', ''),
+        'mp_public_key'         => env('MP_PUBLIC_KEY', ''),
+        'mp_webhook_secret'     => env('MP_WEBHOOK_SECRET', ''),
     ],
 ];
