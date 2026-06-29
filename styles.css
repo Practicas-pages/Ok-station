@@ -5353,3 +5353,219 @@ body.admin #oks-cursor-glow { display: none !important; }
 /* (El encuadre de la foto del hero en escritorio se ajusta en su bloque
    canónico, ~línea 4946: object-fit:contain anclado a la derecha.) */
 .cita-upsell__note { color: rgba(255,255,255,0.55); font-size: 0.76rem; margin: 10px 0 0; }
+
+
+/* ============================================================
+   27. IDEA — TEMA BLANCO UNIFICADO (capa final)
+   Toda la página sobre fondo BLANCO continuo (sin secciones
+   oscuras ni efecto "diapositivas"). Voltea las superficies antes
+   oscuras (hero, citas, fotos, faq, footer) a claro y su texto a
+   oscuro. Hero con la foto del local + fundido a blanco, sin swish.
+   ============================================================ */
+
+/* — Fondo blanco continuo — */
+html, body, #top { background: #FFFFFF !important; }
+.section, .section--alt, .section--dark, .section--dark-2, .citas-section { background: #FFFFFF !important; }
+
+/* — HERO: imagen del servidor + GRADIENTE DE MARCA (sin navy), texto
+   blanco, fundido inferior a blanco — */
+.hero {
+  background: linear-gradient(120deg, #066CFF 0%, #00C6FF 48%, #9C1DFF 100%) !important;
+}
+.hero__bg-img { opacity: .55 !important; }
+.hero__bg-overlay {
+  background:
+    radial-gradient(ellipse 58% 70% at 16% 30%, rgba(156,29,255,0.30) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 60% at 86% 52%, rgba(0,198,255,0.22) 0%, transparent 62%),
+    linear-gradient(150deg, rgba(10,14,42,0.46) 0%, rgba(8,28,86,0.36) 100%) !important;
+}
+/* Fundido del hero hacia el blanco de la página (conecta, no divide) */
+.hero::after {
+  content: "" !important;
+  position: absolute !important;
+  left: 0; right: 0; bottom: 0;
+  height: clamp(70px, 12vw, 130px);
+  background: linear-gradient(to bottom, rgba(255,255,255,0) 0%, #FFFFFF 100%) !important;
+  z-index: 1;
+  pointer-events: none;
+  display: block !important;
+}
+.hero__inner { position: relative; z-index: 2; }
+.hero__title { color: #FFFFFF !important; }
+.hero__title .accent {
+  background: var(--grad-azul-cyan);
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent; color: transparent !important;
+}
+.hero__lead { color: rgba(255,255,255,0.92) !important; }
+.hero__eyebrow {
+  color: #FFFFFF !important;
+  background: rgba(255,255,255,0.12);
+  border: 1px solid rgba(255,255,255,0.25);
+}
+.hero__eyebrow svg { color: #00C6FF; }
+.hero__scroll { color: rgba(255,255,255,0.85) !important; }
+
+/* — CITAS (wizard): de gradiente oscuro a claro — */
+.citas-section { color: var(--text-primary) !important; }
+.citas-section .text-h2 { color: var(--text-primary) !important; }
+.citas-section .section-head .text-lead,
+.citas-section .section-head p { color: var(--text-secondary) !important; }
+.citas-section .cita-layout {
+  background: #FFFFFF !important;
+  border: 1px solid var(--border-light) !important;
+  -webkit-backdrop-filter: none !important; backdrop-filter: none !important;
+  box-shadow: var(--shadow-md);
+  grid-template-columns: 1fr !important;   /* panel a todo el ancho */
+  padding: 0 !important;                    /* la cabecera de gradiente llega a los bordes */
+  overflow: hidden;                          /* respeta el radio en la cabecera */
+}
+/* Quitar el bloque lateral "Tu cita, sin filas…" (como en el prototipo) */
+.citas-section .cita-aside { display: none !important; }
+.citas-section .cita-panel { padding: clamp(20px,3vw,30px) clamp(18px,3vw,32px) clamp(24px,3vw,34px) !important; }
+
+/* Cabecera de gradiente por paso (PASO N DE 6) — dinámica con contador CSS,
+   así sigue al paso activo sin tocar el JS. */
+.citas-section .cita-panel { counter-reset: okpaso; }
+.citas-section .cita-step { counter-increment: okpaso; }
+.citas-section .cita-step.is-active .cita-step__title {
+  background: linear-gradient(100deg, #066CFF 0%, #00C6FF 45%, #9C1DFF 100%);
+  color: #FFFFFF !important;
+  margin: calc(-1 * clamp(20px,3vw,30px)) calc(-1 * clamp(18px,3vw,32px)) clamp(18px,2.5vw,24px);
+  padding: clamp(16px,2.4vw,20px) clamp(18px,3vw,28px);
+  line-height: 1.2;
+}
+.citas-section .cita-step.is-active .cita-step__title::before {
+  content: "PASO " counter(okpaso) " DE 6";
+  display: block;
+  font-size: 0.6em;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  font-weight: 600;
+  opacity: 0.9;
+  margin-bottom: 3px;
+}
+.cita-aside__title, .cita-step__title { color: var(--text-primary) !important; }
+.cita-aside__desc, .cita-step__sub,
+.tramite-btn__meta, .tramite-btn__desc { color: var(--text-secondary) !important; }
+.tramite-btn__title { color: var(--text-primary) !important; }
+.citas-section .field input,
+.citas-section .field select,
+.citas-section .field textarea,
+.citas-section .time-slot,
+.citas-section .tramite-btn {
+  background: #FFFFFF !important;
+  border: 1px solid var(--border-medium) !important;
+  color: var(--text-primary) !important;
+}
+.citas-section .step-item {
+  background: var(--surface-page) !important;
+  color: var(--text-secondary) !important;
+  border: 1px solid var(--border-light);
+}
+.citas-section .step-item.is-active {
+  background: var(--grad-azul-cyan) !important;
+  border-color: transparent !important;
+}
+.citas-section .step-item.is-active,
+.citas-section .step-item.is-active * { color: #FFFFFF !important; }
+.citas-section .cita-summary {
+  background: var(--surface-page) !important;
+  border: 1px solid var(--border-light) !important;
+  color: var(--text-primary) !important;
+}
+.cita-upsell__note { color: var(--text-muted) !important; }
+
+/* Resto de textos del wizard que estaban en blanco (sobre el antiguo fondo
+   oscuro) → oscuros para que sean legibles sobre blanco. */
+.citas-section .field label,
+.citas-section .contact-chip,
+.citas-section .party-opt,
+.citas-section .party-opt b,
+.citas-section .party-counter,
+.citas-section .qty-val,
+.citas-section .persona-pager__label,
+.citas-section .okcal,
+.citas-section .okcal__title,
+.citas-section .cita-consent,
+.citas-section .cita-consent span { color: var(--text-primary) !important; }
+.citas-section .party-opt span,
+.citas-section .party-counter__label,
+.citas-section .okcal__weekdays span,
+.citas-section .field__opt { color: var(--text-secondary) !important; }
+/* Estados seleccionados → acento de marca, legibles */
+.citas-section .party-opt.is-selected,
+.citas-section .tramite-btn[aria-pressed="true"],
+.citas-section .tramite-btn.is-selected {
+  background: var(--brand-blue-light) !important;
+  border-color: var(--brand-blue) !important;
+}
+.citas-section .party-opt.is-selected,
+.citas-section .party-opt.is-selected * { color: var(--brand-blue) !important; }
+.citas-section .qty-btn {
+  background: #FFFFFF !important;
+  border: 1px solid var(--border-medium) !important;
+  color: var(--text-primary) !important;
+}
+/* Botones "ghost" (eran blancos para fondo oscuro) → ghost claro */
+.citas-section .btn--ghost-dark {
+  background: #FFFFFF !important;
+  border: 1px solid var(--border-medium) !important;
+  color: var(--text-primary) !important;
+}
+.citas-section .btn--ghost-dark:hover {
+  border-color: var(--brand-blue) !important;
+  color: var(--brand-blue) !important;
+  background: var(--brand-blue-light) !important;
+}
+/* Número del riel de pasos (círculo) — inactivo claro, activo blanco */
+.citas-section .step-item__num {
+  background: #FFFFFF !important;
+  color: var(--text-secondary) !important;
+  border: 1px solid var(--border-medium);
+}
+.citas-section .step-item.is-active .step-item__num {
+  background: #FFFFFF !important;
+  color: var(--brand-blue) !important;
+  border-color: transparent;
+}
+.citas-section .time-grid__empty { color: var(--text-muted) !important; }
+/* Calendario: días y textos legibles sobre blanco */
+.citas-section .okcal__grid,
+.citas-section .okcal__grid button,
+.citas-section .okcal__grid span,
+.citas-section .party-duration,
+.citas-section .party-duration b { color: var(--text-primary) !important; }
+.citas-section .okcal__grid button[disabled],
+.citas-section .okcal__grid .is-disabled { color: var(--text-faint) !important; }
+
+/* — FOTOS y FAQ (.section--alt): encabezados a oscuro — */
+.section--alt .text-h2 { color: var(--text-primary) !important; }
+.section--alt .section-head .text-lead,
+.section--alt .section-head p { color: var(--text-secondary) !important; }
+
+/* — FOOTER: claro con texto oscuro — */
+.site-footer {
+  background: #F7F9FF !important;
+  border-top: 1px solid var(--border-light);
+}
+.site-footer,
+.site-footer a,
+.site-footer p,
+.site-footer h5,
+.footer-tagline,
+.footer-col a { color: var(--text-secondary) !important; }
+.site-footer h5 { color: var(--text-primary) !important; }
+.footer-col a:hover { color: var(--brand-blue) !important; }
+
+/* — Microinteracción: elevar tarjetas de servicio al pasar el cursor — */
+.service-card { transition: transform .25s ease, box-shadow .25s ease, border-color .25s ease; }
+.service-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 18px 36px rgba(6,108,255,0.16);
+  border-color: var(--brand-blue);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .service-card:hover { transform: none; }
+}
