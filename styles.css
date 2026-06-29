@@ -5734,3 +5734,32 @@ body::before, body::after,
   }
   .service-card:hover { transform: translateY(-8px) !important; }
 }
+
+/* ===== Corrección temporal tema claro ===== */
+
+.hero__title,
+.hero__lead,
+.section-title,
+.section-subtitle,
+.service-card h3,
+.service-card p,
+.card-title,
+.card-description,
+.faq-question,
+.faq-answer,
+.contact-title,
+.contact-text,
+.form-title,
+.form-label,
+.review-title,
+.review-text,
+.footer-title{
+    color:#14151A !important;
+}
+
+.section-subtitle,
+.service-card p,
+.review-text,
+.contact-text{
+    color:#4B5563 !important;
+}
