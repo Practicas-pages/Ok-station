@@ -5215,7 +5215,7 @@ body.admin::before, body.admin::after { display: none !important; }
 .cita-reqs__head svg { width: 20px; height: 20px; color: var(--brand-cyan); flex: 0 0 auto; }
 .cita-reqs__note { color: rgba(255,255,255,0.7); font-size: 0.84rem; margin: 8px 0 0; }
 .cita-reqs__list { list-style: none; margin: 10px 0 0; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 4px 18px; }
-.cita-reqs__list li { position: relative; padding-left: 18px; color: rgba(255,255,255,0.85); font-size: 0.85rem; line-height: 1.5; }
+.cita-reqs__list li { position: relative; padding-left: 18px; color: #4B5563;; font-size: 0.85rem; line-height: 1.5; }
 .cita-reqs__list li::before { content: ""; position: absolute; left: 2px; top: 9px; width: 6px; height: 6px; border-radius: 50%; background: var(--brand-cyan); }
 .cita-reqs__group { margin-top: 12px; }
 .cita-reqs__gtitle { display: block; color: #cfe0ff; font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 2px; }
@@ -5737,3 +5737,43 @@ body::before, body::after,
   .service-card:hover { transform: translateY(-8px) !important; }
 }
 
+
+/* ===== Corrección formularios tema claro ===== */
+
+.citas-section label,
+.citas-section .field label,
+.citas-section .persona-q,
+.citas-section .contact-chip,
+.citas-section .party-counter__label,
+.citas-section .qty-label,
+.citas-section .field-help,
+.citas-section small{
+    color:#374151 !important;
+}
+
+.citas-section h2,
+.citas-section h3,
+.citas-section h4{
+    color:#14151A !important;
+}
+
+.citas-section p{
+    color:#6B7280;
+}
+
+.citas-section input,
+.citas-section select,
+.citas-section textarea{
+    color:#14151A !important;
+    background:#FFFFFF !important;
+    border:1px solid #D1D5DB !important;
+}
+
+.citas-section input::placeholder,
+.citas-section textarea::placeholder{
+    color:#9CA3AF;
+}
+
+.citas-section input[type="checkbox"]{
+    accent-color:#066CFF;
+}
