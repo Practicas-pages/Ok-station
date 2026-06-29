@@ -5370,14 +5370,22 @@ html, body, #top { background: #FFFFFF !important; }
 /* — HERO: imagen del servidor + GRADIENTE DE MARCA (sin navy), texto
    blanco, fundido inferior a blanco — */
 .hero {
-  background: linear-gradient(120deg, #066CFF 0%, #00C6FF 48%, #9C1DFF 100%) !important;
+  /* Respaldo neutro si la foto no carga; en producción la foto cubre el hero. */
+  background: #14161E !important;
 }
-.hero__bg-img { opacity: .55 !important; }
-.hero__bg-overlay {
+/* La foto del servidor protagoniza, a opacidad completa (sin lavarla). */
+.hero__bg-img { opacity: 1 !important; }
+/* Velo NEUTRO (gris carbón, no azul) solo a la izquierda para que el texto
+   blanco se lea; se desvanece a la derecha dejando ver la foto. Sin arcoíris
+   ni navy saturado. Selector .hero .hero__bg-overlay para ganar a la regla
+   previa (~4975). */
+.hero .hero__bg-overlay {
   background:
-    radial-gradient(ellipse 58% 70% at 16% 30%, rgba(156,29,255,0.30) 0%, transparent 60%),
-    radial-gradient(ellipse 60% 60% at 86% 52%, rgba(0,198,255,0.22) 0%, transparent 62%),
-    linear-gradient(150deg, rgba(10,14,42,0.46) 0%, rgba(8,28,86,0.36) 100%) !important;
+    linear-gradient(98deg,
+      rgba(12,14,22,0.72) 0%,
+      rgba(12,14,22,0.46) 36%,
+      rgba(12,14,22,0.18) 64%,
+      rgba(12,14,22,0) 100%) !important;
 }
 /* Fundido del hero hacia el blanco de la página (conecta, no divide) */
 .hero::after {
@@ -5391,6 +5399,16 @@ html, body, #top { background: #FFFFFF !important; }
   display: block !important;
 }
 .hero__inner { position: relative; z-index: 2; }
+
+/* — Bloqueo de scroll del fondo cuando hay un modal o drawer abierto —
+   (antes se podía hacer scroll "infinito" detrás del banner). */
+body:has(.cita-modal:not([hidden])),
+body:has(.cita-drawer:not([hidden])) { overflow: hidden; }
+/* El propio modal/drawer scrollea internamente si es muy alto y no
+   "contagia" el scroll a la página de fondo. */
+.cita-modal { overflow-y: auto; overscroll-behavior: contain; }
+.cita-drawer, .cita-drawer__panel { overscroll-behavior: contain; }
+
 .hero__title { color: #FFFFFF !important; }
 .hero__title .accent {
   background: var(--grad-azul-cyan);
