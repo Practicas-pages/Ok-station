@@ -5392,8 +5392,12 @@ html, body, #top { background: #FFFFFF !important; }
   content: "" !important;
   position: absolute !important;
   left: 0; right: 0; bottom: 0;
-  height: clamp(70px, 12vw, 130px);
-  background: linear-gradient(to bottom, rgba(255,255,255,0) 0%, #FFFFFF 100%) !important;
+  height: clamp(150px, 26vh, 300px);
+  background: linear-gradient(to bottom,
+    rgba(255,255,255,0) 0%,
+    rgba(255,255,255,0.18) 38%,
+    rgba(255,255,255,0.62) 72%,
+    #FFFFFF 100%) !important;
   z-index: 1;
   pointer-events: none;
   display: block !important;
@@ -5614,4 +5618,119 @@ body:has(.cita-drawer:not([hidden])) { overflow: hidden; }
 
 @media (prefers-reduced-motion: reduce) {
   .service-card:hover { transform: none; }
+}
+
+
+/* ============================================================
+   28. IDEA — FONDO 100% BLANCO + TÍTULOS + INTERACTIVIDAD
+   ============================================================ */
+
+/* — Quitar TODO el color decorativo de fondo (glows rosa/lavanda, swish)
+   para que la página sea blanca de verdad — */
+body::before, body::after,
+.section::before, .section::after,
+.section--alt::before, .section--alt::after,
+.citas-section::before, .citas-section::after,
+#testimonios::before, #testimonios::after,
+#visitanos::before, #visitanos::after {
+  background: none !important;
+  background-image: none !important;
+  opacity: 0 !important;
+}
+
+/* — Títulos de sección: estaban en blanco (#fff !important global) y no se
+   veían sobre blanco. La parte resaltada (.hl) conserva su degradado. — */
+.section-head .text-h2,
+.section-head--center .text-h2,
+#servicios .text-h2,
+#testimonios .text-h2,
+#visitanos .text-h2,
+#fotos .text-h2,
+#faq .text-h2 { color: var(--text-primary) !important; }
+.section-head .text-h2 .hl,
+.text-h2 .hl {
+  background: var(--grad-purpura-azul-cyan);
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent; color: transparent !important;
+}
+
+/* ============================================================
+   INTERACTIVIDAD — hover, microinteracciones y reveal (sin gate de
+   reduced-motion para que SIEMPRE se note la interacción).
+   ============================================================ */
+
+/* Botones: elevar + sombra al pasar el cursor (todos los botones) */
+.btn { transition: transform .18s ease, box-shadow .25s ease, filter .2s ease !important; }
+.btn:hover { transform: translateY(-2px); box-shadow: 0 12px 26px rgba(6,108,255,0.26); }
+.btn:active { transform: translateY(0) scale(.97); }
+.btn--primary:hover, .btn--brand:hover {
+  box-shadow: 0 14px 30px rgba(6,108,255,0.40);
+}
+.btn--wa:hover { box-shadow: 0 14px 30px rgba(37,211,102,0.42); }
+
+/* Tarjetas de servicio: levantar + sombra azul + foto con leve zoom */
+.service-card { transition: transform .28s cubic-bezier(.2,.7,.2,1), box-shadow .28s ease, border-color .25s ease; }
+.service-card:hover { transform: translateY(-8px); box-shadow: 0 22px 44px rgba(6,108,255,0.18); border-color: var(--brand-blue); }
+.service-card__img { transition: transform .4s ease; }
+.service-card:hover .service-card__img { transform: scale(1.05); }
+.service-card .service-link { transition: gap .2s ease, color .2s ease; }
+.service-card:hover .service-link { gap: 9px; }
+
+/* Tarjetas de trámite (wizard) */
+.tramite-btn { transition: transform .2s ease, border-color .2s ease, box-shadow .2s ease, background .2s ease; }
+.tramite-btn:hover { transform: translateY(-4px); border-color: var(--brand-blue); box-shadow: 0 12px 24px rgba(6,108,255,0.16); }
+
+/* Chips/etiquetas de servicio */
+.service-tags .tag { transition: transform .15s ease, background .2s ease; }
+.service-card:hover .service-tags .tag { transform: translateY(-1px); }
+
+/* Enlaces de navegación y "más info": subrayado/acento al pasar */
+.nav__link { transition: color .18s ease; }
+.nav__link:hover { color: var(--brand-blue); }
+.service-link { transition: color .2s ease, gap .2s ease; }
+.service-link:hover { color: var(--brand-blue-hover); }
+
+/* FAQ: realce al pasar el cursor */
+.faq-item { transition: border-color .2s ease, box-shadow .2s ease, transform .2s ease; }
+.faq-item:hover { border-color: var(--brand-blue); box-shadow: var(--shadow-sm); }
+
+/* Tarjetas de info (Visítanos) y reseñas: levantar */
+.info-card, .testimonio-card { transition: transform .25s ease, box-shadow .25s ease, border-color .25s ease; }
+.info-card:hover, .testimonio-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-md); border-color: var(--brand-blue); }
+
+/* Galería del local: zoom suave de la foto */
+.store-gallery__item img { transition: transform .5s ease; }
+.store-gallery__item:hover img { transform: scale(1.06); }
+
+/* Opciones del wizard (cantidad / extras): realce */
+.party-opt, .extra-card { transition: transform .18s ease, border-color .2s ease, background .2s ease; }
+.party-opt:hover, .extra-card:hover { transform: translateY(-2px); }
+
+/* Flechas de carrusel y botón scroll-top: realce */
+.carousel__arrow, .scroll-top { transition: transform .2s ease, box-shadow .2s ease, color .2s ease, background .2s ease !important; }
+.carousel__arrow:hover, .scroll-top:hover { transform: scale(1.08); color: var(--brand-blue); }
+
+/* Reveal al hacer scroll: reforzamos SOLO la transición del estado visible
+   (no tocamos la opacidad inicial para no ocultar contenido nunca). */
+.reveal.is-visible { transition: opacity .6s ease, transform .6s cubic-bezier(.2,.7,.2,1); }
+
+/* Botón "Continuar"/CTA del wizard: pulso sutil para invitar al clic */
+@keyframes okBtnGlow { 0%,100%{ box-shadow:0 8px 22px rgba(6,108,255,.28);} 50%{ box-shadow:0 10px 30px rgba(6,108,255,.5);} }
+.cita-nav .btn--primary:not([disabled]):not([aria-disabled="true"]) { animation: okBtnGlow 2.6s ease-in-out infinite; }
+.cita-nav .btn--primary:hover { animation: none; }
+
+/* — Interacciones SIEMPRE activas, incluso si el sistema operativo pide
+   "reducir movimiento" (regla global ~3259 pone todo en 0.01ms). Reactivamos
+   solo las transiciones de interacción (hover/botones/tarjetas), no los
+   bucles automáticos. El usuario pidió una página muy interactiva. — */
+@media (prefers-reduced-motion: reduce) {
+  .btn,
+  .service-card, .service-card__img, .service-card .service-link,
+  .tramite-btn, .info-card, .testimonio-card, .faq-item,
+  .party-opt, .extra-card, .nav__link, .service-link,
+  .store-gallery__item img, .carousel__arrow, .scroll-top,
+  .service-tags .tag, .reveal.is-visible {
+    transition-duration: .28s !important;
+  }
+  .service-card:hover { transform: translateY(-8px) !important; }
 }
