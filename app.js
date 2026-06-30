@@ -1895,7 +1895,11 @@
          cruzar hacia un grupo clonado, "teletransportamos" el scroll un periodo completo
          (instantáneo y sin animación). Como el contenido es idéntico, el salto es
          invisible: el carrusel parece girar sin fin en ambos sentidos. */
-      var canLoop = track.classList.contains("services-grid");
+      /* Bucle infinito DESACTIVADO: clonaba tarjetas y "teletransportaba" el scroll,
+         lo que hacía que el carrusel de Servicios se sintiera trabado al picar las
+         flechas. Ahora Servicios usa el MISMO deslizamiento suave y finito que el
+         carrusel de Trámites/Citas (más cómodo, sin saltos). */
+      var canLoop = false;
       var originals = Array.prototype.slice.call(track.children);
       var looping = false;
       var period = 0;   /* ancho de un juego completo (distancia de teletransporte) */
