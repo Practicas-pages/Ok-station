@@ -10,6 +10,26 @@
   var host = document.querySelector("#appts-history");
   if (!host || !token()) return;
 
+  var pollTimer = null;
+  /* Tras volver del checkout, el webhook puede tardar unos segundos en confirmar
+     el anticipo: reintenta hasta que ninguna cita quede "procesando". */
+  function schedulePoll() {
+    var tries = 0;
+    if (pollTimer) clearInterval(pollTimer);
+    pollTimer = setInterval(function () {
+      tries++;
+      if (tries > 6) { clearInterval(pollTimer); pollTimer = null; return; }
+      fetch(API + "/appointments/mine.php", { headers: { Authorization: "Bearer " + token() } })
+        .then(function (r) { return r.json(); })
+        .then(function (res) {
+          var list = (res && res.appointments) || [];
+          if (!list.some(function (a) { return a.payment_status === "procesando"; })) {
+            clearInterval(pollTimer); pollTimer = null; load();
+          }
+        }).catch(function () {});
+    }, 4000);
+  }
+
   var LABELS = { pendiente: "Pendiente", confirmada: "Confirmada", completada: "Completada", cancelada: "Cancelada", no_show: "No asistió" };
   var TRAMITE = {
     pasaporte: "Pasaporte", visa: "Visa Americana", sentri: "SENTRI / Global Entry", i94: "I-94",
@@ -103,6 +123,8 @@
             if (a) startPayment(a.id, btn);
           });
         });
+        // Si alguna cita quedó "procesando" (volviste del checkout), refresca el estado.
+        if (list.some(function (a) { return a.payment_status === "procesando"; })) schedulePoll();
       })
       .catch(function () { host.innerHTML = '<p style="color:var(--color-error)">No se pudo cargar el historial de citas.</p>'; });
   }
