@@ -63,11 +63,12 @@ final class Pricing
 
     /** Precios por defecto si no hay setting `appt.prices` (mismos que el front). */
     const APPT_PRICE_DEFAULTS = [
-        'pasaporte_mexicano' => 200.0,
-        'visa'               => 800.0,
-        'sentri'             => 900.0,
-        'ine'                => 80.0,
-        'curp'               => 35.0,
+        'pasaporte_mexicano'  => 200.0,
+        'pasaporte_americano' => 400.0,   // formato $200 + cita = $400 total
+        'visa'                => 800.0,
+        'sentri'              => 900.0,
+        'ine'                 => 80.0,
+        'curp'                => 35.0,
     ];
 
     /** Catálogo de precios vigente (settings `appt.prices`, con respaldo en los defaults). */

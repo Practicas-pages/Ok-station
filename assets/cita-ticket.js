@@ -115,7 +115,7 @@
   /* ── Precios de trámite/cita (MXN, por persona, IVA incluido). Los no listados se cotizan. ──
      Estos valores por defecto coinciden con la semilla del servidor (settings appt.prices);
      al cargar la página se sincronizan con el panel vía /appointments/prices.php (abajo). */
-  var CITA_PRICES = { pasaporte: 200, visa: 800, sentri: 900, ine: 80, curp: 35 };
+  var CITA_PRICES = { pasaporte: 200, pasaporte_americano: 400, visa: 800, sentri: 900, ine: 80, curp: 35 };
   var CITA_TAX = 0.08;   /* IVA 8% (los precios ya lo incluyen, como el ticket de mostrador) */
   function mxn0(n) { return new Intl.NumberFormat("es-MX", { style: "currency", currency: "MXN", maximumFractionDigits: 0 }).format(n); }
   function mxn2(n) { return new Intl.NumberFormat("es-MX", { style: "currency", currency: "MXN", minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n); }
@@ -128,7 +128,7 @@
       return srv[key];
     }
     var unit = CITA_PRICES[tramite];
-    if (tramite === "pasaporte" && subtype === "americano") unit = undefined; // pasaporte americano → cotizar
+    if (tramite === "pasaporte" && subtype === "americano") unit = CITA_PRICES.pasaporte_americano; // formato $200 + cita = $400
     return unit;
   }
   /* Devuelve {quote, unit, total, party}. quote=true → "se cotiza" (precio a confirmar). */
