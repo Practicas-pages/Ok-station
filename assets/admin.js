@@ -268,7 +268,7 @@
     return r.indexOf("empleado") >= 0 && r.indexOf("administrador") < 0 && r.indexOf("directivo") < 0;
   }
   /* Vistas restringidas para empleado puro (se ocultan en el sidebar y se bloquean). */
-  var EMPLEADO_BLOCKED_VIEWS = ["usuarios", "reportes"];
+  var EMPLEADO_BLOCKED_VIEWS = ["usuarios", "reportes", "precios"];
   function enforceAccess() {
     if (DEMO) return true;             // demo: se permite ver el panel
     if (!token()) { window.location.href = "cuenta.html"; return false; }
@@ -1135,7 +1135,7 @@
   /* ============================================================
      NAVEGACIÓN ENTRE VISTAS
      ============================================================ */
-  var TITLES = { dashboard: "Dashboard", pedidos: "Pedidos", citas: "Citas", usuarios: "Usuarios", servicios: "Servicios", resenas: "Reseñas", reportes: "Reportes" };
+  var TITLES = { dashboard: "Dashboard", pedidos: "Pedidos", citas: "Citas", usuarios: "Usuarios", servicios: "Servicios", resenas: "Reseñas", reportes: "Reportes", precios: "Precios" };
   var rendered = {};
   function showView(view) {
     /* Blindaje: el empleado puro no entra a Usuarios ni Reportes aunque fuerce la URL/nav. */
@@ -1152,10 +1152,47 @@
       if (view === "servicios") renderServices();
       if (view === "resenas") renderReviews();
       if (view === "reportes") renderReport();
+      if (view === "precios") renderPricing();
       rendered[view] = true;
     }
     document.body.parentNode; // noop
     closeNav();
+  }
+
+  /* ── PRECIOS (solo administrador/directivo): editar precios de impresión + IVA ── */
+  function renderPricing() {
+    var host = $("#pricing-form");
+    if (!host) return;
+    host.innerHTML = '<p style="color:var(--text-muted)">Cargando precios…</p>';
+    apiGet("/admin/print-prices.php").then(function (j) {
+      if (!j || !j.ok) { host.innerHTML = '<p style="color:#b91c1c">No tienes permiso para editar precios.</p>'; return; }
+      var p = j.prices || {};
+      var taxPct = Math.round((+j.tax_rate || 0.08) * 10000) / 100;
+      function f(k, label) { return '<label class="pricing-f"><span>' + label + '</span><input type="number" step="0.01" min="0" data-pk="' + k + '" value="' + (p[k] != null ? p[k] : "") + '"></label>'; }
+      function grp(title, inner) { return '<div class="pricing-group"><h4>' + title + '</h4><div class="pricing-grid">' + inner + '</div></div>'; }
+      host.innerHTML =
+        grp("Carta — Blanco y negro ($/hoja)", f("carta_bn_1", "1 a 10") + f("carta_bn_2", "11 a 60") + f("carta_bn_3", "61 o más")) +
+        grp("Carta — Color ($/hoja)", f("carta_color_1", "1 a 10") + f("carta_color_2", "11 a 60") + f("carta_color_3", "61 o más")) +
+        grp("Oficio — Blanco y negro ($/hoja)", f("oficio_bn_1", "1 a 10") + f("oficio_bn_2", "11 a 50") + f("oficio_bn_3", "51 o más")) +
+        grp("Oficio — Color ($/hoja)", f("oficio_color_1", "1 a 10") + f("oficio_color_2", "11 a 50") + f("oficio_color_3", "51 o más")) +
+        grp("Doble carta ($/hoja)", f("tabloide_bn", "Blanco y negro") + f("tabloide_color", "Color")) +
+        grp("Fotografía ($/foto)", f("foto_10x15", "Foto 10×15 (6×4\")") + f("foto_13x18", "Foto 13×18 (5×7\")")) +
+        grp("Acabados", f("enmicado_carta", "Enmicado carta ($/hoja)") + f("enmicado_tabloide", "Enmicado doble carta ($/hoja)") + f("engargolado", "Engargolado ($)")) +
+        grp("Impuesto", '<label class="pricing-f"><span>IVA (%)</span><input type="number" step="0.01" min="0" id="pricing-tax" value="' + taxPct + '"></label>') +
+        '<div class="pricing-actions"><button class="btn btn--primary" id="pricing-save">Guardar precios</button><span id="pricing-msg" class="pricing-msg"></span></div>';
+      $("#pricing-save").addEventListener("click", function () {
+        var prices = {};
+        $$("[data-pk]", host).forEach(function (inp) { var v = parseFloat(inp.value); if (!isNaN(v)) prices[inp.dataset.pk] = v; });
+        var payload = { prices: prices };
+        var taxVal = parseFloat($("#pricing-tax").value);
+        if (!isNaN(taxVal)) payload.tax_rate = taxVal;   // el backend normaliza 8 → 0.08
+        var msg = $("#pricing-msg"); msg.textContent = "Guardando…"; msg.style.color = "var(--text-muted)";
+        apiPost("/admin/print-prices.php", payload).then(function (r) {
+          if (r && r.ok) { msg.textContent = "✓ Guardado"; msg.style.color = "#15803d"; }
+          else { msg.textContent = (r && r.error) || "No se pudo guardar."; msg.style.color = "#b91c1c"; }
+        }).catch(function () { msg.textContent = "Sin conexión."; msg.style.color = "#b91c1c"; });
+      });
+    }).catch(function () { host.innerHTML = '<p style="color:#b91c1c">Sin conexión al cargar precios.</p>'; });
   }
 
   function openNav() { document.body.classList.add("is-nav-open"); $("#admin-overlay").hidden = false; }

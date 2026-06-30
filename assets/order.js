@@ -535,6 +535,33 @@
   drop.addEventListener("drop", function (e) { if (e.dataTransfer && e.dataTransfer.files) addFiles(e.dataTransfer.files); });
   $("#order-submit").addEventListener("click", submit);
 
+  /* Sincroniza el estimado con los precios que el admin haya editado en el panel
+     (settings print.prices). Aditivo: si falla, se quedan los valores por defecto. */
+  function syncPrices() {
+    fetch(API + "/print-prices.php").then(function (r) { return r.json(); }).then(function (j) {
+      if (!j || !j.ok || !j.prices) return;
+      var p = j.prices;
+      function n(k, d) { return (p[k] != null && !isNaN(p[k])) ? +p[k] : d; }
+      PRINT_TIERS.carta = { bn: [[10, n("carta_bn_1", 2)], [60, n("carta_bn_2", 1.5)], [Infinity, n("carta_bn_3", 1.3)]], color: [[10, n("carta_color_1", 12)], [60, n("carta_color_2", 9)], [Infinity, n("carta_color_3", 5)]] };
+      PRINT_TIERS.a4 = PRINT_TIERS.carta;
+      PRINT_TIERS.oficio = { bn: [[10, n("oficio_bn_1", 2.5)], [50, n("oficio_bn_2", 2)], [Infinity, n("oficio_bn_3", 1.5)]], color: [[10, n("oficio_color_1", 15)], [50, n("oficio_color_2", 13)], [Infinity, n("oficio_color_3", 10)]] };
+      PRINT_TIERS.tabloide = { bn: [[Infinity, n("tabloide_bn", 5)]], color: [[Infinity, n("tabloide_color", 20)]] };
+      PHOTO.foto_10x15 = n("foto_10x15", 10); PHOTO.foto_13x18 = n("foto_13x18", 30);
+      ENMICADO.carta = n("enmicado_carta", 20); ENMICADO.tabloide = n("enmicado_tabloide", 30);
+      FINISH_FLAT.engargolado = n("engargolado", 45);
+      if (j.tax_rate != null && !isNaN(j.tax_rate)) TAX = +j.tax_rate;
+      SIZES.forEach(function (s) {
+        if (s.id === "carta" || s.id === "a4") s.price = PRINT_TIERS.carta.bn[2][1];
+        else if (s.id === "oficio") s.price = PRINT_TIERS.oficio.bn[2][1];
+        else if (s.id === "tabloide") s.price = PRINT_TIERS.tabloide.bn[0][1];
+        else if (s.id === "foto_10x15") s.price = PHOTO.foto_10x15;
+        else if (s.id === "foto_13x18") s.price = PHOTO.foto_13x18;
+      });
+      render();
+    }).catch(function () { /* sin conexión: se usan los valores por defecto del catálogo */ });
+  }
+
   renderPrices();
   render();
+  syncPrices();
 })();
