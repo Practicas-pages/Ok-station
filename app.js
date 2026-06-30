@@ -418,8 +418,10 @@
     /* Selección ÚNICA entre los 9 servicios (tarjetas principales + panel "Más servicios").
        Todos son independientes: elegir uno deselecciona cualquier otro. */
     function selectService(id, el) {
+      /* Resalta por ID (no por elemento) para que TODAS las copias del carrusel
+         infinito —original y clones— queden marcadas igual. */
       qsa(".tramite-btn, .extra-card").forEach(function (b) {
-        var active = (b === el);
+        var active = (b.dataset.tramite === id) || (b.dataset.service === id);
         b.classList.toggle("is-selected", active);
         b.setAttribute("aria-pressed", String(active));
       });
@@ -431,12 +433,16 @@
       updateStep0Next();
     }
 
-    qsa(".tramite-btn").forEach(function (btn) {
-      btn.addEventListener("click", function () {
-        var id = btn.dataset.tramite;
-        selectService(id, btn);
-        if (id === "pasaporte") openSubtypeModal();   /* caso especial: subtipo obligatorio */
-      });
+    /* DELEGACIÓN de eventos: un solo listener en la sección capta el clic en
+       cualquier .tramite-btn, INCLUIDAS las tarjetas clonadas del carrusel
+       infinito (los clones no heredan listeners por-elemento). */
+    section.addEventListener("click", function (e) {
+      var btn = e.target.closest ? e.target.closest(".tramite-btn") : null;
+      if (!btn || !section.contains(btn)) return;
+      var id = btn.dataset.tramite;
+      if (!id) return;
+      selectService(id, btn);
+      if (id === "pasaporte") openSubtypeModal();   /* caso especial: subtipo obligatorio */
     });
 
     /* ── Caso especial Pasaporte: modal de subtipo (mexicano/americano) ── */
@@ -1912,11 +1918,11 @@
          cruzar hacia un grupo clonado, "teletransportamos" el scroll un periodo completo
          (instantáneo y sin animación). Como el contenido es idéntico, el salto es
          invisible: el carrusel parece girar sin fin en ambos sentidos. */
-      /* Bucle infinito DESACTIVADO: clonaba tarjetas y "teletransportaba" el scroll,
-         lo que hacía que el carrusel de Servicios se sintiera trabado al picar las
-         flechas. Ahora Servicios usa el MISMO deslizamiento suave y finito que el
-         carrusel de Trámites/Citas (más cómodo, sin saltos). */
-      var canLoop = false;
+      /* Bucle infinito tipo "Netflix" en AMBOS carruseles (Servicios y Trámites):
+         las tarjetas dan vuelta sin tope. Para que las tarjetas CLONADAS de
+         Trámites sigan respondiendo al clic, su selección usa DELEGACIÓN de
+         eventos (ver initCitas), no un listener por tarjeta. */
+      var canLoop = true;
       var originals = Array.prototype.slice.call(track.children);
       var looping = false;
       var period = 0;   /* ancho de un juego completo (distancia de teletransporte) */
