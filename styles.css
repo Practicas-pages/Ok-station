@@ -5018,14 +5018,21 @@ body.admin::before, body.admin::after { display: none !important; }
   content: "";
   display: block !important;
   position: absolute; left: 0; right: 0; bottom: 0;
-  height: 55%;
+  height: 44%;
+  /* La foto del hero se DISUELVE en el blanco de la página (antes se fundía a
+     navy oscuro y luego había un corte duro con las secciones blancas). El
+     blanqueo solo ocurre en el tramo inferior, por debajo del texto y los CTAs. */
   background: linear-gradient(180deg,
-    rgba(10, 31, 77, 0.00) 0%,
-    rgba(10, 31, 77, 0.18) 38%,
-    rgba(10, 31, 77, 0.55) 72%,
-    rgba(10, 31, 77, 1.00) 100%);
-  z-index: 0; pointer-events: none;
+    rgba(255, 255, 255, 0.00) 0%,
+    rgba(255, 255, 255, 0.00) 38%,
+    rgba(255, 255, 255, 0.50) 64%,
+    rgba(255, 255, 255, 0.88) 84%,
+    #FFFFFF 95%,
+    #FFFFFF 100%);
+  z-index: 1; pointer-events: none;
 }
+/* "Descubre ↓": el pie del hero ahora es claro, así que el indicador va en tinta. */
+.hero__scroll, .hero__scroll svg { color: var(--text-secondary) !important; }
 
 /* ── Chips de confianza bajo los CTAs (llenan el espacio y refuerzan el mensaje) ── */
 .hero__chips {
@@ -5403,16 +5410,21 @@ html, body, #top { background: #FFFFFF !important; }
       rgba(12,14,22,0.12) 68%,
       rgba(12,14,22,0.00) 85%) !important;
 }
-/* Fundido del hero hacia el blanco de la página (conecta, no divide) */
+/* Fundido del hero hacia el blanco de la página (conecta, no divide).
+   La foto se DISUELVE en el blanco: el blanqueo arranca por DEBAJO del texto
+   y los CTAs, así que no afecta su legibilidad. */
 .hero::after {
   content: "" !important;
   position: absolute !important;
   left: 0; right: 0; bottom: 0;
-  height: clamp(150px, 26vh, 300px);
+  height: clamp(300px, 46vh, 500px) !important;
   background: linear-gradient(to bottom,
     rgba(255,255,255,0) 0%,
-    rgba(255,255,255,0.18) 38%,
-    rgba(255,255,255,0.62) 72%,
+    rgba(255,255,255,0) 36%,
+    rgba(255,255,255,0.32) 56%,
+    rgba(255,255,255,0.68) 74%,
+    rgba(255,255,255,0.93) 88%,
+    #FFFFFF 97%,
     #FFFFFF 100%) !important;
   z-index: 1;
   pointer-events: none;

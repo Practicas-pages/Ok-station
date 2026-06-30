@@ -837,7 +837,7 @@
       var mailVal = emailInput ? emailInput.value.trim() : "";
       var hasName    = !!nameVal;
       var telOk      = onlyDigits(telVal).length >= 10;
-      var mailOk     = !mailVal || EMAIL_RE.test(mailVal);
+      var mailOk     = EMAIL_RE.test(mailVal);   /* correo OBLIGATORIO */
       var hasContact = !!qs("input[name='cita-contacto']:checked", section);
       var acceptEl   = qs("#cita-acepto");
       var hasTerms   = !!(acceptEl && acceptEl.checked);
@@ -894,7 +894,7 @@
     /* Un control del cuestionario por trámite (texto/tel/área/select/checkbox) con su ayuda. */
     function answerCtrlHtml(i, f) {
       var id = "pg-" + i + "-a-" + f.k;
-      var req = f.optional ? "" : ' <span aria-hidden="true" style="color:#ff8a98">*</span>';
+      var req = ""; /* el cuestionario por persona es opcional: sin marca de obligatorio */
       var help = f.help ? '<span class="persona-help">' + sanitize(f.help) + '</span>' : "";
       if (f.type === "check") {
         return '<label class="persona-check" for="' + id + '"><input type="checkbox" id="' + id + '" data-ans="' + f.k + '" data-idx="' + i + '"><span>' + sanitize(f.q) + '</span></label>' +
@@ -1092,10 +1092,12 @@
       return true;
     }
     function validateGuests() {
+      /* El paso "Información de cada persona" (cuestionario + documentos) es OPCIONAL:
+         NO bloquea el avance. Los datos obligatorios (nombre, correo y teléfono) se
+         piden en el paso "Tus datos". El cliente puede llenar esto si quiere. */
       var btn = qs("#cita-next-4");
-      var allOk = state.guests.length > 0 && state.guests.every(guestValid);
-      if (btn) { btn.disabled = !allOk; btn.setAttribute("aria-disabled", String(!allOk)); }
-      return allOk;
+      if (btn) { btn.disabled = false; btn.setAttribute("aria-disabled", "false"); }
+      return true;
     }
     if (personaPrevBtn) personaPrevBtn.addEventListener("click", function () { showGuest(state.activeGuest - 1); });
     if (personaNextBtn) personaNextBtn.addEventListener("click", function () { showGuest(state.activeGuest + 1); });
