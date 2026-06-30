@@ -151,3 +151,17 @@
 .opay--pagado      { background: #DCFCE7; color: #15803D; }
 .opay--error       { background: #FEE2E2; color: #B91C1C; }
 .opay--reembolsado { background: #EDE9FE; color: #6D28D9; }
+
+/* ── Detalle por archivo dentro del "Resumen del pedido" ── */
+.order-summary__detail { display: flex; flex-direction: column; gap: 8px; margin: 0 0 10px; }
+.order-summary__item { border-bottom: 1px dashed var(--border-light); padding-bottom: 8px; }
+.order-summary__item:last-child { border-bottom: none; padding-bottom: 0; }
+.order-summary__item-top { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; font-size: 0.9rem; }
+.order-summary__item-name { font-weight: 600; color: var(--text-primary); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.order-summary__item-top b { white-space: nowrap; font-variant-numeric: tabular-nums; }
+.order-summary__item-sub { font-size: 0.76rem; color: var(--text-muted); margin-top: 2px; }
+
+/* ── Lista de precios de referencia CON TRAMOS (etiqueta arriba, precios por tramo abajo) ── */
+.order-prices__list--tiers li { flex-direction: column; align-items: stretch; gap: 3px; }
+.order-prices__list--tiers li span { font-weight: 600; color: var(--text-primary); }
+.order-prices__list--tiers li b { font-weight: 600; font-size: 0.82rem; color: var(--text-secondary); white-space: normal; font-variant-numeric: tabular-nums; }

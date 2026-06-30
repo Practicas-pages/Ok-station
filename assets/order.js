@@ -224,6 +224,13 @@
     });
   }
 
+  /* Descripción legible de la configuración de un archivo (tamaño · color · acabado). */
+  function fileDesc(f) {
+    var parts = [sizeById(f.cfg.size).label];
+    if (PRINT_TIERS[f.cfg.size]) parts.push(f.cfg.color === "color" ? "Color" : "B/N");
+    if (f.cfg.finish && f.cfg.finish !== "ninguno") parts.push(f.cfg.finish.charAt(0).toUpperCase() + f.cfg.finish.slice(1));
+    return parts.join(" · ");
+  }
   function renderSummary() {
     var copies = 0, totalIncl = 0;
     /* Los precios del catálogo son IVA INCLUIDO (como en el ticket de mostrador):
@@ -232,6 +239,24 @@
     totalIncl = Math.round(totalIncl * 100) / 100;
     var subtotal = Math.round(totalIncl / (1 + TAX) * 100) / 100;
     var tax = Math.round((totalIncl - subtotal) * 100) / 100;
+    /* Detalle por archivo: el cliente ve QUÉ pidió y CUÁNTO cuesta cada uno. */
+    var detail = $("#sum-detail");
+    if (detail) {
+      detail.innerHTML = files.map(function (f) {
+        var p = priceOf(f);
+        var count = Math.max(1, (f.pages || 1) * (f.cfg.copies || 1));
+        var isPhoto = PHOTO[f.cfg.size] != null;
+        var qtyTxt = isPhoto
+          ? (count + (count === 1 ? " foto" : " fotos"))
+          : ((f.pages || 1) + " pág × " + (f.cfg.copies || 1) + " = " + count + (count === 1 ? " hoja" : " hojas"));
+        var unitTxt = p.quote ? "" : (isPhoto ? (mxn(p.unit) + " c/u") : (mxn(p.unit) + "/hoja"));
+        var right = p.quote ? "Cotización" : mxn(p.line);
+        return '<div class="order-summary__item">' +
+          '<div class="order-summary__item-top"><span class="order-summary__item-name">' + esc(f.name) + '</span><b>' + right + '</b></div>' +
+          '<div class="order-summary__item-sub">' + esc(fileDesc(f)) + ' · ' + esc(qtyTxt) + (unitTxt ? (' · ' + esc(unitTxt)) : '') + '</div>' +
+          '</div>';
+      }).join("");
+    }
     $("#sum-files").textContent = files.length;
     $("#sum-copies").textContent = copies;
     $("#sum-subtotal").textContent = mxn(subtotal);
@@ -239,19 +264,36 @@
     $("#sum-total").textContent = mxn(totalIncl);
   }
 
-  /* Precios de referencia por tamaño, visibles ANTES de subir archivos (U2). */
+  /* Precios de referencia CON TRAMOS por cantidad (para que el cliente sepa cuánto baja por volumen). */
+  function tiersText(tiers) {
+    var prev = 0, parts = [];
+    for (var i = 0; i < tiers.length; i++) {
+      var max = tiers[i][0], price = tiers[i][1];
+      var range = (max === Infinity) ? ((prev + 1) + " o +") : ((prev + 1) + "–" + max);
+      parts.push(range + ": " + mxn(price));
+      prev = max;
+    }
+    return parts.join("  ·  ");
+  }
   function renderPrices() {
     var host = $("#order-prices");
     if (!host) return;
+    function row(label, val) { return '<li><span>' + esc(label) + '</span><b>' + esc(val) + '</b></li>'; }
+    var rows =
+      row("Carta — B/N", tiersText(PRINT_TIERS.carta.bn)) +
+      row("Carta — Color", tiersText(PRINT_TIERS.carta.color)) +
+      row("Oficio — B/N", tiersText(PRINT_TIERS.oficio.bn)) +
+      row("Oficio — Color", tiersText(PRINT_TIERS.oficio.color)) +
+      row("A4 — B/N", tiersText(PRINT_TIERS.a4.bn)) +
+      row("A4 — Color", tiersText(PRINT_TIERS.a4.color)) +
+      row("Doble carta", "B/N " + mxn(5) + "  ·  Color " + mxn(20)) +
+      row("Foto 10×15 (6×4\")", mxn(10) + " c/u") +
+      row("Foto 13×18 (5×7\")", mxn(30) + " c/u") +
+      row("Gran formato 24\"", "Cotización personalizada");
     host.innerHTML =
       '<p class="order-prices__title">Precios base de referencia</p>' +
-      '<ul class="order-prices__list">' +
-      SIZES.map(function (s) {
-        var val = s.price > 0 ? ("desde " + mxn(s.price)) : "Cotización personalizada";
-        return '<li><span>' + esc(s.label) + '</span><b>' + esc(val) + '</b></li>';
-      }).join("") +
-      '</ul>' +
-      '<p class="order-prices__note">Precio base por página (documentos) o por copia (fotos). El total depende de color, acabado y cantidad. El gran formato 24" se cotiza por WhatsApp.</p>';
+      '<ul class="order-prices__list order-prices__list--tiers">' + rows + '</ul>' +
+      '<p class="order-prices__note">El precio por hoja baja según la cantidad total. El total final depende de color, acabado y cantidad. El gran formato 24" se cotiza por WhatsApp.</p>';
   }
 
   /* ── Crear pedido + ticket ── */
