@@ -1159,6 +1159,35 @@
     closeNav();
   }
 
+  /* Modal de confirmación por contraseña. callback(pw, close, setMsg, setBusy). */
+  function askPassword(onConfirm) {
+    if (document.getElementById("pwd-modal")) return;
+    var ov = document.createElement("div");
+    ov.id = "pwd-modal"; ov.className = "pwd-modal";
+    ov.innerHTML =
+      '<div class="pwd-modal__overlay" data-close></div>' +
+      '<div class="pwd-modal__panel" role="dialog" aria-modal="true" aria-label="Confirmar con contraseña">' +
+        '<h3>Confirma tu contraseña</h3>' +
+        '<p>Por seguridad, ingresa tu contraseña para guardar los cambios de precios.</p>' +
+        '<input type="password" id="pwd-input" autocomplete="current-password" placeholder="Tu contraseña">' +
+        '<div class="pwd-modal__msg" id="pwd-msg"></div>' +
+        '<div class="pwd-modal__actions"><button type="button" class="btn btn--light btn--sm" data-close>Cancelar</button>' +
+        '<button type="button" class="btn btn--primary btn--sm" id="pwd-ok">Confirmar</button></div>' +
+      '</div>';
+    document.body.appendChild(ov);
+    document.body.style.overflow = "hidden";
+    var input = ov.querySelector("#pwd-input"), okBtn = ov.querySelector("#pwd-ok"), msgEl = ov.querySelector("#pwd-msg");
+    setTimeout(function () { input.focus(); }, 30);
+    function close() { ov.remove(); document.body.style.overflow = ""; document.removeEventListener("keydown", onKey); }
+    function setMsg(t, c) { msgEl.textContent = t || ""; msgEl.style.color = c || "#b91c1c"; }
+    function setBusy(b) { okBtn.disabled = b; input.disabled = b; }
+    function go() { var pw = input.value; if (!pw) { setMsg("Ingresa tu contraseña."); return; } onConfirm(pw, close, setMsg, setBusy); }
+    function onKey(e) { if (e.key === "Escape") close(); else if (e.key === "Enter") go(); }
+    ov.addEventListener("click", function (e) { if (e.target.hasAttribute("data-close")) close(); });
+    okBtn.addEventListener("click", go);
+    document.addEventListener("keydown", onKey);
+  }
+
   /* ── PRECIOS (solo administrador/directivo): editar precios de impresión + IVA ── */
   function renderPricing() {
     var host = $("#pricing-form");
@@ -1186,11 +1215,17 @@
         var payload = { prices: prices };
         var taxVal = parseFloat($("#pricing-tax").value);
         if (!isNaN(taxVal)) payload.tax_rate = taxVal;   // el backend normaliza 8 → 0.08
-        var msg = $("#pricing-msg"); msg.textContent = "Guardando…"; msg.style.color = "var(--text-muted)";
-        apiPost("/admin/print-prices.php", payload).then(function (r) {
-          if (r && r.ok) { msg.textContent = "✓ Guardado"; msg.style.color = "#15803d"; }
-          else { msg.textContent = (r && r.error) || "No se pudo guardar."; msg.style.color = "#b91c1c"; }
-        }).catch(function () { msg.textContent = "Sin conexión."; msg.style.color = "#b91c1c"; });
+        /* Confirmación por contraseña antes de guardar (cambio sensible). */
+        askPassword(function (pw, close, setMsg, setBusy) {
+          payload.password = pw;
+          setBusy(true); setMsg("Guardando…", "var(--text-muted)");
+          apiPost("/admin/print-prices.php", payload).then(function (r) {
+            if (r && r.ok) {
+              close();
+              var msg = $("#pricing-msg"); msg.textContent = "✓ Precios guardados"; msg.style.color = "#15803d";
+            } else { setBusy(false); setMsg((r && r.error) || "No se pudo guardar.", "#b91c1c"); }
+          }).catch(function () { setBusy(false); setMsg("Sin conexión.", "#b91c1c"); });
+        });
       });
     }).catch(function () { host.innerHTML = '<p style="color:#b91c1c">Sin conexión al cargar precios.</p>'; });
   }

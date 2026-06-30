@@ -19,6 +19,16 @@ if ($method === 'GET') {
 if ($method === 'POST') {
     $user = require_permission('settings.manage');
     $b    = body();
+
+    /* Confirmación por contraseña: cambiar precios es sensible. Se verifica contra
+       el hash del usuario en sesión; sin contraseña válida no se guarda nada. */
+    $pw = (string) ($b['password'] ?? '');
+    if ($pw === '') fail('Ingresa tu contraseña para confirmar el cambio.', 422);
+    $st = db()->prepare('SELECT password_hash FROM users WHERE id = ?');
+    $st->execute([(int) $user['id']]);
+    $hash = $st->fetchColumn();
+    if (!$hash || !password_verify($pw, (string) $hash)) fail('Contraseña incorrecta.', 401);
+
     $set  = db()->prepare('INSERT INTO settings (`key`,`value`) VALUES (?,?) ON DUPLICATE KEY UPDATE `value`=VALUES(`value`)');
 
     /* Solo se aceptan claves CONOCIDAS (las de PRINT_DEFAULTS) con montos numéricos ≥ 0.
