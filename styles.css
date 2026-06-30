@@ -5967,3 +5967,25 @@ body::before, body::after,
 .citas-section .contact-chip:has(input:checked) * {
   color: #FFFFFF !important;
 }
+
+/* ============================================================
+   35. CARRUSEL DE SERVICIOS — quitar la animación "reveal" de las tarjetas
+   Al dar vuelta el carrusel (sobre todo hacia la IZQUIERDA), los títulos
+   "saltaban" y luego se reacomodaban: las tarjetas conservaban la animación de
+   aparición (.reveal = opacity/transform con transición de .6s), y los clones
+   quedaban en estado .reveal:not(.is-visible). Las tarjetas de CITAS no tienen
+   reveal, por eso ahí no pasa. Aquí las dejamos SIEMPRE visibles y estáticas,
+   con SOLO la transición del hover.
+   ============================================================ */
+.services-grid .reveal,
+.services-grid .reveal.is-visible,
+.services-grid .service-card,
+.services-grid .service-card.reveal,
+.services-grid .service-card.reveal.is-visible {
+  opacity: 1 !important;
+  transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease, background .2s ease !important;
+}
+/* transform estático cuando NO se está haciendo hover: así ninguna animación de
+   "reveal" puede desplazar la tarjeta/título; el hover (elevar 4px) sí aplica. */
+.services-grid .service-card:not(:hover) { transform: none !important; }
+.services-grid .service-card__img { transition: transform .35s ease !important; }
