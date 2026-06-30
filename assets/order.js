@@ -100,9 +100,10 @@
     if (!t) return { unit: 0, line: 0, quote: true };                /* gran formato → cotizar */
     var band = (COLOR[f.cfg.color] === "color") ? t.color : t.bn;
     var per = tierFor(band, count);
+    var sidesMult = (f.cfg.sides === "doble") ? 2 : 1;   /* doble cara DUPLICA el precio de impresión */
     /* Acabado: enmicado se cobra POR HOJA según el tamaño; los demás (engargolado) son precio plano. */
     var finishCost = (f.cfg.finish === "enmicado") ? (ENMICADO[size] || 0) * count : (FINISH_FLAT[f.cfg.finish] || 0);
-    var line = per * count + finishCost;
+    var line = per * count * sidesMult + finishCost;
     return { unit: Math.round(per * 100) / 100, line: Math.round(line * 100) / 100, quote: false };
   }
 
@@ -228,6 +229,7 @@
   function fileDesc(f) {
     var parts = [sizeById(f.cfg.size).label];
     if (PRINT_TIERS[f.cfg.size]) parts.push(f.cfg.color === "color" ? "Color" : "B/N");
+    if (PRINT_TIERS[f.cfg.size] && f.cfg.sides === "doble") parts.push("Doble cara");
     if (f.cfg.finish && f.cfg.finish !== "ninguno") parts.push(f.cfg.finish.charAt(0).toUpperCase() + f.cfg.finish.slice(1));
     return parts.join(" · ");
   }
@@ -249,7 +251,7 @@
         var qtyTxt = isPhoto
           ? (count + (count === 1 ? " foto" : " fotos"))
           : ((f.pages || 1) + " pág × " + (f.cfg.copies || 1) + " = " + count + (count === 1 ? " hoja" : " hojas"));
-        var unitTxt = p.quote ? "" : (isPhoto ? (mxn(p.unit) + " c/u") : (mxn(p.unit) + "/hoja"));
+        var unitTxt = p.quote ? "" : (isPhoto ? (mxn(p.unit) + " c/u") : (mxn(p.unit) + "/hoja" + (f.cfg.sides === "doble" ? " × 2 caras" : "")));
         var right = p.quote ? "Cotización" : mxn(p.line);
         return '<div class="order-summary__item">' +
           '<div class="order-summary__item-top"><span class="order-summary__item-name">' + esc(f.name) + '</span><b>' + right + '</b></div>' +

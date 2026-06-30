@@ -47,12 +47,14 @@ final class Pricing
         }
         $band   = (($cfg['color'] ?? 'bn') === 'color') ? 'color' : 'bn';
         $per    = self::tierFor(self::PRINT_TIERS[$size][$band], $count);
+        // Doble cara DUPLICA el precio de impresión (regla OK.station).
+        $sidesMult  = (($cfg['sides'] ?? 'una') === 'doble') ? 2 : 1;
         // Acabado: enmicado se cobra POR HOJA según el tamaño; los demás (engargolado) son precio plano.
         $finishSel  = $cfg['finish'] ?? 'ninguno';
         $finishCost = ($finishSel === 'enmicado')
             ? ((self::ENMICADO[$size] ?? 0.0) * $count)
             : (self::FINISH_FLAT[$finishSel] ?? 0.0);
-        $line   = round($per * $count + $finishCost, 2);
+        $line   = round($per * $count * $sidesMult + $finishCost, 2);
         return ['unit' => $per, 'line' => $line, 'quote' => false];
     }
 
