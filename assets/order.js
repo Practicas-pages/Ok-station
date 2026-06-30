@@ -80,6 +80,15 @@
     for (var i = 0; i < tiers.length; i++) { if (count <= tiers[i][0]) return tiers[i][1]; }
     return tiers[tiers.length - 1][1];
   }
+  /* Precio POR HOJA/unidad REAL para mostrar en cada opción (según tamaño, color y cantidad).
+     Devuelve null si se cotiza (gran formato). En fotos el color no afecta (precio plano). */
+  function perSheetFor(size, color, count) {
+    if (PHOTO[size] != null) return PHOTO[size];
+    var t = PRINT_TIERS[size];
+    if (!t) return null;
+    var band = (COLOR[color] === "color") ? t.color : t.bn;
+    return tierFor(band, count);
+  }
   function priceOf(f) {
     var size = f.cfg.size;
     var count = Math.max(1, (f.pages || 1) * (f.cfg.copies || 1));   /* hojas totales */
@@ -139,6 +148,17 @@
     var host = $("#order-files");
     host.innerHTML = files.map(function (f, i) {
       var p = priceOf(f);
+      var count = Math.max(1, (f.pages || 1) * (f.cfg.copies || 1));   /* hojas totales para el tramo */
+      /* Opciones de Color con su precio por hoja REAL (en impresión/copia; en foto el precio es plano). */
+      var colorOpts = PRINT_TIERS[f.cfg.size]
+        ? [["color", "Color · " + mxn(perSheetFor(f.cfg.size, "color", count))], ["bn", "B/N · " + mxn(perSheetFor(f.cfg.size, "bn", count))]]
+        : [["color", "Color"], ["bn", "B/N"]];
+      /* Opciones de Acabado con su precio (enmicado por hoja según tamaño; engargolado plano pendiente). */
+      var finishOpts = [
+        { v: "ninguno", t: "Ninguno" },
+        { v: "engargolado", t: "Engargolado · " + mxn(45) },
+        { v: "enmicado", t: "Enmicado" + (ENMICADO[f.cfg.size] ? (" · " + mxn(ENMICADO[f.cfg.size]) + "/hoja") : "") }
+      ];
       var thumb = f.thumb
         ? '<img class="file-card__thumb" src="' + f.thumb + '" alt="">'
         : '<span class="file-card__thumb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></span>';
@@ -150,13 +170,14 @@
         '</div>' +
         '<div class="file-cfg">' +
           cfgSelect(i, "size", "Tamaño", SIZES.map(function (s) {
-            var tag = s.price > 0 ? (" · " + mxn(s.price)) : " · cotizar";
+            var pu = perSheetFor(s.id, f.cfg.color, count);
+            var tag = (pu == null) ? " · cotizar" : (" · " + mxn(pu));
             return { v: s.id, t: s.label + tag };
           }), f.cfg.size) +
-          cfgSeg(i, "color", "Color", [["color", "Color"], ["bn", "B/N"]], f.cfg.color) +
+          cfgSeg(i, "color", "Color", colorOpts, f.cfg.color) +
           cfgSelect(i, "paper", "Papel", PAPERS.map(function (p2) { return { v: p2, t: p2 }; }), f.cfg.paper) +
           cfgSeg(i, "sides", "Caras", [["una", "Una"], ["doble", "Doble"]], f.cfg.sides) +
-          cfgSelect(i, "finish", "Acabado", [{ v: "ninguno", t: "Ninguno" }, { v: "engargolado", t: "Engargolado" }, { v: "enmicado", t: "Enmicado" }], f.cfg.finish) +
+          cfgSelect(i, "finish", "Acabado", finishOpts, f.cfg.finish) +
           cfgQty(i, f.cfg.copies) +
         '</div>' +
         (p.quote ? '<p class="file-card__note">Gran formato 24": cotización personalizada — te confirmamos por WhatsApp.</p>' : '') +
