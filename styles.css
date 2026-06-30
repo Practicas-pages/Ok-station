@@ -1952,7 +1952,7 @@ h1, h2, h3, h4, h5, h6 {
 .party-opt span { font-size: 0.78rem; color: rgba(255,255,255,0.6); }
 .party-opt:hover { border-color: rgba(0,198,255,0.5); transform: translateY(-1px); }
 .party-opt.is-selected { border-color: var(--brand-cyan); background: var(--brand-blue); box-shadow: var(--shadow-brand); }
-.party-opt.is-selected span { color: rgba(255,255,255,0.85); }
+.party-opt.is-selected span { color: rgba(0, 0, 0, 0.85); }
 .party-opt:focus-visible { outline: 3px solid var(--brand-cyan); outline-offset: 2px; }
 .party-counter { display: flex; align-items: center; gap: 12px; }
 .party-counter .qty-btn { width: 40px; height: 40px; border-radius: var(--radius-sm); border: 1.5px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.06); color: #fff; font-size: 1.3rem; cursor: pointer; }
@@ -5649,9 +5649,11 @@ body:has(.cita-drawer:not([hidden])) { overflow: hidden; }
 .site-footer p,
 .site-footer h5,
 .footer-tagline,
+.footer-bottom,
 .footer-col a { color: var(--text-secondary) !important; }
 .site-footer h5 { color: var(--text-primary) !important; }
-.footer-col a:hover { color: var(--brand-blue) !important; }
+.footer-col a:hover,
+.footer-bottom a:hover { color: var(--brand-blue) !important; }
 
 /* — Microinteracción: elevar tarjetas de servicio al pasar el cursor — */
 .service-card { transition: transform .25s ease, box-shadow .25s ease, border-color .25s ease; }
