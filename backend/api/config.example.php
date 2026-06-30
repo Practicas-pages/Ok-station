@@ -49,6 +49,15 @@ return [
         'from_name' => env('SMTP_FROM_NAME', 'OK.station'),
     ],
 
+    /* Correo transaccional con Brevo (API HTTP, permite ADJUNTAR el comprobante PDF).
+       Si BREVO_API_KEY queda vacío, el sistema usa el SMTP de arriba (sin adjuntos).
+       El remitente DEBE estar verificado en Brevo (Senders, Domains & IPs). */
+    'brevo' => [
+        'api_key'   => env('BREVO_API_KEY', ''),
+        'from'      => env('MAIL_FROM', env('SMTP_FROM', env('SMTP_USER', 'no-reply@okstation.mx'))),
+        'from_name' => env('MAIL_FROM_NAME', env('SMTP_FROM_NAME', 'OK.station')),
+    ],
+
     /* Pago en línea. Por defecto 'sandbox' (checkout local de demo, sin pasarela).
        Para cobrar de verdad: PAYMENT_PROVIDER=stripe y completa las llaves. */
     'payment' => [

@@ -220,7 +220,7 @@ if (table_has_column('appointments', 'confirm_token')) {
    SMTP falla o no está configurado, NO afecta la cita ni la respuesta. */
 if ($email !== '') {
     try {
-        require_once __DIR__ . '/../lib/Mailer.php';
+        require_once __DIR__ . '/../lib/Mail.php';
         require_once __DIR__ . '/../lib/Emails.php';
         $svcNames = [
             'pasaporte' => 'Pasaporte', 'visa' => 'Visa Americana', 'sentri' => 'SENTRI / Global Entry',
@@ -230,7 +230,6 @@ if ($email !== '') {
         $svcName = $svcNames[$tramite] ?? $tramite;
         if ($tramite === 'pasaporte' && $subtype !== '') $svcName .= ' (' . ucfirst($subtype) . ')';
         $priceText = $pricing['quote'] ? 'Se cotiza en el local' : ('$' . number_format((float) $pricing['total'], 2) . ' MXN');
-        $mailer = new Mailer($CONFIG['smtp'] ?? []);
 
         if ($confirmToken) {
             /* Correo HTML con el ticket y el botón "Confirmar mi cita". */
@@ -239,7 +238,7 @@ if ($email !== '') {
                 'party' => $party, 'date' => $date, 'time' => $time, 'priceText' => $priceText,
                 'confirmUrl' => Emails::confirmUrl('cita', $code, $confirmToken),
             ]);
-            $mailer->sendHtml($email, 'Confirma tu cita en OK.station — ' . $code, $html);
+            Mail::sendHtml($email, 'Confirma tu cita en OK.station — ' . $code, $html);
         } else {
             /* Respaldo en texto plano (si la migración 0017 aún no se ha aplicado). */
             $mailBody =
@@ -247,7 +246,7 @@ if ($email !== '') {
                 "Folio: $code\nServicio: $svcName\nPersonas: $party\nFecha: $date\nHora: $time hrs\n\n" .
                 "Estado: pendiente de confirmar. Te contactaremos para confirmar tu cita.\n\n" .
                 "Gracias,\nOK.station · Centro Comercial Otay, Tijuana\nokstation.mx";
-            $mailer->send($email, 'Tu cita en OK.station — ' . $code, $mailBody);
+            Mail::send($email, 'Tu cita en OK.station — ' . $code, $mailBody);
         }
     } catch (Throwable $e) { /* correo best-effort; no afecta la cita */ }
 }

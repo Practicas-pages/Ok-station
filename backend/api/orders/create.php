@@ -103,10 +103,9 @@ if (table_has_column('orders', 'confirm_token')) {
 /* Correo de confirmación al usuario (best-effort: si el SMTP falla, no afecta el pedido). */
 if (!empty($user['email'])) {
     try {
-        require_once __DIR__ . '/../lib/Mailer.php';
+        require_once __DIR__ . '/../lib/Mail.php';
         require_once __DIR__ . '/../lib/Emails.php';
         $clientName = (string) ($user['full_name'] ?? '');
-        $mailer = new Mailer($CONFIG['smtp'] ?? []);
 
         if ($confirmToken) {
             /* Correo HTML con el ticket y el botón "Confirmar mi pedido". */
@@ -115,7 +114,7 @@ if (!empty($user['email'])) {
                 'subtotal' => $subtotal, 'tax' => $tax, 'total' => $total,
                 'confirmUrl' => Emails::confirmUrl('pedido', $code, $confirmToken),
             ]);
-            $mailer->sendHtml($user['email'], 'Confirma tu pedido en OK.station — ' . $code, $html);
+            Mail::sendHtml($user['email'], 'Confirma tu pedido en OK.station — ' . $code, $html);
         } else {
             /* Respaldo en texto plano (si la migración 0017 aún no se ha aplicado). */
             $mailBody =
@@ -124,7 +123,7 @@ if (!empty($user['email'])) {
                 "IVA estimado: $" . number_format($tax, 2) . " MXN\nTotal estimado: $" . number_format($total, 2) . " MXN\n\n" .
                 "El total es un estimado; confirmamos el precio final al revisar tus archivos.\n\n" .
                 "Gracias,\nOK.station · Centro Comercial Otay, Tijuana\nokstation.mx";
-            $mailer->send($user['email'], 'Tu pedido en OK.station — ' . $code, $mailBody);
+            Mail::send($user['email'], 'Tu pedido en OK.station — ' . $code, $mailBody);
         }
     } catch (Throwable $e) { /* correo best-effort */ }
 }

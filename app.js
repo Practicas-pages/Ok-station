@@ -1313,16 +1313,33 @@
               try {
                 /* Servicios adicionales que el cliente marcó (venta cruzada) para reflejarlos en el ticket. */
                 var citaServices = (exped && exped.services) ? exped.services : [];
-                var citaUri = window.OKCitaTicketBlobUrl ? window.OKCitaTicketBlobUrl({
+                var apptForTicket = {
                   code: j.appointment.code, tramite: j.appointment.tramite,
                   passport_subtype: j.appointment.passport_subtype, party_size: j.appointment.party_size,
                   date: j.appointment.date, time: j.appointment.time, status: j.appointment.status,
                   name: state.nombre, phone: state.tel, guests: state.guests,
                   services: citaServices
-                }) : null;
+                };
+                var citaUri = window.OKCitaTicketBlobUrl ? window.OKCitaTicketBlobUrl(apptForTicket) : null;
                 var dlBtn = qs("#cita-ticket-dl", successEl);
                 if (citaUri && dlBtn) dlBtn.href = citaUri;
                 else if (dlBtn) dlBtn.style.display = "none";
+
+                /* Envía el COMPROBANTE (PDF) por correo al cliente (best-effort, vía Brevo).
+                   Solo si dio correo. El PDF se genera aquí en base64 (data-URI). */
+                try {
+                  var contactEmail = (qs("#cita-correo") && qs("#cita-correo").value.trim()) || "";
+                  if (contactEmail && window.OKCitaTicket && j.appointment && j.appointment.id) {
+                    var pdfUri = window.OKCitaTicket(apptForTicket);
+                    if (pdfUri) {
+                      fetch(API + "/appointments/send-receipt.php", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ appointment_id: j.appointment.id, code: j.appointment.code, pdf_base64: pdfUri })
+                      }).catch(function () {});
+                    }
+                  }
+                } catch (e2) {}
               } catch (e) {
                 var dlErr = qs("#cita-ticket-dl", successEl);
                 if (dlErr) dlErr.style.display = "none";
