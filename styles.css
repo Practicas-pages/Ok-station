@@ -5862,3 +5862,86 @@ body::before, body::after,
 .cita-summary b{
     color:#111827 !important;
 }
+
+/* ============================================================
+   34. CORRECCIONES DE CONTRASTE — paso a tema claro (2026-06-30)
+   Restos del tema oscuro que quedaban ILEGIBLES sobre el fondo blanco:
+   calendario de citas, prefijo "+52", etiquetas .eyebrow y el tagline.
+   ============================================================ */
+
+/* — Calendario de citas: era una CAJA OSCURA con texto oscuro (invisible).
+     Lo pasamos a tema claro; el texto de mes/días/semana ya estaba forzado
+     a oscuro más arriba, así que basta con aclarar el fondo y los bordes. — */
+.citas-section .okcal {
+  background: #FFFFFF !important;
+  border-color: #E5E7EB !important;
+}
+.citas-section .okcal__nav {
+  color: var(--text-primary) !important;
+  border-color: #E5E7EB !important;
+}
+.citas-section .okcal__nav:hover:not(:disabled) {
+  border-color: rgba(6,108,255,0.45) !important;
+  background: #F2F6FF !important;
+}
+.citas-section .okcal__day:not(.is-selected):not(.is-empty) {
+  background: #F7F9FF !important;
+  border-color: #E8ECF5 !important;
+}
+.citas-section .okcal__day:hover:not(:disabled):not(.is-empty):not(.is-selected) {
+  border-color: rgba(6,108,255,0.45) !important;
+}
+.citas-section .okcal__day.is-empty {
+  background: transparent !important;
+  border-color: transparent !important;
+}
+.citas-section .okcal__legend {
+  border-top-color: #E5E7EB !important;
+}
+.citas-section .okcal__legend-item {
+  color: var(--text-secondary) !important;
+}
+
+/* — Prefijo "+52" del teléfono dentro del wizard (era blanco sobre blanco) — */
+.citas-section .input-prefix__tag {
+  background: #EEF3FB !important;
+  border-color: #D7E2F2 !important;
+  color: #0B1F3A !important;
+}
+
+/* — Etiquetas de sección (.eyebrow): cian claro ilegible → azul de marca (≈4.5:1).
+     Se respeta .eyebrow--white (usado sobre fondos oscuros). — */
+.eyebrow:not(.eyebrow--white),
+.section-head .eyebrow,
+#faq .eyebrow {
+  color: var(--brand-blue) !important;
+}
+.eyebrow:not(.eyebrow--white)::before,
+.section-head .eyebrow::before {
+  background: var(--brand-blue) !important;
+}
+
+/* — Tagline "You say tech, we listen." sobre bloque claro (era cian, 1.9:1) — */
+.footer-brand-line {
+  color: var(--brand-blue) !important;
+}
+
+/* — Chips de trámite (.tramite-tag): texto azul/morado claro (2:1) →
+     pastilla SÓLIDA del color del servicio con texto blanco (≥4.5:1). — */
+.tramite-tag {
+  background: var(--taccent, var(--brand-blue)) !important;
+  color: #FFFFFF !important;
+}
+
+/* — Red de seguridad: los títulos de paso del wizard siempre oscuros sobre el
+     panel blanco (cubre también el paso de personas, hoy inerte). — */
+.citas-section .cita-step__title {
+  color: var(--text-primary) !important;
+}
+
+/* — Chip de contacto SELECCIONADO (fondo azul): su texto debe ir blanco; los
+     overrides de tema claro lo dejaban en gris oscuro sobre azul (2.26:1). — */
+.citas-section .contact-chip:has(input:checked),
+.citas-section .contact-chip:has(input:checked) * {
+  color: #FFFFFF !important;
+}
