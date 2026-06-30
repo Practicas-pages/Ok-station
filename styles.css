@@ -155,8 +155,10 @@ html {
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
   /* Refuerza el clip horizontal: <body> no recorta elementos position:fixed
-     (como el menú lateral cerrado), por eso el clip va también aquí. */
-  overflow-x: hidden;
+     (como el menú lateral cerrado), por eso el clip va también aquí.
+     'clip' en vez de 'hidden': evita el scroll horizontal IGUAL pero NO crea
+     un contenedor de scroll, así que no rompe position:sticky (navbar/sidebar). */
+  overflow-x: clip;
 }
 
 body {
@@ -167,7 +169,7 @@ body {
   background: var(--surface-page);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  overflow-x: hidden;
+  overflow-x: clip;
 }
 
 img, video, svg {

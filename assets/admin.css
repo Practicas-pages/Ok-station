@@ -18,7 +18,9 @@
   padding: var(--space-5) var(--space-4);
   position: sticky;
   top: 0;
+  align-self: start;          /* no estirarse en el grid → el sticky sí pega */
   height: 100vh;
+  overflow-y: auto;           /* si el menú es más alto que la pantalla, scroll interno */
 }
 .admin-sidebar__logo { font-size: 1.4rem; margin: 4px 8px var(--space-6); }
 .admin-nav { display: flex; flex-direction: column; gap: 3px; }
