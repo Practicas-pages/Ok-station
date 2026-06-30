@@ -17,8 +17,12 @@ final class Pricing
     ];
     /** Precio por foto (sin tramos). */
     const PHOTO  = ['foto_10x15' => 10.0, 'foto_13x18' => 30.0];
-    /** Acabados (precio representativo; variantes por tamaño se cobran en mostrador). */
-    const FINISH = ['ninguno' => 0.0, 'engargolado' => 45.0, 'enmicado' => 20.0, 'grapado' => 5.0];
+    /** Enmicado: precio POR HOJA según el TAMAÑO del documento (catálogo Hoja2).
+     *  Oficio y A4 quedan PENDIENTES (sin recargo de enmicado hasta definir su precio). */
+    const ENMICADO = ['carta' => 20.0, 'tabloide' => 30.0];
+    /** Acabados de precio plano. Engargolado PENDIENTE: $45 temporal hasta definir el
+     *  grosor por número de hojas (chico/mediano/grande). */
+    const FINISH_FLAT = ['ninguno' => 0.0, 'engargolado' => 45.0];
 
     private static function tierFor(array $tiers, int $count): float
     {
@@ -43,8 +47,12 @@ final class Pricing
         }
         $band   = (($cfg['color'] ?? 'bn') === 'color') ? 'color' : 'bn';
         $per    = self::tierFor(self::PRINT_TIERS[$size][$band], $count);
-        $finish = self::FINISH[$cfg['finish'] ?? 'ninguno'] ?? 0.0;
-        $line   = round($per * $count + $finish, 2);
+        // Acabado: enmicado se cobra POR HOJA según el tamaño; los demás (engargolado) son precio plano.
+        $finishSel  = $cfg['finish'] ?? 'ninguno';
+        $finishCost = ($finishSel === 'enmicado')
+            ? ((self::ENMICADO[$size] ?? 0.0) * $count)
+            : (self::FINISH_FLAT[$finishSel] ?? 0.0);
+        $line   = round($per * $count + $finishCost, 2);
         return ['unit' => $per, 'line' => $line, 'quote' => false];
     }
 

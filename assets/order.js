@@ -45,9 +45,14 @@
     tabloide: { bn: [[Infinity, 5]],                          color: [[Infinity, 20]] }
   };
   var PHOTO  = { foto_10x15: 10, foto_13x18: 30 };   /* precio por foto */
-  var COLOR  = { color: "color", grises: "bn", bn: "bn" };  /* "grises" se cobra como B/N */
-  var SIDES  = { una: 1, doble: 1 };                 /* las caras no cambian el precio por hoja (tabla oficial) */
-  var FINISH = { ninguno: 0, engargolado: 45, enmicado: 20, grapado: 5 };  /* engargolado/enmicado: precio representativo (variantes por tamaño en mostrador) */
+  var COLOR  = { color: "color", bn: "bn" };         /* solo Color y B/N (catálogo Hoja2) */
+  var SIDES  = { una: 1, doble: 1 };                 /* doble cara NO cambia el precio (regla OK.station) */
+  /* Enmicado: precio POR HOJA según el TAMAÑO del documento (catálogo Hoja2).
+     Oficio y A4 quedan PENDIENTES (sin recargo de enmicado hasta definir su precio). */
+  var ENMICADO = { carta: 20, tabloide: 30 };
+  /* Acabados de precio plano. Engargolado queda PENDIENTE: precio temporal $45 hasta
+     definir el grosor por número de hojas (chico/mediano/grande). */
+  var FINISH_FLAT = { ninguno: 0, engargolado: 45 };
   var PAPERS = ["Bond", "Opalina", "Couché", "Fotográfico", "Cartulina", "Adhesivo"];
 
   var TAX = 0.08;   /* IVA 8% (los precios del catálogo ya lo incluyen) */
@@ -86,7 +91,9 @@
     if (!t) return { unit: 0, line: 0, quote: true };                /* gran formato → cotizar */
     var band = (COLOR[f.cfg.color] === "color") ? t.color : t.bn;
     var per = tierFor(band, count);
-    var line = per * count + (FINISH[f.cfg.finish] || 0);
+    /* Acabado: enmicado se cobra POR HOJA según el tamaño; los demás (engargolado) son precio plano. */
+    var finishCost = (f.cfg.finish === "enmicado") ? (ENMICADO[size] || 0) * count : (FINISH_FLAT[f.cfg.finish] || 0);
+    var line = per * count + finishCost;
     return { unit: Math.round(per * 100) / 100, line: Math.round(line * 100) / 100, quote: false };
   }
 
@@ -146,10 +153,10 @@
             var tag = s.price > 0 ? (" · " + mxn(s.price)) : " · cotizar";
             return { v: s.id, t: s.label + tag };
           }), f.cfg.size) +
-          cfgSeg(i, "color", "Color", [["color", "Color"], ["grises", "Grises"], ["bn", "B/N"]], f.cfg.color) +
+          cfgSeg(i, "color", "Color", [["color", "Color"], ["bn", "B/N"]], f.cfg.color) +
           cfgSelect(i, "paper", "Papel", PAPERS.map(function (p2) { return { v: p2, t: p2 }; }), f.cfg.paper) +
           cfgSeg(i, "sides", "Caras", [["una", "Una"], ["doble", "Doble"]], f.cfg.sides) +
-          cfgSelect(i, "finish", "Acabado", [{ v: "ninguno", t: "Ninguno" }, { v: "engargolado", t: "Engargolado" }, { v: "enmicado", t: "Enmicado" }, { v: "grapado", t: "Grapado" }], f.cfg.finish) +
+          cfgSelect(i, "finish", "Acabado", [{ v: "ninguno", t: "Ninguno" }, { v: "engargolado", t: "Engargolado" }, { v: "enmicado", t: "Enmicado" }], f.cfg.finish) +
           cfgQty(i, f.cfg.copies) +
         '</div>' +
         (p.quote ? '<p class="file-card__note">Gran formato 24": cotización personalizada — te confirmamos por WhatsApp.</p>' : '') +
@@ -223,7 +230,7 @@
         return '<li><span>' + esc(s.label) + '</span><b>' + esc(val) + '</b></li>';
       }).join("") +
       '</ul>' +
-      '<p class="order-prices__note">Precio base por página (documentos) o por copia (fotos). El total depende de color, caras, acabado y cantidad. El gran formato 24" se cotiza por WhatsApp.</p>';
+      '<p class="order-prices__note">Precio base por página (documentos) o por copia (fotos). El total depende de color, acabado y cantidad. El gran formato 24" se cotiza por WhatsApp.</p>';
   }
 
   /* ── Crear pedido + ticket ── */
