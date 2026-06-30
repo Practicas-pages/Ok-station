@@ -309,9 +309,11 @@ final class Payments
             'notification_url' => $base . '/backend/api/payments/webhook.php',
             'metadata'         => ['kind' => $kind, 'reference' => $reference, $t['fk'] => (int) $entity['id']],
         ];
-        if (!empty($user['email'])) {
-            $payload['payer'] = ['email' => $user['email']];
-        }
+        // NO pre-adjuntamos el correo del cliente como pagador: Mercado Pago lo
+        // pide en su propia pantalla de checkout. Mandarlo aquí provoca que, en
+        // modo de PRUEBA, MP detecte una "cuenta real" y rechace el pago con
+        // "una de las partes es de prueba". El webhook identifica el pedido por
+        // external_reference, no por el correo, así que esto no afecta nada.
 
         $ch = curl_init('https://api.mercadopago.com/checkout/preferences');
         curl_setopt_array($ch, [
