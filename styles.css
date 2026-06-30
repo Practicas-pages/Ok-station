@@ -929,7 +929,7 @@ h1, h2, h3, h4, h5, h6 {
 
 .hero__stat span {
   font-size: 0.8125rem;
-  color: rgba(255,255,255,0.55);
+  color: rgba(0, 0, 0, 0.55);
   margin-top: 3px;
   display: block;
 }
