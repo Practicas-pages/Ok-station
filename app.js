@@ -1885,10 +1885,78 @@
       wrap.appendChild(prev);
       wrap.appendChild(next);
 
+      /* ── Bucle infinito tipo "Netflix" ──────────────────────────────────────
+         Solo en .services-grid (sus tarjetas son enlaces estáticos y se pueden clonar
+         sin perder lógica; .tramite-grid tiene botones con listeners propios → no se
+         clona). Técnica: clonamos el juego completo de tarjetas ANTES y DESPUÉS de las
+         originales → [L][originales][R]. Navegamos siempre por la banda central y, al
+         cruzar hacia un grupo clonado, "teletransportamos" el scroll un periodo completo
+         (instantáneo y sin animación). Como el contenido es idéntico, el salto es
+         invisible: el carrusel parece girar sin fin en ambos sentidos. */
+      var canLoop = track.classList.contains("services-grid");
+      var originals = Array.prototype.slice.call(track.children);
+      var looping = false;
+      var period = 0;   /* ancho de un juego completo (distancia de teletransporte) */
+
+      function overflowing() { return track.scrollWidth - track.clientWidth > 4; }
+
+      function neutralizeClone(node) {
+        node.setAttribute("aria-hidden", "true");
+        node.classList.add("is-clone");
+        node.removeAttribute("id");
+        var ided = node.querySelectorAll("[id]");
+        Array.prototype.forEach.call(ided, function (el) { el.removeAttribute("id"); });
+        /* fuera del orden de tabulación (son contenido duplicado) */
+        var foc = node.querySelectorAll("a, button, input, select, textarea, [tabindex]");
+        Array.prototype.forEach.call(foc, function (el) { el.setAttribute("tabindex", "-1"); });
+        /* muestra ya las imágenes del clon sin esperar el evento 'load' del original */
+        var imgs = node.querySelectorAll(".service-card__img");
+        Array.prototype.forEach.call(imgs, function (im) { im.classList.add("is-loaded"); });
+      }
+
+      function measurePeriod() {
+        var n = originals.length;
+        if (n === 0) { period = 0; return; }
+        /* distancia entre la 1ª original (índice n, ya con el grupo L delante) y su clon
+           en el grupo R (índice 2n) = un juego completo, con sus gaps incluidos. */
+        period = posOf(track.children[2 * n]) - posOf(track.children[n]);
+      }
+
+      function buildLoop() {
+        if (looping || !canLoop || originals.length === 0) return;
+        var before = document.createDocumentFragment();
+        var after = document.createDocumentFragment();
+        originals.forEach(function (el) {
+          var a = el.cloneNode(true); neutralizeClone(a); before.appendChild(a);
+          var b = el.cloneNode(true); neutralizeClone(b); after.appendChild(b);
+        });
+        track.insertBefore(before, originals[0]);
+        track.appendChild(after);
+        looping = true;
+        measurePeriod();
+        jumpTo(period);   /* arranca en la banda central (originales) */
+      }
+
+      /* Salto instantáneo de scroll (sin animación); desactiva el snap durante el salto. */
+      function jumpTo(x) {
+        track.style.scrollSnapType = "none";
+        track.scrollLeft = x;
+        requestAnimationFrame(function () { if (!rafId) track.style.scrollSnapType = ""; });
+      }
+
+      /* Reposiciona el scroll dentro de la banda central de las originales usando
+         aritmética modular: cualquier posición se mapea a su equivalente visual exacto. */
+      function normalize() {
+        if (!looping || period <= 0) return;
+        var sl = track.scrollLeft;
+        var norm = period + (((sl - period) % period) + period) % period;
+        if (Math.abs(norm - sl) > 0.5) track.scrollLeft = norm;
+      }
+
       function update() {
-        var overflow = track.scrollWidth - track.clientWidth > 4;
+        /* En modo bucle siempre hay desbordamiento (3 juegos) → flechas visibles. */
+        var overflow = looping || overflowing();
         prev.style.display = next.style.display = overflow ? "" : "none";
-        /* Loop infinito: las flechas nunca se deshabilitan; al llegar al borde, go() da la vuelta. */
         prev.disabled = false;
         next.disabled = false;
       }
@@ -1897,16 +1965,23 @@
          varios clics seguidos se ACUMULEN en vez de pelearse: cada clic calcula el siguiente
          destino a partir de hacia dónde ya vamos, no de la posición a medio animar. La
          animación previa se cancela (cancelAnimationFrame) antes de lanzar la nueva, así no
-         hay dos rAF escribiendo scrollLeft a la vez. */
+         hay dos rAF escribiendo scrollLeft a la vez. Al asentarse, normalize() hace el
+         teletransporte invisible que cierra el ciclo. */
       function easeOutCubic(t) { return 1 - Math.pow(1 - t, 3); }
       var rafId = null, targetScroll = null;
+      function settle() {
+        rafId = null; targetScroll = null;
+        normalize();                       /* cierra el ciclo sin que se note */
+        track.style.scrollSnapType = "";
+        update();
+      }
       function glide(to) {
         var max = track.scrollWidth - track.clientWidth;
-        to = Math.max(0, Math.min(to, max));
+        to = Math.max(0, Math.min(to, max));   /* el navegador recorta igual; lo hacemos explícito */
         if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
         var start = track.scrollLeft, dist = to - start;
         targetScroll = to;
-        if (Math.abs(dist) < 1) { targetScroll = null; track.style.scrollSnapType = ""; update(); return; }
+        if (Math.abs(dist) < 1) { settle(); return; }
         track.style.scrollSnapType = "none";   /* evita que el snap pelee con la animación */
         var t0 = null, dur = 320;
         function frame(ts) {
@@ -1914,14 +1989,15 @@
           var p = Math.min(1, (ts - t0) / dur);
           track.scrollLeft = start + dist * easeOutCubic(p);
           if (p < 1) { rafId = requestAnimationFrame(frame); }
-          else { rafId = null; targetScroll = null; track.style.scrollSnapType = ""; update(); }
+          else { settle(); }
         }
         rafId = requestAnimationFrame(frame);
       }
       /* Avanza/retrocede a la tarjeta siguiente/anterior (alineada).
          Usa getBoundingClientRect (posición real) en vez de offsetLeft: así NO depende
          de qué elemento sea el offsetParent ni del padding del carrusel (evita que el
-         primer clic "se trabe"). */
+         primer clic "se trabe"). En modo bucle SIEMPRE hay una tarjeta vecina (los clones
+         de L/R), así que el avance nunca topa con un borde: el ciclo es continuo. */
       function posOf(el) { return el.getBoundingClientRect().left - track.getBoundingClientRect().left + track.scrollLeft; }
       function go(dir) {
         var max = track.scrollWidth - track.clientWidth, list = track.children, target = null, i, x;
@@ -1929,22 +2005,43 @@
            rápidos); si no, la posición actual. */
         var sl = (targetScroll !== null) ? targetScroll : track.scrollLeft;
         if (dir > 0) {
-          if (sl >= max - 2) { glide(0); return; }   /* fin → vuelve al inicio (loop infinito) */
           for (i = 0; i < list.length; i++) { x = posOf(list[i]); if (x > sl + 2) { target = x; break; } }
-          if (target === null) target = max;
+          if (target === null) { if (looping) return; if (sl >= max - 2) { glide(0); return; } target = max; }
         } else {
-          if (sl <= 2) { glide(max); return; }        /* inicio → salta al final (loop infinito) */
           for (i = list.length - 1; i >= 0; i--) { x = posOf(list[i]); if (x < sl - 2) { target = x; break; } }
-          if (target === null) target = 0;
+          if (target === null) { if (looping) return; if (sl <= 2) { glide(max); return; } target = 0; }
         }
-        glide(Math.min(target, max));
+        glide(target);
       }
       prev.addEventListener("click", function () { go(-1); });
       next.addEventListener("click", function () { go(1); });
-      track.addEventListener("scroll", update, { passive: true });
-      window.addEventListener("resize", update);
-      /* Recalcula cuando el carrusel pasa de oculto a visible (paso del wizard). */
-      if (window.ResizeObserver) { new ResizeObserver(update).observe(track); }
+      /* Deslizamiento táctil: solo renormaliza cerca de los bordes físicos (a menos de una
+         tarjeta de quedarnos sin clones) para no cortar la inercia del scroll en el centro. */
+      track.addEventListener("scroll", function () {
+        update();
+        if (looping && !rafId && period > 0) {
+          var sl = track.scrollLeft, max = track.scrollWidth - track.clientWidth;
+          var pitch = period / originals.length;
+          if (sl < pitch || sl > max - pitch) normalize();
+        }
+      }, { passive: true });
+      function onResize() {
+        update();
+        if (looping && !rafId) { measurePeriod(); normalize(); }
+      }
+      window.addEventListener("resize", onResize);
+      /* Recalcula cuando el carrusel pasa de oculto a visible (paso del wizard) y activa el
+         bucle en cuanto haya desbordamiento (p. ej. tras cargar la tipografía/imágenes). */
+      if (window.ResizeObserver) {
+        new ResizeObserver(function () {
+          if (canLoop && !looping && overflowing()) buildLoop();
+          onResize();
+        }).observe(track);
+      }
+      /* Activa el bucle de entrada si ya desborda; si no (p. ej. 3 tarjetas que caben y van
+         centradas), se queda como fila estática y el ResizeObserver lo activará si hiciera
+         falta. */
+      if (canLoop && overflowing()) buildLoop();
       update();
     });
   }
