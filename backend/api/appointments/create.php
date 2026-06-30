@@ -216,40 +216,9 @@ if (table_has_column('appointments', 'confirm_token')) {
     } catch (Throwable $e) { $confirmToken = null; }
 }
 
-/* Correo de confirmación al cliente (si proporcionó correo). Best-effort: si el
-   SMTP falla o no está configurado, NO afecta la cita ni la respuesta. */
-if ($email !== '') {
-    try {
-        require_once __DIR__ . '/../lib/Mail.php';
-        require_once __DIR__ . '/../lib/Emails.php';
-        $svcNames = [
-            'pasaporte' => 'Pasaporte', 'visa' => 'Visa Americana', 'sentri' => 'SENTRI / Global Entry',
-            'i94' => 'I-94 / Permiso de Viaje', 'curp' => 'CURP / Acta', 'ine' => 'INE / Credencial',
-            'licencia' => 'Licencia de conducir', 'apostille' => 'Apostille / Traducción', 'medica' => 'Cita médica / Examen',
-        ];
-        $svcName = $svcNames[$tramite] ?? $tramite;
-        if ($tramite === 'pasaporte' && $subtype !== '') $svcName .= ' (' . ucfirst($subtype) . ')';
-        $priceText = $pricing['quote'] ? 'Se cotiza en el local' : ('$' . number_format((float) $pricing['total'], 2) . ' MXN');
-
-        if ($confirmToken) {
-            /* Correo HTML con el ticket y el botón "Confirmar mi cita". */
-            $html = Emails::citaHtml([
-                'name' => $name, 'code' => $code, 'svcName' => $svcName,
-                'party' => $party, 'date' => $date, 'time' => $time, 'priceText' => $priceText,
-                'confirmUrl' => Emails::confirmUrl('cita', $code, $confirmToken),
-            ]);
-            Mail::sendHtml($email, 'Confirma tu cita en OK.station — ' . $code, $html);
-        } else {
-            /* Respaldo en texto plano (si la migración 0017 aún no se ha aplicado). */
-            $mailBody =
-                "Hola $name,\n\nTu solicitud de cita en OK.station quedó registrada.\n\n" .
-                "Folio: $code\nServicio: $svcName\nPersonas: $party\nFecha: $date\nHora: $time hrs\n\n" .
-                "Estado: pendiente de confirmar. Te contactaremos para confirmar tu cita.\n\n" .
-                "Gracias,\nOK.station · Centro Comercial Otay, Tijuana\nokstation.mx";
-            Mail::send($email, 'Tu cita en OK.station — ' . $code, $mailBody);
-        }
-    } catch (Throwable $e) { /* correo best-effort; no afecta la cita */ }
-}
+/* NO se envía correo de "confirma tu cita": el cliente NO tiene que confirmar
+   nada desde el correo. El COMPROBANTE (con el PDF adjunto) se le envía desde
+   appointments/send-receipt.php cuando el navegador genera el ticket. */
 
 respond([
     'ok' => true,
