@@ -165,3 +165,18 @@
 .order-prices__list--tiers li { flex-direction: column; align-items: stretch; gap: 3px; }
 .order-prices__list--tiers li span { font-weight: 600; color: var(--text-primary); }
 .order-prices__list--tiers li b { font-weight: 600; font-size: 0.82rem; color: var(--text-secondary); white-space: normal; font-variant-numeric: tabular-nums; }
+
+/* ── Panel compacto + botón que abre el modal de precios ── */
+.order-prices__ref { display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap; }
+.order-prices__hint { display: block; font-size: 0.8rem; color: var(--text-muted, #6B7280); margin-top: 3px; }
+
+/* ── Modal de precios de referencia ── */
+.oprices-modal { position: fixed; inset: 0; z-index: 1000; display: flex; align-items: center; justify-content: center; padding: 18px; }
+.oprices-modal__overlay { position: absolute; inset: 0; background: rgba(8,12,32,0.55); -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px); }
+.oprices-modal__panel { position: relative; z-index: 1; background: #fff; border-radius: var(--radius-lg, 18px); box-shadow: 0 30px 80px rgba(4,12,40,0.35); width: 100%; max-width: 520px; max-height: 86vh; display: flex; flex-direction: column; overflow: hidden; }
+.oprices-modal__head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 18px 22px; border-bottom: 1px solid var(--border-light, #e6eaf2); }
+.oprices-modal__head h3 { margin: 0; font-size: 1.05rem; color: var(--text-primary, #0b1f3a); }
+.oprices-modal__close { width: 34px; height: 34px; border: none; background: var(--surface-page, #f2f4f8); border-radius: 50%; font-size: 1.4rem; line-height: 1; color: var(--text-secondary, #475569); cursor: pointer; flex: none; }
+.oprices-modal__close:hover { background: #e6eaf2; }
+.oprices-modal__body { padding: 12px 22px 22px; overflow-y: auto; }
+.oprices-modal__body .order-prices__list { margin: 0; }

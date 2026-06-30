@@ -275,11 +275,10 @@
     }
     return parts.join("  ·  ");
   }
-  function renderPrices() {
-    var host = $("#order-prices");
-    if (!host) return;
+  /* Filas de la tabla de referencia (se usan dentro del modal). */
+  function referenceRowsHtml() {
     function row(label, val) { return '<li><span>' + esc(label) + '</span><b>' + esc(val) + '</b></li>'; }
-    var rows =
+    return (
       row("Carta — B/N", tiersText(PRINT_TIERS.carta.bn)) +
       row("Carta — Color", tiersText(PRINT_TIERS.carta.color)) +
       row("Oficio — B/N", tiersText(PRINT_TIERS.oficio.bn)) +
@@ -289,11 +288,48 @@
       row("Doble carta", "B/N " + mxn(5) + "  ·  Color " + mxn(20)) +
       row("Foto 10×15 (6×4\")", mxn(10) + " c/u") +
       row("Foto 13×18 (5×7\")", mxn(30) + " c/u") +
-      row("Gran formato 24\"", "Cotización personalizada");
+      row("Gran formato 24\"", "Cotización personalizada")
+    );
+  }
+  function closePricesModal() {
+    var m = $("#oprices-modal");
+    if (m) m.remove();
+    document.body.style.overflow = "";
+    document.removeEventListener("keydown", pricesOnKey);
+  }
+  function pricesOnKey(e) { if (e.key === "Escape") closePricesModal(); }
+  function openPricesModal() {
+    if ($("#oprices-modal")) return;
+    var m = document.createElement("div");
+    m.id = "oprices-modal";
+    m.className = "oprices-modal";
+    m.innerHTML =
+      '<div class="oprices-modal__overlay" data-close></div>' +
+      '<div class="oprices-modal__panel" role="dialog" aria-modal="true" aria-label="Precios de referencia">' +
+        '<div class="oprices-modal__head"><h3>Precios de referencia</h3>' +
+          '<button type="button" class="oprices-modal__close" data-close aria-label="Cerrar">&times;</button></div>' +
+        '<div class="oprices-modal__body">' +
+          '<ul class="order-prices__list order-prices__list--tiers">' + referenceRowsHtml() + '</ul>' +
+          '<p class="order-prices__note">El precio por hoja baja según la cantidad total. El total final depende de color, acabado y cantidad. El gran formato 24" se cotiza por WhatsApp.</p>' +
+        '</div>' +
+      '</div>';
+    document.body.appendChild(m);
+    document.body.style.overflow = "hidden";
+    m.addEventListener("click", function (e) { if (e.target.hasAttribute("data-close")) closePricesModal(); });
+    document.addEventListener("keydown", pricesOnKey);
+  }
+  /* Panel compacto: solo un botón que abre el modal con todos los precios (sin scroll molesto). */
+  function renderPrices() {
+    var host = $("#order-prices");
+    if (!host) return;
     host.innerHTML =
-      '<p class="order-prices__title">Precios base de referencia</p>' +
-      '<ul class="order-prices__list order-prices__list--tiers">' + rows + '</ul>' +
-      '<p class="order-prices__note">El precio por hoja baja según la cantidad total. El total final depende de color, acabado y cantidad. El gran formato 24" se cotiza por WhatsApp.</p>';
+      '<div class="order-prices__ref">' +
+        '<div><p class="order-prices__title" style="margin:0">Precios de referencia</p>' +
+        '<span class="order-prices__hint">Copias e impresiones por hoja (baja por volumen), fotos y más.</span></div>' +
+        '<button type="button" class="btn btn--light btn--sm" id="order-prices-open">Ver precios</button>' +
+      '</div>';
+    var btn = $("#order-prices-open");
+    if (btn) btn.addEventListener("click", openPricesModal);
   }
 
   /* ── Crear pedido + ticket ── */
