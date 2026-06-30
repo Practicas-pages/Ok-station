@@ -5382,12 +5382,15 @@ html, body, #top { background: #FFFFFF !important; }
    ni navy saturado. Selector .hero .hero__bg-overlay para ganar a la regla
    previa (~4975). */
 .hero .hero__bg-overlay {
+  /* Degradado RADIAL (circular): muy presente a la izquierda (texto legible) y se
+     quita poco a poco hacia la derecha dejando ver la foto. */
   background:
-    linear-gradient(98deg,
-      rgba(12,14,22,0.72) 0%,
-      rgba(12,14,22,0.46) 36%,
-      rgba(12,14,22,0.18) 64%,
-      rgba(12,14,22,0) 100%) !important;
+    radial-gradient(125% 130% at 6% 50%,
+      rgba(12,14,22,0.86) 0%,
+      rgba(12,14,22,0.62) 26%,
+      rgba(12,14,22,0.34) 47%,
+      rgba(12,14,22,0.12) 68%,
+      rgba(12,14,22,0.00) 85%) !important;
 }
 /* Fundido del hero hacia el blanco de la página (conecta, no divide) */
 .hero::after {
@@ -5417,9 +5420,11 @@ body:has(.cita-drawer:not([hidden])) { overflow: hidden; }
 
 .hero__title { color: #FFFFFF !important; }
 .hero__title .accent {
-  background: var(--grad-azul-cyan);
-  -webkit-background-clip: text; background-clip: text;
-  -webkit-text-fill-color: transparent; color: transparent !important;
+  /* Acento más brillante y vibrante (menos oscuro): morado-azul-cyan luminoso */
+  background: linear-gradient(95deg, #9B57FF 0%, #2F97FF 48%, #1FD8FF 100%) !important;
+  -webkit-background-clip: text !important; background-clip: text !important;
+  -webkit-text-fill-color: transparent !important; color: transparent !important;
+  filter: brightness(1.12) saturate(1.18);
 }
 .hero__lead { color: rgba(255,255,255,0.92) !important; }
 .hero__eyebrow {
