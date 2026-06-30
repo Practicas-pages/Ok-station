@@ -1893,24 +1893,30 @@
         next.disabled = false;
       }
 
-      /* Desplazamiento suave con easing (más suave que el scroll nativo). */
-      function easeInOutCubic(t) { return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2; }
-      var animating = false;
+      /* Desplazamiento suave con easing. Mantiene un "objetivo" (targetScroll) para que
+         varios clics seguidos se ACUMULEN en vez de pelearse: cada clic calcula el siguiente
+         destino a partir de hacia dónde ya vamos, no de la posición a medio animar. La
+         animación previa se cancela (cancelAnimationFrame) antes de lanzar la nueva, así no
+         hay dos rAF escribiendo scrollLeft a la vez. */
+      function easeOutCubic(t) { return 1 - Math.pow(1 - t, 3); }
+      var rafId = null, targetScroll = null;
       function glide(to) {
-        to = Math.max(0, Math.min(to, track.scrollWidth - track.clientWidth));
+        var max = track.scrollWidth - track.clientWidth;
+        to = Math.max(0, Math.min(to, max));
+        if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
         var start = track.scrollLeft, dist = to - start;
-        if (Math.abs(dist) < 1) return;
-        animating = true;
+        targetScroll = to;
+        if (Math.abs(dist) < 1) { targetScroll = null; track.style.scrollSnapType = ""; update(); return; }
         track.style.scrollSnapType = "none";   /* evita que el snap pelee con la animación */
-        var t0 = null, dur = 560;
+        var t0 = null, dur = 320;
         function frame(ts) {
           if (t0 === null) t0 = ts;
           var p = Math.min(1, (ts - t0) / dur);
-          track.scrollLeft = start + dist * easeInOutCubic(p);
-          if (p < 1) { requestAnimationFrame(frame); }
-          else { track.style.scrollSnapType = ""; animating = false; update(); }
+          track.scrollLeft = start + dist * easeOutCubic(p);
+          if (p < 1) { rafId = requestAnimationFrame(frame); }
+          else { rafId = null; targetScroll = null; track.style.scrollSnapType = ""; update(); }
         }
-        requestAnimationFrame(frame);
+        rafId = requestAnimationFrame(frame);
       }
       /* Avanza/retrocede a la tarjeta siguiente/anterior (alineada).
          Usa getBoundingClientRect (posición real) en vez de offsetLeft: así NO depende
@@ -1918,7 +1924,10 @@
          primer clic "se trabe"). */
       function posOf(el) { return el.getBoundingClientRect().left - track.getBoundingClientRect().left + track.scrollLeft; }
       function go(dir) {
-        var sl = track.scrollLeft, max = track.scrollWidth - track.clientWidth, list = track.children, target = null, i, x;
+        var max = track.scrollWidth - track.clientWidth, list = track.children, target = null, i, x;
+        /* Punto de partida: si estamos animando, el destino en curso (para acumular clics
+           rápidos); si no, la posición actual. */
+        var sl = (targetScroll !== null) ? targetScroll : track.scrollLeft;
         if (dir > 0) {
           if (sl >= max - 2) { glide(0); return; }   /* fin → vuelve al inicio (loop infinito) */
           for (i = 0; i < list.length; i++) { x = posOf(list[i]); if (x > sl + 2) { target = x; break; } }

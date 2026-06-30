@@ -4617,6 +4617,10 @@ body {
   grid-template-columns: none;     /* anula el grid en todos los tamaños */
   grid-auto-rows: auto;
   gap: var(--space-5);
+  /* "safe center": si las tarjetas caben (p. ej. 3 en "Todo para tu oficina") quedan
+     centradas; si desbordan (carrusel de inicio) vuelve a alinear al inicio sin recortar
+     la 1ª tarjeta, así las flechas siguen avanzando bien. */
+  justify-content: safe center;
   overflow-x: auto;
   scroll-snap-type: x proximity;
   -webkit-overflow-scrolling: touch;
@@ -4648,6 +4652,7 @@ body {
   grid-template-columns: none;
   grid-auto-rows: auto;
   gap: var(--space-4);
+  justify-content: safe center;    /* centra cuando caben; al inicio cuando desbordan (ver .services-grid) */
   overflow-x: auto;
   scroll-snap-type: x proximity;
   -webkit-overflow-scrolling: touch;
@@ -5579,6 +5584,39 @@ body:has(.cita-drawer:not([hidden])) { overflow: hidden; }
 .cita-docs__sub,
 .upsell-row__q { color: var(--text-secondary) !important; }
 .cita-upsell__title { color: var(--text-primary) !important; }
+/* — Paso "Datos de cada persona": las tarjetas de persona y el bloque de documentos
+     se diseñaron para el fondo oscuro original; sobre el blanco actual su texto, bordes
+     y fondos quedaban invisibles → se reasignan a tonos legibles. (El badge y los botones
+     de marca conservan su blanco porque van sobre fondo de color.) — */
+.persona-card {
+  background: #fff !important;
+  border-color: var(--border-light) !important;
+}
+.persona-card__head,
+.persona-docs__title,
+.doc-field__name { color: var(--text-primary) !important; }
+.persona-progress,
+.persona-q__intro,
+.persona-pager__label,
+.persona-check { color: var(--text-secondary) !important; }
+.persona-help { color: var(--text-muted) !important; }
+.persona-q,
+.persona-docs,
+.cita-upsell { border-top-color: var(--border-light) !important; }
+.doc-field {
+  background: #F7F9FF !important;
+  border-color: var(--border-light) !important;
+}
+.doc-field__btn {
+  background: var(--brand-blue-light) !important;
+  border-color: var(--brand-blue-light) !important;
+  color: var(--brand-blue) !important;
+}
+.doc-field__btn:hover {
+  background: var(--brand-blue) !important;
+  border-color: var(--brand-blue) !important;
+  color: #fff !important;
+}
 /* Resumen de reseñas (sección testimonios, ahora sobre blanco) */
 .rating-summary__label,
 .rating-summary__count { color: var(--text-secondary) !important; }
