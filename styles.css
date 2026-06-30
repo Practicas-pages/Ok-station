@@ -637,9 +637,13 @@ h1, h2, h3, h4, h5, h6 {
   background: #ffffff;
   border-bottom: 1px solid rgba(15,38,92,0.06);
   transition:
+    transform 0.32s ease,
     border-color var(--transition-base),
     box-shadow var(--transition-base);
+  will-change: transform;
 }
+/* Navbar inteligente: se desliza hacia arriba al bajar; reaparece al subir (lo activa app/session-nav). */
+.site-header--hidden { transform: translateY(-100%); }
 
 .site-header.is-scrolled {
   background: #ffffff;

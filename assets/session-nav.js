@@ -60,3 +60,32 @@
     window.location.reload();
   });
 })();
+
+/* ============================================================
+   Navbar inteligente: al bajar se oculta, al subir reaparece.
+   Bloque autocontenido (no depende del menú de cuenta de arriba).
+   ============================================================ */
+(function () {
+  var header = document.querySelector(".site-header");
+  if (!header) return;
+  var lastY = window.pageYOffset || 0;
+  var ticking = false;
+  var DELTA = 6;        // umbral para no parpadear con micro-scrolls
+  var SHOW_NEAR_TOP = 90; // siempre visible cerca del inicio
+
+  function update() {
+    var y = window.pageYOffset || 0;
+    if (y < SHOW_NEAR_TOP) {
+      header.classList.remove("site-header--hidden");
+    } else {
+      var diff = y - lastY;
+      if (diff > DELTA) header.classList.add("site-header--hidden");        // bajando → ocultar
+      else if (diff < -DELTA) header.classList.remove("site-header--hidden"); // subiendo → mostrar
+    }
+    lastY = y;
+    ticking = false;
+  }
+  window.addEventListener("scroll", function () {
+    if (!ticking) { window.requestAnimationFrame(update); ticking = true; }
+  }, { passive: true });
+})();
