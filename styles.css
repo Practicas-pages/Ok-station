@@ -5493,10 +5493,10 @@ body:has(.cita-drawer:not([hidden])) { overflow: hidden; }
 .citas-section .cita-aside { display: none !important; }
 .citas-section .cita-panel { padding: clamp(20px,3vw,30px) clamp(18px,3vw,32px) clamp(24px,3vw,34px) !important; }
 
-/* Cabecera de gradiente por paso (PASO N DE 6) — dinámica con contador CSS,
-   así sigue al paso activo sin tocar el JS. */
-.citas-section .cita-panel { counter-reset: okpaso; }
-.citas-section .cita-step { counter-increment: okpaso; }
+/* Cabecera de gradiente por paso (PASO N DE 6). El número lo pone el JS en
+   data-paso del paso activo: el contador CSS NO servía porque los pasos
+   inactivos están en display:none y no incrementan el contador (marcaba
+   siempre "PASO 1"). */
 .citas-section .cita-step.is-active .cita-step__title {
   background: linear-gradient(100deg, #066CFF 0%, #00C6FF 45%, #9C1DFF 100%);
   color: #FFFFFF !important;
@@ -5505,7 +5505,7 @@ body:has(.cita-drawer:not([hidden])) { overflow: hidden; }
   line-height: 1.2;
 }
 .citas-section .cita-step.is-active .cita-step__title::before {
-  content: "PASO " counter(okpaso) " DE 6";
+  content: "PASO " attr(data-paso) " DE 6";
   display: block;
   font-size: 0.6em;
   letter-spacing: 0.09em;
@@ -6016,3 +6016,48 @@ body::before, body::after,
    "reveal" puede desplazar la tarjeta/título; el hover (elevar 4px) sí aplica. */
 .services-grid .service-card:not(:hover) { transform: none !important; }
 .services-grid .service-card__img { transition: transform .35s ease !important; }
+
+/* ============================================================
+   36. CALENDARIO DE CITAS — PUNTO de color de disponibilidad
+   Celda BLANCA con un punto de color bajo el número (4 niveles):
+   verde = alta, ámbar = poca, rojo = sin, morado = inhábil.
+   ============================================================ */
+.okcal-dot { width: 8px; height: 8px; border-radius: 50% !important; background: transparent; transform: none !important; }
+.okcal-dot--full   { background: #22C55E !important; border-radius: 50% !important; transform: none !important; }  /* alta - verde */
+.okcal-dot--mid    { background: #F59E0B !important; border-radius: 50% !important; transform: none !important; }  /* poca - ámbar */
+.okcal-dot--none   { background: #EF4444 !important; border-radius: 50% !important; transform: none !important; }  /* sin - rojo */
+.okcal-dot--closed { background: #8B5CF6 !important; border-radius: 50% !important; transform: none !important; }  /* inhábil - morado */
+/* El nivel 'none' antes dibujaba una "×"; ahora es un punto rojo simple. */
+.okcal-dot--none::before, .okcal-dot--none::after { display: none !important; }
+/* Inhábil / sin disponibilidad: NO atenuar el punto (que se vea el color); solo
+   el número se aclara un poco para indicar que no es reservable. */
+.citas-section .okcal__day:disabled { opacity: 1 !important; cursor: not-allowed; }
+.citas-section .okcal__day:disabled > span { opacity: 0.5; }
+
+/* ============================================================
+   37. "¿QUIÉN ES EL CONTACTO?" — paso de datos de la cita
+   Si el contacto es una de las personas ya registradas: 1 se autollena,
+   varias se eligen con estos chips. Evita re-escribir el nombre.
+   ============================================================ */
+.cita-quien { margin: 0 0 16px; }
+.cita-quien__note {
+  margin: 0; font-size: 0.9rem; color: var(--text-secondary);
+  background: #F2F6FF; border: 1px solid #DCE6FB; border-radius: 10px; padding: 10px 14px;
+}
+.cita-quien__note b { color: var(--text-primary); }
+.cita-quien__label { display: block; margin: 0 0 8px; font-size: 0.9rem; font-weight: 600; color: var(--text-primary); }
+/* Lista desplegable con los nombres de las personas registradas. */
+.cita-quien__select {
+  width: 100%; max-width: 380px; padding: 11px 14px; font: inherit; font-size: 0.92rem;
+  border: 1.5px solid var(--border-medium); border-radius: 10px; background: #fff; color: var(--text-primary);
+  cursor: pointer;
+}
+.cita-quien__select:focus { outline: none; border-color: var(--brand-blue); box-shadow: 0 0 0 3px rgba(6,108,255,0.12); }
+.cita-quien__opts { display: flex; flex-wrap: wrap; gap: 8px; }
+.cita-quien__opt {
+  padding: 8px 14px; border: 1.5px solid var(--border-medium); border-radius: 999px;
+  background: #fff; color: var(--text-primary); font: inherit; font-size: 0.88rem; font-weight: 600;
+  cursor: pointer; transition: border-color .15s ease, background .15s ease, color .15s ease;
+}
+.cita-quien__opt:hover { border-color: var(--brand-blue); }
+.cita-quien__opt.is-active { border-color: var(--brand-blue); background: var(--brand-blue); color: #fff; }

@@ -384,6 +384,10 @@
         var isActive = i === state.step;
         panel.classList.toggle("is-active", isActive);
         panel.setAttribute("aria-hidden", String(!isActive));
+        /* Número de paso para la cabecera "PASO N DE 6" (el CSS lo lee de
+           data-paso; el contador CSS fallaba con los pasos en display:none). */
+        var stepTitle = panel.querySelector(".cita-step__title");
+        if (stepTitle) stepTitle.setAttribute("data-paso", i + 1);
       });
     }
 
@@ -405,6 +409,9 @@
       /* Al entrar al paso Fecha (índice 3) el calendario debe reflejar la cantidad
          de personas ya elegida. */
       if (next === 3 && calGrid) { renderCalendar(); updateCalNav(); }
+      /* Al entrar al paso "Tus datos" (índice 4): si el contacto es una de las
+         personas de la cita, se autollena (1) o se ofrece elegir (varias). */
+      if (next === 4) renderQuienContacto();
 
       renderSteps();
 
@@ -758,9 +765,12 @@
         var date = new Date(y, m, d);
         var iso = isoOf(date);
         var selected = state.fecha === iso;
-        /* La ocupación real del servidor manda; si reporta "full" (o nada), usamos el nivel de base. */
+        /* Nivel LÓGICO: sale de la ocupación REAL del servidor (no de un hash
+           cosmético). Sin reservas ese día → "full" (alta disponibilidad); a
+           medida que se ocupan horarios, el servidor lo baja a mid/none. Así el
+           color del día concuerda con los horarios que se ven al elegirlo. */
         var serverLvl = occByDate[iso];
-        var lvl = (serverLvl && serverLvl !== "full") ? serverLvl : baseLevelFor(date);
+        var lvl = (serverLvl && serverLvl !== "full") ? serverLvl : "full";
         /* Contraste horas ↔ personas: si la cita (por su duración) no cabe en las horas que
            abre el día, ese día queda "sin disponibilidad" aunque el servidor lo reporte libre. */
         var open = openHoursCount(date);
@@ -771,14 +781,16 @@
            el título describe la disponibilidad y se suma al aria-label. */
         var occText = { full: "disponibilidad total", mid: "disponibilidad media", none: "sin disponibilidad" };
         var availLabel = occText[lvl] || "";
-        var dot = !closed
-          ? '<i class="okcal-dot okcal-dot--' + lvl + '" title="' + availLabel + '" aria-hidden="true"></i>'
-          : '<i class="okcal-dot" style="visibility:hidden" aria-hidden="true"></i>';
-        var ariaLabel = d + " de " + MESES[m] + (closed ? "" : (availLabel ? ", " + availLabel : ""));
+        /* Celda BLANCA con un PUNTO de color bajo el número, según disponibilidad
+           (verde = alta, ámbar = poca, rojo = sin, morado = inhábil). */
+        var dotLvl = closed ? "closed" : lvl;
+        var ariaLabel = d + " de " + MESES[m] + (closed ? ", inhábil" : (availLabel ? ", " + availLabel : ""));
         cells += '<button type="button" class="okcal__day' + (selected ? " is-selected" : "") + '" ' +
           'data-date="' + isoOf(date) + '"' +
           (disabled ? ' disabled aria-disabled="true"' : "") +
-          ' aria-label="' + ariaLabel + '"><span>' + d + "</span>" + dot + "</button>";
+          ' title="' + (closed ? "Inhábil" : availLabel) + '"' +
+          ' aria-label="' + ariaLabel + '"><span>' + d + '</span>' +
+          '<i class="okcal-dot okcal-dot--' + dotLvl + '" aria-hidden="true"></i></button>';
       }
       calGrid.innerHTML = cells;
 
@@ -903,6 +915,44 @@
     });
     var aceptoEl = qs("#cita-acepto");
     if (aceptoEl) aceptoEl.addEventListener("change", validateStep2);
+
+    /* Contacto principal = una de las personas ya registradas en la cita:
+       si hay 1 persona, se pone el nombre solo; si hay varias, se elige cuál.
+       Así el usuario no re-escribe el nombre. (El correo y teléfono del contacto
+       siempre se piden aquí porque no se capturan por persona.) */
+    function renderQuienContacto() {
+      var host = qs("#cita-quien-host");
+      if (!host) return;
+      var names = (state.guests || []).map(function (g) { return (g && g.name ? g.name.trim() : ""); }).filter(Boolean);
+      if (!names.length) { host.hidden = true; host.innerHTML = ""; return; }
+      host.hidden = false;
+
+      if (names.length === 1) {
+        if (nameInput && !nameInput.value.trim()) { nameInput.value = names[0]; validateStep2(); }
+        host.innerHTML = '<p class="cita-quien__note">Pusimos el nombre de la persona de la cita: <b>' +
+          sanitize(names[0]) + '</b>. Si el contacto es otra persona, edítalo abajo.</p>';
+        return;
+      }
+
+      /* Varias personas → LISTA DESPLEGABLE con sus nombres completos. */
+      var cur = nameInput ? nameInput.value.trim() : "";
+      var options = '<option value="">Selecciona una persona…</option>' +
+        names.map(function (n, i) {
+          return '<option value="' + i + '"' + (cur === n ? " selected" : "") + '>' + sanitize(n) + '</option>';
+        }).join("") +
+        '<option value="otro">Otra persona…</option>';
+      host.innerHTML =
+        '<label class="cita-quien__label" for="cita-quien-sel">¿Quién es el contacto principal? (el trabajador se comunicará con esa persona)</label>' +
+        '<select id="cita-quien-sel" class="cita-quien__select">' + options + '</select>';
+      var sel = qs("#cita-quien-sel", host);
+      if (sel) sel.addEventListener("change", function () {
+        var v = sel.value;
+        if (v === "") return;
+        if (v === "otro") { if (nameInput) { nameInput.value = ""; nameInput.focus(); } }
+        else if (nameInput) { nameInput.value = names[+v] || ""; }
+        validateStep2();
+      });
+    }
 
     /* ──────────────────────────────────────────────────────────
        Paso Requisitos: datos de CADA persona que asistirá a la cita.
