@@ -457,6 +457,15 @@
       updateStep0Next();
     }
 
+    /* Tras elegir un trámite, guiar al usuario al siguiente paso: llevar el botón
+       "Continuar" (y los requisitos) a la vista, con desplazamiento suave. */
+    function scrollToStep0Next() {
+      setTimeout(function () {
+        var t = qs("#cita-next-0");
+        if (t && t.scrollIntoView) t.scrollIntoView({ behavior: "smooth", block: "center" });
+      }, 130);
+    }
+
     /* DELEGACIÓN de eventos: un solo listener en la sección capta el clic en
        cualquier .tramite-btn, INCLUIDAS las tarjetas clonadas del carrusel
        infinito (los clones no heredan listeners por-elemento). */
@@ -466,7 +475,8 @@
       var id = btn.dataset.tramite;
       if (!id) return;
       selectService(id, btn);
-      if (id === "pasaporte") openSubtypeModal();   /* caso especial: subtipo obligatorio */
+      if (id === "pasaporte") { openSubtypeModal(); return; }   /* caso especial: subtipo obligatorio */
+      scrollToStep0Next();
     });
 
     /* ── Caso especial Pasaporte: modal de subtipo (mexicano/americano) ── */
@@ -502,6 +512,7 @@
         state.subtype = chosen.value;
         closeSubtypeModal();
         updateStep0Next();
+        scrollToStep0Next();
       });
       qsa("[data-subtype-close]", subtypeModal).forEach(function (el) { el.addEventListener("click", closeSubtypeModal); });
     }
