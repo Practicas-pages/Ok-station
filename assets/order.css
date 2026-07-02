@@ -1,5 +1,5 @@
 /* ============================================================
-   OK.station — Configurador de pedidos (Fase 2)
+   Ok.station — Configurador de pedidos (Fase 2)
    Reutiliza tokens de styles.css; campos en tema claro.
    ============================================================ */
 .order-page { min-height: 100vh; display: flex; flex-direction: column; background: #F6F7FB; }

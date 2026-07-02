@@ -1,5 +1,5 @@
 /* ============================================================
-   OK.station — Reseñas (agregar / editar / eliminar) ligadas al login
+   Ok.station — Reseñas (agregar / editar / eliminar) ligadas al login
    MODO DEMO: persiste en localStorage. Con backend en CloudPanel,
    cambia DEMO=false y usa los endpoints reales (/backend/api/reviews/*).
    El CRUD respeta la sesión: solo editas/eliminas TUS reseñas.
@@ -220,7 +220,7 @@
           '</div>'
         : "";
       var badge = !isGoogle
-        ? '<span class="review-source review-source--ok">OK.station</span>'
+        ? '<span class="review-source review-source--ok">Ok.station</span>'
         : (r.url
             ? '<a class="review-source review-source--google" href="' + esc(r.url) + '" target="_blank" rel="noopener" aria-label="Ver reseña en Google">' + GOOGLE_G + 'Google</a>'
             : '<span class="review-source review-source--google">' + GOOGLE_G + 'Google</span>');

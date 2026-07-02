@@ -1,5 +1,5 @@
 /* ============================================================
-   OK.station — Expediente de cita (Fase 1, frontend)
+   Ok.station — Expediente de cita (Fase 1, frontend)
    ------------------------------------------------------------
    Módulo autocontenido que SE ENGANCHA al wizard de citas
    existente (home.html / index.html) SIN modificar su lógica

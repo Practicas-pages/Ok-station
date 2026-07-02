@@ -1,4 +1,4 @@
-# OK.station — Backend de cuentas (PHP + MySQL) · Guía CloudPanel
+# Ok.station — Backend de cuentas (PHP + MySQL) · Guía CloudPanel
 
 API sin dependencias (PHP puro + PDO) lista para CloudPanel (Nginx + PHP-FPM + MySQL/MariaDB).
 Implementa la **Fase 1: cuentas** (registro, login, perfil, cambio y recuperación de contraseña) con **JWT**.

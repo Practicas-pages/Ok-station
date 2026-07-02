@@ -1,5 +1,5 @@
 # ==============================================================
-# OK.station — Apache .htaccess
+# Ok.station — Apache .htaccess
 # URLs limpias + redirecciones 301 + seguridad + SEO
 # Requiere: mod_rewrite habilitado (AllowOverride All)
 # ==============================================================

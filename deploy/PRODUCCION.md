@@ -1,4 +1,4 @@
-# OK.station — Puesta en PRODUCCIÓN (CloudPanel)
+# Ok.station — Puesta en PRODUCCIÓN (CloudPanel)
 
 Guía paso a paso para conectar la base de datos real y dejar el sitio funcional.
 Todo usa **variables de entorno** (`backend/.env`); **no hay credenciales en el código**.

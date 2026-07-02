@@ -1,4 +1,4 @@
--- 0010 — IVA a 8 % en todo OK.station.
+-- 0010 — IVA a 8 % en todo Ok.station.
 -- El ticket físico de mostrador desglosa "IVA 8%". Antes el seed dejaba
 -- tax_rate=0.16, así que los servidores ya sembrados seguían cobrando 16 %.
 -- Esta migración fuerza el valor correcto (idempotente: si no existe, lo crea).

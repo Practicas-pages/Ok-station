@@ -1,5 +1,5 @@
 -- ============================================================
--- OK.station — Datos semilla (roles, permisos, settings, catálogo)
+-- Ok.station — Datos semilla (roles, permisos, settings, catálogo)
 -- Importar DESPUÉS de schema.sql.
 -- Los administradores NO se fijan por correo en el código:
 -- se asignan por rol en BD. Los correos "bootstrap" llegan por la
@@ -61,7 +61,7 @@ ON DUPLICATE KEY UPDATE role_id = role_id;
 INSERT INTO settings (`key`, `value`) VALUES
   ('tax_rate',        '0.08'),
   ('currency',        'MXN'),
-  ('business_name',   'OK.station'),
+  ('business_name',   'Ok.station'),
   ('whatsapp',        '5216647194117')
 ON DUPLICATE KEY UPDATE `value` = VALUES(`value`);
 

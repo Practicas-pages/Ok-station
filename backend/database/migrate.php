@@ -1,6 +1,6 @@
 <?php
 /**
- * OK.station — Runner de migraciones (CLI, sin dependencias)
+ * Ok.station — Runner de migraciones (CLI, sin dependencias)
  * Uso en CloudPanel (terminal del sitio):
  *     php backend/database/migrate.php
  *

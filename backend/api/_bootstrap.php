@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 /**
- * OK.station — Bootstrap del API
+ * Ok.station — Bootstrap del API
  * Config, CORS, conexión PDO, JWT (HS256 sin dependencias) y helpers.
  * Incluido al inicio de cada endpoint con: require __DIR__ . '/_bootstrap.php';
  */

@@ -1,5 +1,5 @@
 /* ============================================================
-   OK.station — Sesión en el header del sitio (index)
+   Ok.station — Sesión en el header del sitio (index)
    Si hay sesión, reemplaza el botón "Cuenta" por un menú con
    avatar + nombre → Mi perfil / Mis pedidos / Panel (staff) / Salir.
    ============================================================ */

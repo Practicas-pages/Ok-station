@@ -1,4 +1,4 @@
-# OK.station — robots.txt
+# Ok.station — robots.txt
 User-agent: *
 Allow: /
 

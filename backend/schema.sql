@@ -1,5 +1,5 @@
 -- ============================================================
--- OK.station — Esquema de base de datos (MySQL / MariaDB)
+-- Ok.station — Esquema de base de datos (MySQL / MariaDB)
 -- Para CloudPanel: crea una base de datos y un usuario, luego
 -- importa este archivo (phpMyAdmin → Importar, o vía consola).
 --

@@ -1,5 +1,5 @@
 /* ============================================================
-   OK.station — Sistema Visual Profesional v2.0
+   Ok.station — Sistema Visual Profesional v2.0
    Arquitecto: Equipo Técnico Senior
    Basado en OK Dock Brand Book
    ============================================================
@@ -1664,7 +1664,23 @@ h1, h2, h3, h4, h5, h6 {
   white-space: nowrap;
 }
 .input-prefix__wa { width: 16px; height: 16px; color: #25D366; }
-.input-prefix input { border-radius: 0 var(--radius-sm) var(--radius-sm) 0 !important; }
+.input-prefix input { border-radius: 0 var(--radius-sm) var(--radius-sm) 0 !important; flex: 1 1 auto; min-width: 0; }
+/* Selector de código de país (+52 / +1) dentro del prefijo del teléfono.
+   Hereda el color del prefijo para verse bien en cada tema. */
+.input-prefix__cc {
+  border: none; background: transparent; color: inherit;
+  font: inherit; font-weight: inherit; line-height: 1.1;
+  cursor: pointer; padding: 0 2px; max-width: 82px;
+}
+.input-prefix__cc:focus { outline: none; }
+/* Prefijo creado por JS en campos sueltos (registro / perfil / cuestionario):
+   neutro y legible sobre cualquier fondo. */
+.input-prefix__tag--plain {
+  background: #F2F4F8 !important;
+  border: 1.5px solid #E2E8F0 !important;
+  border-right: none !important;
+  color: #1E293B !important;
+}
 
 /* ── Teléfono en el resumen del PEDIDO (tarjeta CLARA) ── el .input-prefix base es
    para el wizard oscuro (texto blanco); aquí va en tono claro para que se lea. */
@@ -5124,7 +5140,7 @@ body.admin::before, body.admin::after { display: none !important; }
   .hero__chip { font-size: 0.8rem; }
 }
 
-/* ── Zona con BLUR a la derecha del hero (aquí va la foto de OK.station) ──
+/* ── Zona con BLUR a la derecha del hero (aquí va la foto de Ok.station) ──
    Un panel esmerilado (frosted) en la mitad derecha: desenfoca el fondo animado
    para que, cuando se suba la foto a uploads/hero-okstation.jpg, quede integrada y
    suave. El borde izquierdo se desvanece para fundirse con el texto. */

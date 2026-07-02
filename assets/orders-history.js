@@ -1,5 +1,5 @@
 /* ============================================================
-   OK.station — Historial de pedidos (perfil): listar, repetir, cancelar
+   Ok.station — Historial de pedidos (perfil): listar, repetir, cancelar
    y PAGO EN LÍNEA (iniciar checkout y reflejar el estado del pago).
    ============================================================ */
 (function () {
