@@ -227,17 +227,56 @@
       var n = Math.max(2, Math.round(w)), s = w / n;
       for (var i = 0; i < n; i++) { var t = i / (n - 1); var c = t < 0.5 ? lerp(purple, blue, t * 2) : lerp(blue, cyan, (t - 0.5) * 2); doc.setFillColor(c[0], c[1], c[2]); doc.rect(x0 + s * i, y0, s + 0.4, h, "F"); }
     }
-    gradBand(0, 0, PW, 34);
-    doc.setTextColor(255, 255, 255);
-    if (_ticketLogo) {
-      /* Logo oficial en el encabezado (respeta su proporción; ancho máx. 78 mm). */
-      var lgH = 9, lgW = lgH * (_ticketLogo.w / _ticketLogo.h);
-      if (lgW > 78) { lgW = 78; lgH = lgW * (_ticketLogo.h / _ticketLogo.w); }
-      doc.addImage(_ticketLogo.png, "PNG", x, 9, lgW, lgH);
-    } else {
-      doc.setFont("helvetica", "bold"); doc.setFontSize(24); doc.text("Ok.station", x, 18);
+    /* Degradado en ÁNGULO (-21.3664°): morado #9C1DFF (0%) → azul #066CFF (50%)
+       → cyan #00C6FF (100%). Se dibujan franjas perpendiculares al eje del
+       degradado y se recortan al banner redondeado. */
+    function gradBandAngled(x0, y0, w, h, r, deg) {
+      var rad = deg * Math.PI / 180, cosA = Math.cos(rad), sinA = Math.sin(rad);
+      var cxA = [0, w, 0, w], cyA = [0, 0, h, h], uMin = Infinity, uMax = -Infinity, k, u;
+      for (k = 0; k < 4; k++) { u = cxA[k] * cosA + cyA[k] * sinA; if (u < uMin) uMin = u; if (u > uMax) uMax = u; }
+      var R = (uMax - uMin) || 1, px = -sinA, py = cosA, L = Math.sqrt(w * w + h * h) + 4;
+      doc.saveGraphicsState();
+      doc.roundedRect(x0, y0, w, h, r, r, null).clip().discardPath();
+      var du = 1.1, over = 0.5, t, c, b1x, b1y, b2x, b2y;
+      for (u = uMin; u < uMax; u += du) {
+        t = (u - uMin) / R;
+        c = t < 0.5 ? lerp(purple, blue, t * 2) : lerp(blue, cyan, (t - 0.5) * 2);
+        doc.setFillColor(c[0], c[1], c[2]);
+        b1x = x0 + u * cosA; b1y = y0 + u * sinA;
+        b2x = x0 + (u + du + over) * cosA; b2y = y0 + (u + du + over) * sinA;
+        doc.triangle(b1x + px * L, b1y + py * L, b1x - px * L, b1y - py * L, b2x - px * L, b2y - py * L, "F");
+        doc.triangle(b1x + px * L, b1y + py * L, b2x - px * L, b2y - py * L, b2x + px * L, b2y + py * L, "F");
+      }
+      doc.restoreGraphicsState();
     }
-    doc.setFont("helvetica", "normal"); doc.setFontSize(10.5); doc.text("Comprobante de cita", x, 26);
+    /* Encabezado: banner degradado + tarjeta blanca con logo + píldora.
+       Ante cualquier fallo (clip/triangle no soportado) cae al banner plano. */
+    (function drawHeader() {
+      var MX = 8, bx = MX, by = 8, bw = PW - 2 * MX, bh = 30, br = 8;
+      try { gradBandAngled(bx, by, bw, bh, br, -21.3664); }
+      catch (e) { gradBand(0, 0, PW, 34); bx = 0; by = 0; bh = 34; }
+      /* Tarjeta blanca (izquierda) con el logo oficial centrado. */
+      var cw = 66, ch = 20, cx = bx + 6, cy = by + (bh - ch) / 2, cr = 7;
+      doc.setFillColor(255, 255, 255); doc.roundedRect(cx, cy, cw, ch, cr, cr, "F");
+      if (_ticketLogo) {
+        var ar = _ticketLogo.w / _ticketLogo.h, lh = 11, lw = lh * ar, maxw = cw - 12;
+        if (lw > maxw) { lw = maxw; lh = lw / ar; }
+        doc.addImage(_ticketLogo.png, "PNG", cx + (cw - lw) / 2, cy + (ch - lh) / 2, lw, lh);
+      } else {
+        doc.setFont("helvetica", "bold"); doc.setFontSize(19);
+        var t1 = "Ok", t2 = ".station", w1 = doc.getTextWidth(t1), w2 = doc.getTextWidth(t2);
+        var tx = cx + (cw - (w1 + w2)) / 2, tyv = cy + ch / 2 + 2.4;
+        doc.setTextColor(blue[0], blue[1], blue[2]); doc.text(t1, tx, tyv);
+        doc.setTextColor(dark[0], dark[1], dark[2]); doc.text(t2, tx + w1, tyv);
+      }
+      /* Píldora blanca (derecha) con "Comprobante de cita". */
+      doc.setFont("helvetica", "bold"); doc.setFontSize(12);
+      var plabel = "Comprobante de cita", pw = doc.getTextWidth(plabel) + 14, ph = 12;
+      var pxp = bx + bw - 6 - pw, pyp = by + (bh - ph) / 2;
+      doc.setFillColor(255, 255, 255); doc.roundedRect(pxp, pyp, pw, ph, ph / 2, ph / 2, "F");
+      doc.setTextColor(dark[0], dark[1], dark[2]); doc.text(plabel, pxp + 7, pyp + ph / 2 + 1.6);
+    })();
+    doc.setTextColor(255, 255, 255);
     try {
       var tmp = document.createElement("div");
       new QRCode(tmp, { text: location.origin + "/perfil.html?cita=" + appt.code, width: 160, height: 160 });
