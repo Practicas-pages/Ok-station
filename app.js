@@ -765,9 +765,12 @@
         var date = new Date(y, m, d);
         var iso = isoOf(date);
         var selected = state.fecha === iso;
-        /* La ocupación real del servidor manda; si reporta "full" (o nada), usamos el nivel de base. */
+        /* Nivel LÓGICO: sale de la ocupación REAL del servidor (no de un hash
+           cosmético). Sin reservas ese día → "full" (alta disponibilidad); a
+           medida que se ocupan horarios, el servidor lo baja a mid/none. Así el
+           color del día concuerda con los horarios que se ven al elegirlo. */
         var serverLvl = occByDate[iso];
-        var lvl = (serverLvl && serverLvl !== "full") ? serverLvl : baseLevelFor(date);
+        var lvl = (serverLvl && serverLvl !== "full") ? serverLvl : "full";
         /* Contraste horas ↔ personas: si la cita (por su duración) no cabe en las horas que
            abre el día, ese día queda "sin disponibilidad" aunque el servidor lo reporte libre. */
         var open = openHoursCount(date);
@@ -778,15 +781,16 @@
            el título describe la disponibilidad y se suma al aria-label. */
         var occText = { full: "disponibilidad total", mid: "disponibilidad media", none: "sin disponibilidad" };
         var availLabel = occText[lvl] || "";
-        /* Nivel de disponibilidad como CLASE → se colorea toda la celda del día
+        /* Celda BLANCA con un PUNTO de color bajo el número, según disponibilidad
            (verde = alta, ámbar = poca, rojo = sin, morado = inhábil). */
-        var lvlClass = closed ? " okcal__day--closed" : (" okcal__day--" + lvl);
+        var dotLvl = closed ? "closed" : lvl;
         var ariaLabel = d + " de " + MESES[m] + (closed ? ", inhábil" : (availLabel ? ", " + availLabel : ""));
-        cells += '<button type="button" class="okcal__day' + lvlClass + (selected ? " is-selected" : "") + '" ' +
+        cells += '<button type="button" class="okcal__day' + (selected ? " is-selected" : "") + '" ' +
           'data-date="' + isoOf(date) + '"' +
           (disabled ? ' disabled aria-disabled="true"' : "") +
           ' title="' + (closed ? "Inhábil" : availLabel) + '"' +
-          ' aria-label="' + ariaLabel + '"><span>' + d + "</span></button>";
+          ' aria-label="' + ariaLabel + '"><span>' + d + '</span>' +
+          '<i class="okcal-dot okcal-dot--' + dotLvl + '" aria-hidden="true"></i></button>';
       }
       calGrid.innerHTML = cells;
 
@@ -930,23 +934,23 @@
         return;
       }
 
-      var opts = names.map(function (n, i) {
-        var active = (nameInput && nameInput.value.trim() === n) ? " is-active" : "";
-        return '<button type="button" class="cita-quien__opt' + active + '" data-quien="' + i + '">' + sanitize(n) + '</button>';
-      }).join("");
+      /* Varias personas → LISTA DESPLEGABLE con sus nombres completos. */
+      var cur = nameInput ? nameInput.value.trim() : "";
+      var options = '<option value="">Selecciona una persona…</option>' +
+        names.map(function (n, i) {
+          return '<option value="' + i + '"' + (cur === n ? " selected" : "") + '>' + sanitize(n) + '</option>';
+        }).join("") +
+        '<option value="otro">Otra persona…</option>';
       host.innerHTML =
-        '<p class="cita-quien__label">¿Quién es el contacto principal? (el trabajador se comunicará con esa persona)</p>' +
-        '<div class="cita-quien__opts">' + opts +
-          '<button type="button" class="cita-quien__opt" data-quien="otro">Otra persona</button>' +
-        '</div>';
-      qsa(".cita-quien__opt", host).forEach(function (b) {
-        b.addEventListener("click", function () {
-          qsa(".cita-quien__opt", host).forEach(function (x) { x.classList.remove("is-active"); });
-          b.classList.add("is-active");
-          if (b.dataset.quien !== "otro" && nameInput) { nameInput.value = names[+b.dataset.quien] || ""; }
-          else if (nameInput) { nameInput.value = ""; nameInput.focus(); }
-          validateStep2();
-        });
+        '<label class="cita-quien__label" for="cita-quien-sel">¿Quién es el contacto principal? (el trabajador se comunicará con esa persona)</label>' +
+        '<select id="cita-quien-sel" class="cita-quien__select">' + options + '</select>';
+      var sel = qs("#cita-quien-sel", host);
+      if (sel) sel.addEventListener("change", function () {
+        var v = sel.value;
+        if (v === "") return;
+        if (v === "otro") { if (nameInput) { nameInput.value = ""; nameInput.focus(); } }
+        else if (nameInput) { nameInput.value = names[+v] || ""; }
+        validateStep2();
       });
     }
 

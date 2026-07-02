@@ -6018,34 +6018,21 @@ body::before, body::after,
 .services-grid .service-card__img { transition: transform .35s ease !important; }
 
 /* ============================================================
-   36. CALENDARIO DE CITAS — colores de disponibilidad por CELDA
-   Estilo de apps de reservas: cada día es un círculo coloreado según su
-   disponibilidad (verde = alta, ámbar = poca, rojo = sin, morado = inhábil),
-   en vez del puntito discreto de antes. Ganan al fondo neutro (sección 34)
-   por misma especificidad + estar más abajo + !important.
+   36. CALENDARIO DE CITAS — PUNTO de color de disponibilidad
+   Celda BLANCA con un punto de color bajo el número (4 niveles):
+   verde = alta, ámbar = poca, rojo = sin, morado = inhábil.
    ============================================================ */
-.citas-section .okcal__day { aspect-ratio: 1 / 1 !important; border-radius: 50% !important; font-weight: 700; }
-.citas-section .okcal__day--full:not(.is-selected):not(.is-empty) {
-  background: #CBF6D8 !important; border-color: #7FD69C !important; color: #14532D !important; opacity: 1 !important;
-}
-.citas-section .okcal__day--mid:not(.is-selected):not(.is-empty) {
-  background: #FDE7B0 !important; border-color: #F1C25E !important; color: #7A4600 !important; opacity: 1 !important;
-}
-.citas-section .okcal__day--none:not(.is-selected):not(.is-empty) {
-  background: #FBCFCF !important; border-color: #EE9C9C !important; color: #851E1E !important; opacity: 1 !important;
-}
-.citas-section .okcal__day--closed:not(.is-selected):not(.is-empty) {
-  background: #8B5CF6 !important; border-color: #7C3AED !important; color: #FFFFFF !important; opacity: 1 !important;
-}
-/* Día seleccionado: se mantiene el azul de marca por encima de los colores. */
-.citas-section .okcal__day.is-selected {
-  background: var(--brand-blue) !important; border-color: var(--brand-cyan) !important; color: #fff !important;
-}
-/* Hover solo en días reservables (alta/poca), sin cambiar el color. */
-.citas-section .okcal__day--full:hover:not(:disabled):not(.is-selected),
-.citas-section .okcal__day--mid:hover:not(:disabled):not(.is-selected) {
-  transform: translateY(-1px); filter: brightness(0.97);
-}
+.okcal-dot { width: 8px; height: 8px; border-radius: 50% !important; background: transparent; transform: none !important; }
+.okcal-dot--full   { background: #22C55E !important; border-radius: 50% !important; transform: none !important; }  /* alta - verde */
+.okcal-dot--mid    { background: #F59E0B !important; border-radius: 50% !important; transform: none !important; }  /* poca - ámbar */
+.okcal-dot--none   { background: #EF4444 !important; border-radius: 50% !important; transform: none !important; }  /* sin - rojo */
+.okcal-dot--closed { background: #8B5CF6 !important; border-radius: 50% !important; transform: none !important; }  /* inhábil - morado */
+/* El nivel 'none' antes dibujaba una "×"; ahora es un punto rojo simple. */
+.okcal-dot--none::before, .okcal-dot--none::after { display: none !important; }
+/* Inhábil / sin disponibilidad: NO atenuar el punto (que se vea el color); solo
+   el número se aclara un poco para indicar que no es reservable. */
+.citas-section .okcal__day:disabled { opacity: 1 !important; cursor: not-allowed; }
+.citas-section .okcal__day:disabled > span { opacity: 0.5; }
 
 /* ============================================================
    37. "¿QUIÉN ES EL CONTACTO?" — paso de datos de la cita
@@ -6058,7 +6045,14 @@ body::before, body::after,
   background: #F2F6FF; border: 1px solid #DCE6FB; border-radius: 10px; padding: 10px 14px;
 }
 .cita-quien__note b { color: var(--text-primary); }
-.cita-quien__label { margin: 0 0 8px; font-size: 0.9rem; font-weight: 600; color: var(--text-primary); }
+.cita-quien__label { display: block; margin: 0 0 8px; font-size: 0.9rem; font-weight: 600; color: var(--text-primary); }
+/* Lista desplegable con los nombres de las personas registradas. */
+.cita-quien__select {
+  width: 100%; max-width: 380px; padding: 11px 14px; font: inherit; font-size: 0.92rem;
+  border: 1.5px solid var(--border-medium); border-radius: 10px; background: #fff; color: var(--text-primary);
+  cursor: pointer;
+}
+.cita-quien__select:focus { outline: none; border-color: var(--brand-blue); box-shadow: 0 0 0 3px rgba(6,108,255,0.12); }
 .cita-quien__opts { display: flex; flex-wrap: wrap; gap: 8px; }
 .cita-quien__opt {
   padding: 8px 14px; border: 1.5px solid var(--border-medium); border-radius: 999px;
