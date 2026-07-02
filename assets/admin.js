@@ -50,6 +50,19 @@
     var n = parseInt(a.party_size, 10) || 1;
     if (n > 1) html += '<br><span class="appt-extra">' + n + ' personas</span>';
     if (window.OKCitaPriceText) html += '<br><span class="appt-extra" style="color:var(--brand-blue);font-weight:600">' + esc(window.OKCitaPriceText(a.tramite, a.passport_subtype, a.party_size)) + '</span>';
+    /* Estado del ANTICIPO en línea: el trabajador ve de un vistazo si el cliente
+       pagó (verde) o no (ámbar). Solo se muestra si el trámite tiene anticipo
+       (amount_total > 0) o ya hay algún movimiento de pago. */
+    var payable = (a.amount_total != null && a.amount_total !== "" && +a.amount_total > 0);
+    var pstat = a.payment_status || "";
+    if (payable || pstat === "pagado" || pstat === "procesando" || pstat === "reembolsado" || pstat === "error") {
+      var pInfo = pstat === "pagado"      ? { c: "#047857", t: "✓ Anticipo pagado" }
+                : pstat === "procesando"  ? { c: "#b45309", t: "⏳ Anticipo en proceso" }
+                : pstat === "reembolsado" ? { c: "#6b7280", t: "↩ Anticipo reembolsado" }
+                : pstat === "error"       ? { c: "#b91c1c", t: "✕ Anticipo con error" }
+                :                           { c: "#b45309", t: "⏳ Anticipo pendiente" };
+      html += '<br><span style="display:inline-block;margin-top:4px;font-size:.78rem;font-weight:700;color:' + pInfo.c + '">' + pInfo.t + '</span>';
+    }
     var guests = parseGuests(a.guests_json);
     if (guests.length) {
       html += '<div class="appt-guests" style="margin-top:6px">' + guests.map(function (g, i) {
@@ -73,17 +86,19 @@
     var s = status || "pendiente";
     return '<span class="badge badge--pay-' + s + '">' + esc(PAY_STATUS[s] || s) + '</span>';
   }
-  /* Señal de "confirmado por el cliente" (vía correo). Verde si confirmó, ámbar si falta. */
+  /* Señal "confirmado por el cliente": ya NO se pide confirmación por correo
+     (los correos son solo comprobante), así que solo mostramos el ✓ para citas
+     viejas que sí confirmaron; nunca el "sin confirmar" (sería engañoso). */
   function confirmChip(when) {
     return when
       ? '<span class="badge badge--listo" title="El cliente confirmó por correo el ' + esc(String(when)) + '">✓ Confirmado por el cliente</span>'
-      : '<span class="badge badge--pendiente" title="Aún no confirma desde su correo">⏳ Sin confirmar (cliente)</span>';
+      : '';
   }
-  /* Banner de confirmación para los modales de detalle. */
+  /* Banner de confirmación para los modales de detalle (solo el positivo). */
   function confirmBanner(when) {
     return when
       ? '<div style="display:flex;align-items:center;gap:8px;background:#ecfdf5;border:1px solid #a7f3d0;color:#047857;border-radius:8px;padding:9px 12px;font-size:.86rem;font-weight:600;margin:0 0 14px">✓ Confirmado por el cliente <span style="font-weight:400;color:#059669">· ' + esc(String(when)) + '</span></div>'
-      : '<div style="display:flex;align-items:center;gap:8px;background:#fffbeb;border:1px solid #fde68a;color:#b45309;border-radius:8px;padding:9px 12px;font-size:.86rem;font-weight:600;margin:0 0 14px">⏳ El cliente aún no confirma desde su correo</div>';
+      : '';
   }
   /* Nombre de cliente: enlace al historial si tiene cuenta (user_id); si es invitado, texto plano. */
   function clientCell(userId, name) {
@@ -525,6 +540,19 @@
             apptRow("Fecha", esc(a.date || "—")) +
             apptRow("Hora", esc(a.time || "—")) +
             (window.OKCitaPriceText ? apptRow("Precio estimado", esc(window.OKCitaPriceText(a.tramite, a.passport_subtype, a.party_size))) : "") +
+            (function () {
+              /* Estado del ANTICIPO: el trabajador ve si el cliente pagó (y cuánto/ cuándo). */
+              var ps = a.payment_status || "pendiente";
+              var payable = (a.amount_total != null && a.amount_total !== "" && +a.amount_total > 0);
+              if (!payable && ps === "pendiente") return "";
+              var v = ps === "pagado"
+                  ? '<span style="color:#047857;font-weight:700">✓ Pagado</span>' + (a.payment_amount != null && a.payment_amount !== "" ? ' <span style="color:var(--text-muted,#6b7280);font-weight:400">' + esc(mxn(a.payment_amount)) + (a.payment_date ? ' · ' + esc(String(a.payment_date)) : '') + '</span>' : '')
+                : ps === "procesando"  ? '<span style="color:#b45309;font-weight:700">⏳ En proceso</span>'
+                : ps === "reembolsado" ? '<span style="color:#6b7280;font-weight:700">↩ Reembolsado</span>'
+                : ps === "error"       ? '<span style="color:#b91c1c;font-weight:700">✕ Error en el pago</span>'
+                :                        '<span style="color:#b45309;font-weight:700">⏳ Pendiente</span>';
+              return apptRow("Anticipo", v);
+            })() +
           '</div>' +
           servicesHtml +
           '<h4 style="margin:0 0 6px;font-size:.95rem">Contacto</h4>' +
@@ -994,9 +1022,11 @@
         var phoneHtml = a.contact_phone
           ? (waD ? '<a href="https://wa.me/' + waD + '" target="_blank" rel="noopener" title="Escribir por WhatsApp" style="color:#1d9e75;font-weight:600">' + esc(a.contact_phone) + '</a>' : esc(a.contact_phone))
           : "";
+        /* Ya no se exige confirmar por correo: solo mostramos el ✓ de las citas
+           viejas que lo hicieron; nada cuando no (antes decía "Sin confirmar"). */
         var confirmInline = a.client_confirmed_at
           ? '<br><span style="color:#047857;font-size:.78rem;font-weight:600" title="Confirmó por correo el ' + esc(String(a.client_confirmed_at)) + '">✓ Confirmó</span>'
-          : '<br><span style="color:#b45309;font-size:.78rem" title="Aún no confirma desde su correo">⏳ Sin confirmar</span>';
+          : '';
         var contacto = phoneHtml + (a.contact_email ? '<br><span style="color:var(--text-muted);font-size:.82rem">' + esc(a.contact_email) + '</span>' : "") + confirmInline;
         return '<tr>' +
           '<td class="mono">' + esc(a.code) + '</td>' +

@@ -156,6 +156,21 @@ final class Emails
         return self::layout('Confirma tu pedido ' . (string) $p['code'] . ' en OK.station', $inner);
     }
 
+    /** Correo con el COMPROBANTE PDF adjunto (pedido o cita). $kind = 'pedido'|'cita'. */
+    public static function comprobanteHtml(string $kind, string $code, string $name): string
+    {
+        $noun = ($kind === 'cita') ? 'tu cita' : 'tu pedido';
+        $inner =
+            '<h1 style="margin:0 0 6px;font-size:20px;color:#12141c">¡Gracias' . ($name !== '' ? ', ' . self::e($name) : '') . '!</h1>'
+            . '<p style="margin:0 0 14px;font-size:15px;line-height:1.6;color:#4a5068">'
+            . 'Adjuntamos el <b>comprobante (PDF)</b> de ' . $noun . ' en OK.station. Consérvalo: '
+            . 'incluye tu folio y un código QR.</p>'
+            . self::ticketCard($code, self::row('Comprobante', 'Adjunto en este correo (PDF)'))
+            . '<p style="margin:14px 0 0;font-size:13px;line-height:1.6;color:#6b7280">'
+            . 'Si necesitas ayuda, escríbenos por WhatsApp al (664) 719-4117 o responde este correo.</p>';
+        return self::layout('Tu comprobante ' . $code . ' · OK.station', $inner);
+    }
+
     /** Página HTML (no JSON) que ve el cliente tras dar clic en el enlace. */
     public static function confirmPage(string $heading, string $message, bool $ok = true): string
     {

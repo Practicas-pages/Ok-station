@@ -715,8 +715,8 @@
 
           <!-- Paso 3: información de cada persona (cuestionario + documentos por persona) -->
           <div class="cita-step" aria-hidden="true">
-            <h4 class="cita-step__title">Información de cada persona</h4>
-            <p class="cita-step__sub">Llena los datos y, si quieres, sube los documentos de cada persona que asistirá (CURP, identificación, etc.). Así llegamos con todo listo el día de tu cita.</p>
+            <h4 class="cita-step__title">Información de cada persona <span class="field__opt">(opcional)</span></h4>
+            <p class="cita-step__sub">Este paso es <b>opcional</b>. Si quieres, captura los datos y documentos de cada persona (CURP, identificación, etc.) para que lleguemos con todo listo el día de tu cita. Puedes omitirlo y continuar.</p>
             <div id="cita-personas" class="cita-personas"></div>
             <div class="persona-pager">
               <button type="button" class="btn btn--ghost-dark btn--sm" id="persona-prev">‹ Anterior</button>
@@ -776,7 +776,7 @@
                 <span class="field-error" id="cita-nombre-error" role="alert" hidden></span>
               </div>
               <div class="field">
-                <label for="cita-correo">Correo electrónico <span class="field__opt">(opcional)</span></label>
+                <label for="cita-correo">Correo electrónico</label>
                 <input type="email" id="cita-correo" name="cita-correo" autocomplete="email" placeholder="tu@correo.com">
                 <span class="field-error" id="cita-correo-error" role="alert" hidden></span>
               </div>

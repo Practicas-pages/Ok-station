@@ -442,8 +442,10 @@
     /* Selección ÚNICA entre los 9 servicios (tarjetas principales + panel "Más servicios").
        Todos son independientes: elegir uno deselecciona cualquier otro. */
     function selectService(id, el) {
+      /* Resalta por ID (no por elemento) para que TODAS las copias del carrusel
+         infinito —original y clones— queden marcadas igual. */
       qsa(".tramite-btn, .extra-card").forEach(function (b) {
-        var active = (b === el);
+        var active = (b.dataset.tramite === id) || (b.dataset.service === id);
         b.classList.toggle("is-selected", active);
         b.setAttribute("aria-pressed", String(active));
       });
@@ -455,12 +457,16 @@
       updateStep0Next();
     }
 
-    qsa(".tramite-btn").forEach(function (btn) {
-      btn.addEventListener("click", function () {
-        var id = btn.dataset.tramite;
-        selectService(id, btn);
-        if (id === "pasaporte") openSubtypeModal();   /* caso especial: subtipo obligatorio */
-      });
+    /* DELEGACIÓN de eventos: un solo listener en la sección capta el clic en
+       cualquier .tramite-btn, INCLUIDAS las tarjetas clonadas del carrusel
+       infinito (los clones no heredan listeners por-elemento). */
+    section.addEventListener("click", function (e) {
+      var btn = e.target.closest ? e.target.closest(".tramite-btn") : null;
+      if (!btn || !section.contains(btn)) return;
+      var id = btn.dataset.tramite;
+      if (!id) return;
+      selectService(id, btn);
+      if (id === "pasaporte") openSubtypeModal();   /* caso especial: subtipo obligatorio */
     });
 
     /* ── Caso especial Pasaporte: modal de subtipo (mexicano/americano) ── */
@@ -861,7 +867,7 @@
       var mailVal = emailInput ? emailInput.value.trim() : "";
       var hasName    = !!nameVal;
       var telOk      = onlyDigits(telVal).length >= 10;
-      var mailOk     = !mailVal || EMAIL_RE.test(mailVal);
+      var mailOk     = EMAIL_RE.test(mailVal);   /* correo OBLIGATORIO */
       var hasContact = !!qs("input[name='cita-contacto']:checked", section);
       var acceptEl   = qs("#cita-acepto");
       var hasTerms   = !!(acceptEl && acceptEl.checked);
@@ -921,7 +927,7 @@
     /* Un control del cuestionario por trámite (texto/tel/área/select/checkbox) con su ayuda. */
     function answerCtrlHtml(i, f) {
       var id = "pg-" + i + "-a-" + f.k;
-      var req = f.optional ? "" : ' <span aria-hidden="true" style="color:#ff8a98">*</span>';
+      var req = ""; /* el cuestionario por persona es opcional: sin marca de obligatorio */
       var help = f.help ? '<span class="persona-help">' + sanitize(f.help) + '</span>' : "";
       if (f.type === "check") {
         return '<label class="persona-check" for="' + id + '"><input type="checkbox" id="' + id + '" data-ans="' + f.k + '" data-idx="' + i + '"><span>' + sanitize(f.q) + '</span></label>' +
@@ -1121,10 +1127,12 @@
       return true;
     }
     function validateGuests() {
+      /* El paso "Información de cada persona" (cuestionario + documentos) es OPCIONAL:
+         NO bloquea el avance. Los datos obligatorios (nombre, correo y teléfono) se
+         piden en el paso "Tus datos". El cliente puede llenar esto si quiere. */
       var btn = qs("#cita-next-4");
-      var allOk = state.guests.length > 0 && state.guests.every(guestValid);
-      if (btn) { btn.disabled = !allOk; btn.setAttribute("aria-disabled", String(!allOk)); }
-      return allOk;
+      if (btn) { btn.disabled = false; btn.setAttribute("aria-disabled", "false"); }
+      return true;
     }
     if (personaPrevBtn) personaPrevBtn.addEventListener("click", function () { showGuest(state.activeGuest - 1); });
     if (personaNextBtn) personaNextBtn.addEventListener("click", function () { showGuest(state.activeGuest + 1); });
@@ -1340,16 +1348,33 @@
               try {
                 /* Servicios adicionales que el cliente marcó (venta cruzada) para reflejarlos en el ticket. */
                 var citaServices = (exped && exped.services) ? exped.services : [];
-                var citaUri = window.OKCitaTicketBlobUrl ? window.OKCitaTicketBlobUrl({
+                var apptForTicket = {
                   code: j.appointment.code, tramite: j.appointment.tramite,
                   passport_subtype: j.appointment.passport_subtype, party_size: j.appointment.party_size,
                   date: j.appointment.date, time: j.appointment.time, status: j.appointment.status,
                   name: state.nombre, phone: state.tel, guests: state.guests,
                   services: citaServices
-                }) : null;
+                };
+                var citaUri = window.OKCitaTicketBlobUrl ? window.OKCitaTicketBlobUrl(apptForTicket) : null;
                 var dlBtn = qs("#cita-ticket-dl", successEl);
                 if (citaUri && dlBtn) dlBtn.href = citaUri;
                 else if (dlBtn) dlBtn.style.display = "none";
+
+                /* Envía el COMPROBANTE (PDF) por correo al cliente (best-effort, vía Brevo).
+                   Solo si dio correo. El PDF se genera aquí en base64 (data-URI). */
+                try {
+                  var contactEmail = (qs("#cita-correo") && qs("#cita-correo").value.trim()) || "";
+                  if (contactEmail && window.OKCitaTicket && j.appointment && j.appointment.id) {
+                    var pdfUri = window.OKCitaTicket(apptForTicket);
+                    if (pdfUri) {
+                      fetch(API + "/appointments/send-receipt.php", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ appointment_id: j.appointment.id, code: j.appointment.code, pdf_base64: pdfUri })
+                      }).catch(function () {});
+                    }
+                  }
+                } catch (e2) {}
               } catch (e) {
                 var dlErr = qs("#cita-ticket-dl", successEl);
                 if (dlErr) dlErr.style.display = "none";
@@ -1922,7 +1947,11 @@
          cruzar hacia un grupo clonado, "teletransportamos" el scroll un periodo completo
          (instantáneo y sin animación). Como el contenido es idéntico, el salto es
          invisible: el carrusel parece girar sin fin en ambos sentidos. */
-      var canLoop = track.classList.contains("services-grid");
+      /* Bucle infinito tipo "Netflix" en AMBOS carruseles (Servicios y Trámites):
+         las tarjetas dan vuelta sin tope. Para que las tarjetas CLONADAS de
+         Trámites sigan respondiendo al clic, su selección usa DELEGACIÓN de
+         eventos (ver initCitas), no un listener por tarjeta. */
+      var canLoop = true;
       var originals = Array.prototype.slice.call(track.children);
       var looping = false;
       var period = 0;   /* ancho de un juego completo (distancia de teletransporte) */

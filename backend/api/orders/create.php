@@ -100,34 +100,9 @@ if (table_has_column('orders', 'confirm_token')) {
     } catch (Throwable $e) { $confirmToken = null; }
 }
 
-/* Correo de confirmación al usuario (best-effort: si el SMTP falla, no afecta el pedido). */
-if (!empty($user['email'])) {
-    try {
-        require_once __DIR__ . '/../lib/Mailer.php';
-        require_once __DIR__ . '/../lib/Emails.php';
-        $clientName = (string) ($user['full_name'] ?? '');
-        $mailer = new Mailer($CONFIG['smtp'] ?? []);
-
-        if ($confirmToken) {
-            /* Correo HTML con el ticket y el botón "Confirmar mi pedido". */
-            $html = Emails::pedidoHtml([
-                'name' => $clientName, 'code' => $code, 'items' => $mailItems,
-                'subtotal' => $subtotal, 'tax' => $tax, 'total' => $total,
-                'confirmUrl' => Emails::confirmUrl('pedido', $code, $confirmToken),
-            ]);
-            $mailer->sendHtml($user['email'], 'Confirma tu pedido en OK.station — ' . $code, $html);
-        } else {
-            /* Respaldo en texto plano (si la migración 0017 aún no se ha aplicado). */
-            $mailBody =
-                "Hola " . $clientName . ",\n\nRecibimos tu pedido de impresión en OK.station.\n\n" .
-                "Folio: $code\nSubtotal estimado: $" . number_format($subtotal, 2) . " MXN\n" .
-                "IVA estimado: $" . number_format($tax, 2) . " MXN\nTotal estimado: $" . number_format($total, 2) . " MXN\n\n" .
-                "El total es un estimado; confirmamos el precio final al revisar tus archivos.\n\n" .
-                "Gracias,\nOK.station · Centro Comercial Otay, Tijuana\nokstation.mx";
-            $mailer->send($user['email'], 'Tu pedido en OK.station — ' . $code, $mailBody);
-        }
-    } catch (Throwable $e) { /* correo best-effort */ }
-}
+/* NO se envía correo de "confirma tu pedido": el cliente NO tiene que confirmar
+   nada desde el correo. El COMPROBANTE (con el PDF adjunto) se le envía desde
+   orders/ticket-store.php cuando el navegador genera el ticket. */
 
 $order = Order::find($orderId);
 $order['items'] = Order::items($orderId);

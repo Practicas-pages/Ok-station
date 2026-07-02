@@ -2303,6 +2303,7 @@ h1, h2, h3, h4, h5, h6 {
   text-overflow: ellipsis;
   display: -webkit-box;
   -webkit-line-clamp: 2;
+  line-clamp: 2;
   -webkit-box-orient: vertical;
   word-break: break-word;
 }
@@ -5018,14 +5019,21 @@ body.admin::before, body.admin::after { display: none !important; }
   content: "";
   display: block !important;
   position: absolute; left: 0; right: 0; bottom: 0;
-  height: 55%;
+  height: 44%;
+  /* La foto del hero se DISUELVE en el blanco de la página (antes se fundía a
+     navy oscuro y luego había un corte duro con las secciones blancas). El
+     blanqueo solo ocurre en el tramo inferior, por debajo del texto y los CTAs. */
   background: linear-gradient(180deg,
-    rgba(10, 31, 77, 0.00) 0%,
-    rgba(10, 31, 77, 0.18) 38%,
-    rgba(10, 31, 77, 0.55) 72%,
-    rgba(10, 31, 77, 1.00) 100%);
-  z-index: 0; pointer-events: none;
+    rgba(255, 255, 255, 0.00) 0%,
+    rgba(255, 255, 255, 0.00) 38%,
+    rgba(255, 255, 255, 0.50) 64%,
+    rgba(255, 255, 255, 0.88) 84%,
+    #FFFFFF 95%,
+    #FFFFFF 100%);
+  z-index: 1; pointer-events: none;
 }
+/* "Descubre ↓": el pie del hero ahora es claro, así que el indicador va en tinta. */
+.hero__scroll, .hero__scroll svg { color: var(--text-secondary) !important; }
 
 /* ── Chips de confianza bajo los CTAs (llenan el espacio y refuerzan el mensaje) ── */
 .hero__chips {
@@ -5403,16 +5411,22 @@ html, body, #top { background: #FFFFFF !important; }
       rgba(12,14,22,0.12) 68%,
       rgba(12,14,22,0.00) 85%) !important;
 }
-/* Fundido del hero hacia el blanco de la página (conecta, no divide) */
+/* Fundido del hero hacia el blanco de la página (conecta, no divide).
+   La foto se DISUELVE en el blanco: el blanqueo arranca por DEBAJO del texto
+   y los CTAs, así que no afecta su legibilidad. */
 .hero::after {
   content: "" !important;
   position: absolute !important;
   left: 0; right: 0; bottom: 0;
-  height: clamp(150px, 26vh, 300px);
+  height: clamp(360px, 56vh, 620px) !important;
   background: linear-gradient(to bottom,
     rgba(255,255,255,0) 0%,
-    rgba(255,255,255,0.18) 38%,
-    rgba(255,255,255,0.62) 72%,
+    rgba(255,255,255,0) 22%,
+    rgba(255,255,255,0.18) 42%,
+    rgba(255,255,255,0.45) 60%,
+    rgba(255,255,255,0.72) 74%,
+    rgba(255,255,255,0.90) 86%,
+    rgba(255,255,255,0.98) 94%,
     #FFFFFF 100%) !important;
   z-index: 1;
   pointer-events: none;
@@ -5673,11 +5687,19 @@ body:has(.cita-drawer:not([hidden])) { overflow: hidden; }
 .footer-bottom a:hover { color: var(--brand-blue) !important; }
 
 /* — Microinteracción: elevar tarjetas de servicio al pasar el cursor — */
-.service-card { transition: transform .25s ease, box-shadow .25s ease, border-color .25s ease; }
+/* Hover IGUAL al de las tarjetas de citas (más suave): sube 4px, sombra difusa
+   y transición de .2s — en vez del 6px + sombra azul marcada de antes. */
+.service-card { transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease, background .2s ease; }
 .service-card:hover {
-  transform: translateY(-6px);
-  box-shadow: 0 18px 36px rgba(6,108,255,0.16);
+  transform: translateY(-4px);
+  box-shadow: 0 14px 34px -16px rgba(0,0,0,0.55);
   border-color: var(--brand-blue);
+}
+/* Las destacadas (azul/púrpura) también más suaves (antes subían 6px). */
+.service-card--featured-blue:hover,
+.service-card--featured-purple:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 16px 36px -14px rgba(0,0,0,0.45);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -5732,11 +5754,12 @@ body::before, body::after,
 }
 .btn--wa:hover { box-shadow: 0 14px 30px rgba(37,211,102,0.42); }
 
-/* Tarjetas de servicio: levantar + sombra azul + foto con leve zoom */
-.service-card { transition: transform .28s cubic-bezier(.2,.7,.2,1), box-shadow .28s ease, border-color .25s ease; }
-.service-card:hover { transform: translateY(-8px); box-shadow: 0 22px 44px rgba(6,108,255,0.18); border-color: var(--brand-blue); }
-.service-card__img { transition: transform .4s ease; }
-.service-card:hover .service-card__img { transform: scale(1.05); }
+/* Tarjetas de servicio: MISMO hover suave que las de citas/trámites
+   (sube 4px, sombra difusa, .2s) — antes subía 8px con sombra azul fuerte. */
+.service-card { transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease, background .2s ease; }
+.service-card:hover { transform: translateY(-4px); box-shadow: 0 14px 34px -16px rgba(0,0,0,0.55); border-color: var(--brand-blue); }
+.service-card__img { transition: transform .35s ease; }
+.service-card:hover .service-card__img { transform: scale(1.03); }
 .service-card .service-link { transition: gap .2s ease, color .2s ease; }
 .service-card:hover .service-link { gap: 9px; }
 
@@ -5796,7 +5819,7 @@ body::before, body::after,
   .service-tags .tag, .reveal.is-visible {
     transition-duration: .28s !important;
   }
-  .service-card:hover { transform: translateY(-8px) !important; }
+  .service-card:hover { transform: translateY(-4px) !important; }
 }
 
 
@@ -5873,3 +5896,108 @@ body::before, body::after,
 .cita-summary b{
     color:#111827 !important;
 }
+
+/* ============================================================
+   34. CORRECCIONES DE CONTRASTE — paso a tema claro (2026-06-30)
+   Restos del tema oscuro que quedaban ILEGIBLES sobre el fondo blanco:
+   calendario de citas, prefijo "+52", etiquetas .eyebrow y el tagline.
+   ============================================================ */
+
+/* — Calendario de citas: era una CAJA OSCURA con texto oscuro (invisible).
+     Lo pasamos a tema claro; el texto de mes/días/semana ya estaba forzado
+     a oscuro más arriba, así que basta con aclarar el fondo y los bordes. — */
+.citas-section .okcal {
+  background: #FFFFFF !important;
+  border-color: #E5E7EB !important;
+}
+.citas-section .okcal__nav {
+  color: var(--text-primary) !important;
+  border-color: #E5E7EB !important;
+}
+.citas-section .okcal__nav:hover:not(:disabled) {
+  border-color: rgba(6,108,255,0.45) !important;
+  background: #F2F6FF !important;
+}
+.citas-section .okcal__day:not(.is-selected):not(.is-empty) {
+  background: #F7F9FF !important;
+  border-color: #E8ECF5 !important;
+}
+.citas-section .okcal__day:hover:not(:disabled):not(.is-empty):not(.is-selected) {
+  border-color: rgba(6,108,255,0.45) !important;
+}
+.citas-section .okcal__day.is-empty {
+  background: transparent !important;
+  border-color: transparent !important;
+}
+.citas-section .okcal__legend {
+  border-top-color: #E5E7EB !important;
+}
+.citas-section .okcal__legend-item {
+  color: var(--text-secondary) !important;
+}
+
+/* — Prefijo "+52" del teléfono dentro del wizard (era blanco sobre blanco) — */
+.citas-section .input-prefix__tag {
+  background: #EEF3FB !important;
+  border-color: #D7E2F2 !important;
+  color: #0B1F3A !important;
+}
+
+/* — Etiquetas de sección (.eyebrow): cian claro ilegible → azul de marca (≈4.5:1).
+     Se respeta .eyebrow--white (usado sobre fondos oscuros). — */
+.eyebrow:not(.eyebrow--white),
+.section-head .eyebrow,
+#faq .eyebrow {
+  color: var(--brand-blue) !important;
+}
+.eyebrow:not(.eyebrow--white)::before,
+.section-head .eyebrow::before {
+  background: var(--brand-blue) !important;
+}
+
+/* — Tagline "You say tech, we listen." sobre bloque claro (era cian, 1.9:1) — */
+.footer-brand-line {
+  color: var(--brand-blue) !important;
+}
+
+/* — Chips de trámite (.tramite-tag): texto azul/morado claro (2:1) →
+     pastilla SÓLIDA del color del servicio con texto blanco (≥4.5:1). — */
+.tramite-tag {
+  background: var(--taccent, var(--brand-blue)) !important;
+  color: #FFFFFF !important;
+}
+
+/* — Red de seguridad: los títulos de paso del wizard siempre oscuros sobre el
+     panel blanco (cubre también el paso de personas, hoy inerte). — */
+.citas-section .cita-step__title {
+  color: var(--text-primary) !important;
+}
+
+/* — Chip de contacto SELECCIONADO (fondo azul): su texto debe ir blanco; los
+     overrides de tema claro lo dejaban en gris oscuro sobre azul (2.26:1). — */
+.citas-section .contact-chip:has(input:checked),
+.citas-section .contact-chip:has(input:checked) * {
+  color: #FFFFFF !important;
+}
+
+/* ============================================================
+   35. CARRUSEL DE SERVICIOS — quitar la animación "reveal" de las tarjetas
+   Al dar vuelta el carrusel (sobre todo hacia la IZQUIERDA), los títulos
+   "saltaban" y luego se reacomodaban: las tarjetas conservaban la animación de
+   aparición (.reveal = opacity/transform con transición de .6s), y los clones
+   quedaban en estado .reveal:not(.is-visible). Las tarjetas de CITAS no tienen
+   reveal, por eso ahí no pasa. Aquí las dejamos SIEMPRE visibles y estáticas,
+   con SOLO la transición del hover.
+   ============================================================ */
+.services-grid .reveal,
+.services-grid .reveal.is-visible,
+.services-grid .service-card,
+.services-grid .service-card.reveal,
+.services-grid .service-card.reveal.is-visible {
+  opacity: 1 !important;
+  transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease, background .2s ease !important;
+}
+/* transform estático cuando NO se está haciendo hover: así ninguna animación de
+   "reveal" puede desplazar la tarjeta/título; el hover (elevar 4px) sí aplica. */
+.services-grid .service-card:not(:hover) { transform: none !important; }
+.services-grid .service-card__img { transition: transform .35s ease !important; }

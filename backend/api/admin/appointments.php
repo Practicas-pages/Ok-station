@@ -19,7 +19,11 @@ $guestsCol   = table_has_column('appointments', 'guests_json')   ? 'a.guests_jso
 $servicesCol = table_has_column('appointments', 'services_json') ? 'a.services_json,' : '';
 $confirmCol  = table_has_column('appointments', 'client_confirmed_at')
     ? "DATE_FORMAT(a.client_confirmed_at,'%Y-%m-%d %H:%i') AS client_confirmed_at," : '';
-$sql = "SELECT a.id, a.code, a.tramite, a.passport_subtype, a.party_size, $guestsCol $servicesCol $confirmCol
+/* Estado del ANTICIPO (migración 0016): para que el panel muestre si el cliente
+   pagó o no. Resiliente: si la migración no se aplicó, no se piden esas columnas. */
+$payCols = table_has_column('appointments', 'amount_total')
+    ? "a.amount_total, a.payment_status, a.payment_amount, DATE_FORMAT(a.payment_date,'%Y-%m-%d %H:%i') AS payment_date," : '';
+$sql = "SELECT a.id, a.code, a.tramite, a.passport_subtype, a.party_size, $guestsCol $servicesCol $confirmCol $payCols
                DATE_FORMAT(a.appt_date,'%Y-%m-%d') AS date,
                TIME_FORMAT(a.appt_time,'%H:%i')    AS time,
                a.status, a.contact_name, a.contact_phone, a.contact_email,

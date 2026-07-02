@@ -402,6 +402,10 @@
         link.hidden = false;
       }
     }
+    /* Pago en línea del pedido — MISMO motor que el anticipo de citas (Mercado Pago).
+       Aparece justo aquí, tras crear el pedido, igual que en el flujo de citas. */
+    try { renderOrderPayCTA(order); } catch (e) {}
+
     /* Dejar la vista EXACTAMENTE en el banner del ticket (¡Pedido recibido! + botón
        de descarga), no al inicio de la página. Esperamos un frame para que el layout
        ya tenga su posición final tras ocultar el builder. */
@@ -412,6 +416,49 @@
         window.scrollTo({ top: top, behavior: "smooth" });
       });
     }
+  }
+
+  /* CTA de pago en línea del pedido (espejo de renderCitaPayCTA en app.js).
+     Se inserta dentro del banner "¡Pedido recibido!". El usuario ya está
+     autenticado (el envío del pedido exige sesión), así que se puede pagar de una. */
+  function renderOrderPayCTA(order) {
+    if (!order) return;
+    var host = $(".order-done", $("#order-confirm")) || $("#order-confirm");
+    if (!host) return;
+    var old = $(".order-pay-cta", host); if (old) old.parentNode.removeChild(old);
+    var total = +order.total || 0;
+    var pay = order.payment_status || "pendiente";
+    if (total <= 0 || pay === "pagado") return;   /* sin monto o ya pagado: no se muestra */
+    var box = document.createElement("div");
+    box.className = "order-pay-cta";
+    box.style.cssText = "margin-top:18px;padding-top:16px;border-top:1px solid var(--border-light);text-align:center";
+    box.innerHTML =
+      '<p style="margin:0 0 8px;color:var(--text-muted)">Total a pagar: ' +
+        '<b style="color:var(--brand-blue)">' + mxn(total) + '</b></p>' +
+      '<button type="button" class="btn btn--primary btn--sm" id="order-pay-btn">Pagar en línea ahora</button>' +
+      '<p style="margin:8px 0 0;font-size:.8rem;color:var(--text-muted)">Pago seguro con Mercado Pago. También puedes pagarlo después desde “Mis pedidos”.</p>';
+    host.appendChild(box);
+    var pb = $("#order-pay-btn", box);
+    if (pb) pb.addEventListener("click", function () { startOrderPayment(order.id, this); });
+  }
+
+  /* Inicia el pago del pedido y redirige al checkout (mismo endpoint que citas). */
+  function startOrderPayment(orderId, btn) {
+    var orig = btn ? btn.textContent : "";
+    if (btn) { btn.disabled = true; btn.textContent = "Conectando…"; }
+    fetch(API + "/payments/create.php", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: "Bearer " + token() },
+      body: JSON.stringify({ order_id: orderId })
+    }).then(function (r) { return r.json(); }).then(function (res) {
+      if (res && res.ok && res.checkout_url) { window.location.href = res.checkout_url; return; }
+      if (btn) { btn.disabled = false; btn.textContent = orig; }
+      if (res && res.payment_status === "pagado") { window.alert("Este pedido ya está pagado."); return; }
+      window.alert((res && res.error) || "No se pudo iniciar el pago. Inténtalo de nuevo.");
+    }).catch(function () {
+      if (btn) { btn.disabled = false; btn.textContent = orig; }
+      window.alert("Sin conexión con el servidor.");
+    });
   }
 
   /* Ticket PDF con la identidad de OK.station (degradado de marca, colores y lema). */
