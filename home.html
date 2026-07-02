@@ -934,6 +934,9 @@
        son fallback sin-JS / contenido para buscadores; reviews.js las reemplaza. -->
     <section class="section" id="testimonios" aria-labelledby="testimonios-title">
       <div class="wrap">
+        <!-- Reseñas propias: OCULTAS por ahora (se reactivarán a futuro).
+             Por ahora solo se muestran las reseñas verificadas de Google (abajo). -->
+        <div hidden aria-hidden="true">
         <div class="section-head section-head--center reveal">
           <span class="eyebrow eyebrow--cyan">Reseñas</span>
           <h2 class="text-h2" id="testimonios-title">Lo que dicen <span class="hl">nuestros clientes</span></h2>
@@ -1042,8 +1045,11 @@
           </article>
         </div>
 
+        </div>
+        <!-- fin reseñas propias ocultas -->
+
         <!-- ====== RESEÑAS EN GOOGLE (widget oficial de Featurable) ====== -->
-        <div class="reveal" style="margin-top: var(--space-10); padding-top: var(--space-8); border-top: 1px solid var(--border-light); text-align: center">
+        <div class="reveal" style="text-align: center">
           <span class="eyebrow eyebrow--cyan">Reseñas verificadas en Google</span>
         </div>
         <div id="featurable-30bf3581-fa31-45bf-b825-63cf9e6bb10e" data-featurable-async style="display:block; margin-top: var(--space-5)"></div>
