@@ -1,6 +1,6 @@
 <?php
 /**
- * OK.station — Construcción de correos transaccionales en HTML.
+ * Ok.station — Construcción de correos transaccionales en HTML.
  * Genera el correo de confirmación de CITA y de PEDIDO: incluye el TICKET del
  * cliente y un botón "Confirmar" (enlace con token, sin necesidad de iniciar
  * sesión). HTML compatible con Gmail/Outlook (tablas + estilos en línea).
@@ -72,7 +72,7 @@ final class Emails
 // Pie
 . '<tr><td align="center" style="padding:18px 8px;font-family:Arial,Helvetica,sans-serif;'
 . 'font-size:12px;line-height:1.6;color:#9fb3da">'
-. 'OK.station · Centro Comercial Otay, Local G-03 · Tijuana, B.C.<br>'
+. 'Ok.station · Centro Comercial Otay, Local G-03 · Tijuana, B.C.<br>'
 . '(664) 719-4117 · <a href="' . self::appUrl() . '" style="color:#3b9bff;text-decoration:none">okstation.mx</a>'
 . '</td></tr>'
 . '</table></td></tr></table></body></html>';
@@ -110,7 +110,7 @@ final class Emails
         $inner =
             '<h1 style="margin:0 0 6px;font-size:20px;color:#12141c">¡Hola ' . self::e((string) $p['name']) . '!</h1>'
             . '<p style="margin:0 0 18px;font-size:15px;line-height:1.6;color:#4a5068">'
-            . 'Recibimos tu solicitud de cita en OK.station. Para apartar tu lugar, confírmala con el botón de abajo. '
+            . 'Recibimos tu solicitud de cita en Ok.station. Para apartar tu lugar, confírmala con el botón de abajo. '
             . 'Este es tu ticket:</p>'
             . self::ticketCard((string) $p['code'], $rows)
             . self::button((string) $p['confirmUrl'], 'Confirmar mi cita')
@@ -120,7 +120,7 @@ final class Emails
             . 'Si el botón no funciona, copia y pega este enlace en tu navegador:<br>'
             . '<span style="color:#3b9bff;word-break:break-all">' . self::e((string) $p['confirmUrl']) . '</span></p>';
 
-        return self::layout('Confirma tu cita ' . (string) $p['code'] . ' en OK.station', $inner);
+        return self::layout('Confirma tu cita ' . (string) $p['code'] . ' en Ok.station', $inner);
     }
 
     /** Correo de confirmación de PEDIDO. $p: name, code, items[], subtotal, tax, total, confirmUrl. */
@@ -144,7 +144,7 @@ final class Emails
         $inner =
             '<h1 style="margin:0 0 6px;font-size:20px;color:#12141c">¡Hola ' . self::e((string) $p['name']) . '!</h1>'
             . '<p style="margin:0 0 18px;font-size:15px;line-height:1.6;color:#4a5068">'
-            . 'Recibimos tu pedido de impresión en OK.station. Confírmalo con el botón de abajo. Este es tu ticket:</p>'
+            . 'Recibimos tu pedido de impresión en Ok.station. Confírmalo con el botón de abajo. Este es tu ticket:</p>'
             . self::ticketCard((string) $p['code'], $rows)
             . self::button((string) $p['confirmUrl'], 'Confirmar mi pedido')
             . '<p style="margin:8px 0 0;font-size:13px;line-height:1.6;color:#6b7280;text-align:center">'
@@ -153,7 +153,7 @@ final class Emails
             . 'Si el botón no funciona, copia y pega este enlace en tu navegador:<br>'
             . '<span style="color:#3b9bff;word-break:break-all">' . self::e((string) $p['confirmUrl']) . '</span></p>';
 
-        return self::layout('Confirma tu pedido ' . (string) $p['code'] . ' en OK.station', $inner);
+        return self::layout('Confirma tu pedido ' . (string) $p['code'] . ' en Ok.station', $inner);
     }
 
     /** Correo con el COMPROBANTE PDF adjunto (pedido o cita). $kind = 'pedido'|'cita'. */
@@ -163,12 +163,12 @@ final class Emails
         $inner =
             '<h1 style="margin:0 0 6px;font-size:20px;color:#12141c">¡Gracias' . ($name !== '' ? ', ' . self::e($name) : '') . '!</h1>'
             . '<p style="margin:0 0 14px;font-size:15px;line-height:1.6;color:#4a5068">'
-            . 'Adjuntamos el <b>comprobante (PDF)</b> de ' . $noun . ' en OK.station. Consérvalo: '
+            . 'Adjuntamos el <b>comprobante (PDF)</b> de ' . $noun . ' en Ok.station. Consérvalo: '
             . 'incluye tu folio y un código QR.</p>'
             . self::ticketCard($code, self::row('Comprobante', 'Adjunto en este correo (PDF)'))
             . '<p style="margin:14px 0 0;font-size:13px;line-height:1.6;color:#6b7280">'
             . 'Si necesitas ayuda, escríbenos por WhatsApp al (664) 719-4117 o responde este correo.</p>';
-        return self::layout('Tu comprobante ' . $code . ' · OK.station', $inner);
+        return self::layout('Tu comprobante ' . $code . ' · Ok.station', $inner);
     }
 
     /** Página HTML (no JSON) que ve el cliente tras dar clic en el enlace. */
@@ -179,7 +179,7 @@ final class Emails
         return
 '<!DOCTYPE html><html lang="es"><head><meta charset="utf-8">'
 . '<meta name="viewport" content="width=device-width,initial-scale=1">'
-. '<title>' . self::e($heading) . ' · OK.station</title></head>'
+. '<title>' . self::e($heading) . ' · Ok.station</title></head>'
 . '<body style="margin:0;background:#0a1f4d;font-family:Arial,Helvetica,sans-serif">'
 . '<table role="presentation" width="100%" height="100%" cellpadding="0" cellspacing="0" style="min-height:100vh">'
 . '<tr><td align="center" valign="middle" style="padding:24px">'

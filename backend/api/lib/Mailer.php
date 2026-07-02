@@ -82,7 +82,7 @@ final class Mailer
         }
 
         $from     = $this->cfg['from'] ?? 'no-reply@okstation.mx';
-        $fromName = $this->cfg['from_name'] ?? 'OK.station';
+        $fromName = $this->cfg['from_name'] ?? 'Ok.station';
 
         $cmd('MAIL FROM:<' . $from . '>');
         $cmd('RCPT TO:<' . $to . '>');
@@ -106,7 +106,7 @@ final class Mailer
 
     private function encodeName(string $name): string
     {
-        // Si tiene caracteres no ASCII, lo codificamos (acentos en "OK.station").
+        // Si tiene caracteres no ASCII, lo codificamos (acentos en "Ok.station").
         return preg_match('/[\x80-\xFF]/', $name)
             ? '=?UTF-8?B?' . base64_encode($name) . '?='
             : $name;

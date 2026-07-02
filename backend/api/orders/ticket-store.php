@@ -36,9 +36,9 @@ if (!empty($user['email'])) {
         $html = Emails::comprobanteHtml('pedido', $code, (string) ($user['full_name'] ?? ''));
         Mail::sendHtml(
             $user['email'],
-            'Tu comprobante de pedido ' . $code . ' · OK.station',
+            'Tu comprobante de pedido ' . $code . ' · Ok.station',
             $html,
-            'Adjuntamos el comprobante (PDF) de tu pedido ' . $code . ' en OK.station.',
+            'Adjuntamos el comprobante (PDF) de tu pedido ' . $code . ' en Ok.station.',
             [['name' => 'comprobante-' . $code . '.pdf', 'content' => base64_encode($bytes)]]
         );
     } catch (Throwable $e) { /* correo best-effort */ }

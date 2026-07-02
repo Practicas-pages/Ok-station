@@ -20,7 +20,7 @@ final class Brevo
     {
         $this->apiKey    = (string) ($cfg['api_key'] ?? '');
         $this->fromEmail = (string) ($cfg['from'] ?? 'no-reply@okstation.mx');
-        $this->fromName  = (string) ($cfg['from_name'] ?? 'OK.station');
+        $this->fromName  = (string) ($cfg['from_name'] ?? 'Ok.station');
     }
 
     /** ¿Hay API key? (si no, el llamador cae al SMTP de lib/Mailer.php). */

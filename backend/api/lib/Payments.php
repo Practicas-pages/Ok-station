@@ -1,6 +1,6 @@
 <?php
 /**
- * OK.station — Capa de pagos (proveedor configurable, sin dependencias externas).
+ * Ok.station — Capa de pagos (proveedor configurable, sin dependencias externas).
  *
  * Centraliza toda la lógica financiera del pedido para que los endpoints sean
  * delgados y el ESTADO DE PAGO se decida SIEMPRE en el servidor:
@@ -238,7 +238,7 @@ final class Payments
         $t       = self::target($kind);
         $isAppt  = ($kind === 'appointment');
         $base    = rtrim((string) ($CONFIG['app_url'] ?? ''), '/');
-        $prodName = ($isAppt ? 'Anticipo cita ' : 'Pedido ') . $entity['code'] . ' — OK.station';
+        $prodName = ($isAppt ? 'Anticipo cita ' : 'Pedido ') . $entity['code'] . ' — Ok.station';
         $params = [
             'mode'                                 => 'payment',
             'client_reference_id'                  => $reference,
@@ -290,7 +290,7 @@ final class Payments
         $t      = self::target($kind);
         $isAppt = ($kind === 'appointment');
         $base   = rtrim((string) ($CONFIG['app_url'] ?? ''), '/');
-        $title  = ($isAppt ? 'Anticipo cita ' : 'Pedido ') . $entity['code'] . ' — OK.station';
+        $title  = ($isAppt ? 'Anticipo cita ' : 'Pedido ') . $entity['code'] . ' — Ok.station';
 
         $payload = [
             'items' => [[

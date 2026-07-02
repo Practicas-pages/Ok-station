@@ -48,9 +48,9 @@ try {
     $html = Emails::comprobanteHtml('cita', $cd, (string) ($appt['contact_name'] ?? ''));
     $sent = Mail::sendHtml(
         $to,
-        'Tu comprobante de cita ' . $cd . ' · OK.station',
+        'Tu comprobante de cita ' . $cd . ' · Ok.station',
         $html,
-        'Adjuntamos el comprobante (PDF) de tu cita ' . $cd . ' en OK.station.',
+        'Adjuntamos el comprobante (PDF) de tu cita ' . $cd . ' en Ok.station.',
         [['name' => 'comprobante-' . $cd . '.pdf', 'content' => base64_encode($bytes)]]
     );
 } catch (Throwable $e) { $sent = false; }

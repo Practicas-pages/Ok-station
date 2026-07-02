@@ -263,7 +263,7 @@
 
     /* ── Pie FIJO: cómo llegar (Google Maps) + WhatsApp ── */
     doc.setFont("helvetica", "normal"); doc.setFontSize(9); doc.setTextColor(muted[0], muted[1], muted[2]);
-    doc.text("Recoge en: Centro Comercial Otay, Local G-03 · Carretera Aeropuerto 1900, Tijuana, B.C.", x, 262);
+    doc.text("Dirección: Centro Comercial Otay, Local G-03 · Carretera Aeropuerto 1900, Tijuana, B.C.", x, 262);
     doc.setFont("helvetica", "bold"); doc.setFontSize(10); doc.setTextColor(blue[0], blue[1], blue[2]);
     doc.textWithLink("Cómo llegar — abrir en Google Maps", x, 269, { url: MAPS_URL });
     doc.setTextColor(22, 163, 74);   /* verde WhatsApp */

@@ -953,34 +953,48 @@
     function renderQuienContacto() {
       var host = qs("#cita-quien-host");
       if (!host) return;
-      var names = (state.guests || []).map(function (g) { return (g && g.name ? g.name.trim() : ""); }).filter(Boolean);
-      if (!names.length) { host.hidden = true; host.innerHTML = ""; return; }
+      /* Personas que SÍ capturaron su nombre en el paso anterior. */
+      var guests = (state.guests || []).filter(function (g) { return g && g.name && g.name.trim(); });
+      if (!guests.length) { host.hidden = true; host.innerHTML = ""; return; }
       host.hidden = false;
 
-      if (names.length === 1) {
-        if (nameInput && !nameInput.value.trim()) { nameInput.value = names[0]; validateStep2(); }
+      if (guests.length === 1) {
+        if (nameInput && !nameInput.value.trim()) { nameInput.value = guests[0].name.trim(); validateStep2(); }
         host.innerHTML = '<p class="cita-quien__note">Pusimos el nombre de la persona de la cita: <b>' +
-          sanitize(names[0]) + '</b>. Si el contacto es otra persona, edítalo abajo.</p>';
+          sanitize(guests[0].name.trim()) + '</b>. Si el contacto es otra persona, edítalo abajo.</p>';
         return;
       }
 
-      /* Varias personas → LISTA DESPLEGABLE con sus nombres completos. */
+      /* Varias personas → LISTA visible de tarjetas seleccionables (más simple que un
+         desplegable): el cliente elige quién de las personas registradas es el contacto,
+         o "Otra persona" para escribir otros datos abajo. */
       var cur = nameInput ? nameInput.value.trim() : "";
-      var options = '<option value="">Selecciona una persona…</option>' +
-        names.map(function (n, i) {
-          return '<option value="' + i + '"' + (cur === n ? " selected" : "") + '>' + sanitize(n) + '</option>';
-        }).join("") +
-        '<option value="otro">Otra persona…</option>';
+      var opts = guests.map(function (g, i) {
+        var name = g.name.trim();
+        var meta = [];
+        if (g.dob) meta.push("Nac. " + formatDate(g.dob));
+        if (g.doctype) meta.push(DOCTYPE_LABEL[g.doctype] || g.doctype);
+        return '<button type="button" class="cita-quien__opt' + (cur === name ? " is-active" : "") +
+          '" data-quien="' + i + '"><b>' + sanitize(name) + '</b>' +
+          (meta.length ? '<span>' + sanitize(meta.join(" · ")) + '</span>' : "") + '</button>';
+      }).join("");
+      opts += '<button type="button" class="cita-quien__opt cita-quien__opt--other' +
+        (cur && guests.every(function (g) { return g.name.trim() !== cur; }) ? " is-active" : "") +
+        '" data-quien="otro"><b>Otra persona</b><span>Escribir datos abajo</span></button>';
+
       host.innerHTML =
-        '<label class="cita-quien__label" for="cita-quien-sel">¿Quién es el contacto principal? (el trabajador se comunicará con esa persona)</label>' +
-        '<select id="cita-quien-sel" class="cita-quien__select">' + options + '</select>';
-      var sel = qs("#cita-quien-sel", host);
-      if (sel) sel.addEventListener("change", function () {
-        var v = sel.value;
-        if (v === "") return;
-        if (v === "otro") { if (nameInput) { nameInput.value = ""; nameInput.focus(); } }
-        else if (nameInput) { nameInput.value = names[+v] || ""; }
-        validateStep2();
+        '<p class="cita-quien__label">¿Quién es el contacto principal? El trabajador se comunicará con esta persona y ahí llega el correo.</p>' +
+        '<div class="cita-quien__opts" role="group" aria-label="Contacto principal">' + opts + '</div>';
+
+      qsa(".cita-quien__opt", host).forEach(function (btn) {
+        btn.addEventListener("click", function () {
+          qsa(".cita-quien__opt", host).forEach(function (b) { b.classList.remove("is-active"); });
+          btn.classList.add("is-active");
+          var v = btn.getAttribute("data-quien");
+          if (v === "otro") { if (nameInput) { nameInput.value = ""; nameInput.focus(); } }
+          else if (nameInput) { nameInput.value = (guests[+v] && guests[+v].name.trim()) || ""; }
+          validateStep2();
+        });
       });
     }
 
@@ -1269,10 +1283,12 @@
       /* Datos de cada persona capturados en el paso de requisitos. */
       if (state.guests && state.guests.length) {
         state.guests.forEach(function (g, i) {
+          var nm = (g.name || "").trim();
+          if (!nm) { detalle += item("Persona " + (i + 1), "Datos pendientes", true); return; }
           var parts = [];
           if (g.dob) parts.push("Nac. " + formatDate(g.dob));
           if (g.doctype) parts.push(DOCTYPE_LABEL[g.doctype] || g.doctype);
-          detalle += item("Persona " + (i + 1), sanitize((g.name || "—") + (parts.length ? " · " + parts.join(" · ") : "")));
+          detalle += item("Persona " + (i + 1), sanitize(nm + (parts.length ? " · " + parts.join(" · ") : "")));
         });
       }
 

@@ -29,8 +29,8 @@ if ($u) {
     $mailer = new Mailer($CONFIG['smtp'] ?? []);
     $mailer->send(
         $email,
-        'Restablece tu contraseña — OK.station',
-        "Hola,\n\nPara restablecer tu contraseña entra aquí (válido 1 hora):\n$link\n\nSi no lo solicitaste, ignora este mensaje.\n\nOK.station"
+        'Restablece tu contraseña — Ok.station',
+        "Hola,\n\nPara restablecer tu contraseña entra aquí (válido 1 hora):\n$link\n\nSi no lo solicitaste, ignora este mensaje.\n\nOk.station"
     );
 
     // En desarrollo devolvemos el enlace para poder probar sin correo configurado.

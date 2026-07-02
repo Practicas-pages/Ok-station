@@ -1,6 +1,6 @@
 <?php
 /**
- * OK.station — Configuración del backend (lee de .env)
+ * Ok.station — Configuración del backend (lee de .env)
  * --------------------------------------------------------------
  * 1) Copia  backend/.env.example  a  backend/.env  y complétalo.
  * 2) Copia este archivo como  config.php  (no se edita: todo sale del .env).
@@ -46,7 +46,7 @@ return [
         'user'      => env('SMTP_USER', ''),
         'pass'      => env('SMTP_PASSWORD', ''),
         'from'      => env('SMTP_FROM', env('SMTP_USER', 'no-reply@okstation.mx')),
-        'from_name' => env('SMTP_FROM_NAME', 'OK.station'),
+        'from_name' => env('SMTP_FROM_NAME', 'Ok.station'),
     ],
 
     /* Correo transaccional con Brevo (API HTTP, permite ADJUNTAR el comprobante PDF).
@@ -55,7 +55,7 @@ return [
     'brevo' => [
         'api_key'   => env('BREVO_API_KEY', ''),
         'from'      => env('MAIL_FROM', env('SMTP_FROM', env('SMTP_USER', 'no-reply@okstation.mx'))),
-        'from_name' => env('MAIL_FROM_NAME', env('SMTP_FROM_NAME', 'OK.station')),
+        'from_name' => env('MAIL_FROM_NAME', env('SMTP_FROM_NAME', 'Ok.station')),
     ],
 
     /* Pago en línea. Por defecto 'sandbox' (checkout local de demo, sin pasarela).

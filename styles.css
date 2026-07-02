@@ -6053,14 +6053,21 @@ body::before, body::after,
   cursor: pointer;
 }
 .cita-quien__select:focus { outline: none; border-color: var(--brand-blue); box-shadow: 0 0 0 3px rgba(6,108,255,0.12); }
-.cita-quien__opts { display: flex; flex-wrap: wrap; gap: 8px; }
+/* Lista visible de personas registradas para elegir el contacto principal. */
+.cita-quien__opts { display: flex; flex-wrap: wrap; gap: 10px; }
 .cita-quien__opt {
-  padding: 8px 14px; border: 1.5px solid var(--border-medium); border-radius: 999px;
-  background: #fff; color: var(--text-primary); font: inherit; font-size: 0.88rem; font-weight: 600;
-  cursor: pointer; transition: border-color .15s ease, background .15s ease, color .15s ease;
+  display: flex; flex-direction: column; align-items: flex-start; gap: 2px;
+  min-width: 150px; padding: 10px 16px;
+  border: 1.5px solid var(--border-medium); border-radius: 12px;
+  background: #fff; color: var(--text-primary); font: inherit; text-align: left;
+  cursor: pointer; transition: border-color .15s ease, background .15s ease, color .15s ease, box-shadow .15s ease;
 }
+.cita-quien__opt b { font-size: 0.92rem; font-weight: 700; }
+.cita-quien__opt span { font-size: 0.76rem; color: var(--text-muted); }
 .cita-quien__opt:hover { border-color: var(--brand-blue); }
-.cita-quien__opt.is-active { border-color: var(--brand-blue); background: var(--brand-blue); color: #fff; }
+.cita-quien__opt.is-active { border-color: var(--brand-blue); background: var(--brand-blue); color: #fff; box-shadow: 0 6px 16px rgba(6,108,255,0.25); }
+.cita-quien__opt.is-active span { color: rgba(255,255,255,0.85); }
+.cita-quien__opt--other { border-style: dashed; }
 
 /* ============================================================
    35. PRECIO EN TARJETAS DE TRÁMITE + RESUMEN DE CITA AGRUPADO
@@ -6112,12 +6119,14 @@ body::before, body::after,
   overflow: visible !important;
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 12px;
 }
 .cita-summary--grouped .cita-summary__grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 14px;
+  gap: 12px;
+  align-items: start;   /* cada tarjeta a la altura de su contenido: sin
+                           estirar la más corta ni dejar huecos enormes */
 }
 @media (max-width: 620px) {
   .cita-summary--grouped .cita-summary__grid { grid-template-columns: 1fr; }
@@ -6128,8 +6137,13 @@ body::before, body::after,
   border: 1px solid #E5E7EB;
   border-radius: var(--radius-md);
   box-shadow: 0 6px 20px rgba(16,24,40,0.06);
-  padding: 16px 18px;
+  padding: 14px 16px;
 }
+
+/* Intro de confirmación más compacta (menos aire antes de las tarjetas). */
+#cita-confirm-intro.cita-confirm { padding: var(--space-3) 0 var(--space-2); }
+#cita-confirm-intro .cita-confirm__check { margin-bottom: var(--space-4); }
+#cita-confirm-intro p { margin-bottom: var(--space-4); }
 .cita-summary--grouped .cita-summary__group-head {
   display: flex;
   align-items: center;

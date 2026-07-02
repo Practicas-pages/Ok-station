@@ -558,7 +558,7 @@
     // ── Cómo llegar (Google Maps) + WhatsApp — posición FIJA al pie para que SIEMPRE aparezcan ──
     var WA_URL = "https://wa.me/526647194117?text=" + encodeURIComponent("Hola OK.station, tengo un pedido y quiero confirmar / hacer mi pago.");
     doc.setFont("helvetica", "normal"); doc.setFontSize(9); doc.setTextColor(muted[0], muted[1], muted[2]);
-    doc.text("Recoge en: Centro Comercial Otay, Local G-03 · Carretera Aeropuerto 1900, Tijuana, B.C.", x, 262);
+    doc.text("Dirección: Centro Comercial Otay, Local G-03 · Carretera Aeropuerto 1900, Tijuana, B.C.", x, 262);
     doc.setFont("helvetica", "bold"); doc.setFontSize(10); doc.setTextColor(blue[0], blue[1], blue[2]);
     doc.textWithLink("Cómo llegar — abrir en Google Maps", x, 269, { url: "https://www.google.com/maps/place/Ok.station/@32.5292376,-116.9514835,17z/data=!4m6!3m5!1s0x80d9475a2b534615:0x80c51bb5b3fe8f55!8m2!3d32.5292376!4d-116.9514835!16s%2Fg%2F11k63fhrhb" });
     doc.setTextColor(22, 163, 74);   // verde WhatsApp

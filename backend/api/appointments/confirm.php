@@ -32,7 +32,7 @@ if ($a['status'] === 'cancelada') {
     confirm_page('Cita cancelada', 'Esta cita aparece como cancelada. Si crees que es un error, escríbenos por WhatsApp.', false);
 }
 if (!empty($a['client_confirmed_at'])) {
-    confirm_page('¡Ya estaba confirmada!', 'Gracias, ya teníamos registrada tu confirmación. Te esperamos en OK.station.', true);
+    confirm_page('¡Ya estaba confirmada!', 'Gracias, ya teníamos registrada tu confirmación. Te esperamos en Ok.station.', true);
 }
 
 db()->prepare('UPDATE appointments SET client_confirmed_at = NOW() WHERE id = ?')->execute([(int) $a['id']]);
