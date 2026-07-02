@@ -1,5 +1,5 @@
 /* ============================================================
-   OK.station — Comprobante PDF de cita (módulo compartido)
+   Ok.station — Comprobante PDF de cita (módulo compartido)
    Expone window.OKCitaTicket(appt) → data-URI del PDF (o null si faltan libs).
    Reutilizado por: wizard de citas (app.js), "Mis citas" (perfil) y panel admin.
    Requiere jsPDF (window.jspdf) y QRCode cargados en la página.
@@ -25,7 +25,7 @@
 
   /* ============================================================
      CUESTIONARIO POR TRÁMITE (requisitos que el cliente captura por persona).
-     Fuente: hojas oficiales de requisitos de OK.station. Se define UNA sola vez
+     Fuente: hojas oficiales de requisitos de Ok.station. Se define UNA sola vez
      aquí y lo consumen: el wizard (app.js, para pintar el formulario), el
      comprobante PDF (abajo) y el panel admin (admin.js) — todos muestran las
      mismas etiquetas. Tipos: text | tel | textarea | select | check | date.
@@ -108,13 +108,13 @@
       return (v == null || v === "") ? "—" : String(v);
     }
   };
-  /* Contacto de OK.station (WhatsApp canónico, 12 dígitos). */
-  var WA_URL = "https://wa.me/526647194117?text=" + encodeURIComponent("Hola OK.station, tengo una cita agendada y quiero confirmar / hacer mi anticipo.");
+  /* Contacto de Ok.station (WhatsApp canónico, 12 dígitos). */
+  var WA_URL = "https://wa.me/526647194117?text=" + encodeURIComponent("Hola Ok.station, tengo una cita agendada y quiero confirmar / hacer mi anticipo.");
   var MAPS_URL = "https://www.google.com/maps/place/Ok.station/@32.5292376,-116.9514835,17z/data=!4m6!3m5!1s0x80d9475a2b534615:0x80c51bb5b3fe8f55!8m2!3d32.5292376!4d-116.9514835!16s%2Fg%2F11k63fhrhb";
 
   /* Logo oficial para el encabezado del comprobante. Se precarga una vez y se
      convierte a PNG (jsPDF no incrusta WebP directamente). Si aún no cargó o falla
-     la carga, el ticket usa el texto "OK.station" como respaldo: nunca rompe la
+     la carga, el ticket usa el texto "Ok.station" como respaldo: nunca rompe la
      generación del PDF. Misma ruta que usa el header/footer del sitio. */
   var LOGO_SRC = "assets/img/okstation-logo.webp";
   var _ticketLogo = null;   /* { png, w, h } una vez lista */
@@ -235,7 +235,7 @@
       if (lgW > 78) { lgW = 78; lgH = lgW * (_ticketLogo.h / _ticketLogo.w); }
       doc.addImage(_ticketLogo.png, "PNG", x, 9, lgW, lgH);
     } else {
-      doc.setFont("helvetica", "bold"); doc.setFontSize(24); doc.text("OK.station", x, 18);
+      doc.setFont("helvetica", "bold"); doc.setFontSize(24); doc.text("Ok.station", x, 18);
     }
     doc.setFont("helvetica", "normal"); doc.setFontSize(10.5); doc.text("Comprobante de cita", x, 26);
     try {
@@ -358,7 +358,7 @@
 
     /* Encabezado sobrio (navy) */
     doc.setFillColor(10, 31, 77); doc.rect(0, 0, PW, 24, "F");
-    doc.setTextColor(255, 255, 255); doc.setFont("helvetica", "bold"); doc.setFontSize(15); doc.text("OK.station", x, 11);
+    doc.setTextColor(255, 255, 255); doc.setFont("helvetica", "bold"); doc.setFontSize(15); doc.text("Ok.station", x, 11);
     doc.setFont("helvetica", "normal"); doc.setFontSize(10); doc.text("Expediente de la cita", x, 18);
     doc.setFont("helvetica", "bold"); doc.setFontSize(13); doc.text(String(appt.code || ""), RIGHT, 15, { align: "right" });
 
@@ -448,7 +448,7 @@
       doc.setPage(p);
       doc.setDrawColor(rule[0], rule[1], rule[2]); doc.line(x, 286, RIGHT, 286);
       doc.setFont("helvetica", "normal"); doc.setFontSize(8); doc.setTextColor(muted[0], muted[1], muted[2]);
-      doc.text("Expediente generado el " + nowStr() + "  ·  OK.station", x, 291);
+      doc.text("Expediente generado el " + nowStr() + "  ·  Ok.station", x, 291);
       doc.text("Página " + p + " de " + total, RIGHT, 291, { align: "right" });
     }
     return doc.output("datauristring");

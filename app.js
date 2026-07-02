@@ -1,5 +1,5 @@
 /* ============================================================
-   OK.station — Aplicación Principal v2.0
+   Ok.station — Aplicación Principal v2.0
    Arquitecto: Equipo Técnico Senior
 
    MÓDULOS:
@@ -426,7 +426,7 @@
 
       /* Completar datos desde inputs */
       if (nameInput) state.nombre = nameInput.value.trim();
-      if (telInput)  state.tel    = telInput.value.trim();
+      if (telInput)  state.tel    = (window.OKPhone ? window.OKPhone.full(telInput) : telInput.value.trim());
       if (correoInput) state.correo = correoInput.value.trim();
       if (notesInput) state.notas  = notesInput.value.trim();
 
@@ -936,7 +936,8 @@
 
     /* El filtro se instala ANTES que la validación para que esta lea el valor ya limpio. */
     attachFieldFilter(nameInput, NAME_ALLOW_RE);
-    attachFieldFilter(telInput, DIGITS_ONLY_RE);
+    /* El teléfono (solo dígitos, máx. 10) y su selector de país (+52/+1) los gestiona
+       el módulo compartido window.OKPhone (assets/phone-cc.js). */
     if (nameInput)  nameInput.addEventListener("input", validateStep2);
     if (telInput)   telInput.addEventListener("input", validateStep2);
     if (emailInput) emailInput.addEventListener("input", validateStep2);
@@ -1126,6 +1127,9 @@
       var html = "";
       for (var i = 0; i < state.guests.length; i++) html += guestCardHtml(i);
       personasHost.innerHTML = html;
+      /* Añade el selector de país (+52/+1) y el filtro de dígitos a los teléfonos del
+         cuestionario ANTES de restaurar valores, para poder repartir "+52 664…". */
+      if (window.OKPhone) window.OKPhone.init(personasHost);
       /* Set de valores por propiedad (evita problemas de escape en atributos). */
       for (var k = 0; k < state.guests.length; k++) {
         var g = state.guests[k]; if (!g.answers) g.answers = {};
@@ -1143,6 +1147,7 @@
           var f = fl[fi], el = qs("#pg-" + k + "-a-" + f.k, personasHost), val = g.answers[f.k];
           if (!el) continue;
           if (f.type === "check") el.checked = (val === true);
+          else if (f.type === "tel" && window.OKPhone) window.OKPhone.set(el, val);
           else if (val != null) el.value = val;
         }
         /* Restaurar el estado visual de los documentos ya elegidos por esta persona:
@@ -1172,12 +1177,24 @@
       qsa("[data-ans]", personasHost).forEach(function (el) {
         var ev = (el.type === "checkbox" || el.tagName === "SELECT") ? "change" : "input";
         el.addEventListener(ev, function () {
-          if (el.type === "tel") cleanFieldValue(el, DIGITS_ONLY_RE);
           var idx = parseInt(el.dataset.idx, 10) || 0;
           if (!state.guests[idx]) state.guests[idx] = { name: "", dob: "", doctype: "", answers: {} };
           if (!state.guests[idx].answers) state.guests[idx].answers = {};
-          state.guests[idx].answers[el.dataset.ans] = (el.type === "checkbox") ? el.checked : el.value;
+          var val;
+          if (el.type === "checkbox") val = el.checked;
+          else if (el.type === "tel" && window.OKPhone) val = window.OKPhone.full(el);  /* "+52 664…" */
+          else val = el.value;
+          state.guests[idx].answers[el.dataset.ans] = val;
           validateGuests();
+        });
+      });
+      /* Cambiar el código de país (+52/+1) de un teléfono del cuestionario también
+         actualiza la respuesta guardada (reutiliza el manejador del input asociado). */
+      qsa(".input-prefix__cc", personasHost).forEach(function (sel) {
+        sel.addEventListener("change", function () {
+          var inp = sel.closest(".input-prefix");
+          inp = inp ? inp.querySelector("input[data-ans]") : null;
+          if (inp) inp.dispatchEvent(new Event("input"));
         });
       });
       /* Documentos por persona (archivos opcionales, integrados en el cuestionario). */
@@ -1369,14 +1386,14 @@
             .then(function (res) {
               if (!(res.status === 201 && res.body && res.body.ok)) {
                 failed++;
-                console.warn("[OK.station] No se pudo subir el documento «" + (d.label || key) +
+                console.warn("[Ok.station] No se pudo subir el documento «" + (d.label || key) +
                   "» (persona " + (idx + 1) + ") → HTTP " + res.status + ": " +
                   ((res.body && res.body.error) || "respuesta inesperada del servidor"));
               }
             })
             .catch(function (e) {
               failed++;
-              console.warn("[OK.station] Error de red al subir «" + (d.label || key) + "»:", e && e.message);
+              console.warn("[Ok.station] Error de red al subir «" + (d.label || key) + "»:", e && e.message);
             })
             .then(function () {
               pending--;
@@ -1942,7 +1959,7 @@
           : "Por cotizar";
 
         var msg =
-          "¡Hola OK.station! 🖨️ Quiero imprimir mis archivos:\n\n" +
+          "¡Hola Ok.station! 🖨️ Quiero imprimir mis archivos:\n\n" +
           (nFotos
             ? "🖼️ Fotos distintas: " + nFotos + "\n" +
               "📐 Tamaño: " + config.size + "\n" +

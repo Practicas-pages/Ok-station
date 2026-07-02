@@ -1,5 +1,5 @@
 /* ============================================================
-   OK.station — Apartado "Pago de servicios".
+   Ok.station — Apartado "Pago de servicios".
    Abre un modal (sobre la misma página, NO una pestaña nueva) con el catálogo
    de servicios que se pagan en mostrador, agrupados y con buscador.
    Autocontenido: inyecta su propio CSS y su markup. Solo necesita un disparador
@@ -43,7 +43,7 @@
   ];
 
   var WA = "https://wa.me/526647194117?text=" +
-    encodeURIComponent("Hola, quiero pagar un servicio en OK.station. ¿Pueden ayudarme?");
+    encodeURIComponent("Hola, quiero pagar un servicio en Ok.station. ¿Pueden ayudarme?");
 
   function esc(s) { return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
   /* Búsqueda sin acentos ni mayúsculas: "queretaro" encuentra "Querétaro". */

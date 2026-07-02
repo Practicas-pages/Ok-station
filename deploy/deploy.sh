@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 # ============================================================
-# OK.station — Despliegue en CloudPanel (Linux VPS)
+# Ok.station — Despliegue en CloudPanel (Linux VPS)
 # Ejecutar desde la raíz pública del sitio:  bash deploy/deploy.sh
 # ============================================================
 set -euo pipefail
-echo "▶ OK.station — despliegue de producción"
+echo "▶ Ok.station — despliegue de producción"
 
 # 1) Verificar .env
 if [ ! -f backend/.env ]; then

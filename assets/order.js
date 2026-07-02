@@ -1,5 +1,5 @@
 /* ============================================================
-   OK.station — Configurador de pedidos (Fase 2, front)
+   Ok.station — Configurador de pedidos (Fase 2, front)
    Subida (PDF/imagen) → configuración independiente por archivo →
    costo en tiempo real → crear pedido → ticket PDF con QR.
    Habla con /backend/api (orders/*). Requiere sesión.
@@ -25,7 +25,7 @@
     return false;
   }
 
-  /* ── Catálogo de precios OFICIAL OK.station (estimado en cliente; el servidor recalcula).
+  /* ── Catálogo de precios OFICIAL Ok.station (estimado en cliente; el servidor recalcula).
      `price` es el precio "desde" (por hoja) que se muestra como pista. El cálculo real
      usa la tabla escalonada PRINT_TIERS/PHOTO de abajo. ── */
   var SIZES = [
@@ -46,7 +46,7 @@
   };
   var PHOTO  = { foto_10x15: 10, foto_13x18: 30 };   /* precio por foto */
   var COLOR  = { color: "color", bn: "bn" };         /* solo Color y B/N (catálogo Hoja2) */
-  var SIDES  = { una: 1, doble: 1 };                 /* doble cara NO cambia el precio (regla OK.station) */
+  var SIDES  = { una: 1, doble: 1 };                 /* doble cara NO cambia el precio (regla Ok.station) */
   /* Enmicado: precio POR HOJA según el TAMAÑO del documento (catálogo Hoja2).
      Oficio y A4 quedan PENDIENTES (sin recargo de enmicado hasta definir su precio). */
   var ENMICADO = { carta: 20, tabloide: 30 };
@@ -341,9 +341,12 @@
     if (!files.length) return;
     /* Teléfono OBLIGATORIO: lo usan las trabajadoras para contactar al cliente. */
     var phoneEl = $("#order-phone");
-    var phone = phoneEl ? phoneEl.value.trim() : "";
+    /* El módulo compartido (assets/phone-cc.js) fuerza dígitos y añade el código
+       de país; guardamos el número completo "+52 6647194117". */
+    var phoneDigits = phoneEl ? String(phoneEl.value).replace(/\D/g, "") : "";
+    var phone = (window.OKPhone && phoneEl) ? window.OKPhone.full(phoneEl) : phoneDigits;
     var phoneErr = $("#order-phone-error");
-    if (phone.replace(/\D/g, "").length < 10) {
+    if (phoneDigits.length < 10) {
       if (phoneErr) { phoneErr.textContent = "Ingresa un teléfono válido a 10 dígitos para poder contactarte."; phoneErr.hidden = false; }
       if (phoneEl) { phoneEl.setAttribute("aria-invalid", "true"); phoneEl.focus(); }
       return;
@@ -461,7 +464,7 @@
     });
   }
 
-  /* Ticket PDF con la identidad de OK.station (degradado de marca, colores y lema). */
+  /* Ticket PDF con la identidad de Ok.station (degradado de marca, colores y lema). */
   function buildTicket(order) {
     var jsPDF = window.jspdf.jsPDF;
     var doc = new jsPDF({ unit: "mm", format: "a4" });
@@ -485,7 +488,7 @@
     // ── Encabezado con degradado de marca ──
     gradBand(0, 0, PW, 34);
     doc.setTextColor(255, 255, 255);
-    doc.setFont("helvetica", "bold"); doc.setFontSize(24); doc.text("OK.station", x, 18);
+    doc.setFont("helvetica", "bold"); doc.setFontSize(24); doc.text("Ok.station", x, 18);
     doc.setFont("helvetica", "normal"); doc.setFontSize(10.5); doc.text("Ticket de pedido", x, 26);
 
     // ── Datos fiscales del negocio (como el ticket de mostrador) ──
@@ -556,7 +559,7 @@
     doc.text("Total", x, ty); doc.text(mxn(order.total), x + 95, ty, { align: "right" });
 
     // ── Cómo llegar (Google Maps) + WhatsApp — posición FIJA al pie para que SIEMPRE aparezcan ──
-    var WA_URL = "https://wa.me/526647194117?text=" + encodeURIComponent("Hola OK.station, tengo un pedido y quiero confirmar / hacer mi pago.");
+    var WA_URL = "https://wa.me/526647194117?text=" + encodeURIComponent("Hola Ok.station, tengo un pedido y quiero confirmar / hacer mi pago.");
     doc.setFont("helvetica", "normal"); doc.setFontSize(9); doc.setTextColor(muted[0], muted[1], muted[2]);
     doc.text("Dirección: Centro Comercial Otay, Local G-03 · Carretera Aeropuerto 1900, Tijuana, B.C.", x, 262);
     doc.setFont("helvetica", "bold"); doc.setFontSize(10); doc.setTextColor(blue[0], blue[1], blue[2]);

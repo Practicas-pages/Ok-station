@@ -1,5 +1,5 @@
 /* ============================================================
-   OK.station — Panel administrativo (front)
+   Ok.station — Panel administrativo (front)
    MODO DEMO: datos simulados. La capa de datos está aislada en
    DataSource para conectar al backend (CloudPanel) cambiando DEMO=false.
    ============================================================ */
@@ -117,7 +117,7 @@
     var d = waDigits(o && o.contact_phone);
     if (!d) return "";
     /* Mensaje listo para el trabajador, con el folio del pedido. */
-    var msg = "Hola, le escribimos de OK.station sobre su pedido " + ((o && o.code) || "") + ".";
+    var msg = "Hola, le escribimos de Ok.station sobre su pedido " + ((o && o.code) || "") + ".";
     var href = "https://wa.me/" + d + "?text=" + encodeURIComponent(msg);
     return ' <a class="admin-btn-sm" style="background:#25D366;color:#fff;border-color:#25D366" ' +
       'href="' + href + '" target="_blank" rel="noopener" title="Escribir al cliente por WhatsApp">WhatsApp</a>';
@@ -1111,7 +1111,7 @@
     function line(txt, x) { doc.text(String(txt), x == null ? M : x, y); }
     function nl(h) { y += (h || 6); if (y > 275) { doc.addPage(); y = 18; } }
     doc.setFont("helvetica", "bold"); doc.setFontSize(16);
-    line("OK.station — Corte de " + (PERIOD_LABEL[rep.period] || rep.period)); nl(7);
+    line("Ok.station — Corte de " + (PERIOD_LABEL[rep.period] || rep.period)); nl(7);
     doc.setFont("helvetica", "normal"); doc.setFontSize(10); doc.setTextColor(90);
     line("Periodo: " + ((rep.range && rep.range.label) || rep.date || "")); nl(5);
     line("Generado: " + (rep.generated || todayStr())); nl(10);

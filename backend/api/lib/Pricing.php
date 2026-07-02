@@ -8,7 +8,7 @@
 final class Pricing
 {
     /** Precio por HOJA según tamaño + B/N|Color + tramo de cantidad (hojas TOTALES).
-     *  Cada tramo: [cantidad_máxima, precio_por_hoja]. Tabla OFICIAL OK.station. */
+     *  Cada tramo: [cantidad_máxima, precio_por_hoja]. Tabla OFICIAL Ok.station. */
     const PRINT_TIERS = [
         'carta'    => ['bn' => [[10, 2.0], [60, 1.5], [PHP_INT_MAX, 1.3]], 'color' => [[10, 12.0], [60, 9.0], [PHP_INT_MAX, 5.0]]],
         'a4'       => ['bn' => [[10, 2.0], [60, 1.5], [PHP_INT_MAX, 1.3]], 'color' => [[10, 12.0], [60, 9.0], [PHP_INT_MAX, 5.0]]],
@@ -103,7 +103,7 @@ final class Pricing
         }
         $band   = (($cfg['color'] ?? 'bn') === 'color') ? 'color' : 'bn';
         $per    = self::tierFor($P['tiers'][$size][$band], $count);
-        // Doble cara DUPLICA el precio de impresión (regla OK.station).
+        // Doble cara DUPLICA el precio de impresión (regla Ok.station).
         $sidesMult  = (($cfg['sides'] ?? 'una') === 'doble') ? 2 : 1;
         // Acabado: enmicado se cobra POR HOJA según el tamaño; los demás (engargolado) son precio plano.
         $finishSel  = $cfg['finish'] ?? 'ninguno';

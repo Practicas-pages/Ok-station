@@ -1,6 +1,6 @@
 <?php
 /**
- * OK.station — Optimizador de imágenes (CLI). Corre en el servidor (CloudPanel),
+ * Ok.station — Optimizador de imágenes (CLI). Corre en el servidor (CloudPanel),
  * que es donde hay PHP+GD. Reduce el PESO de las fotos: las que están más anchas
  * de lo necesario se redimensionan y recomprimen en WebP.
  *

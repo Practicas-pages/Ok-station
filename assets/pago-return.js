@@ -1,5 +1,5 @@
 /* ============================================================
-   OK.station — Aviso de retorno del checkout de pago (Mercado Pago / pasarela).
+   Ok.station — Aviso de retorno del checkout de pago (Mercado Pago / pasarela).
    Tras pagar, el proveedor redirige a:
      perfil.html?pago=ok|pendiente|cancelado#pedidos   (o #citas)
    Mercado Pago anexa además sus propios parámetros (status, payment_id…).

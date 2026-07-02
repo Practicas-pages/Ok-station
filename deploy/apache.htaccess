@@ -1,5 +1,5 @@
 # ============================================================
-# OK.station — Fallback Apache (.htaccess)
+# Ok.station — Fallback Apache (.htaccess)
 # Úsalo SOLO si despliegas en Apache (CloudPanel usa Nginx → usa
 # nginx-seguridad.conf). Si aplica, renombra este archivo a ".htaccess"
 # y colócalo en la raíz pública.

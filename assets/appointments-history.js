@@ -1,5 +1,5 @@
 /* ============================================================
-   OK.station — Historial de citas (perfil). Misma experiencia visual
+   Ok.station — Historial de citas (perfil). Misma experiencia visual
    que "Mis pedidos": lista las citas del usuario autenticado.
    ============================================================ */
 (function () {

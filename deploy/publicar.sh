@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ============================================================
-# OK.station — Publicar cambios en producción (CloudPanel)
+# Ok.station — Publicar cambios en producción (CloudPanel)
 # Ejecutar desde la raíz del sitio en el servidor:
 #   bash deploy/publicar.sh
 # Hace: git pull  →  purga Varnish  →  verifica caché

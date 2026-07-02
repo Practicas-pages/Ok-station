@@ -38,7 +38,7 @@ ON DUPLICATE KEY UPDATE role_id = role_id;
 INSERT INTO settings (`key`, `value`) VALUES
   ('tax_rate','0.08'),
   ('currency','MXN'),
-  ('business_name','OK.station'),
+  ('business_name','Ok.station'),
   ('whatsapp','5216641044896')
 ON DUPLICATE KEY UPDATE `value` = VALUES(`value`);
 

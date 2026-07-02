@@ -117,7 +117,7 @@ if ($userId) {
     $q = db()->prepare(
         "SELECT tramite FROM appointments
          WHERE user_id IS NULL
-           AND REPLACE(REPLACE(REPLACE(REPLACE(contact_phone,' ',''),'-',''),'(',''),')','') = ?
+           AND REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(contact_phone,'+',''),' ',''),'-',''),'(',''),')','') = ?
            AND status IN ('pendiente','confirmada')"
     );
     $q->execute([$phoneDigits]);

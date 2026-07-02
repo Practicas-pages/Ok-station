@@ -1,5 +1,5 @@
 /**
- * OK.station — Site Guard v2
+ * Ok.station — Site Guard v2
  * ==============================================================
  * Archivo: /assets/js/site-guard.js
  *

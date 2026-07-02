@@ -1,5 +1,5 @@
 -- ============================================================
--- OK.station — Esquema COMPLETO (MySQL 8 / MariaDB 10.4+)
+-- Ok.station — Esquema COMPLETO (MySQL 8 / MariaDB 10.4+)
 -- Compatible también con PostgreSQL con cambios mínimos (ver notas).
 -- Plataforma SaaS: cuentas, roles/permisos, pedidos, servicios,
 -- reseñas, notificaciones, settings y bitácora de actividad.
