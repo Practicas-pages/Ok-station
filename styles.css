@@ -6061,3 +6061,157 @@ body::before, body::after,
 }
 .cita-quien__opt:hover { border-color: var(--brand-blue); }
 .cita-quien__opt.is-active { border-color: var(--brand-blue); background: var(--brand-blue); color: #fff; }
+
+/* ============================================================
+   35. PRECIO EN TARJETAS DE TRÁMITE + RESUMEN DE CITA AGRUPADO
+   (2026-07-02) — El precio pocas veces era visible antes de
+   confirmar; ahora se muestra en cada tarjeta (paso 1) y el
+   resumen final se agrupa en tarjetas compactas en vez de una
+   lista larga y dispersa. Va al final para ganar a los overrides
+   de contraste de la sección 33/34 (que fuerzan color con
+   !important sobre .cita-summary *).
+   ============================================================ */
+
+/* — Precio dentro de cada tarjeta de trámite (paso 1) — */
+.tramite-btn__price {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 4px;
+  align-self: flex-start;
+  margin-top: 2px;
+  padding: 4px 11px;
+  border-radius: 999px;
+  font-size: 0.9rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  color: #fff;
+  background: var(--tgrad);
+  box-shadow: 0 4px 12px rgba(6,108,255,0.28);
+}
+.tramite-btn__price--quote {
+  color: var(--ttext);
+  background: var(--ttagbg);
+  box-shadow: none;
+  font-weight: 700;
+  font-size: 0.82rem;
+}
+@media (max-width: 640px) {
+  .tramite-btn__price { font-size: 0.82rem; padding: 3px 9px; }
+}
+
+/* — Resumen de cita agrupado en tarjetas —
+   Doble selector (.citas-section …) para ganar a la regla de contraste
+   .citas-section .cita-summary (sección 33) que fuerza fondo/borde con
+   !important; así las tarjetas "flotan" sin marco gris alrededor. */
+.cita-summary--grouped,
+.citas-section .cita-summary--grouped {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
+  overflow: visible !important;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.cita-summary--grouped .cita-summary__grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+@media (max-width: 620px) {
+  .cita-summary--grouped .cita-summary__grid { grid-template-columns: 1fr; }
+}
+
+.cita-summary--grouped .cita-summary__group {
+  background: #fff;
+  border: 1px solid #E5E7EB;
+  border-radius: var(--radius-md);
+  box-shadow: 0 6px 20px rgba(16,24,40,0.06);
+  padding: 16px 18px;
+}
+.cita-summary--grouped .cita-summary__group-head {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin: 0 0 10px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #EEF1F6;
+  font-size: 0.9rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+.cita-summary--grouped .cita-summary__group-head svg {
+  width: 18px; height: 18px; flex-shrink: 0;
+  color: var(--brand-blue) !important;
+}
+
+.cita-summary--grouped .cita-summary__item {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 7px 0;
+  font-size: 0.9rem;
+  border-bottom: 1px solid #F3F5F9;
+}
+.cita-summary--grouped .cita-summary__item:last-child { border-bottom: 0; padding-bottom: 0; }
+.cita-summary--grouped .cita-summary__k {
+  color: #6B7280 !important;
+  flex-shrink: 0;
+}
+.cita-summary--grouped .cita-summary__v {
+  font-weight: 700;
+  color: #111827 !important;
+  text-align: right;
+}
+.cita-summary--grouped .cita-summary__v--muted {
+  font-weight: 500;
+  color: #9AA3B2 !important;
+}
+
+/* Estimado: desglose a un lado, Total destacado al otro */
+.cita-summary--grouped .cita-summary__est {
+  display: flex;
+  align-items: stretch;
+  gap: 16px;
+}
+.cita-summary--grouped .cita-summary__est-rows { flex: 1 1 auto; min-width: 0; }
+.cita-summary--grouped .cita-summary__total {
+  flex: 0 0 40%;
+  max-width: 220px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  background: var(--grad-blue);
+  box-shadow: 0 10px 26px rgba(6,108,255,0.30);
+  text-align: center;
+}
+.cita-summary--grouped .cita-summary__total,
+.cita-summary--grouped .cita-summary__total * { color: #fff !important; }
+.cita-summary--grouped .cita-summary__total-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  opacity: 0.92;
+}
+.cita-summary--grouped .cita-summary__total-val {
+  font-size: 1.7rem;
+  font-weight: 800;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+}
+.cita-summary--grouped .cita-summary__total--quote .cita-summary__total-val { font-size: 1rem; font-weight: 700; }
+.cita-summary--grouped .cita-summary__total-cur {
+  font-size: 0.72rem;
+  font-weight: 600;
+  opacity: 0.85;
+  letter-spacing: 0.04em;
+}
+@media (max-width: 520px) {
+  .cita-summary--grouped .cita-summary__est { flex-direction: column; }
+  .cita-summary--grouped .cita-summary__total { flex-basis: auto; max-width: none; }
+}

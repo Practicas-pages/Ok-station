@@ -142,7 +142,7 @@
   window.OKCitaPriceText = function (tramite, subtype, party) {
     var p = window.OKCitaPrice(tramite, subtype, party);
     if (p.quote) return "Te confirmamos el precio";
-    if (p.party > 1) return mxn0(p.unit) + " por persona · Total estimado " + mxn0(p.total) + " (" + p.party + " personas)";
+    if (p.party > 1) return mxn0(p.unit) + " por persona · Total " + mxn0(p.total) + " (" + p.party + " personas)";
     return mxn0(p.unit);
   };
   /* Filas [etiqueta, valor] de costo para resumen y ticket. Desglosa el IVA 8%
@@ -157,7 +157,7 @@
     if (p.party > 1) rows.push(["Concepto", mxn0(p.unit) + " × " + p.party + " personas"]);
     rows.push(["Subtotal", mxn2(sub)]);
     rows.push(["IVA (8%)", mxn2(iva)]);
-    rows.push(["Total estimado", mxn0(total)]);
+    rows.push(["Total", mxn0(total)]);
     return rows;
   };
   window.OKMxn0 = mxn0;

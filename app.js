@@ -368,10 +368,39 @@
     var dateInput = qs("#cita-fecha");
     var nameInput = qs("#cita-nombre");
     var telInput  = qs("#cita-tel");
+    var correoInput = qs("#cita-correo");
     var notesInput = qs("#cita-notas");
     var summaryEl = qs("#cita-resumen");
 
     if (!stepPanels.length) return;
+
+    /* Precio visible en cada tarjeta de trámite (paso 1). El cliente pocas veces
+       veía el precio antes de confirmar; ahora lo mostramos desde la selección.
+       Se corre en un timeout porque OKCitaPrice se define en cita-ticket.js, que
+       carga DESPUÉS de app.js (ambos defer → init corre antes de ese script). */
+    function tramitePriceLabel(tramite) {
+      var p = window.OKCitaPrice ? window.OKCitaPrice(tramite, null, 1) : null;
+      if (!p || p.quote) return "Precio a cotizar";
+      return (tramite === "pasaporte" ? "Desde " : "") + (window.OKMxn0 ? window.OKMxn0(p.unit) : ("$" + p.unit));
+    }
+    function initTramitePrices() {
+      qsa(".tramite-btn", section).forEach(function (btn) {
+        var t = btn.getAttribute("data-tramite");
+        if (!t) return;
+        var el = btn.querySelector(".tramite-btn__price");
+        if (!el) {
+          el = document.createElement("span");
+          el.className = "tramite-btn__price";
+          var anchor = btn.querySelector(".tramite-btn__meta") || btn.querySelector(".tramite-btn__title");
+          if (anchor && anchor.parentNode) anchor.parentNode.insertBefore(el, anchor.nextSibling);
+          else btn.appendChild(el);
+        }
+        var quote = !(window.OKCitaPrice && !window.OKCitaPrice(t, null, 1).quote);
+        el.classList.toggle("tramite-btn__price--quote", quote);
+        el.textContent = tramitePriceLabel(t);
+      });
+    }
+    setTimeout(initTramitePrices, 0);
 
     /* Renderizar indicadores de pasos */
     function renderSteps() {
@@ -398,6 +427,7 @@
       /* Completar datos desde inputs */
       if (nameInput) state.nombre = nameInput.value.trim();
       if (telInput)  state.tel    = telInput.value.trim();
+      if (correoInput) state.correo = correoInput.value.trim();
       if (notesInput) state.notas  = notesInput.value.trim();
 
       state.step = next;
@@ -1202,41 +1232,80 @@
     function buildSummary() {
       if (!summaryEl) return;
 
-      var rows = [
-        ["Servicio", sanitize(state.tramiteLabel)]
-      ];
-      if (state.tramite === "pasaporte" && state.subtype) {
-        rows.push(["Tipo de pasaporte", sanitize(SUBTYPE_LABEL[state.subtype] || state.subtype)]);
+      /* — Resumen agrupado en tarjetas (Datos de contacto · Detalle de la cita ·
+           Estimado). Misma información de siempre, presentada compacta y por bloques
+           para que no se vea tan dispersa y el precio quede visible. — */
+      var SVG = {
+        user:  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>',
+        clip:  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 2h6a1 1 0 011 1v1a1 1 0 01-1 1H9a1 1 0 01-1-1V3a1 1 0 011-1z"/><path d="M8 4H6a2 2 0 00-2 2v14a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-2"/></svg>',
+        money: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/><path d="M6 12h.01M18 12h.01"/></svg>'
+      };
+      function item(k, v, mutedVal) {
+        return '<div class="cita-summary__item"><span class="cita-summary__k">' + k +
+          '</span><b class="cita-summary__v' + (mutedVal ? ' cita-summary__v--muted' : '') + '">' + v + '</b></div>';
       }
-      rows.push(["Personas", sanitize(String(state.partySize) + (state.partySize === 1 ? " (solo yo)" : ""))]);
-      rows.push(["Duración estimada", sanitize(fmtDuration(durationMins(state.partySize)))]);
-      rows.push(["Nombre",   sanitize(state.nombre || "—")]);
-      rows.push(["Teléfono", sanitize(state.tel || "—")]);
-      rows.push(["Fecha",    sanitize(formatDate(state.fecha))]);
-      rows.push(["Hora",     sanitize(state.hora) + " hrs"]);
-      if (state.notas) rows.push(["Notas", sanitize(state.notas)]);
-      /* Precio (Subtotal + Total) para que el cliente lo vea antes de confirmar. */
-      (window.OKCitaPriceRows
-        ? window.OKCitaPriceRows(state.tramite, state.subtype, state.partySize)
-        : [["Precio", "Te confirmamos el precio"]]
-      ).forEach(function (pr) { rows.push([pr[0], sanitize(pr[1])]); });
+      function group(icon, title, itemsHtml, mod) {
+        return '<section class="cita-summary__group' + (mod ? ' ' + mod : '') + '">' +
+          '<h5 class="cita-summary__group-head">' + icon + '<span>' + title + '</span></h5>' +
+          itemsHtml + '</section>';
+      }
 
+      /* Datos de contacto */
+      var contacto = item("Nombre", sanitize(state.nombre || "—")) +
+        item("WhatsApp", sanitize(state.tel || "—")) +
+        (state.correo
+          ? item("Correo", sanitize(state.correo))
+          : item("Correo", "No proporcionado", true));
+
+      /* Detalle de la cita */
+      var detalle = item("Servicio", sanitize(state.tramiteLabel));
+      if (state.tramite === "pasaporte" && state.subtype) {
+        detalle += item("Tipo de pasaporte", sanitize(SUBTYPE_LABEL[state.subtype] || state.subtype));
+      }
+      detalle += item("Personas", sanitize(String(state.partySize) + (state.partySize === 1 ? " (solo yo)" : ""))) +
+        item("Fecha", sanitize(formatDate(state.fecha))) +
+        item("Hora", sanitize(state.hora) + " hrs");
+      if (state.notas) detalle += item("Notas", sanitize(state.notas));
       /* Datos de cada persona capturados en el paso de requisitos. */
       if (state.guests && state.guests.length) {
         state.guests.forEach(function (g, i) {
           var parts = [];
           if (g.dob) parts.push("Nac. " + formatDate(g.dob));
           if (g.doctype) parts.push(DOCTYPE_LABEL[g.doctype] || g.doctype);
-          rows.push(["Persona " + (i + 1), sanitize((g.name || "—") + (parts.length ? " · " + parts.join(" · ") : ""))]);
+          detalle += item("Persona " + (i + 1), sanitize((g.name || "—") + (parts.length ? " · " + parts.join(" · ") : "")));
         });
       }
 
-      summaryEl.innerHTML = rows.map(function (r) {
-        return '<div class="cita-summary__row">' +
-          '<span>' + r[0] + '</span>' +
-          '<b>' + r[1] + '</b>' +
-          '</div>';
-      }).join("");
+      /* Estimado: desglose (Subtotal + IVA) a un lado y el Total en caja destacada. */
+      var priceRows = window.OKCitaPriceRows
+        ? window.OKCitaPriceRows(state.tramite, state.subtype, state.partySize)
+        : [["Precio", "Te confirmamos el precio"]];
+      var totalVal = null, isQuote = false, estItems = "";
+      priceRows.forEach(function (pr) {
+        if (/^total/i.test(pr[0]) || pr[0] === "Precio") {
+          totalVal = sanitize(pr[1]);
+          if (pr[0] === "Precio") isQuote = true;
+        } else {
+          estItems += item(sanitize(pr[0]), sanitize(pr[1]));
+        }
+      });
+      estItems += item("Duración estimada", sanitize(fmtDuration(durationMins(state.partySize))));
+      var totalBox = '<div class="cita-summary__total' + (isQuote ? ' cita-summary__total--quote' : '') + '">' +
+        '<span class="cita-summary__total-label">Total</span>' +
+        '<b class="cita-summary__total-val">' + (totalVal || "—") + '</b>' +
+        (isQuote ? '' : '<span class="cita-summary__total-cur">MXN</span>') + '</div>';
+      var estimado = '<section class="cita-summary__group cita-summary__group--est">' +
+        '<h5 class="cita-summary__group-head">' + SVG.money + '<span>Estimado</span></h5>' +
+        '<div class="cita-summary__est">' +
+        '<div class="cita-summary__est-rows">' + estItems + '</div>' + totalBox +
+        '</div></section>';
+
+      summaryEl.classList.add("cita-summary--grouped");
+      summaryEl.innerHTML =
+        '<div class="cita-summary__grid">' +
+        group(SVG.user, "Datos de contacto", contacto) +
+        group(SVG.clip, "Detalle de la cita", detalle) +
+        '</div>' + estimado;
 
       /* Guardar en sessionStorage (no localStorage por privacidad) */
       try {
