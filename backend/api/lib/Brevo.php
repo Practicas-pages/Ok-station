@@ -16,6 +16,10 @@ final class Brevo
     private $fromEmail;
     private $fromName;
 
+    /** Último error de envío (código HTTP + cuerpo o error de cURL). Vacío si OK.
+        Útil para diagnosticar por qué Brevo rechazó un correo. */
+    public $lastError = '';
+
     public function __construct(array $cfg)
     {
         $this->apiKey    = (string) ($cfg['api_key'] ?? '');
@@ -77,11 +81,24 @@ final class Brevo
                IPv4 sale por la IP del sitio, que sí está autorizada. */
             CURLOPT_IPRESOLVE      => CURL_IPRESOLVE_V4,
         ]);
-        $res  = curl_exec($ch);
-        $code = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $res     = curl_exec($ch);
+        $curlErr = curl_error($ch);
+        $code    = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
         curl_close($ch);
 
-        return $code >= 200 && $code < 300;
+        $ok = ($res !== false && $code >= 200 && $code < 300);
+        if (!$ok) {
+            /* Registrar el motivo real (Brevo devuelve JSON con el error, p. ej.
+               remitente no verificado, IP no autorizada, api-key inválida). Sin
+               esto el fallo era invisible: el correo es best-effort y no rompe nada. */
+            $this->lastError = $curlErr !== ''
+                ? ('cURL: ' . $curlErr)
+                : ('HTTP ' . $code . ' — ' . substr((string) $res, 0, 500));
+            error_log('[Brevo] Envío fallido a ' . $to . ' → ' . $this->lastError);
+        } else {
+            $this->lastError = '';
+        }
+        return $ok;
     }
 
     /** Correo de texto plano (compatibilidad con la interfaz de lib/Mailer.php). */

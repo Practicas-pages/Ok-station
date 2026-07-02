@@ -24,9 +24,14 @@ final class Mail
             if ($brevo->configured()) {
                 return $brevo->sendHtml($to, $subject, $html, $textAlt, $attachments);
             }
+            /* Sin BREVO_API_KEY (o sin bloque 'brevo' en config.php): se usa SMTP,
+               que NO adjunta el PDF y suele fallar con Gmail. Lo dejamos en el log
+               para que un "no llegó el correo" sea diagnosticable. */
+            error_log('[Mail] Brevo no configurado; usando SMTP (sin adjuntos) para: ' . $to);
             $mailer = new Mailer($CONFIG['smtp'] ?? []);
             return $mailer->sendHtml($to, $subject, $html, $textAlt);
         } catch (Throwable $e) {
+            error_log('[Mail] Excepción al enviar a ' . $to . ': ' . $e->getMessage());
             return false; // el correo es best-effort: nunca rompe la petición
         }
     }
