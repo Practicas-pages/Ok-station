@@ -112,6 +112,30 @@
   var WA_URL = "https://wa.me/526647194117?text=" + encodeURIComponent("Hola OK.station, tengo una cita agendada y quiero confirmar / hacer mi anticipo.");
   var MAPS_URL = "https://www.google.com/maps/place/Ok.station/@32.5292376,-116.9514835,17z/data=!4m6!3m5!1s0x80d9475a2b534615:0x80c51bb5b3fe8f55!8m2!3d32.5292376!4d-116.9514835!16s%2Fg%2F11k63fhrhb";
 
+  /* Logo oficial para el encabezado del comprobante. Se precarga una vez y se
+     convierte a PNG (jsPDF no incrusta WebP directamente). Si aún no cargó o falla
+     la carga, el ticket usa el texto "OK.station" como respaldo: nunca rompe la
+     generación del PDF. Misma ruta que usa el header/footer del sitio. */
+  var LOGO_SRC = "assets/img/okstation-logo.webp";
+  var _ticketLogo = null;   /* { png, w, h } una vez lista */
+  (function preloadTicketLogo() {
+    try {
+      if (typeof Image === "undefined") return;
+      var img = new Image();
+      img.onload = function () {
+        try {
+          var w = img.naturalWidth || img.width, h = img.naturalHeight || img.height;
+          if (!w || !h) return;
+          var c = document.createElement("canvas");
+          c.width = w; c.height = h;
+          c.getContext("2d").drawImage(img, 0, 0);
+          _ticketLogo = { png: c.toDataURL("image/png"), w: w, h: h };
+        } catch (e) {}
+      };
+      img.src = LOGO_SRC;
+    } catch (e) {}
+  })();
+
   /* ── Precios de trámite/cita (MXN, por persona, IVA incluido). Los no listados se cotizan. ──
      Estos valores por defecto coinciden con la semilla del servidor (settings appt.prices);
      al cargar la página se sincronizan con el panel vía /appointments/prices.php (abajo). */
@@ -196,7 +220,14 @@
     }
     gradBand(0, 0, PW, 34);
     doc.setTextColor(255, 255, 255);
-    doc.setFont("helvetica", "bold"); doc.setFontSize(24); doc.text("OK.station", x, 18);
+    if (_ticketLogo) {
+      /* Logo oficial en el encabezado (respeta su proporción; ancho máx. 78 mm). */
+      var lgH = 9, lgW = lgH * (_ticketLogo.w / _ticketLogo.h);
+      if (lgW > 78) { lgW = 78; lgH = lgW * (_ticketLogo.h / _ticketLogo.w); }
+      doc.addImage(_ticketLogo.png, "PNG", x, 9, lgW, lgH);
+    } else {
+      doc.setFont("helvetica", "bold"); doc.setFontSize(24); doc.text("OK.station", x, 18);
+    }
     doc.setFont("helvetica", "normal"); doc.setFontSize(10.5); doc.text("Comprobante de cita", x, 26);
     try {
       var tmp = document.createElement("div");
@@ -204,12 +235,10 @@
       var cv = tmp.querySelector("canvas");
       if (cv) doc.addImage(cv.toDataURL("image/png"), "PNG", PW - x - 38, 44, 38, 38);
     } catch (e) {}
-    /* ── Datos fiscales del negocio (como el ticket de mostrador) ── */
+    /* ── Fecha de emisión (los datos fiscales de la empresa se retiraron del ticket) ── */
     function two(n) { return (n < 10 ? "0" : "") + n; }
     function fmtDateTime(d) { return two(d.getDate()) + "/" + two(d.getMonth() + 1) + "/" + d.getFullYear() + " " + two(d.getHours()) + ":" + two(d.getMinutes()); }
     doc.setTextColor(muted[0], muted[1], muted[2]); doc.setFont("helvetica", "normal"); doc.setFontSize(8.5);
-    doc.text("Aeropuerto 1900 G03, Ctro. Com. Otay, Tijuana, B.C.", x, 40);
-    doc.text("Tel. (664) 623-1595  ·  RFC: RUOJ6704222M5", x, 44.5);
     doc.text("Emitido: " + fmtDateTime(new Date()), x, 49);
     doc.setTextColor(dark[0], dark[1], dark[2]); doc.setFont("helvetica", "bold"); doc.setFontSize(18); doc.text(String(appt.code || ""), x, 57);
     var label = STATUS[appt.status] || "Pendiente de confirmar";
@@ -259,7 +288,7 @@
 
     needSpace(10);
     ty += 3; doc.setFont("helvetica", "normal"); doc.setFontSize(9); doc.setTextColor(muted[0], muted[1], muted[2]);
-    doc.text(doc.splitTextToSize("Se requiere el anticipo del 100% para confirmar tu cita. Conserva este comprobante con tu folio.", 175), x, ty);
+    doc.text(doc.splitTextToSize("Se requiere el pago del 100% para confirmar tu cita. Conserva este comprobante con tu folio.", 175), x, ty);
 
     /* ── Pie FIJO: cómo llegar (Google Maps) + WhatsApp ── */
     doc.setFont("helvetica", "normal"); doc.setFontSize(9); doc.setTextColor(muted[0], muted[1], muted[2]);
@@ -269,7 +298,7 @@
     doc.setTextColor(22, 163, 74);   /* verde WhatsApp */
     doc.textWithLink("WhatsApp: (664) 719-4117 — abrir chat", x, 275.5, { url: WA_URL });
     gradBand(0, 287, PW, 3); doc.setFont("helvetica", "normal"); doc.setFontSize(8.5); doc.setTextColor(muted[0], muted[1], muted[2]);
-    doc.text("okstation.mx · You say tech, we listen", x, 283);
+    doc.text("okstation.mx · You say tech, we listen · Tel. 664 719 4117", x, 283);
     return doc.output("datauristring");
   };
 
