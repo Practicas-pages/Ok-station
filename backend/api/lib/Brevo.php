@@ -72,6 +72,10 @@ final class Brevo
                 'Accept: application/json',
             ],
             CURLOPT_TIMEOUT        => 20,
+            /* Forzar IPv4: el servidor tiene IPv6 y saldría por esa dirección,
+               que NO está autorizada en Brevo (Security → Authorized IPs). Con
+               IPv4 sale por la IP del sitio, que sí está autorizada. */
+            CURLOPT_IPRESOLVE      => CURL_IPRESOLVE_V4,
         ]);
         $res  = curl_exec($ch);
         $code = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
