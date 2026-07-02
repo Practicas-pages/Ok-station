@@ -384,6 +384,10 @@
         var isActive = i === state.step;
         panel.classList.toggle("is-active", isActive);
         panel.setAttribute("aria-hidden", String(!isActive));
+        /* Número de paso para la cabecera "PASO N DE 6" (el CSS lo lee de
+           data-paso; el contador CSS fallaba con los pasos en display:none). */
+        var stepTitle = panel.querySelector(".cita-step__title");
+        if (stepTitle) stepTitle.setAttribute("data-paso", i + 1);
       });
     }
 
@@ -405,6 +409,9 @@
       /* Al entrar al paso Fecha (índice 3) el calendario debe reflejar la cantidad
          de personas ya elegida. */
       if (next === 3 && calGrid) { renderCalendar(); updateCalNav(); }
+      /* Al entrar al paso "Tus datos" (índice 4): si el contacto es una de las
+         personas de la cita, se autollena (1) o se ofrece elegir (varias). */
+      if (next === 4) renderQuienContacto();
 
       renderSteps();
 
@@ -771,14 +778,15 @@
            el título describe la disponibilidad y se suma al aria-label. */
         var occText = { full: "disponibilidad total", mid: "disponibilidad media", none: "sin disponibilidad" };
         var availLabel = occText[lvl] || "";
-        var dot = !closed
-          ? '<i class="okcal-dot okcal-dot--' + lvl + '" title="' + availLabel + '" aria-hidden="true"></i>'
-          : '<i class="okcal-dot" style="visibility:hidden" aria-hidden="true"></i>';
-        var ariaLabel = d + " de " + MESES[m] + (closed ? "" : (availLabel ? ", " + availLabel : ""));
-        cells += '<button type="button" class="okcal__day' + (selected ? " is-selected" : "") + '" ' +
+        /* Nivel de disponibilidad como CLASE → se colorea toda la celda del día
+           (verde = alta, ámbar = poca, rojo = sin, morado = inhábil). */
+        var lvlClass = closed ? " okcal__day--closed" : (" okcal__day--" + lvl);
+        var ariaLabel = d + " de " + MESES[m] + (closed ? ", inhábil" : (availLabel ? ", " + availLabel : ""));
+        cells += '<button type="button" class="okcal__day' + lvlClass + (selected ? " is-selected" : "") + '" ' +
           'data-date="' + isoOf(date) + '"' +
           (disabled ? ' disabled aria-disabled="true"' : "") +
-          ' aria-label="' + ariaLabel + '"><span>' + d + "</span>" + dot + "</button>";
+          ' title="' + (closed ? "Inhábil" : availLabel) + '"' +
+          ' aria-label="' + ariaLabel + '"><span>' + d + "</span></button>";
       }
       calGrid.innerHTML = cells;
 
@@ -903,6 +911,44 @@
     });
     var aceptoEl = qs("#cita-acepto");
     if (aceptoEl) aceptoEl.addEventListener("change", validateStep2);
+
+    /* Contacto principal = una de las personas ya registradas en la cita:
+       si hay 1 persona, se pone el nombre solo; si hay varias, se elige cuál.
+       Así el usuario no re-escribe el nombre. (El correo y teléfono del contacto
+       siempre se piden aquí porque no se capturan por persona.) */
+    function renderQuienContacto() {
+      var host = qs("#cita-quien-host");
+      if (!host) return;
+      var names = (state.guests || []).map(function (g) { return (g && g.name ? g.name.trim() : ""); }).filter(Boolean);
+      if (!names.length) { host.hidden = true; host.innerHTML = ""; return; }
+      host.hidden = false;
+
+      if (names.length === 1) {
+        if (nameInput && !nameInput.value.trim()) { nameInput.value = names[0]; validateStep2(); }
+        host.innerHTML = '<p class="cita-quien__note">Pusimos el nombre de la persona de la cita: <b>' +
+          sanitize(names[0]) + '</b>. Si el contacto es otra persona, edítalo abajo.</p>';
+        return;
+      }
+
+      var opts = names.map(function (n, i) {
+        var active = (nameInput && nameInput.value.trim() === n) ? " is-active" : "";
+        return '<button type="button" class="cita-quien__opt' + active + '" data-quien="' + i + '">' + sanitize(n) + '</button>';
+      }).join("");
+      host.innerHTML =
+        '<p class="cita-quien__label">¿Quién es el contacto principal? (el trabajador se comunicará con esa persona)</p>' +
+        '<div class="cita-quien__opts">' + opts +
+          '<button type="button" class="cita-quien__opt" data-quien="otro">Otra persona</button>' +
+        '</div>';
+      qsa(".cita-quien__opt", host).forEach(function (b) {
+        b.addEventListener("click", function () {
+          qsa(".cita-quien__opt", host).forEach(function (x) { x.classList.remove("is-active"); });
+          b.classList.add("is-active");
+          if (b.dataset.quien !== "otro" && nameInput) { nameInput.value = names[+b.dataset.quien] || ""; }
+          else if (nameInput) { nameInput.value = ""; nameInput.focus(); }
+          validateStep2();
+        });
+      });
+    }
 
     /* ──────────────────────────────────────────────────────────
        Paso Requisitos: datos de CADA persona que asistirá a la cita.

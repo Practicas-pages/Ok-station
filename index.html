@@ -748,9 +748,10 @@
                 <div class="okcal__weekdays" aria-hidden="true"><span>Lu</span><span>Ma</span><span>Mi</span><span>Ju</span><span>Vi</span><span>Sá</span><span>Do</span></div>
                 <div class="okcal__grid" id="cita-cal-grid" role="grid"></div>
                 <div class="okcal__legend">
-                  <span class="okcal__legend-item"><i class="okcal-dot okcal-dot--full"></i> Disponibilidad total</span>
-                  <span class="okcal__legend-item"><i class="okcal-dot okcal-dot--mid"></i> Disponibilidad media</span>
-                  <span class="okcal__legend-item"><i class="okcal-dot okcal-dot--none"></i> Sin disponibilidad</span>
+                  <span class="okcal__legend-item"><i style="width:13px;height:13px;border-radius:50%;display:inline-block;flex-shrink:0;background:#CBF6D8;border:1px solid #7FD69C"></i> Alta disponibilidad</span>
+                  <span class="okcal__legend-item"><i style="width:13px;height:13px;border-radius:50%;display:inline-block;flex-shrink:0;background:#FDE7B0;border:1px solid #F1C25E"></i> Poca disponibilidad</span>
+                  <span class="okcal__legend-item"><i style="width:13px;height:13px;border-radius:50%;display:inline-block;flex-shrink:0;background:#FBCFCF;border:1px solid #EE9C9C"></i> Sin disponibilidad</span>
+                  <span class="okcal__legend-item"><i style="width:13px;height:13px;border-radius:50%;display:inline-block;flex-shrink:0;background:#8B5CF6"></i> Inhábil</span>
                 </div>
               </div>
             </div>
@@ -771,6 +772,8 @@
           <div class="cita-step cita-step--datos" aria-hidden="true">
             <h4 class="cita-step__title">Tus datos de contacto</h4>
             <p class="cita-step__sub">Para confirmarte la cita y resolver cualquier duda.</p>
+            <!-- Contacto = una de las personas registradas: 1 se autollena, varias se eligen (lo llena app.js). -->
+            <div id="cita-quien-host" class="cita-quien" hidden></div>
             <div class="field-group">
               <div class="field">
                 <label for="cita-nombre">Nombre completo</label>
