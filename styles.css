@@ -4749,6 +4749,21 @@ body {
 .citas-section .time-grid { gap: 8px; }
 .citas-section .time-slot { padding: 9px 8px; }
 
+/* Paso "Elige fecha y hora": antes el calendario ocupaba una columna estrecha y
+   dejaba todo el lado derecho vacío. En pantallas anchas colocamos el calendario y
+   los horarios lado a lado para aprovechar el espacio; en pantallas chicas se apilan
+   como antes. Es solo maquetación: no cambia IDs, estructura ni la lógica del wizard. */
+.cita-datetime { display: grid; gap: clamp(16px, 2vw, 28px); }
+.cita-datetime > .field { margin-bottom: 0; }
+@media (min-width: 880px) {
+  .cita-datetime {
+    grid-template-columns: minmax(330px, 390px) minmax(0, 1fr);
+    align-items: start;
+  }
+  /* En dos columnas el calendario llena su columna (sin el tope de 340px). */
+  .citas-section .cita-datetime .okcal { max-width: 100%; }
+}
+
 /* ============================================================
    MÓVIL — ajustes finos de usabilidad (≤768px)
    ============================================================ */
