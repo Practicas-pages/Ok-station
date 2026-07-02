@@ -148,7 +148,7 @@
   /* ── Precios de trámite/cita (MXN, por persona, IVA incluido). Los no listados se cotizan. ──
      Estos valores por defecto coinciden con la semilla del servidor (settings appt.prices);
      al cargar la página se sincronizan con el panel vía /appointments/prices.php (abajo). */
-  var CITA_PRICES = { pasaporte: 200, pasaporte_americano: 400, visa: 800, sentri: 900, ine: 80, curp: 35 };
+  var CITA_PRICES = { pasaporte: 200, pasaporte_americano: 400, visa: 800, sentri: 900, ine: 80, curp: 35, i94: 200, licencia: 40 };
   var CITA_TAX = 0.08;   /* IVA 8% (los precios ya lo incluyen, como el ticket de mostrador) */
   function mxn0(n) { return new Intl.NumberFormat("es-MX", { style: "currency", currency: "MXN", maximumFractionDigits: 0 }).format(n); }
   function mxn2(n) { return new Intl.NumberFormat("es-MX", { style: "currency", currency: "MXN", minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n); }
@@ -242,7 +242,13 @@
       var tmp = document.createElement("div");
       new QRCode(tmp, { text: location.origin + "/perfil.html?cita=" + appt.code, width: 160, height: 160 });
       var cv = tmp.querySelector("canvas");
-      if (cv) doc.addImage(cv.toDataURL("image/png"), "PNG", PW - x - 38, 44, 38, 38);
+      if (cv) {
+        doc.addImage(cv.toDataURL("image/png"), "PNG", PW - x - 38, 44, 38, 38);
+        /* Leyenda debajo del QR: a dónde lleva y que hay que iniciar sesión. */
+        doc.setFont("helvetica", "normal"); doc.setFontSize(6.5); doc.setTextColor(muted[0], muted[1], muted[2]);
+        doc.text("Escanéalo para ver tus citas", PW - x - 19, 85, { align: "center" });
+        doc.text("(inicia sesión primero)", PW - x - 19, 88, { align: "center" });
+      }
     } catch (e) {}
     /* ── Fecha de emisión (los datos fiscales de la empresa se retiraron del ticket) ── */
     function two(n) { return (n < 10 ? "0" : "") + n; }

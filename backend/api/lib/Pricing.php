@@ -135,6 +135,8 @@ final class Pricing
         'sentri'              => 900.0,
         'ine'                 => 80.0,
         'curp'                => 35.0,
+        'i94'                 => 200.0,
+        'licencia'            => 40.0,
     ];
 
     /** Catálogo de precios vigente (settings `appt.prices`, con respaldo en los defaults). */

@@ -1410,7 +1410,7 @@
        propiedad y recalcula el monto). Redirige al checkout (pago.html / pasarela). */
     function startApptPayment(apptId, btn) {
       var tk = authToken();
-      if (!tk) { showToast("Inicia sesión para pagar tu anticipo en línea."); return; }
+      if (!tk) { showToast("Inicia sesión para pagar en línea."); return; }
       var orig = btn ? btn.textContent : "";
       if (btn) { btn.disabled = true; btn.textContent = "Conectando…"; }
       fetch(API + "/payments/create.php", {
@@ -1441,18 +1441,18 @@
       box.className = "cita-pay" + (must ? " cita-pay--required" : "");
       box.style.cssText = "margin-top:16px;text-align:center";
       var head = '<p style="margin:0 0 8px;color:var(--text-muted)">' +
-        (must ? "Anticipo para confirmar: " : "Anticipo del trámite: ") +
+        (must ? "Pago para confirmar: " : "Pago del trámite: ") +
         '<b style="color:var(--brand-blue)">' + sanitize(amount) + '</b></p>';
       if (appt.logged_in) {
         box.innerHTML = head +
-          '<button type="button" class="btn btn--primary btn--sm" id="cita-pay-btn">' + (must ? "Pagar anticipo y confirmar" : "Pagar anticipo ahora") + '</button>' +
+          '<button type="button" class="btn btn--primary btn--sm" id="cita-pay-btn">' + (must ? "Pagar para confirmar" : "Pagar ahora") + '</button>' +
           '<p style="margin:8px 0 0;font-size:.8rem;color:var(--text-muted)">' +
-          (must ? "Tu cita se confirma al recibir el anticipo." : "También puedes pagarlo después desde “Mis citas”.") + '</p>';
+          (must ? "Tu cita se confirma al recibir el pago." : "También puedes pagarlo después desde “Mis citas”.") + '</p>';
       } else {
         box.innerHTML = head +
           '<a class="btn btn--primary btn--sm" href="cuenta.html">' + (must ? "Inicia sesión para pagar y confirmar" : "Inicia sesión para pagar en línea") + '</a>' +
           '<p style="margin:8px 0 0;font-size:.8rem;color:var(--text-muted)">' +
-          (must ? "Sin el anticipo, tu cita queda sin confirmar." : "O realiza tu anticipo por WhatsApp / en sucursal.") + '</p>';
+          (must ? "Sin el pago, tu cita queda sin confirmar." : "O realiza tu pago por WhatsApp / en sucursal.") + '</p>';
       }
       container.appendChild(box);
       var pb = box.querySelector("#cita-pay-btn");
@@ -1497,9 +1497,9 @@
               /* Visa/pasaporte (requires_payment) con precio: la cita queda RESERVADA
                  pero NO confirmada hasta pagar el anticipo del 100%. */
               var mustPay = !!(j.appointment.requires_payment && j.appointment.payable);
-              var ttl = mustPay ? "Cita reservada — falta tu anticipo" : "¡Cita registrada!";
+              var ttl = mustPay ? "Cita reservada — falta tu pago" : "¡Cita registrada!";
               var msg = mustPay
-                ? 'Tu folio es <b>' + sanitize(j.appointment.code) + '</b>. Para <b>confirmar</b> tu cita es necesario pagar el anticipo del 100%.'
+                ? 'Tu folio es <b>' + sanitize(j.appointment.code) + '</b>. Para <b>confirmar</b> tu cita es necesario completar el pago del 100%.'
                 : 'Tu folio es <b>' + sanitize(j.appointment.code) + '</b>. Te contactaremos para confirmar tu cita.';
               successEl.innerHTML =
                 '<div class="cita-confirm__check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg></div>' +

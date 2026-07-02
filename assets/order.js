@@ -505,7 +505,13 @@
       var tmp = document.createElement("div");
       new QRCode(tmp, { text: location.origin + "/perfil.html?pedido=" + order.code, width: 160, height: 160 });
       var canvas = tmp.querySelector("canvas");
-      if (canvas) doc.addImage(canvas.toDataURL("image/png"), "PNG", PW - x - 38, 44, 38, 38);
+      if (canvas) {
+        doc.addImage(canvas.toDataURL("image/png"), "PNG", PW - x - 38, 44, 38, 38);
+        /* Leyenda debajo del QR: a dónde lleva y que hay que iniciar sesión. */
+        doc.setFont("helvetica", "normal"); doc.setFontSize(6.5); doc.setTextColor(muted[0], muted[1], muted[2]);
+        doc.text("Escanéalo para ver tus pedidos", PW - x - 19, 85, { align: "center" });
+        doc.text("(inicia sesión primero)", PW - x - 19, 88, { align: "center" });
+      }
     } catch (e) {}
 
     // ── Folio + estado (con holgura para no encimar los datos fiscales) ──

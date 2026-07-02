@@ -91,16 +91,16 @@
           var payHtml = "";
           if (amount > 0 && !closed) {
             if (a.payment_status === "pagado") {
-              payHtml = '<span class="opay opay--pagado">Anticipo pagado</span>';
+              payHtml = '<span class="opay opay--pagado">Pagado</span>';
             } else {
               var lbl = (a.payment_status === "procesando") ? "Continuar pago"
-                      : ((requiresPay ? "Pagar para confirmar · " : "Pagar anticipo · ") + mxn(amount));
+                      : ((requiresPay ? "Pagar para confirmar · " : "Pagar · ") + mxn(amount));
               payHtml = '<button type="button" class="btn btn--primary btn--sm cita-pay" data-i="' + i + '">' + esc(lbl) + '</button>';
             }
           }
           /* Aviso cuando falta el anticipo obligatorio (visa/pasaporte sin pagar). */
           var warn = (requiresPay && amount > 0 && !closed && unpaid)
-            ? ' · <span style="color:#B45309;font-weight:600">Falta anticipo para confirmar</span>' : '';
+            ? ' · <span style="color:#B45309;font-weight:600">Falta pago para confirmar</span>' : '';
           return '<div class="order-row">' +
             '<div><div class="order-row__code">' + esc(a.code) + '</div>' +
             '<div class="order-row__meta">' + svc + ppl + ' · ' + esc(a.date) + ' · ' + esc(a.time) + ' hrs · creada ' + String(a.created_at).slice(0, 10) + warn + '</div></div>' +
