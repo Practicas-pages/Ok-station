@@ -5498,6 +5498,17 @@ body:has(.cita-drawer:not([hidden])) { overflow: hidden; }
   border: 1px solid var(--border-medium) !important;
   color: var(--text-primary) !important;
 }
+/* Fecha de nacimiento (persona): las tarjetas van sobre blanco, pero el esquema
+   oscuro base (.field input[type=date]{color-scheme:dark}) pintaba el ícono del
+   calendario en claro → invisible. Con esquema claro el ícono se ve y contrasta. */
+.citas-section .field input[type="date"] {
+  color-scheme: light !important;
+  cursor: pointer;
+}
+.citas-section .field input[type="date"]::-webkit-calendar-picker-indicator {
+  opacity: 1;
+  cursor: pointer;
+}
 .citas-section .step-item {
   background: var(--surface-page) !important;
   color: var(--text-secondary) !important;

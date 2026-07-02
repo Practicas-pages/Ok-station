@@ -46,6 +46,30 @@
     return Array.from((ctx || document).querySelectorAll(sel));
   }
 
+  /* ── Filtros de captura ────────────────────────────────────────
+     Nombres: solo letras (con acentos), espacios y ' . -
+     Números: solo dígitos. Limpian el <input> conservando el cursor. */
+  var NAME_ALLOW_RE  = /[^A-Za-zÀ-ÖØ-öø-ÿ\s'.\-]/g;
+  var DIGITS_ONLY_RE = /\D/g;
+  function cleanFieldValue(el, re, max) {
+    if (!el) return;
+    var before = el.value;
+    var clean = before.replace(re, "");
+    if (max != null) clean = clean.slice(0, max);
+    if (clean === before) return;
+    var pos = el.selectionStart, removed = before.length - clean.length;
+    el.value = clean;
+    try {
+      var p = Math.max(0, (pos == null ? clean.length : pos) - removed);
+      el.setSelectionRange(p, p);
+    } catch (e) { /* type=date u otros no soportan selección: sin problema */ }
+  }
+  /* Instala un filtro de entrada sobre un <input> suelto (paso "Tus datos"). */
+  function attachFieldFilter(el, re, max) {
+    if (!el) return;
+    el.addEventListener("input", function () { cleanFieldValue(el, re, max); });
+  }
+
   /* Construir link de WhatsApp con mensaje codificado */
   function waLink(text) {
     return "https://wa.me/" + CONFIG.whatsapp + "?text=" + encodeURIComponent(text);
@@ -851,6 +875,9 @@
       next.setAttribute("aria-disabled", String(!ok));
     }
 
+    /* El filtro se instala ANTES que la validación para que esta lea el valor ya limpio. */
+    attachFieldFilter(nameInput, NAME_ALLOW_RE);
+    attachFieldFilter(telInput, DIGITS_ONLY_RE);
     if (nameInput)  nameInput.addEventListener("input", validateStep2);
     if (telInput)   telInput.addEventListener("input", validateStep2);
     if (emailInput) emailInput.addEventListener("input", validateStep2);
@@ -977,7 +1004,7 @@
           '<div class="field"><label for="pg-' + i + '-name">Nombre completo</label>' +
           '<input type="text" id="pg-' + i + '-name" data-pg="name" data-idx="' + i + '" autocomplete="off" placeholder="Ej. María González"></div>' +
           '<div class="field"><label for="pg-' + i + '-dob">Fecha de nacimiento</label>' +
-          '<input type="date" id="pg-' + i + '-dob" data-pg="dob" data-idx="' + i + '"></div>' +
+          '<input type="date" id="pg-' + i + '-dob" data-pg="dob" data-idx="' + i + '" min="1900-01-01" max="9999-12-31"></div>' +
         '</div>' + radios + qhtml + guestDocsHtml(i) +
         '</div>';
     }
@@ -1022,6 +1049,7 @@
       qsa("[data-pg]", personasHost).forEach(function (el) {
         var ev = el.type === "radio" ? "change" : "input";
         el.addEventListener(ev, function () {
+          if (el.dataset.pg === "name") cleanFieldValue(el, NAME_ALLOW_RE);
           var idx = parseInt(el.dataset.idx, 10) || 0;
           if (!state.guests[idx]) state.guests[idx] = { name: "", dob: "", doctype: "", answers: {} };
           state.guests[idx][el.dataset.pg] = el.value;
@@ -1033,6 +1061,7 @@
       qsa("[data-ans]", personasHost).forEach(function (el) {
         var ev = (el.type === "checkbox" || el.tagName === "SELECT") ? "change" : "input";
         el.addEventListener(ev, function () {
+          if (el.type === "tel") cleanFieldValue(el, DIGITS_ONLY_RE);
           var idx = parseInt(el.dataset.idx, 10) || 0;
           if (!state.guests[idx]) state.guests[idx] = { name: "", dob: "", doctype: "", answers: {} };
           if (!state.guests[idx].answers) state.guests[idx].answers = {};
