@@ -5457,6 +5457,14 @@ body:has(.cita-drawer:not([hidden])) { overflow: hidden; }
    "contagia" el scroll a la página de fondo. */
 .cita-modal { overflow-y: auto; overscroll-behavior: contain; }
 .cita-drawer, .cita-drawer__panel { overscroll-behavior: contain; }
+/* — Apilamiento del modal/drawer del wizard —
+   Estos viven dentro de .citas-section > .wrap, que crea un contexto de apilamiento
+   (z-index:1). Por eso, aunque el modal es fixed con z-index alto, una sección
+   posterior (#fotos) se dibujaba ENCIMA (el título "Súbelas en línea" se colaba).
+   Al abrir el modal/drawer elevamos ese contexto por encima de las secciones que le
+   siguen; el overlay vuelve a cubrir toda la página. Solo afecta con el modal abierto. */
+body:has(.cita-modal:not([hidden])) .citas-section > .wrap,
+body:has(.cita-drawer:not([hidden])) .citas-section > .wrap { z-index: 130; }
 
 .hero__title { color: #FFFFFF !important; }
 .hero__title .accent {
