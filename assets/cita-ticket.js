@@ -126,10 +126,19 @@
         try {
           var w = img.naturalWidth || img.width, h = img.naturalHeight || img.height;
           if (!w || !h) return;
+          /* IMPORTANTE: reducir el logo antes de incrustarlo. El original mide
+             ~7826px de ancho; a resolución completa el PNG resultante inflaba el
+             PDF a ~41 MB y el comprobante se rechazaba por tamaño (send-receipt.php
+             corta a 5 MB) → el correo NUNCA se enviaba. En el ticket el logo se
+             dibuja a ~54 mm, así que 640px de ancho sobra para verse nítido y deja
+             el PDF en ~200 KB. Se conserva la proporción (w/h no cambia). */
+          var MAXW = 640;
+          var scale = w > MAXW ? (MAXW / w) : 1;
+          var cw = Math.max(1, Math.round(w * scale)), ch = Math.max(1, Math.round(h * scale));
           var c = document.createElement("canvas");
-          c.width = w; c.height = h;
-          c.getContext("2d").drawImage(img, 0, 0);
-          _ticketLogo = { png: c.toDataURL("image/png"), w: w, h: h };
+          c.width = cw; c.height = ch;
+          c.getContext("2d").drawImage(img, 0, 0, cw, ch);
+          _ticketLogo = { png: c.toDataURL("image/png"), w: cw, h: ch };
         } catch (e) {}
       };
       img.src = LOGO_SRC;
