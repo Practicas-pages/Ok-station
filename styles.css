@@ -1174,6 +1174,11 @@ h1, h2, h3, h4, h5, h6 {
     border-color var(--transition-base);
   position: relative;
   overflow: hidden;
+  /* Aísla el pintado de cada tarjeta: al desplazar el carrusel, el navegador
+     no repinta tarjetas vecinas → scroll más fluido, sin tirones de FPS.
+     (La tarjeta ya tenía overflow:hidden, así que no recorta nada nuevo ni
+     afecta la sombra del hover, que se dibuja fuera de la caja.) */
+  contain: layout paint;
 }
 /* Uniformidad: la descripción crece y empuja etiquetas/enlace al fondo, de modo que
    todas las tarjetas alinean su contenido aunque el texto tenga distinto largo. */

@@ -39,7 +39,7 @@ if ($canSeeMoney) {
 }
 
 // Tamaños más solicitados (desde la config de cada ítem)
-$labels = ['carta' => 'Carta', 'oficio' => 'Oficio', 'tabloide' => 'Tabloide', 'a4' => 'A4', 'foto_10x15' => 'Foto 10×15', 'foto_13x18' => 'Foto 13×18', 'gran_formato' => 'Gran formato'];
+$labels = ['carta' => 'Carta', 'oficio' => 'Oficio', 'tabloide' => 'Tabloide', 'a4' => 'A4', 'foto_10x15' => 'Foto 10×15', 'foto_13x18' => 'Foto 13×18', 'gran_formato' => 'Gran formato', 'gran_formato_foto' => 'Gran formato foto', 'gran_formato_bond' => 'Gran formato bond'];
 $topServices = [];
 try {
     foreach ($pdo->query("SELECT JSON_UNQUOTE(JSON_EXTRACT(config_json,'$.size')) name, COUNT(*) count FROM order_items WHERE config_json IS NOT NULL GROUP BY name ORDER BY count DESC LIMIT 5")->fetchAll() as $r) {

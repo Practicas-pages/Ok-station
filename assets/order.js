@@ -35,7 +35,8 @@
     { id: "a4",           label: "A4 (21×29.7 cm)",       price: 1.30 },
     { id: "foto_10x15",   label: "Foto 10×15 (6×4\")",    price: 10 },
     { id: "foto_13x18",   label: "Foto 13×18 (5×7\")",    price: 30 },
-    { id: "gran_formato", label: "Gran formato 24\"",     price: 0 }
+    { id: "gran_formato_foto", label: "Gran formato 24×36\" — foto Gloss", price: 380 },
+    { id: "gran_formato_bond", label: "Gran formato 24×36\" — hoja bond",  price: 190 }
   ];
   /* Precio por HOJA según tamaño + B/N|Color + tramo de cantidad (hojas TOTALES = páginas×copias). */
   var PRINT_TIERS = {
@@ -44,7 +45,7 @@
     oficio:   { bn: [[10, 2.5], [50, 2.0], [Infinity, 1.5]], color: [[10, 15], [50, 13], [Infinity, 10]] },
     tabloide: { bn: [[Infinity, 5]],                          color: [[Infinity, 20]] }
   };
-  var PHOTO  = { foto_10x15: 10, foto_13x18: 30 };   /* precio por foto */
+  var PHOTO  = { foto_10x15: 10, foto_13x18: 30, gran_formato_foto: 380, gran_formato_bond: 190 };   /* precio por foto/impresión (plano) */
   var COLOR  = { color: "color", bn: "bn" };         /* solo Color y B/N (catálogo Hoja2) */
   var SIDES  = { una: 1, doble: 1 };                 /* doble cara NO cambia el precio (regla Ok.station) */
   /* Enmicado: precio POR HOJA según el TAMAÑO del documento (catálogo Hoja2).
@@ -290,7 +291,8 @@
       row("Doble carta", "B/N " + mxn(5) + "  ·  Color " + mxn(20)) +
       row("Foto 10×15 (6×4\")", mxn(10) + " c/u") +
       row("Foto 13×18 (5×7\")", mxn(30) + " c/u") +
-      row("Gran formato 24\"", "Cotización personalizada")
+      row("Gran formato 24×36\" — foto Gloss", mxn(380) + " c/u") +
+      row("Gran formato 24×36\" — hoja bond", mxn(190) + " c/u")
     );
   }
   function closePricesModal() {
@@ -312,7 +314,7 @@
           '<button type="button" class="oprices-modal__close" data-close aria-label="Cerrar">&times;</button></div>' +
         '<div class="oprices-modal__body">' +
           '<ul class="order-prices__list order-prices__list--tiers">' + referenceRowsHtml() + '</ul>' +
-          '<p class="order-prices__note">El precio por hoja baja según la cantidad total. El total final depende de color, acabado y cantidad. El gran formato 24" se cotiza por WhatsApp.</p>' +
+          '<p class="order-prices__note">El precio por hoja baja según la cantidad total. El total final depende de color, acabado y cantidad. El gran formato 24×36" tiene precio fijo (foto Gloss o hoja bond).</p>' +
         '</div>' +
       '</div>';
     document.body.appendChild(m);

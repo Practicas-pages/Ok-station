@@ -273,7 +273,7 @@
   };
   var PERIOD_LABEL = { day: "Día", week: "Semana", month: "Mes" };
   /* Etiquetas legibles de tamaños/servicios de impresión (para el historial). */
-  var SIZE_LABEL = { carta: "Carta", oficio: "Oficio", tabloide: "Tabloide", a4: "A4", foto_10x15: "Foto 10×15", foto_13x18: "Foto 13×18", gran_formato: "Gran formato" };
+  var SIZE_LABEL = { carta: "Carta", oficio: "Oficio", tabloide: "Tabloide", a4: "A4", foto_10x15: "Foto 10×15", foto_13x18: "Foto 13×18", gran_formato: "Gran formato", gran_formato_foto: "Gran formato foto", gran_formato_bond: "Gran formato bond" };
   /* Etiquetas legibles de acciones de la bitácora (movimientos del usuario). */
   var ACTION_LABEL = {
     login: "Inició sesión", logout: "Cerró sesión", "order.created": "Creó un pedido",
