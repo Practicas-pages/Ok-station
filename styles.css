@@ -5577,6 +5577,9 @@ body:has(.cita-drawer:not([hidden])) .citas-section > .wrap { z-index: 130; }
   grid-template-columns: 1fr !important;   /* panel a todo el ancho */
   padding: 0 !important;                    /* la cabecera de gradiente llega a los bordes */
   overflow: hidden;                          /* respeta el radio en la cabecera */
+  max-width: 680px;                          /* wizard estrecho y centrado (sin aside) */
+  margin-left: auto;
+  margin-right: auto;
 }
 /* Quitar el bloque lateral "Tu cita, sin filas…" (como en el prototipo) */
 .citas-section .cita-aside { display: none !important; }
