@@ -36,6 +36,7 @@ try {
         'INSERT INTO order_items (order_id, service_id, uploaded_file_id, config_json, qty, unit_price, line_total) VALUES (?,?,?,?,?,?,?)'
     );
     $subtotal = 0.0;
+    $needsQuote = false;   // ¿algún ítem no tiene precio automático? (p. ej. gran formato → cotizar)
     foreach ($items as $it) {
         $fileId = (int) ($it['uploaded_file_id'] ?? 0);
         $cfg    = is_array($it['config'] ?? null) ? $it['config'] : [];
@@ -50,6 +51,7 @@ try {
         // PRECIO RECALCULADO EN EL SERVIDOR (se ignora cualquier monto del navegador).
         $price = Pricing::line($cfg, $pages, $qty);
         $subtotal += $price['line'];
+        if (!empty($price['quote'])) $needsQuote = true;   // este ítem se cotiza a mano
 
         $mailItems[] = [
             'label' => trim((string) ($cfg['size'] ?? '')) !== ''
@@ -77,6 +79,12 @@ try {
     /* Teléfono del cliente: solo si la migración 0012 ya creó la columna (resiliente). */
     if ($phone !== '' && table_has_column('orders', 'contact_phone')) {
         $pdo->prepare('UPDATE orders SET contact_phone=? WHERE id=?')->execute([$phone, $orderId]);
+    }
+
+    /* Pedido "por cotizar": la trabajadora le pondrá el precio final desde el panel
+       y el cliente recibirá un correo para pagarlo (solo si la migración 0022 existe). */
+    if ($needsQuote && table_has_column('orders', 'needs_quote')) {
+        $pdo->prepare('UPDATE orders SET needs_quote=1 WHERE id=?')->execute([$orderId]);
     }
 
     $pdo->commit();

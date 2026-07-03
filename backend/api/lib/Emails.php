@@ -156,6 +156,74 @@ final class Emails
         return self::layout('Confirma tu pedido ' . (string) $p['code'] . ' en Ok.station', $inner);
     }
 
+    /** Etiqueta legible de un estado de pedido (para asuntos y cuerpos de correo). */
+    public static function orderStatusLabel(string $s): string
+    {
+        $L = [
+            'recibido'      => 'Recibido',
+            'en_revision'   => 'En revisión',
+            'en_produccion' => 'En producción',
+            'listo'         => 'Listo para recoger',
+            'entregado'     => 'Entregado',
+            'cancelado'     => 'Cancelado',
+        ];
+        return $L[$s] ?? ucfirst(str_replace('_', ' ', $s));
+    }
+
+    /**
+     * Correo "tu pedido ya tiene precio" (cotización lista).
+     * $p: name, code, total (float), payUrl. La trabajadora fijó el precio final
+     * desde el panel y el cliente puede pagarlo en línea (Checkout Pro).
+     */
+    public static function pedidoPrecioHtml(array $p): string
+    {
+        $total = '$' . number_format((float) ($p['total'] ?? 0), 2) . ' MXN';
+        $rows =
+            '<tr><td style="padding:9px 0 2px;font-size:15px;font-weight:bold;color:#12141c">Precio final</td>'
+            . '<td align="right" style="padding:9px 0 2px;font-size:16px;font-weight:bold;color:#066CFF">' . $total . '</td></tr>';
+
+        $inner =
+            '<h1 style="margin:0 0 6px;font-size:20px;color:#12141c">¡Hola ' . self::e((string) ($p['name'] ?? '')) . '!</h1>'
+            . '<p style="margin:0 0 18px;font-size:15px;line-height:1.6;color:#4a5068">'
+            . 'Ya revisamos tu pedido y tiene <b>precio final</b>. Puedes pagarlo en línea de forma '
+            . 'segura con el botón de abajo:</p>'
+            . self::ticketCard((string) ($p['code'] ?? ''), $rows)
+            . self::button((string) ($p['payUrl'] ?? self::appUrl()), 'Pagar mi pedido')
+            . '<p style="margin:8px 0 0;font-size:13px;line-height:1.6;color:#6b7280;text-align:center">'
+            . 'Si prefieres, también puedes pagar en tienda o escribirnos por WhatsApp al (664) 719-4117.</p>';
+
+        return self::layout('Tu pedido ' . (string) ($p['code'] ?? '') . ' ya tiene precio', $inner);
+    }
+
+    /**
+     * Correo de cambio de estado de un pedido. $p: name, code, status, payUrl (opcional).
+     * Si payUrl viene lleno (p. ej. está "listo" y sin pagar), añade botón de pago.
+     */
+    public static function pedidoEstadoHtml(array $p): string
+    {
+        $status = (string) ($p['status'] ?? '');
+        $label  = self::orderStatusLabel($status);
+        $msgMap = [
+            'recibido'      => 'Recibimos tu pedido y ya está en nuestra fila de trabajo.',
+            'en_revision'   => 'Estamos revisando tus archivos para dejar todo listo.',
+            'en_produccion' => '¡Manos a la obra! Tu pedido ya se está imprimiendo.',
+            'listo'         => 'Tu pedido está listo para recoger en Centro Comercial Otay, Local G-03.',
+            'entregado'     => '¡Gracias! Tu pedido fue entregado. Esperamos verte pronto.',
+            'cancelado'     => 'Tu pedido fue cancelado. Si crees que es un error, escríbenos por WhatsApp.',
+        ];
+        $msg = $msgMap[$status] ?? ('Tu pedido ahora está: ' . $label . '.');
+
+        $inner =
+            '<h1 style="margin:0 0 6px;font-size:20px;color:#12141c">¡Hola ' . self::e((string) ($p['name'] ?? '')) . '!</h1>'
+            . '<p style="margin:0 0 16px;font-size:15px;line-height:1.6;color:#4a5068">' . self::e($msg) . '</p>'
+            . self::ticketCard((string) ($p['code'] ?? ''), self::row('Estado', self::e($label)))
+            . (!empty($p['payUrl']) ? self::button((string) $p['payUrl'], 'Pagar mi pedido') : '')
+            . '<p style="margin:14px 0 0;font-size:13px;line-height:1.6;color:#6b7280">'
+            . '¿Dudas? Escríbenos por WhatsApp al (664) 719-4117 o responde este correo.</p>';
+
+        return self::layout('Tu pedido ' . (string) ($p['code'] ?? '') . ' — ' . $label, $inner);
+    }
+
     /** Correo con el COMPROBANTE PDF adjunto (pedido o cita). $kind = 'pedido'|'cita'. */
     public static function comprobanteHtml(string $kind, string $code, string $name): string
     {

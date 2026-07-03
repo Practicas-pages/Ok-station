@@ -203,6 +203,10 @@
       if (DEMO) { var o = MOCK.orders.find(function (x) { return String(x.id) === String(id); }); if (o) o.status = status; return Promise.resolve({ ok: true }); }
       return apiPost("/admin/order-status.php", { id: id, status: status });
     },
+    setPrice: function (id, total) {
+      if (DEMO) { var o = MOCK.orders.find(function (x) { return String(x.id) === String(id); }); if (o) { o.total = total; o.needs_quote = 0; } return Promise.resolve({ ok: true, emailed: true }); }
+      return apiPost("/admin/order-price.php", { id: id, total: total });
+    },
     orderDetail: function (id) {
       if (DEMO) { var o = (MOCK.orders || []).find(function (x) { return String(x.id || x.code) === String(id); }); return Promise.resolve(o ? { ok: true, order: o } : { ok: false }); }
       return apiGet("/orders/get.php?id=" + encodeURIComponent(id));
@@ -647,6 +651,29 @@
       '<div style="display:flex;flex-direction:column;gap:6px;font-size:.9rem;background:#f8fafc;border-radius:8px;padding:12px 14px;margin:0 0 16px">' + rows.join("") + '</div>';
   }
 
+  /* Panel "Fijar precio" (cotización) del detalle del pedido en el modal admin.
+     Permite a la trabajadora poner el precio final de un pedido por cotizar; al
+     guardar, el backend avisa al cliente por correo con un botón de pago. */
+  function quotePanel(o) {
+    if ((o.payment_status || "pendiente") === "pagado") return "";  // ya pagado: no se recotiza
+    var total = +o.total || 0;
+    var needsQuote = (+o.needs_quote === 1) || (String(o.needs_quote) === "1");
+    var pending = needsQuote && !o.quoted_at;   // por cotizar y aún sin precio fijado
+    var banner = pending
+      ? '<div style="background:#fff7ed;border:1px solid #fed7aa;color:#9a3412;border-radius:8px;padding:10px 12px;font-size:.85rem;margin:0 0 10px">Este pedido está <b>por cotizar</b>. Ponle el precio final y el cliente recibirá un correo para pagarlo en línea.</div>'
+      : "";
+    return '<h4 style="margin:0 0 6px;font-size:.95rem">Fijar precio (cotización)</h4>' +
+      '<div style="background:#f8fafc;border-radius:8px;padding:12px 14px;margin:0 0 16px">' +
+        banner +
+        '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">' +
+          '<span style="color:var(--text-muted,#6b7280);font-size:.85rem">Precio final (IVA incl.)</span>' +
+          '<input type="number" id="order-price-input" min="1" step="0.01" value="' + (total > 0 ? total : "") + '" placeholder="0.00" style="width:130px;padding:8px 10px;border:1px solid #d1d5db;border-radius:8px;font-size:.9rem">' +
+          '<button type="button" class="btn btn--primary btn--sm" id="order-price-save">Guardar y avisar al cliente</button>' +
+        '</div>' +
+        '<div id="order-price-msg" style="font-size:.82rem;margin-top:8px"></div>' +
+      '</div>';
+  }
+
   function openOrderModal(o) {
     closeOrderModal();
     var items = o.items || [];
@@ -694,6 +721,7 @@
             '<div style="display:flex;justify-content:space-between"><span style="color:var(--text-muted,#6b7280)">IVA (8%)</span><b class="mono">' + mxn(+o.tax || 0) + '</b></div>' +
             '<div style="display:flex;justify-content:space-between;border-top:1px solid #e5e7eb;padding-top:6px"><span>Total</span><b class="mono">' + mxn(+o.total || 0) + '</b></div>' +
           '</div>' +
+          quotePanel(o) +
           paymentPanel(o) +
           '<h4 style="margin:0 0 10px;font-size:.95rem">Ticket del cliente</h4>' +
           '<div style="border:1px solid #eef0f4;border-radius:12px;padding:14px;margin-bottom:16px">' +
@@ -715,6 +743,36 @@
     ov.addEventListener("click", function (e) { if (e.target === ov) closeOrderModal(); });
     $("#order-modal-close", ov).addEventListener("click", closeOrderModal);
     document.addEventListener("keydown", escClose);
+
+    /* Guardar el precio de la cotización y avisar al cliente por correo. */
+    var saveBtn = $("#order-price-save", ov);
+    if (saveBtn) saveBtn.addEventListener("click", function () {
+      var inp = $("#order-price-input", ov);
+      var msg = $("#order-price-msg", ov);
+      var val = Math.round((parseFloat(inp && inp.value) || 0) * 100) / 100;
+      if (!(val > 0)) { msg.style.color = "#b91c1c"; msg.textContent = "Ingresa un precio válido mayor a $0."; if (inp) inp.focus(); return; }
+      var orig = saveBtn.textContent;
+      saveBtn.disabled = true; saveBtn.textContent = "Guardando…";
+      msg.style.color = "var(--text-muted,#6b7280)"; msg.textContent = "";
+      DataSource.setPrice(o.id || o.code, val).then(function (res) {
+        saveBtn.disabled = false; saveBtn.textContent = orig;
+        if (res && res.ok) {
+          o.total = val; o.needs_quote = 0;
+          msg.style.color = "#166534";
+          msg.textContent = res.emailed
+            ? "Precio guardado. Se envió el correo al cliente con el botón de pago."
+            : "Precio guardado. (No se pudo enviar el correo — verifica el correo del cliente.)";
+          renderOrdersTable();
+        } else {
+          msg.style.color = "#b91c1c";
+          msg.textContent = (res && res.error) || "No se pudo guardar el precio.";
+        }
+      }).catch(function () {
+        saveBtn.disabled = false; saveBtn.textContent = orig;
+        msg.style.color = "#b91c1c"; msg.textContent = "Sin conexión con el servidor.";
+      });
+    });
+
     items.forEach(function (it, idx) { loadFileInto(ov, idx, it.uploaded_file_id, it.original_name); });
     loadTicketInto(ov, o.id || o.code);
   }

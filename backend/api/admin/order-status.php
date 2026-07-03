@@ -31,4 +31,31 @@ log_activity((int) $user['id'], 'order.status_changed', 'orders', $id, ['status'
 db()->prepare('INSERT INTO notifications (user_id, type, title, body) VALUES (?,?,?,?)')
     ->execute([(int) $o['user_id'], 'order', 'Estado actualizado', 'Tu pedido ' . $o['code'] . ' ahora está: ' . str_replace('_', ' ', $status) . '.']);
 
+/* Aviso por CORREO del cambio de estado (best-effort). Así el cliente se entera
+   aunque no vuelva a entrar a la plataforma. Nunca rompe la respuesta. */
+try {
+    require_once __DIR__ . '/../lib/Mail.php';
+    require_once __DIR__ . '/../lib/Emails.php';
+    $cu = User::find((int) $o['user_id']);
+    $to = trim((string) ($cu['email'] ?? ''));
+    if ($to !== '') {
+        global $CONFIG;
+        $base   = rtrim((string) ($CONFIG['app_url'] ?? 'https://okstation.mx'), '/');
+        $unpaid = (($o['payment_status'] ?? 'pendiente') !== 'pagado') && (round((float) ($o['total'] ?? 0), 2) > 0);
+        $payUrl = ($status === 'listo' && $unpaid) ? $base . '/perfil.html#pedidos' : '';
+        $html   = Emails::pedidoEstadoHtml([
+            'name'   => (string) ($cu['full_name'] ?? ''),
+            'code'   => (string) $o['code'],
+            'status' => $status,
+            'payUrl' => $payUrl,
+        ]);
+        Mail::sendHtml(
+            $to,
+            'Tu pedido ' . $o['code'] . ' — ' . Emails::orderStatusLabel($status) . ' · Ok.station',
+            $html,
+            'Tu pedido ' . $o['code'] . ' ahora está: ' . str_replace('_', ' ', $status) . '.'
+        );
+    }
+} catch (Throwable $e) { /* best-effort: el aviso por correo no debe afectar el cambio de estado */ }
+
 respond(['ok' => true]);

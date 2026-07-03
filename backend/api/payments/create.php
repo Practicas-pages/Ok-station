@@ -44,6 +44,12 @@ if ($apptId > 0) {
     if (!$entity) fail('Pedido no encontrado.', 404);
     if ((int) $entity['user_id'] !== (int) $user['id']) fail('No autorizado.', 403);
     if ($entity['status'] === 'cancelado') fail('Este pedido está cancelado y no se puede pagar.', 409);
+    /* Pedido "por cotizar" y aún sin precio fijado: no se puede cobrar todavía
+       (aunque tenga un total parcial de otros ítems). Se libera cuando la
+       trabajadora fija el precio final (quoted_at) desde el panel. */
+    if (!empty($entity['needs_quote']) && empty($entity['quoted_at'])) {
+        fail('Este pedido está en cotización. Te avisaremos por correo cuando tengas el precio final para pagar.', 409);
+    }
     if (round((float) $entity['total'], 2) <= 0) {
         fail('Este pedido aún no tiene un total para cobrar. Te confirmaremos el monto al revisar tus archivos.', 409);
     }
