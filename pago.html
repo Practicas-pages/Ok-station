@@ -85,15 +85,15 @@
       <!-- Estado de éxito (oculto hasta confirmar) -->
       <div id="pago-done" hidden>
         <div class="cc-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg></div>
-        <h2 style="margin:0 0 4px;font-size:1.2rem">¡Pago aprobado!</h2>
+        <h2 style="margin:0 0 4px;font-size:1.2rem">¡Pago autorizado!</h2>
         <p style="color:var(--text-muted);font-size:0.88rem" id="pago-done-msg">Procesando tu confirmación…</p>
       </div>
 
-      <!-- Estado pendiente / en revisión -->
+      <!-- Estado "verificando / en proceso" (título y mensaje se ajustan por JS) -->
       <div id="pago-pending" hidden>
         <div class="cc-pending" aria-hidden="true">⏳</div>
-        <h2 style="margin:0 0 4px;font-size:1.2rem">Pago en revisión</h2>
-        <p style="color:var(--text-muted);font-size:0.88rem" id="pago-pending-msg">Te avisaremos en cuanto se confirme.</p>
+        <h2 style="margin:0 0 4px;font-size:1.2rem">Verificando tu pago…</h2>
+        <p style="color:var(--text-muted);font-size:0.88rem" id="pago-pending-msg">Esto toma solo unos segundos.</p>
         <a href="perfil.html#pedidos" id="pago-pending-back" class="btn btn--light btn--block" style="margin-top:14px">Volver</a>
       </div>
 
@@ -256,22 +256,54 @@
       note.innerHTML = '<a href="' + esc(backHref) + '">' + (isAppt ? "Volver a mis citas" : "Volver a mis pedidos") + '</a>';
     }
 
-    /* Estado de éxito. */
+    /* Estado de éxito (pago autorizado). */
     function showSuccess() {
       summary.style.display = "none";
       actions.hidden = true;
       $("pago-pending").hidden = true;
       var done = $("pago-done"); done.hidden = false;
-      $("pago-done-msg").textContent = isAppt ? "Tu pago fue aprobado. Te llevamos a tus citas…" : "Tu pago fue aprobado. Te llevamos a tus pedidos…";
-      setTimeout(function () { location.href = backHref; }, 1500);
+      $("pago-done-msg").textContent = isAppt ? "Tu pago fue autorizado. Te llevamos a tus citas…" : "Tu pago fue autorizado. Te llevamos a tus pedidos…";
+      setTimeout(function () { location.href = backHref; }, 1600);
     }
-    /* Estado pendiente / en revisión (no redirige solo; deja el botón "Volver"). */
-    function showPending(msg) {
+    /* Ajusta el estado "en proceso" (título + mensaje) sin mostrar el botón hasta el final. */
+    function setPending(title, msg) {
       summary.style.display = "none";
       actions.hidden = true;
       $("pago-done").hidden = true;
-      $("pago-pending").hidden = false;
+      var pend = $("pago-pending"); pend.hidden = false;
+      var h = pend.querySelector("h2"); if (h && title) h.textContent = title;
       if (msg) $("pago-pending-msg").textContent = msg;
+    }
+    /* Cuando MP no aprueba al instante (in_process), NO asustamos con "en revisión":
+       verificamos el estado real (el webhook lo confirma en segundos) y, si se
+       autoriza, mostramos "Pago autorizado". Solo si sigue en proceso tras varios
+       intentos dejamos un aviso tranquilo. */
+    function verifyPayment() {
+      setPending("Verificando tu pago…", "Esto toma solo unos segundos.");
+      var statusQS = isAppt ? ("appointment_id=" + encodeURIComponent(apptId)) : ("order_id=" + encodeURIComponent(orderId));
+      var tries = 0;
+      (function poll() {
+        tries++;
+        fetch(API + "/payments/status.php?" + statusQS, { headers: { Authorization: "Bearer " + token() } })
+          .then(function (r) { return r.json(); })
+          .then(function (res) {
+            var ps = res && res.payment_status;
+            if (ps === "pagado") { showSuccess(); return; }
+            if (ps === "error") {
+              setPending("Pago no aprobado", "Tu pago no se pudo aprobar. Vuelve a intentarlo desde tus " + (isAppt ? "citas" : "pedidos") + ".");
+              return;
+            }
+            if (tries >= 8) {
+              setPending("Pago en proceso", "Tu pago se está procesando. En cuanto se apruebe lo verás en tus " + (isAppt ? "citas" : "pedidos") + " y te avisaremos por correo.");
+              return;
+            }
+            setTimeout(poll, 2500);
+          })
+          .catch(function () {
+            if (tries >= 8) { setPending("Pago en proceso", "Tu pago se está procesando. Te avisaremos en cuanto se confirme."); return; }
+            setTimeout(poll, 2500);
+          });
+      })();
     }
 
     /* ──────────────── Mercado Pago — Checkout API (tarjeta en el sitio) ──────────────── */
@@ -312,7 +344,7 @@
                   })).then(function (res) {
                     var st = res && res.payment_status;
                     if (st === "pagado") { showSuccess(); resolve(); return; }
-                    if (st === "procesando") { showPending(res.message); resolve(); return; }
+                    if (st === "procesando") { verifyPayment(); resolve(); return; }
                     // rechazado / error / bloqueo: mostramos aviso y devolvemos el control al Brick para reintentar
                     alertBox((res && (res.message || res.error)) || "Tu pago fue rechazado. Prueba con otra tarjeta.");
                     try { window.scrollTo({ top: 0, behavior: "smooth" }); } catch (e) {}
