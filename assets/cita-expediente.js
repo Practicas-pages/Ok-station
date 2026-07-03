@@ -241,6 +241,36 @@
     medica: "Cita Médica / Examen"
   };
 
+  /* ── Precios de los servicios adicionales (MXN, IVA incluido) ──
+     EDITAR: ajusta estos montos a tus precios reales de mostrador.
+     · UP_PRICE          → precio base de cada servicio (aplica a todos los trámites).
+     · UP_PRICE_TRAMITE  → sobrescribe el precio para un trámite concreto, por si el
+                           mismo servicio cuesta distinto según el proceso.
+                           Ej.: { visa: { copias: 25 }, i94: { impresion: 10 } }
+     Un valor null (o ausente) oculta el precio y se cotiza en mostrador. */
+  var UP_PRICE = {
+    curp:      50,   /* PLACEHOLDER — confirmar */
+    acta:      150,  /* PLACEHOLDER — confirmar */
+    fotos:     90,   /* PLACEHOLDER — confirmar */
+    impresion: 15,   /* PLACEHOLDER — confirmar */
+    copias:    20    /* PLACEHOLDER — confirmar */
+  };
+  var UP_PRICE_TRAMITE = {
+    /* Ejemplo (descomenta y ajusta si algún proceso cambia el precio):
+       visa: { copias: 25 },
+       apostille: { copias: 30 } */
+  };
+  /* Devuelve el precio de un servicio para el trámite activo (o null si no aplica). */
+  function upPrice(upKey, tramiteKey) {
+    var byT = UP_PRICE_TRAMITE[tramiteKey];
+    if (byT && byT[upKey] != null) return byT[upKey];
+    return (UP_PRICE[upKey] != null) ? UP_PRICE[upKey] : null;
+  }
+  function fmtMXN(n) {
+    try { return "$" + Number(n).toLocaleString("es-MX"); }
+    catch (e) { return "$" + n; }
+  }
+
   /* ── Estado interno (lo lee la Fase 2) ── */
   var current = null;            /* clave de trámite activa (con subtipo si aplica) */
   var docFiles = {};             /* { docKey: File } archivos elegidos */
@@ -331,9 +361,14 @@
       ups.forEach(function (k) {
         var u = UP[k]; if (!u) return;
         var on = !!services[k];
+        var price = upPrice(k, key);
+        var priceHtml = (price != null && price > 0)
+          ? '<span class="upsell-row__price">' + fmtMXN(price) + '</span>'
+          : '';
         html += '<div class="upsell-row' + (on ? ' is-on' : '') + '" data-up="' + esc(k) + '">' +
           '<span class="upsell-row__q">' + esc(u.q) + '</span>' +
           '<div class="upsell-row__actions">' +
+            priceHtml +
             '<button type="button" class="btn btn--ghost-dark btn--sm upsell-add" data-up-add="' + esc(k) + '" aria-pressed="' + (on ? "true" : "false") + '">' + (on ? "✓ Agregado" : esc(u.cta)) + '</button>' +
           '</div>' +
         '</div>';

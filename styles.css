@@ -784,21 +784,70 @@ h1, h2, h3, h4, h5, h6 {
   transform: rotate(-45deg);
 }
 
-/* Banner de horario */
+/* Banner superior: enlaces rápidos · lema · redes sociales */
 .header-bar {
   background: var(--grad-purple);
   padding: 8px 0;
-  text-align: center;
   font-size: 0.8125rem;
   font-weight: 500;
   color: rgba(255,255,255,0.95);
 }
 
-.header-bar a {
+.header-bar__inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-5);
+}
+
+/* Enlaces de la izquierda (¿Quiénes somos? · Contacto) */
+.header-bar__links {
+  display: flex;
+  align-items: center;
+  gap: var(--space-5);
+  flex: 0 0 auto;
+}
+.header-bar__links a {
   color: #fff;
+  text-decoration: none;
+  opacity: 0.92;
+  white-space: nowrap;
+  transition: opacity var(--transition-fast);
+}
+.header-bar__links a:hover {
+  opacity: 1;
   text-decoration: underline;
   text-underline-offset: 3px;
 }
+
+/* Lema centrado */
+.header-bar__tagline {
+  flex: 1 1 auto;
+  text-align: center;
+  margin: 0;
+}
+
+/* Iconos de redes a la derecha */
+.header-bar__social {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 0 0 auto;
+}
+.header-bar__social a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.16);
+  color: #fff;
+  text-decoration: none;
+  transition: background var(--transition-fast);
+}
+.header-bar__social a:hover { background: rgba(255,255,255,0.30); }
+.header-bar__social svg { width: 14px; height: 14px; }
 
 
 /* ============================================================
@@ -1670,7 +1719,9 @@ h1, h2, h3, h4, h5, h6 {
 .input-prefix__cc {
   border: none; background: transparent; color: inherit;
   font: inherit; font-weight: inherit; line-height: 1.1;
-  cursor: pointer; padding: 0 2px; max-width: 82px;
+  cursor: pointer; padding: 0 4px 0 2px;
+  /* Sin tope de ancho: el <select> se ajusta a su contenido ("🇲🇽 +52")
+     para que el "+52" nunca se recorte (en Windows la bandera se ve "MX"). */
 }
 .input-prefix__cc:focus { outline: none; }
 /* Prefijo creado por JS en campos sueltos (registro / perfil / cuestionario):
@@ -3378,6 +3429,12 @@ h1, h2, h3, h4, h5, h6 {
   .nav__actions .btn--wa {
     display: none;
   }
+
+  /* Barra superior en celular: se ocultan enlaces y redes; queda solo el lema
+     centrado para no amontonar el espacio angosto. */
+  .header-bar__links,
+  .header-bar__social { display: none; }
+  .header-bar__tagline { text-align: center; }
 
   /* Compactar header: logo + botón Cuenta + hamburguesa deben caber en 375px
      sin que el contenido toque o rebase el borde. */
@@ -5324,7 +5381,8 @@ body.admin::before, body.admin::after { display: none !important; }
 }
 .upsell-row.is-on { background: rgba(6,108,255,0.14); border-color: rgba(6,108,255,0.45); }
 .upsell-row__q { color: rgba(255,255,255,0.85); font-size: 0.85rem; }
-.upsell-row__actions { display: flex; gap: 8px; flex: 0 0 auto; }
+.upsell-row__actions { display: flex; align-items: center; gap: 10px; flex: 0 0 auto; }
+.upsell-row__price { font-weight: 700; font-size: 0.95rem; color: #fff; white-space: nowrap; }
 .upsell-add { white-space: nowrap; }
 .upsell-row.is-on .upsell-add { background: var(--brand-blue); border-color: transparent; color: #fff; }
 
@@ -5487,14 +5545,11 @@ body:has(.cita-drawer:not([hidden])) .citas-section > .wrap { z-index: 130; }
   /* Color SÓLIDO (sin degradado en el texto): azul de la marca. */
   color: #066CFF !important;
   -webkit-text-fill-color: #066CFF !important;
-  /* El "estilo del cintillo" (degradado morado→azul→cian) vive como barra de
-     subrayado bajo "Tú lo imaginas", no en el texto. El fondo se limita a una
-     franja delgada al pie mediante background-size/position. */
-  background: linear-gradient(95deg, #9C1DFF 0%, #066CFF 55%, #00C6FF 100%) no-repeat left 100% / 100% 0.12em !important;
-  -webkit-background-clip: border-box !important; background-clip: border-box !important;
-  padding-bottom: 0.14em;
+  /* Sin cintillo/subrayado bajo "Tú lo imaginas": se retiró la barra de
+     degradado que iba al pie del texto. */
+  background: none !important;
+  padding-bottom: 0 !important;
   filter: none;
-  -webkit-box-decoration-break: clone; box-decoration-break: clone;
 }
 .hero__lead { color: rgba(255,255,255,0.92) !important; }
 .hero__eyebrow {
@@ -5659,6 +5714,7 @@ body:has(.cita-drawer:not([hidden])) .citas-section > .wrap { z-index: 130; }
 .cita-docs__empty,
 .cita-docs__sub,
 .upsell-row__q { color: var(--text-secondary) !important; }
+.upsell-row__price { color: var(--brand-blue) !important; }
 .cita-upsell__title { color: var(--text-primary) !important; }
 /* — Paso "Datos de cada persona": las tarjetas de persona y el bloque de documentos
      se diseñaron para el fondo oscuro original; sobre el blanco actual su texto, bordes
