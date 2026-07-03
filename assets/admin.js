@@ -207,6 +207,10 @@
       if (DEMO) { var o = MOCK.orders.find(function (x) { return String(x.id) === String(id); }); if (o) { o.total = total; o.needs_quote = 0; } return Promise.resolve({ ok: true, emailed: true }); }
       return apiPost("/admin/order-price.php", { id: id, total: total });
     },
+    setOrderPaid: function (id, status) {
+      if (DEMO) { var o = MOCK.orders.find(function (x) { return String(x.id) === String(id); }); if (o) o.payment_status = status; return Promise.resolve({ ok: true, payment_status: status }); }
+      return apiPost("/admin/order-payment.php", { id: id, status: status || "pagado" });
+    },
     orderDetail: function (id) {
       if (DEMO) { var o = (MOCK.orders || []).find(function (x) { return String(x.id || x.code) === String(id); }); return Promise.resolve(o ? { ok: true, order: o } : { ok: false }); }
       return apiGet("/orders/get.php?id=" + encodeURIComponent(id));
@@ -233,6 +237,10 @@
     setApptPrice: function (id, amount) {
       if (DEMO) { var a = MOCK.appointments.find(function (x) { return String(x.id || x.code) === String(id); }); if (a) { a.amount_total = amount; a.needs_quote = 0; } return Promise.resolve({ ok: true, emailed: true }); }
       return apiPost("/admin/appointment-price.php", { id: id, amount: amount });
+    },
+    setApptPaid: function (id, status) {
+      if (DEMO) { var a = MOCK.appointments.find(function (x) { return String(x.id || x.code) === String(id); }); if (a) a.payment_status = status; return Promise.resolve({ ok: true, payment_status: status }); }
+      return apiPost("/admin/appointment-payment.php", { id: id, status: status || "pagado" });
     },
     report: function (period, date) {
       if (DEMO) {
@@ -461,6 +469,19 @@
       '</div>';
   }
 
+  /* Confirmar manualmente el pago de una cita (efectivo/transferencia o aprobado en
+     MP). Solo si hay un monto y aún no está pagada. Le llega un correo al cliente. */
+  function apptPayConfirm(a) {
+    var pay = a.payment_status || "pendiente";
+    var amount = (a.amount_total != null && a.amount_total !== "" && +a.amount_total > 0) ? +a.amount_total : 0;
+    if (pay === "pagado" || amount <= 0) return "";
+    return '<div style="background:#f8fafc;border-radius:8px;padding:12px 14px;margin:0 0 16px;display:flex;flex-direction:column;gap:6px">' +
+        '<button type="button" class="btn btn--primary btn--sm" id="appt-paid-btn">Marcar como pagado</button>' +
+        '<span style="font-size:.78rem;color:var(--text-muted,#6b7280)">Úsalo si el cliente pagó en efectivo/transferencia o ya aparece aprobado en Mercado Pago. Se le envía un correo de confirmación.</span>' +
+        '<div id="appt-paid-msg" style="font-size:.82rem"></div>' +
+      '</div>';
+  }
+
   function openApptModal(a) {
     closeApptModal();
     var svc = TRAMITE_LABEL[a.tramite] || a.tramite;
@@ -587,6 +608,7 @@
             })() +
           '</div>' +
           apptQuotePanel(a) +
+          apptPayConfirm(a) +
           servicesHtml +
           '<h4 style="margin:0 0 6px;font-size:.95rem">Contacto</h4>' +
           '<div style="font-size:.9rem;background:#f8fafc;border-radius:8px;padding:8px 14px;margin:0 0 16px">' +
@@ -639,6 +661,29 @@
         msg.style.color = "#b91c1c"; msg.textContent = "Sin conexión con el servidor.";
       });
     });
+    /* Confirmar el pago de la cita manualmente (efectivo/transferencia o aprobado en MP). */
+    var apptPaidBtn = $("#appt-paid-btn", ov);
+    if (apptPaidBtn) apptPaidBtn.addEventListener("click", function () {
+      var msg = $("#appt-paid-msg", ov);
+      if (!window.confirm("¿Confirmar que esta cita ya está PAGADA? Se le enviará un correo de confirmación al cliente.")) return;
+      var orig = apptPaidBtn.textContent;
+      apptPaidBtn.disabled = true; apptPaidBtn.textContent = "Guardando…";
+      if (msg) { msg.style.color = "var(--text-muted,#6b7280)"; msg.textContent = ""; }
+      DataSource.setApptPaid(a.id || a.code, "pagado").then(function (res) {
+        if (res && res.ok) {
+          a.payment_status = "pagado";
+          if (msg) { msg.style.color = "#166534"; msg.textContent = "Pago confirmado. Se avisó al cliente por correo."; }
+          apptPaidBtn.style.display = "none";
+        } else {
+          apptPaidBtn.disabled = false; apptPaidBtn.textContent = orig;
+          if (msg) { msg.style.color = "#b91c1c"; msg.textContent = (res && res.error) || "No se pudo confirmar el pago."; }
+        }
+      }).catch(function () {
+        apptPaidBtn.disabled = false; apptPaidBtn.textContent = orig;
+        if (msg) { msg.style.color = "#b91c1c"; msg.textContent = "Sin conexión con el servidor."; }
+      });
+    });
+
     var pdfb = $("#appt-modal-pdf", ov);
     if (pdfb) pdfb.addEventListener("click", function () {
       window.OKCitaExpedienteDownload({ code: a.code, tramite: a.tramite, passport_subtype: a.passport_subtype, party_size: a.party_size, date: a.date, time: a.time, status: a.status, name: a.contact_name, phone: a.contact_phone, guests: parseGuests(a.guests_json), services: parseGuests(a.services_json), files: a.files });
@@ -703,8 +748,19 @@
     if (o.payment_reference) rows.push('<div style="display:flex;justify-content:space-between;gap:10px"><span style="color:var(--text-muted,#6b7280)">Referencia</span><span class="mono" style="font-size:.8rem">' + esc(o.payment_reference) + '</span></div>');
     if (o.payment_date) rows.push('<div style="display:flex;justify-content:space-between;gap:10px"><span style="color:var(--text-muted,#6b7280)">Fecha de pago</span><span>' + esc(String(o.payment_date).slice(0, 16).replace("T", " ")) + '</span></div>');
     if (o.payment_transaction_id) rows.push('<div style="display:flex;justify-content:space-between;gap:10px"><span style="color:var(--text-muted,#6b7280)">ID transacción</span><span class="mono" style="font-size:.78rem;word-break:break-all">' + esc(o.payment_transaction_id) + '</span></div>');
+    /* Confirmación manual: el trabajador marca el pago como recibido (efectivo/
+       transferencia, o cuando ya aparece aprobado en Mercado Pago y el webhook no
+       llegó). Al cliente le llega el correo de confirmación. */
+    var canConfirm = ordersPaymentsEnabled && pay !== "pagado" && (+o.total || 0) > 0;
+    var confirmHtml = canConfirm
+      ? '<div style="border-top:1px solid #e5e7eb;margin-top:4px;padding-top:10px;display:flex;flex-direction:column;gap:6px">' +
+          '<button type="button" class="btn btn--primary btn--sm" id="order-paid-btn">Marcar como pagado</button>' +
+          '<span style="font-size:.78rem;color:var(--text-muted,#6b7280)">Úsalo si el cliente pagó en efectivo/transferencia o ya aparece aprobado en Mercado Pago. Se le envía un correo de confirmación.</span>' +
+          '<div id="order-paid-msg" style="font-size:.82rem"></div>' +
+        '</div>'
+      : "";
     return '<h4 style="margin:0 0 6px;font-size:.95rem">Pago</h4>' +
-      '<div style="display:flex;flex-direction:column;gap:6px;font-size:.9rem;background:#f8fafc;border-radius:8px;padding:12px 14px;margin:0 0 16px">' + rows.join("") + '</div>';
+      '<div style="display:flex;flex-direction:column;gap:6px;font-size:.9rem;background:#f8fafc;border-radius:8px;padding:12px 14px;margin:0 0 16px">' + rows.join("") + confirmHtml + '</div>';
   }
 
   /* Panel "Fijar precio" (cotización) del detalle del pedido en el modal admin.
@@ -827,6 +883,30 @@
       }).catch(function () {
         saveBtn.disabled = false; saveBtn.textContent = orig;
         msg.style.color = "#b91c1c"; msg.textContent = "Sin conexión con el servidor.";
+      });
+    });
+
+    /* Confirmar el pago manualmente (efectivo/transferencia o aprobado en MP). */
+    var paidBtn = $("#order-paid-btn", ov);
+    if (paidBtn) paidBtn.addEventListener("click", function () {
+      var msg = $("#order-paid-msg", ov);
+      if (!window.confirm("¿Confirmar que este pedido ya está PAGADO? Se le enviará un correo de confirmación al cliente.")) return;
+      var orig = paidBtn.textContent;
+      paidBtn.disabled = true; paidBtn.textContent = "Guardando…";
+      if (msg) { msg.style.color = "var(--text-muted,#6b7280)"; msg.textContent = ""; }
+      DataSource.setOrderPaid(o.id || o.code, "pagado").then(function (res) {
+        if (res && res.ok) {
+          o.payment_status = "pagado";
+          if (msg) { msg.style.color = "#166534"; msg.textContent = "Pago confirmado. Se avisó al cliente por correo."; }
+          paidBtn.style.display = "none";
+          renderOrdersTable();
+        } else {
+          paidBtn.disabled = false; paidBtn.textContent = orig;
+          if (msg) { msg.style.color = "#b91c1c"; msg.textContent = (res && res.error) || "No se pudo confirmar el pago."; }
+        }
+      }).catch(function () {
+        paidBtn.disabled = false; paidBtn.textContent = orig;
+        if (msg) { msg.style.color = "#b91c1c"; msg.textContent = "Sin conexión con el servidor."; }
       });
     });
 

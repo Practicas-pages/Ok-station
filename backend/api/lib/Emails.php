@@ -248,6 +248,67 @@ final class Emails
         return self::layout('Tu pedido ' . (string) ($p['code'] ?? '') . ' — ' . $label, $inner);
     }
 
+    /** Etiqueta legible de un estado de cita (para asuntos y cuerpos de correo). */
+    public static function apptStatusLabel(string $s): string
+    {
+        $L = [
+            'pendiente'  => 'Pendiente',
+            'confirmada' => 'Confirmada',
+            'cancelada'  => 'Cancelada',
+            'completada' => 'Completada',
+            'no_show'    => 'No asistida',
+        ];
+        return $L[$s] ?? ucfirst(str_replace('_', ' ', $s));
+    }
+
+    /** Correo de cambio de estado de una cita. $p: name, code, status. */
+    public static function citaEstadoHtml(array $p): string
+    {
+        $status = (string) ($p['status'] ?? '');
+        $label  = self::apptStatusLabel($status);
+        $msgMap = [
+            'pendiente'  => 'Recibimos tu cita. Te confirmaremos en breve.',
+            'confirmada' => '¡Tu cita quedó confirmada! Te esperamos en Centro Comercial Otay, Local G-03.',
+            'cancelada'  => 'Tu cita fue cancelada. Si crees que es un error, escríbenos por WhatsApp.',
+            'completada' => '¡Gracias por tu visita! Tu cita quedó completada.',
+            'no_show'    => 'Registramos que no asististe a tu cita. Si necesitas reagendar, escríbenos.',
+        ];
+        $msg = $msgMap[$status] ?? ('Tu cita ahora está: ' . $label . '.');
+
+        $inner =
+            '<h1 style="margin:0 0 6px;font-size:20px;color:#12141c">¡Hola ' . self::e((string) ($p['name'] ?? '')) . '!</h1>'
+            . '<p style="margin:0 0 16px;font-size:15px;line-height:1.6;color:#4a5068">' . self::e($msg) . '</p>'
+            . self::ticketCard((string) ($p['code'] ?? ''), self::row('Estado', self::e($label)))
+            . '<p style="margin:14px 0 0;font-size:13px;line-height:1.6;color:#6b7280">'
+            . '¿Dudas? Escríbenos por WhatsApp al (664) 719-4117 o responde este correo.</p>';
+
+        return self::layout('Tu cita ' . (string) ($p['code'] ?? '') . ' — ' . $label, $inner);
+    }
+
+    /**
+     * Correo "pago confirmado". $p: kind ('order'|'appointment'), name, code, amount.
+     * Se envía cuando el pago queda 'pagado' (por Mercado Pago o confirmado por el
+     * trabajador en el panel). El correo es el canal principal de aviso al cliente.
+     */
+    public static function pagoConfirmadoHtml(array $p): string
+    {
+        $isAppt = (($p['kind'] ?? 'order') === 'appointment');
+        $noun   = $isAppt ? 'tu cita' : 'tu pedido';
+        $name   = (string) ($p['name'] ?? '');
+        $amt    = '$' . number_format((float) ($p['amount'] ?? 0), 2) . ' MXN';
+
+        $inner =
+            '<h1 style="margin:0 0 6px;font-size:20px;color:#12141c">¡Pago confirmado' . ($name !== '' ? ', ' . self::e($name) : '') . '!</h1>'
+            . '<p style="margin:0 0 16px;font-size:15px;line-height:1.6;color:#4a5068">'
+            . 'Recibimos el pago de ' . $noun . ' en Ok.station. '
+            . ($isAppt ? 'Tu cita queda <b>pagada</b> y confirmada.' : 'Ya nos ponemos con <b>tu pedido</b>.') . '</p>'
+            . self::ticketCard((string) ($p['code'] ?? ''), self::row('Pago recibido', $amt))
+            . '<p style="margin:14px 0 0;font-size:13px;line-height:1.6;color:#6b7280">'
+            . 'Cualquier duda, escríbenos por WhatsApp al (664) 719-4117 o responde este correo.</p>';
+
+        return self::layout('Pago confirmado ' . (string) ($p['code'] ?? '') . ' · Ok.station', $inner);
+    }
+
     /** Correo con el COMPROBANTE PDF adjunto (pedido o cita). $kind = 'pedido'|'cita'. */
     public static function comprobanteHtml(string $kind, string $code, string $name): string
     {

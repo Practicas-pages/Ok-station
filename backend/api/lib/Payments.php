@@ -222,17 +222,45 @@ final class Payments
         self::log($entityId, $prev ?? null, $newStatus, (string) ($row['payment_provider'] ?? self::provider()),
             (string) ($row['payment_reference'] ?? ''), $transactionId, round((float) $row[$amountCol], 2), $source, $userId, [], $kind);
 
-        // Notificación al cliente cuando el pago se confirma (solo si la cuenta existe).
-        if ($newStatus === 'pagado' && (int) ($row['user_id'] ?? 0) > 0) {
+        // Aviso al cliente cuando el pago se confirma. El CORREO es el canal principal
+        // (el cliente no siempre está viendo el sitio); además, notificación in-app si
+        // tiene cuenta. Cubre TODOS los caminos que llaman a finalize: webhook de
+        // Mercado Pago, cobro con tarjeta (process.php), sandbox y la confirmación
+        // manual del trabajador desde el panel.
+        if ($newStatus === 'pagado') {
+            $isAppt = ($kind === 'appointment');
+            if ((int) ($row['user_id'] ?? 0) > 0) {
+                try {
+                    $title = $isAppt ? 'Pago de cita recibido' : 'Pago confirmado';
+                    $body  = 'Recibimos el pago de ' . ($isAppt ? 'tu cita ' : 'tu pedido ') . $row['code'] . '. ¡Gracias!';
+                    db()->prepare('INSERT INTO notifications (user_id, type, title, body) VALUES (?,?,?,?)')
+                        ->execute([(int) $row['user_id'], ($isAppt ? 'appointment' : 'payment'), $title, $body]);
+                } catch (Throwable $e) { /* best-effort */ }
+            }
             try {
-                $isAppt = ($kind === 'appointment');
-                $title  = $isAppt ? 'Pago de cita recibido' : 'Pago confirmado';
-                $body   = $isAppt
-                    ? 'Recibimos el pago de tu cita ' . $row['code'] . '. ¡Gracias!'
-                    : 'Recibimos el pago de tu pedido ' . $row['code'] . '. ¡Gracias!';
-                db()->prepare('INSERT INTO notifications (user_id, type, title, body) VALUES (?,?,?,?)')
-                    ->execute([(int) $row['user_id'], ($isAppt ? 'appointment' : 'payment'), $title, $body]);
-            } catch (Throwable $e) { /* best-effort */ }
+                require_once __DIR__ . '/Mail.php';
+                require_once __DIR__ . '/Emails.php';
+                $to = ''; $name = (string) ($row['contact_name'] ?? '');
+                if ((int) ($row['user_id'] ?? 0) > 0) {
+                    $cu = User::find((int) $row['user_id']);
+                    if ($cu) { $to = (string) ($cu['email'] ?? ''); if ($name === '') $name = (string) ($cu['full_name'] ?? ''); }
+                }
+                if ($to === '') $to = trim((string) ($row['contact_email'] ?? ''));   // cita de invitado
+                if ($to !== '') {
+                    $html = Emails::pagoConfirmadoHtml([
+                        'kind'   => $kind,
+                        'name'   => $name,
+                        'code'   => (string) $row['code'],
+                        'amount' => round((float) ($row[$amountCol] ?? 0), 2),
+                    ]);
+                    Mail::sendHtml(
+                        $to,
+                        'Pago confirmado · ' . $row['code'] . ' · Ok.station',
+                        $html,
+                        'Confirmamos el pago de ' . ($isAppt ? 'tu cita ' : 'tu pedido ') . $row['code'] . '. ¡Gracias!'
+                    );
+                }
+            } catch (Throwable $e) { /* best-effort: el correo no debe afectar la confirmación */ }
         }
         return true;
     }

@@ -274,12 +274,15 @@
       var h = pend.querySelector("h2"); if (h && title) h.textContent = title;
       if (msg) $("pago-pending-msg").textContent = msg;
     }
-    /* Cuando MP no aprueba al instante (in_process), NO asustamos con "en revisión":
-       verificamos el estado real (el webhook lo confirma en segundos) y, si se
-       autoriza, mostramos "Pago autorizado". Solo si sigue en proceso tras varios
-       intentos dejamos un aviso tranquilo. */
+    /* Cuando MP no aprueba al instante (in_process), NO dejamos al cliente mirando un
+       "verificando" que parece colgado: mostramos DE UNA un mensaje claro y tranquilo
+       ("en proceso, te avisamos por correo") con el botón Volver, y seguimos
+       consultando el estado en SEGUNDO PLANO. Si se autoriza, cambia solo a "Pago
+       autorizado"; el correo confirma de todas formas y el trabajador puede marcarlo
+       como pagado desde el panel. */
     function verifyPayment() {
-      setPending("Verificando tu pago…", "Esto toma solo unos segundos.");
+      var noun = isAppt ? "citas" : "pedidos";
+      setPending("Pago en proceso", "Estamos validando tu pago. En cuanto se apruebe te avisamos por correo y lo verás en tus " + noun + ". Puedes cerrar esta ventana.");
       var statusQS = isAppt ? ("appointment_id=" + encodeURIComponent(apptId)) : ("order_id=" + encodeURIComponent(orderId));
       var tries = 0;
       (function poll() {
@@ -290,19 +293,12 @@
             var ps = res && res.payment_status;
             if (ps === "pagado") { showSuccess(); return; }
             if (ps === "error") {
-              setPending("Pago no aprobado", "Tu pago no se pudo aprobar. Vuelve a intentarlo desde tus " + (isAppt ? "citas" : "pedidos") + ".");
+              setPending("Pago no aprobado", "Tu pago no se pudo aprobar. Vuelve a intentarlo desde tus " + noun + ".");
               return;
             }
-            if (tries >= 8) {
-              setPending("Pago en proceso", "Tu pago se está procesando. En cuanto se apruebe lo verás en tus " + (isAppt ? "citas" : "pedidos") + " y te avisaremos por correo.");
-              return;
-            }
-            setTimeout(poll, 2500);
+            if (tries < 10) setTimeout(poll, 3000);   // sigue en proceso: el mensaje ya está puesto y el correo avisará
           })
-          .catch(function () {
-            if (tries >= 8) { setPending("Pago en proceso", "Tu pago se está procesando. Te avisaremos en cuanto se confirme."); return; }
-            setTimeout(poll, 2500);
-          });
+          .catch(function () { if (tries < 10) setTimeout(poll, 3000); });
       })();
     }
 
