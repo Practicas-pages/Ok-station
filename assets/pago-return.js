@@ -22,7 +22,7 @@
   if (!pago) return; // no venimos de un checkout
 
   var MSG = {
-    ok:        { t: "¡Pago recibido!",       d: "Estamos confirmando tu pago. El estado se actualizará aquí en unos segundos.",        c: "#15803D", bg: "#DCFCE7" },
+    ok:        { t: "¡Pago aprobado!",       d: "Tu pago se aprobó correctamente. ¡Gracias! Aquí abajo puedes ver tu comprobante.",     c: "#15803D", bg: "#DCFCE7" },
     pendiente: { t: "Pago en revisión",      d: "Tu pago quedó pendiente de aprobación. Te avisaremos en cuanto se confirme.",          c: "#B45309", bg: "#FEF3C7" },
     cancelado: { t: "Pago no completado",    d: "No se realizó ningún cargo. Puedes intentarlo de nuevo cuando quieras.",               c: "#B91C1C", bg: "#FEE2E2" }
   };

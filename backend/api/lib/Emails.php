@@ -105,7 +105,7 @@ final class Emails
             self::row('Personas', self::e((string) $p['party'])) .
             self::row('Fecha', self::e(self::fdate((string) $p['date']))) .
             self::row('Hora', self::e((string) $p['time']) . ' hrs') .
-            (!empty($p['priceText']) ? self::row('Anticipo estimado', self::e((string) $p['priceText'])) : '');
+            (!empty($p['priceText']) ? self::row('Pago estimado', self::e((string) $p['priceText'])) : '');
 
         $inner =
             '<h1 style="margin:0 0 6px;font-size:20px;color:#12141c">¡Hola ' . self::e((string) $p['name']) . '!</h1>'
@@ -196,27 +196,27 @@ final class Emails
     }
 
     /**
-     * Correo "tu cita ya tiene anticipo" (cotización lista). $p: name, code, total, payUrl.
-     * La trabajadora fijó el anticipo de un trámite que se cotiza (p. ej. apostille/médica).
+     * Correo "tu cita ya se puede pagar" (cotización lista). $p: name, code, total, payUrl.
+     * La trabajadora fijó el pago de un trámite que se cotiza (p. ej. apostille/médica).
      */
     public static function citaPrecioHtml(array $p): string
     {
         $total = '$' . number_format((float) ($p['total'] ?? 0), 2) . ' MXN';
         $rows =
-            '<tr><td style="padding:9px 0 2px;font-size:15px;font-weight:bold;color:#12141c">Anticipo</td>'
+            '<tr><td style="padding:9px 0 2px;font-size:15px;font-weight:bold;color:#12141c">Total a pagar</td>'
             . '<td align="right" style="padding:9px 0 2px;font-size:16px;font-weight:bold;color:#066CFF">' . $total . '</td></tr>';
 
         $inner =
             '<h1 style="margin:0 0 6px;font-size:20px;color:#12141c">¡Hola ' . self::e((string) ($p['name'] ?? '')) . '!</h1>'
             . '<p style="margin:0 0 18px;font-size:15px;line-height:1.6;color:#4a5068">'
-            . 'Ya cotizamos tu cita y tiene <b>anticipo</b>. Puedes pagarlo en línea de forma segura '
+            . 'Ya cotizamos tu cita. Ya puedes <b>pagarla en línea</b> de forma segura '
             . 'para apartar tu lugar:</p>'
             . self::ticketCard((string) ($p['code'] ?? ''), $rows)
-            . self::button((string) ($p['payUrl'] ?? self::appUrl()), 'Pagar mi anticipo')
+            . self::button((string) ($p['payUrl'] ?? self::appUrl()), 'Pagar mi cita')
             . '<p style="margin:8px 0 0;font-size:13px;line-height:1.6;color:#6b7280;text-align:center">'
             . 'Si prefieres, también puedes coordinar el pago por WhatsApp al (664) 719-4117.</p>';
 
-        return self::layout('Tu cita ' . (string) ($p['code'] ?? '') . ' ya tiene anticipo', $inner);
+        return self::layout('Tu cita ' . (string) ($p['code'] ?? '') . ' ya se puede pagar', $inner);
     }
 
     /**

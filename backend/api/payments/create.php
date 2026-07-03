@@ -36,7 +36,7 @@ if ($apptId > 0) {
     }
     if (($entity['status'] ?? '') === 'cancelada') fail('Esta cita está cancelada y no se puede pagar.', 409);
     if (round((float) ($entity['amount_total'] ?? 0), 2) <= 0) {
-        fail('Este trámite se cotiza; el anticipo se coordina por WhatsApp.', 409);
+        fail('Este trámite se cotiza; el pago se coordina por WhatsApp.', 409);
     }
 } elseif ($orderId > 0) {
     $kind   = 'order';

@@ -19,15 +19,15 @@ $b      = body();
 $id     = (int) ($b['id'] ?? 0);
 $amount = round((float) ($b['amount'] ?? $b['total'] ?? 0), 2);
 
-if ($amount <= 0)      fail('Ingresa un anticipo válido mayor a $0.');
+if ($amount <= 0)      fail('Ingresa un pago válido mayor a $0.');
 if ($amount > 1000000) fail('El monto es demasiado alto. Revisa la cifra.');
 
-if (!table_has_column('appointments', 'amount_total')) fail('El cobro de anticipos no está habilitado.', 409);
+if (!table_has_column('appointments', 'amount_total')) fail('El cobro en línea no está habilitado.', 409);
 
 $a = Appointment::find($id);
 if (!$a) fail('Cita no encontrada.', 404);
 if (($a['status'] ?? '') === 'cancelada')               fail('Esta cita está cancelada y no se puede cotizar.', 409);
-if (($a['payment_status'] ?? 'pendiente') === 'pagado') fail('Esta cita ya tiene el anticipo pagado.', 409);
+if (($a['payment_status'] ?? 'pendiente') === 'pagado') fail('Esta cita ya está pagada.', 409);
 
 $data = ['amount_total' => $amount];
 if (table_has_column('appointments', 'quoted_at')) $data['quoted_at'] = date('Y-m-d H:i:s');
@@ -39,8 +39,8 @@ log_activity((int) $user['id'], 'appointment.price_set', 'appointments', $id, ['
 if (!empty($a['user_id'])) {
     db()->prepare('INSERT INTO notifications (user_id, type, title, body) VALUES (?,?,?,?)')
         ->execute([
-            (int) $a['user_id'], 'appointment', 'Anticipo listo',
-            'Tu cita ' . $a['code'] . ' ya tiene anticipo: $' . number_format($amount, 2) . ' MXN. Ya puedes pagarlo en línea.',
+            (int) $a['user_id'], 'appointment', 'Pago listo',
+            'Tu cita ' . $a['code'] . ' ya se puede pagar: $' . number_format($amount, 2) . ' MXN. Ya puedes pagarla en línea.',
         ]);
 }
 
@@ -67,9 +67,9 @@ try {
         ]);
         $emailed = Mail::sendHtml(
             $to,
-            'Tu cita ' . $a['code'] . ' ya tiene anticipo · Ok.station',
+            'Tu cita ' . $a['code'] . ' ya se puede pagar · Ok.station',
             $html,
-            'Tu cita ' . $a['code'] . ' ya tiene anticipo: $' . number_format($amount, 2) . ' MXN. Entra a okstation.mx para pagarlo en línea.'
+            'Tu cita ' . $a['code'] . ' ya se puede pagar: $' . number_format($amount, 2) . ' MXN. Entra a okstation.mx para pagarla en línea.'
         );
     }
 } catch (Throwable $e) { /* best-effort: el correo no debe afectar el guardado */ }

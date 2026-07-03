@@ -25,7 +25,7 @@ if (in_array($status, ['confirmada', 'completada'], true)
     && Pricing::requiresPayment((string) $a['tramite'])
     && round((float) ($a['amount_total'] ?? 0), 2) > 0
     && ($a['payment_status'] ?? 'pendiente') !== 'pagado') {
-    fail('Esta cita de ' . $a['tramite'] . ' requiere el anticipo del 100% pagado antes de confirmarse.', 409,
+    fail('Esta cita de ' . $a['tramite'] . ' requiere el pago completo antes de confirmarse.', 409,
         ['reason' => 'payment_required', 'payment_status' => $a['payment_status'] ?? 'pendiente']);
 }
 

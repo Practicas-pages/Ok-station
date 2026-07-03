@@ -85,7 +85,7 @@
       <!-- Estado de éxito (oculto hasta confirmar) -->
       <div id="pago-done" hidden>
         <div class="cc-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg></div>
-        <h2 style="margin:0 0 4px;font-size:1.2rem">¡Pago recibido!</h2>
+        <h2 style="margin:0 0 4px;font-size:1.2rem">¡Pago aprobado!</h2>
         <p style="color:var(--text-muted);font-size:0.88rem" id="pago-done-msg">Procesando tu confirmación…</p>
       </div>
 
@@ -187,7 +187,7 @@
 
     if (!token()) { location.href = "cuenta.html"; return; }
 
-    /* La página cobra un PEDIDO (?order=) o el ANTICIPO de una CITA (?appt=). */
+    /* La página cobra un PEDIDO (?order=) o el PAGO de una CITA (?appt=). */
     var orderId = qs("order"), apptId = qs("appt");
     var isAppt   = !!apptId;
     var entityId = isAppt ? apptId : orderId;
@@ -245,7 +245,7 @@
         '<div class="order-pay"><div class="order-pay__head"><span class="order-pay__title">Resumen de tu ' + esc(noun) + '</span></div>' +
         '<div class="order-pay__body">' +
           (S.reference ? '<div class="order-pay__row order-pay__muted"><span>Referencia</span><span class="mono">' + esc(S.reference) + '</span></div>' : '') +
-          '<div class="order-pay__row"><span>' + (isAppt ? "Anticipo a pagar" : "Total a pagar") + '</span><b>' + mxn(S.amount) + '</b></div>' +
+          '<div class="order-pay__row"><span>Total a pagar</span><b>' + mxn(S.amount) + '</b></div>' +
         '</div></div>';
     }
 
@@ -262,7 +262,7 @@
       actions.hidden = true;
       $("pago-pending").hidden = true;
       var done = $("pago-done"); done.hidden = false;
-      $("pago-done-msg").textContent = isAppt ? "Registramos tu anticipo. Te llevamos a tus citas…" : "Registramos tu pago. Te llevamos a tus pedidos…";
+      $("pago-done-msg").textContent = isAppt ? "Tu pago fue aprobado. Te llevamos a tus citas…" : "Tu pago fue aprobado. Te llevamos a tus pedidos…";
       setTimeout(function () { location.href = backHref; }, 1500);
     }
     /* Estado pendiente / en revisión (no redirige solo; deja el botón "Volver"). */
@@ -313,8 +313,8 @@
                     var st = res && res.payment_status;
                     if (st === "pagado") { showSuccess(); resolve(); return; }
                     if (st === "procesando") { showPending(res.message); resolve(); return; }
-                    // rechazado / error: mostramos aviso y devolvemos el control al Brick para reintentar
-                    alertBox((res && res.message) || "Tu pago fue rechazado. Prueba con otra tarjeta.");
+                    // rechazado / error / bloqueo: mostramos aviso y devolvemos el control al Brick para reintentar
+                    alertBox((res && (res.message || res.error)) || "Tu pago fue rechazado. Prueba con otra tarjeta.");
                     try { window.scrollTo({ top: 0, behavior: "smooth" }); } catch (e) {}
                     reject();
                   }).catch(function () { alertBox("Sin conexión con el servidor."); reject(); });

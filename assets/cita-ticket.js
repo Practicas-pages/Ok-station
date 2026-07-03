@@ -109,7 +109,7 @@
     }
   };
   /* Contacto de Ok.station (WhatsApp canónico, 12 dígitos). */
-  var WA_URL = "https://wa.me/526647194117?text=" + encodeURIComponent("Hola Ok.station, tengo una cita agendada y quiero confirmar / hacer mi anticipo.");
+  var WA_URL = "https://wa.me/526647194117?text=" + encodeURIComponent("Hola Ok.station, tengo una cita agendada y quiero confirmar / hacer mi pago.");
   var MAPS_URL = "https://www.google.com/maps/place/Ok.station/@32.5292376,-116.9514835,17z/data=!4m6!3m5!1s0x80d9475a2b534615:0x80c51bb5b3fe8f55!8m2!3d32.5292376!4d-116.9514835!16s%2Fg%2F11k63fhrhb";
 
   /* Logo oficial para el encabezado del comprobante. Se precarga una vez y se

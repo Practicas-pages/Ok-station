@@ -226,9 +226,9 @@ final class Payments
         if ($newStatus === 'pagado' && (int) ($row['user_id'] ?? 0) > 0) {
             try {
                 $isAppt = ($kind === 'appointment');
-                $title  = $isAppt ? 'Anticipo recibido' : 'Pago confirmado';
+                $title  = $isAppt ? 'Pago de cita recibido' : 'Pago confirmado';
                 $body   = $isAppt
-                    ? 'Recibimos el anticipo de tu cita ' . $row['code'] . '. ¡Gracias!'
+                    ? 'Recibimos el pago de tu cita ' . $row['code'] . '. ¡Gracias!'
                     : 'Recibimos el pago de tu pedido ' . $row['code'] . '. ¡Gracias!';
                 db()->prepare('INSERT INTO notifications (user_id, type, title, body) VALUES (?,?,?,?)')
                     ->execute([(int) $row['user_id'], ($isAppt ? 'appointment' : 'payment'), $title, $body]);
@@ -279,7 +279,7 @@ final class Payments
         $t       = self::target($kind);
         $isAppt  = ($kind === 'appointment');
         $base    = rtrim((string) ($CONFIG['app_url'] ?? ''), '/');
-        $prodName = ($isAppt ? 'Anticipo cita ' : 'Pedido ') . $entity['code'] . ' — Ok.station';
+        $prodName = ($isAppt ? 'Cita ' : 'Pedido ') . $entity['code'] . ' — Ok.station';
         $params = [
             'mode'                                 => 'payment',
             'client_reference_id'                  => $reference,
@@ -331,7 +331,7 @@ final class Payments
         $t      = self::target($kind);
         $isAppt = ($kind === 'appointment');
         $base   = rtrim((string) ($CONFIG['app_url'] ?? ''), '/');
-        $title  = ($isAppt ? 'Anticipo cita ' : 'Pedido ') . $entity['code'] . ' — Ok.station';
+        $title  = ($isAppt ? 'Cita ' : 'Pedido ') . $entity['code'] . ' — Ok.station';
 
         $payload = [
             'items' => [[
@@ -407,7 +407,7 @@ final class Payments
         }
         $isAppt = ($kind === 'appointment');
         $base   = rtrim((string) ($CONFIG['app_url'] ?? ''), '/');
-        $desc   = ($isAppt ? 'Anticipo cita ' : 'Pedido ') . $entity['code'] . ' — Ok.station';
+        $desc   = ($isAppt ? 'Cita ' : 'Pedido ') . $entity['code'] . ' — Ok.station';
 
         $payload = [
             'transaction_amount' => round($amount, 2),

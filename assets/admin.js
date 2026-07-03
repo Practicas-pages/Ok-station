@@ -56,11 +56,11 @@
     var payable = (a.amount_total != null && a.amount_total !== "" && +a.amount_total > 0);
     var pstat = a.payment_status || "";
     if (payable || pstat === "pagado" || pstat === "procesando" || pstat === "reembolsado" || pstat === "error") {
-      var pInfo = pstat === "pagado"      ? { c: "#047857", t: "✓ Anticipo pagado" }
-                : pstat === "procesando"  ? { c: "#b45309", t: "⏳ Anticipo en proceso" }
-                : pstat === "reembolsado" ? { c: "#6b7280", t: "↩ Anticipo reembolsado" }
-                : pstat === "error"       ? { c: "#b91c1c", t: "✕ Anticipo con error" }
-                :                           { c: "#b45309", t: "⏳ Anticipo pendiente" };
+      var pInfo = pstat === "pagado"      ? { c: "#047857", t: "✓ Pagado" }
+                : pstat === "procesando"  ? { c: "#b45309", t: "⏳ Pago en proceso" }
+                : pstat === "reembolsado" ? { c: "#6b7280", t: "↩ Pago reembolsado" }
+                : pstat === "error"       ? { c: "#b91c1c", t: "✕ Pago con error" }
+                :                           { c: "#b45309", t: "⏳ Pago pendiente" };
       html += '<br><span style="display:inline-block;margin-top:4px;font-size:.78rem;font-weight:700;color:' + pInfo.c + '">' + pInfo.t + '</span>';
     }
     var guests = parseGuests(a.guests_json);
@@ -447,13 +447,13 @@
     var total = +a.amount_total || 0;
     var pending = !a.quoted_at;
     var banner = pending
-      ? '<div style="background:#fff7ed;border:1px solid #fed7aa;color:#9a3412;border-radius:8px;padding:10px 12px;font-size:.85rem;margin:0 0 10px">Esta cita está <b>por cotizar</b>. Ponle el anticipo y el cliente recibirá un correo para pagarlo en línea.</div>'
+      ? '<div style="background:#fff7ed;border:1px solid #fed7aa;color:#9a3412;border-radius:8px;padding:10px 12px;font-size:.85rem;margin:0 0 10px">Esta cita está <b>por cotizar</b>. Ponle el pago y el cliente recibirá un correo para pagarlo en línea.</div>'
       : "";
-    return '<h4 style="margin:0 0 6px;font-size:.95rem">Fijar anticipo (cotización)</h4>' +
+    return '<h4 style="margin:0 0 6px;font-size:.95rem">Fijar pago (cotización)</h4>' +
       '<div style="background:#f8fafc;border-radius:8px;padding:12px 14px;margin:0 0 16px">' +
         banner +
         '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">' +
-          '<span style="color:var(--text-muted,#6b7280);font-size:.85rem">Anticipo (MXN)</span>' +
+          '<span style="color:var(--text-muted,#6b7280);font-size:.85rem">Pago (MXN)</span>' +
           '<input type="number" id="appt-price-input" min="1" step="0.01" value="' + (total > 0 ? total : "") + '" placeholder="0.00" style="width:130px;padding:8px 10px;border:1px solid #d1d5db;border-radius:8px;font-size:.9rem">' +
           '<button type="button" class="btn btn--primary btn--sm" id="appt-price-save">Guardar y avisar al cliente</button>' +
         '</div>' +
@@ -583,7 +583,7 @@
                 : ps === "reembolsado" ? '<span style="color:#6b7280;font-weight:700">↩ Reembolsado</span>'
                 : ps === "error"       ? '<span style="color:#b91c1c;font-weight:700">✕ Error en el pago</span>'
                 :                        '<span style="color:#b45309;font-weight:700">⏳ Pendiente</span>';
-              return apptRow("Anticipo", v);
+              return apptRow("Pago", v);
             })() +
           '</div>' +
           apptQuotePanel(a) +
@@ -618,7 +618,7 @@
     if (apptSave) apptSave.addEventListener("click", function () {
       var inp = $("#appt-price-input", ov), msg = $("#appt-price-msg", ov);
       var val = Math.round((parseFloat(inp && inp.value) || 0) * 100) / 100;
-      if (!(val > 0)) { msg.style.color = "#b91c1c"; msg.textContent = "Ingresa un anticipo válido mayor a $0."; if (inp) inp.focus(); return; }
+      if (!(val > 0)) { msg.style.color = "#b91c1c"; msg.textContent = "Ingresa un pago válido mayor a $0."; if (inp) inp.focus(); return; }
       var orig = apptSave.textContent;
       apptSave.disabled = true; apptSave.textContent = "Guardando…";
       msg.style.color = "var(--text-muted,#6b7280)"; msg.textContent = "";
@@ -628,11 +628,11 @@
           a.amount_total = val; a.needs_quote = 0; a.quoted_at = "1";
           msg.style.color = "#166534";
           msg.textContent = res.emailed
-            ? "Anticipo guardado. Se envió el correo al cliente con el botón de pago."
-            : "Anticipo guardado. (No se pudo enviar el correo — verifica el correo del cliente.)";
+            ? "Pago guardado. Se envió el correo al cliente con el botón de pago."
+            : "Pago guardado. (No se pudo enviar el correo — verifica el correo del cliente.)";
         } else {
           msg.style.color = "#b91c1c";
-          msg.textContent = (res && res.error) || "No se pudo guardar el anticipo.";
+          msg.textContent = (res && res.error) || "No se pudo guardar el pago.";
         }
       }).catch(function () {
         apptSave.disabled = false; apptSave.textContent = orig;

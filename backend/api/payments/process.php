@@ -19,12 +19,20 @@
 require __DIR__ . '/../_bootstrap.php';
 require __DIR__ . '/../lib/authz.php';
 require __DIR__ . '/../lib/Payments.php';
+require __DIR__ . '/../lib/RateLimit.php';
 only_method('POST');
 
 if (Payments::provider() !== 'mercadopago') fail('El pago con tarjeta no está disponible.', 403);
 
 $user = current_user();
 $b    = body();
+
+/* Anti "card testing": limita los intentos de cobro por (IP + usuario). Tras varios
+   rechazos seguidos se bloquea unos minutos, evitando que se use el checkout para
+   validar tarjetas robadas. Un pago aprobado/pendiente limpia el contador. */
+$ip    = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
+$rlKey = 'pay:' . (int) $user['id'];
+RateLimit::guard($ip, $rlKey);
 
 $orderId      = (int) ($b['order_id'] ?? 0);
 $apptId       = (int) ($b['appointment_id'] ?? 0);
@@ -90,6 +98,10 @@ try {
 
 $status = Payments::mpMapStatus($pay['status']);
 Payments::finalize((int) $entity['id'], $status, $pay['id'] ?: null, 'cliente', (int) $user['id'], $kind);
+
+/* Un rechazo cuenta como intento fallido (anti card-testing); aprobado/pendiente limpia. */
+if ($status === 'error') { RateLimit::hit($ip, $rlKey); }
+else                     { RateLimit::reset($ip, $rlKey); }
 
 log_activity((int) $user['id'], 'payment.process', ($kind === 'appointment' ? 'appointments' : 'orders'),
     (int) $entity['id'], ['status' => $status, 'reference' => $reference]);
