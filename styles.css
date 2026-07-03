@@ -663,7 +663,7 @@ h1, h2, h3, h4, h5, h6 {
 .nav__links {
   display: flex;
   align-items: center;
-  gap: var(--space-1);
+  gap: var(--space-3);
 }
 
 .nav__link {
