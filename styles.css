@@ -5484,11 +5484,17 @@ body:has(.cita-drawer:not([hidden])) .citas-section > .wrap { z-index: 130; }
 
 .hero__title { color: #FFFFFF !important; }
 .hero__title .accent {
-  /* Acento más brillante y vibrante (menos oscuro): morado-azul-cyan luminoso */
-  background: linear-gradient(95deg, #9B57FF 0%, #2F97FF 48%, #1FD8FF 100%) !important;
-  -webkit-background-clip: text !important; background-clip: text !important;
-  -webkit-text-fill-color: transparent !important; color: transparent !important;
-  filter: brightness(1.12) saturate(1.18);
+  /* Color SÓLIDO (sin degradado en el texto): azul de la marca. */
+  color: #066CFF !important;
+  -webkit-text-fill-color: #066CFF !important;
+  /* El "estilo del cintillo" (degradado morado→azul→cian) vive como barra de
+     subrayado bajo "Tú lo imaginas", no en el texto. El fondo se limita a una
+     franja delgada al pie mediante background-size/position. */
+  background: linear-gradient(95deg, #9C1DFF 0%, #066CFF 55%, #00C6FF 100%) no-repeat left 100% / 100% 0.12em !important;
+  -webkit-background-clip: border-box !important; background-clip: border-box !important;
+  padding-bottom: 0.14em;
+  filter: none;
+  -webkit-box-decoration-break: clone; box-decoration-break: clone;
 }
 .hero__lead { color: rgba(255,255,255,0.92) !important; }
 .hero__eyebrow {
@@ -5833,8 +5839,19 @@ body::before, body::after,
 .party-opt:hover, .extra-card:hover { transform: translateY(-2px); }
 
 /* Flechas de carrusel y botón scroll-top: realce */
-.carousel__arrow, .scroll-top { transition: transform .2s ease, box-shadow .2s ease, color .2s ease, background .2s ease !important; }
-.carousel__arrow:hover, .scroll-top:hover { transform: scale(1.08); color: var(--brand-blue); }
+.carousel__arrow, .scroll-top { transition: transform .2s ease, box-shadow .2s ease, color .2s ease, background .2s ease, border-color .2s ease !important; }
+/* El scroll-top no está centrado con translateY, así que solo escala. */
+.scroll-top:hover { transform: scale(1.08); color: var(--brand-blue); }
+/* La flecha del carrusel SÍ vive centrada con translateY(-50%): hay que
+   conservarlo en el hover; si no, "salta" hacia abajo y parece huir del cursor.
+   En vez de moverse, cambia de color (fondo + borde + ícono azul marca). */
+.carousel__arrow:hover {
+  transform: translateY(-50%) scale(1.08);
+  color: #fff;
+  background: var(--grad-purpura-azul-cyan);
+  border-color: transparent;
+  box-shadow: 0 10px 26px rgba(6, 108, 255, 0.42);
+}
 
 /* Reveal al hacer scroll: reforzamos SOLO la transición del estado visible
    (no tocamos la opacidad inicial para no ocultar contenido nunca). */
