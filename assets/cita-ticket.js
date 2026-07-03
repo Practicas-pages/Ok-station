@@ -194,6 +194,9 @@
     return rows;
   };
   window.OKMxn0 = mxn0;
+  /* Ya hay catálogo (los defaults de arriba): pinta los precios de las tarjetas de
+     trámite YA, sin esperar al servidor, para que nunca salga "a cotizar" por lentitud. */
+  if (window.OKRenderTramitePrices) { try { window.OKRenderTramitePrices(); } catch (e) {} }
   /* Sincroniza precios/IVA con el panel (público). Si falla, se quedan los defaults.
      No bloquea el render: el resumen del wizard se construye al llegar al último paso. */
   try {
@@ -203,6 +206,8 @@
         if (j && j.ok && j.prices) window.OK_APPT_PRICES = j.prices;
         if (j && j.require_payment) window.OK_APPT_REQUIRE_PAY = j.require_payment;
         if (j && j.tax_rate) CITA_TAX = +j.tax_rate;
+        /* Re-pinta con los precios vigentes del servidor (por si difieren de los defaults). */
+        if (window.OKRenderTramitePrices) { try { window.OKRenderTramitePrices(); } catch (e) {} }
       })
       .catch(function () {});
   } catch (e) {}

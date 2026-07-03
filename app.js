@@ -386,7 +386,13 @@
       if (!p || p.quote) return "Precio a cotizar";
       return (tramite === "pasaporte" ? "Desde " : "") + (window.OKMxn0 ? window.OKMxn0(p.unit) : ("$" + p.unit));
     }
-    function initTramitePrices() {
+    function initTramitePrices(tries) {
+      /* Si cita-ticket.js (defer) aún no definió OKCitaPrice, reintenta enseguida
+         para que el precio aparezca de inmediato y NO se quede en "Precio a cotizar"
+         por lentitud de carga. Además se re-ejecuta cuando llegan los precios del
+         servidor (window.OKRenderTramitePrices, llamado desde cita-ticket.js). */
+      tries = tries || 0;
+      if (!window.OKCitaPrice) { if (tries < 40) setTimeout(function () { initTramitePrices(tries + 1); }, 60); return; }
       qsa(".tramite-btn", section).forEach(function (btn) {
         var t = btn.getAttribute("data-tramite");
         if (!t) return;
@@ -403,6 +409,9 @@
         el.textContent = tramitePriceLabel(t);
       });
     }
+    /* Hook para que cita-ticket.js re-pinte los precios en cuanto tenga su catálogo
+       (defaults al cargar y, luego, los precios vigentes del servidor). */
+    window.OKRenderTramitePrices = initTramitePrices;
     setTimeout(initTramitePrices, 0);
 
     /* Renderizar indicadores de pasos */
@@ -1294,12 +1303,22 @@
       return true;
     }
     function validateGuests() {
-      /* El paso "Información de cada persona" (cuestionario + documentos) es OPCIONAL:
-         NO bloquea el avance. Los datos obligatorios (nombre, correo y teléfono) se
-         piden en el paso "Tus datos". El cliente puede llenar esto si quiere. */
+      /* El botón "Continuar" del paso de personas se BLOQUEA hasta que TODAS las
+         personas de la cita tengan su información completa (nombre, fecha de
+         nacimiento, tipo de trámite si aplica, y los campos obligatorios del
+         cuestionario del trámite). Se recalcula en cada cambio de campo. */
+      var guests = state.guests || [];
+      var allOk = guests.length > 0;
+      for (var i = 0; i < guests.length; i++) {
+        if (!guestValid(guests[i])) { allOk = false; break; }
+      }
       var btn = qs("#cita-next-4");
-      if (btn) { btn.disabled = false; btn.setAttribute("aria-disabled", "false"); }
-      return true;
+      if (btn) {
+        btn.disabled = !allOk;
+        btn.setAttribute("aria-disabled", allOk ? "false" : "true");
+        btn.title = allOk ? "" : "Completa la información de todas las personas para continuar.";
+      }
+      return allOk;
     }
     if (personaPrevBtn) personaPrevBtn.addEventListener("click", function () { showGuest(state.activeGuest - 1); });
     if (personaNextBtn) personaNextBtn.addEventListener("click", function () { showGuest(state.activeGuest + 1); });
