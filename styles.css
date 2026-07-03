@@ -5581,6 +5581,12 @@ body:has(.cita-drawer:not([hidden])) .citas-section > .wrap { z-index: 130; }
 /* Quitar el bloque lateral "Tu cita, sin filas…" (como en el prototipo) */
 .citas-section .cita-aside { display: none !important; }
 .citas-section .cita-panel { padding: clamp(20px,3vw,30px) clamp(18px,3vw,32px) clamp(24px,3vw,34px) !important; }
+/* En celulares el padding lateral era muy generoso (18px) sobre el de .wrap (16px):
+   el formulario quedaba angosto. Lo reducimos para aprovechar el ancho de la pantalla. */
+@media (max-width: 480px) {
+  .citas-section .cita-panel { padding: 18px 12px 22px !important; }
+  #citas .wrap { padding-left: 12px; padding-right: 12px; }
+}
 
 /* Cabecera de gradiente por paso (PASO N DE 6). El número lo pone el JS en
    data-paso del paso activo: el contador CSS NO servía porque los pasos

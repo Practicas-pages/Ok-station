@@ -29,10 +29,10 @@
      `price` es el precio "desde" (por hoja) que se muestra como pista. El cálculo real
      usa la tabla escalonada PRINT_TIERS/PHOTO de abajo. ── */
   var SIZES = [
-    { id: "carta",        label: "Carta",                 price: 1.30 },
-    { id: "oficio",       label: "Oficio",                price: 1.50 },
-    { id: "tabloide",     label: "Doble carta",           price: 5 },
-    { id: "a4",           label: "A4",                    price: 1.30 },
+    { id: "carta",        label: "Carta (8.5×11\")",      price: 1.30 },
+    { id: "oficio",       label: "Oficio (8.5×13\")",     price: 1.50 },
+    { id: "tabloide",     label: "Doble carta (11×17\")", price: 5 },
+    { id: "a4",           label: "A4 (21×29.7 cm)",       price: 1.30 },
     { id: "foto_10x15",   label: "Foto 10×15 (6×4\")",    price: 10 },
     { id: "foto_13x18",   label: "Foto 13×18 (5×7\")",    price: 30 },
     { id: "gran_formato", label: "Gran formato 24\"",     price: 0 }
