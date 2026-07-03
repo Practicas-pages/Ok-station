@@ -34,11 +34,16 @@
       (o.payment_reference ? '<div class="order-pay__row order-pay__muted"><span>Referencia</span><span class="mono">' + esc(o.payment_reference) + '</span></div>' : '') +
       (pay === "pagado" && date ? '<div class="order-pay__row order-pay__muted"><span>Fecha de pago</span><span>' + esc(date) + '</span></div>' : '');
 
+    var needsQuote = (+o.needs_quote === 1) || (String(o.needs_quote) === "1");
+    var awaitingQuote = needsQuote && !o.quoted_at;   // por cotizar y aún sin precio fijado
+
     var action = "";
     if (pay === "pagado") {
       action = '<span class="order-pay__done">✓ Pedido pagado</span>';
     } else if (canceled) {
       action = '<span class="order-pay__muted">Pedido cancelado</span>';
+    } else if (awaitingQuote) {
+      action = '<span class="order-pay__muted">Estamos preparando tu cotización. Te avisaremos por correo cuando tengas un precio para pagar.</span>';
     } else if (!hasTotal) {
       action = '<span class="order-pay__muted">Confirmamos el monto al revisar tus archivos.</span>';
     } else {
