@@ -73,7 +73,7 @@ final class Pricing
                 ],
                 'tabloide' => ['bn' => [[PHP_INT_MAX, $p['tabloide_bn']]], 'color' => [[PHP_INT_MAX, $p['tabloide_color']]]],
             ],
-            'photo'       => ['foto_10x15' => $p['foto_10x15'], 'foto_13x18' => $p['foto_13x18']],
+            'photo'       => ['foto_10x15' => $p['foto_10x15'], 'foto_13x18' => $p['foto_13x18'], 'gran_formato_foto' => 380.0, 'gran_formato_bond' => 190.0],
             'enmicado'    => ['carta' => $p['enmicado_carta'], 'tabloide' => $p['enmicado_tabloide']],
             'engargolado' => $p['engargolado'],
         ];
