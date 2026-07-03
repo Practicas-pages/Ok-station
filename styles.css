@@ -4558,22 +4558,26 @@ body {
    6. Hero hours   — horario "Lun–Vie 8–19h · Sáb 9–16h" alineado a la derecha
    ============================================================ */
 
-/* ── 1. NAV LINKS: borde azul siempre visible ── */
+/* ── 1. NAV LINKS: texto con subrayado sutil (sin píldora) ── */
 .nav__link {
-  border: 1.5px solid var(--brand-blue);
+  color: var(--text-primary);
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  border-bottom: 2px solid var(--border-light);
 }
 
 .nav__link:hover,
 .nav__link:focus-visible {
-  background: var(--brand-blue) !important;
-  color: #fff !important;
-  border-color: var(--brand-blue);
+  background: transparent !important;
+  color: var(--brand-blue) !important;
+  border-bottom-color: var(--brand-blue);
 }
 
 .nav__link.is-active {
-  background: var(--brand-blue);
-  color: #fff;
-  border-color: var(--brand-blue);
+  background: transparent;
+  color: var(--brand-blue);
+  border-bottom-color: var(--brand-blue);
 }
 
 /* ── 2. PANEL TITLE: más grande ── */
@@ -4631,10 +4635,10 @@ body {
   font-size: 0.85rem;
 }
 
-/* Mobile: borde nav más suave en menú vertical */
+/* Mobile: subrayado del nav en el menú vertical (mismo gris que desktop) */
 @media (max-width: 768px) {
   .nav__link {
-    border-color: rgba(6,108,255,0.3);
+    border-bottom-color: var(--border-light);
   }
 }
 
