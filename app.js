@@ -354,7 +354,10 @@
       partySize: 1, partyLabel: "Solo yo",
       fecha: "", hora: "",
       nombre: "", tel: "", notas: "",
-      guests: [], activeGuest: 0   /* datos por persona (requisitos): [{name,dob,doctype}] */
+      guests: [], activeGuest: 0,   /* datos por persona (requisitos): [{name,dob,doctype}] */
+      /* Contacto principal reutilizando una persona registrada:
+         contactChoice "" (sin elegir) | "si" | "no"; contactGuest = índice en state.guests. */
+      contactChoice: "", contactGuest: null
     };
 
     var TOTAL_STEPS = 6;           /* Servicio → Cantidad → Información de cada persona →
@@ -947,53 +950,95 @@
     var aceptoEl = qs("#cita-acepto");
     if (aceptoEl) aceptoEl.addEventListener("change", validateStep2);
 
-    /* Contacto principal = una de las personas ya registradas en la cita:
-       si hay 1 persona, se pone el nombre solo; si hay varias, se elige cuál.
-       Así el usuario no re-escribe el nombre. (El correo y teléfono del contacto
-       siempre se piden aquí porque no se capturan por persona.) */
+    /* Contacto principal reutilizando una de las personas ya registradas en la cita.
+       Flujo: primero se pregunta "¿El contacto es alguno de los usuarios registrados?"
+       (Sí/No). Con "Sí" se elige a la persona y se autollena su nombre (el correo y el
+       teléfono se piden aquí porque no se capturan por persona). Con "No", captura manual.
+       La elección se guarda en state (contactChoice/contactGuest) y se reaplica al volver
+       a este paso, reflejando cualquier edición hecha en el paso anterior. */
     function renderQuienContacto() {
       var host = qs("#cita-quien-host");
       if (!host) return;
-      /* Personas que SÍ capturaron su nombre en el paso anterior. */
-      var guests = (state.guests || []).filter(function (g) { return g && g.name && g.name.trim(); });
-      if (!guests.length) { host.hidden = true; host.innerHTML = ""; return; }
+
+      /* Personas que SÍ capturaron su nombre, con su índice REAL en state.guests. */
+      var people = [];
+      (state.guests || []).forEach(function (g, i) {
+        if (g && g.name && g.name.trim()) people.push({ i: i, name: g.name.trim(), dob: g.dob, doctype: g.doctype });
+      });
+
+      /* Sin personas registradas → se oculta la opción y el formulario queda manual. */
+      if (!people.length) { host.hidden = true; host.innerHTML = ""; return; }
       host.hidden = false;
 
-      if (guests.length === 1) {
-        if (nameInput && !nameInput.value.trim()) { nameInput.value = guests[0].name.trim(); validateStep2(); }
-        host.innerHTML = '<p class="cita-quien__note">Pusimos el nombre de la persona de la cita: <b>' +
-          sanitize(guests[0].name.trim()) + '</b>. Si el contacto es otra persona, edítalo abajo.</p>';
-        return;
+      /* Si la persona elegida ya no existe (cambió el nº de personas o se borró su
+         nombre), se reinicia la elección. */
+      if (typeof state.contactGuest === "number" && !people.some(function (p) { return p.i === state.contactGuest; })) {
+        state.contactGuest = null;
+        if (state.contactChoice === "si") state.contactChoice = "";
+      }
+      /* "Sí" con una sola persona → queda elegida automáticamente. */
+      if (state.contactChoice === "si" && state.contactGuest == null && people.length === 1) {
+        state.contactGuest = people[0].i;
+      }
+      /* Reaplica el nombre de la persona elegida (refleja ediciones del paso anterior). */
+      if (state.contactChoice === "si" && typeof state.contactGuest === "number" && nameInput) {
+        var gsel = state.guests[state.contactGuest];
+        if (gsel && gsel.name && gsel.name.trim()) nameInput.value = gsel.name.trim();
       }
 
-      /* Varias personas → LISTA visible de tarjetas seleccionables (más simple que un
-         desplegable): el cliente elige quién de las personas registradas es el contacto,
-         o "Otra persona" para escribir otros datos abajo. */
-      var cur = nameInput ? nameInput.value.trim() : "";
-      var opts = guests.map(function (g, i) {
-        var name = g.name.trim();
-        var meta = [];
-        if (g.dob) meta.push("Nac. " + formatDate(g.dob));
-        if (g.doctype) meta.push(DOCTYPE_LABEL[g.doctype] || g.doctype);
-        return '<button type="button" class="cita-quien__opt' + (cur === name ? " is-active" : "") +
-          '" data-quien="' + i + '"><b>' + sanitize(name) + '</b>' +
-          (meta.length ? '<span>' + sanitize(meta.join(" · ")) + '</span>' : "") + '</button>';
-      }).join("");
-      opts += '<button type="button" class="cita-quien__opt cita-quien__opt--other' +
-        (cur && guests.every(function (g) { return g.name.trim() !== cur; }) ? " is-active" : "") +
-        '" data-quien="otro"><b>Otra persona</b><span>Escribir datos abajo</span></button>';
+      var isYes = state.contactChoice === "si";
+      var isNo  = state.contactChoice === "no";
 
-      host.innerHTML =
-        '<p class="cita-quien__label">¿Quién es el contacto principal? El trabajador se comunicará con esta persona y ahí llega el correo.</p>' +
-        '<div class="cita-quien__opts" role="group" aria-label="Contacto principal">' + opts + '</div>';
+      var html =
+        '<p class="cita-quien__label" id="cita-quien-q">¿El contacto principal es alguno de los usuarios registrados en esta cita?</p>' +
+        '<div class="cita-quien__yn" role="radiogroup" aria-labelledby="cita-quien-q">' +
+          '<button type="button" class="cita-quien__opt cita-quien__yn-btn' + (isYes ? " is-active" : "") + '" data-yn="si" role="radio" aria-checked="' + isYes + '"><b>Sí</b></button>' +
+          '<button type="button" class="cita-quien__opt cita-quien__yn-btn' + (isNo ? " is-active" : "") + '" data-yn="no" role="radio" aria-checked="' + isNo + '"><b>No</b></button>' +
+        '</div>';
 
-      qsa(".cita-quien__opt", host).forEach(function (btn) {
+      if (isYes && people.length > 1) {
+        html += '<p class="cita-quien__label" style="margin-top:14px">Elige quién será el contacto principal:</p>' +
+          '<div class="cita-quien__opts" role="group" aria-label="Usuarios registrados">' +
+          people.map(function (p) {
+            var meta = [];
+            if (p.dob) meta.push("Nac. " + formatDate(p.dob));
+            if (p.doctype) meta.push(DOCTYPE_LABEL[p.doctype] || p.doctype);
+            var active = (p.i === state.contactGuest);
+            return '<button type="button" class="cita-quien__opt' + (active ? " is-active" : "") +
+              '" data-quien="' + p.i + '" aria-pressed="' + active + '"><b>' + sanitize(p.name) + '</b>' +
+              (meta.length ? '<span>' + sanitize(meta.join(" · ")) + '</span>' : "") + '</button>';
+          }).join("") + '</div>';
+      } else if (isYes && people.length === 1) {
+        html += '<p class="cita-quien__note" style="margin-top:10px">Usaremos el nombre de <b>' +
+          sanitize(people[0].name) + '</b>. Solo agrega el correo y el teléfono abajo.</p>';
+      }
+
+      host.innerHTML = html;
+
+      /* Sí / No. */
+      qsa(".cita-quien__yn-btn", host).forEach(function (btn) {
         btn.addEventListener("click", function () {
-          qsa(".cita-quien__opt", host).forEach(function (b) { b.classList.remove("is-active"); });
-          btn.classList.add("is-active");
-          var v = btn.getAttribute("data-quien");
-          if (v === "otro") { if (nameInput) { nameInput.value = ""; nameInput.focus(); } }
-          else if (nameInput) { nameInput.value = (guests[+v] && guests[+v].name.trim()) || ""; }
+          if (btn.getAttribute("data-yn") === "no") {
+            state.contactChoice = "no"; state.contactGuest = null;
+            if (nameInput) nameInput.value = "";
+            renderQuienContacto();
+            if (nameInput) nameInput.focus();
+          } else {
+            state.contactChoice = "si";
+            if (people.length === 1) { state.contactGuest = people[0].i; if (nameInput) nameInput.value = people[0].name; }
+            renderQuienContacto();
+          }
+          validateStep2();
+        });
+      });
+
+      /* Selección de la persona (cuando hay varias). */
+      qsa(".cita-quien__opt[data-quien]", host).forEach(function (btn) {
+        btn.addEventListener("click", function () {
+          var i = +btn.getAttribute("data-quien");
+          state.contactChoice = "si"; state.contactGuest = i;
+          if (nameInput) nameInput.value = (state.guests[i] && state.guests[i].name.trim()) || "";
+          renderQuienContacto();
           validateStep2();
         });
       });
@@ -1574,7 +1619,7 @@
     var resetBtn = qs("#cita-reset");
     if (resetBtn) {
       resetBtn.addEventListener("click", function () {
-        state = { step: 0, tramite: null, tramiteLabel: "", subtype: "", partySize: 1, partyLabel: "Solo yo", fecha: "", hora: "", nombre: "", tel: "", notas: "", guests: [], activeGuest: 0 };
+        state = { step: 0, tramite: null, tramiteLabel: "", subtype: "", partySize: 1, partyLabel: "Solo yo", fecha: "", hora: "", nombre: "", tel: "", notas: "", guests: [], activeGuest: 0, contactChoice: "", contactGuest: null };
         if (personasHost) personasHost.innerHTML = "";
 
         qsa(".tramite-btn").forEach(function (b) {

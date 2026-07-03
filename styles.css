@@ -6169,6 +6169,10 @@ body::before, body::after,
 .cita-quien__opt.is-active { border-color: var(--brand-blue); background: var(--brand-blue); color: #fff; box-shadow: 0 6px 16px rgba(6,108,255,0.25); }
 .cita-quien__opt.is-active span { color: rgba(255,255,255,0.85); }
 .cita-quien__opt--other { border-style: dashed; }
+/* Pregunta Sí/No: ¿el contacto es una de las personas registradas? Reusa el estilo
+   de .cita-quien__opt pero compacto y centrado (solo "Sí"/"No"). */
+.cita-quien__yn { display: flex; gap: 10px; margin: 0 0 4px; }
+.cita-quien__yn-btn { min-width: 88px; flex-direction: row; align-items: center; justify-content: center; text-align: center; }
 
 /* ============================================================
    35. PRECIO EN TARJETAS DE TRÁMITE + RESUMEN DE CITA AGRUPADO
