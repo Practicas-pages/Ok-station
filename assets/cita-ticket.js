@@ -288,10 +288,12 @@
       var cv = tmp.querySelector("canvas");
       if (cv) {
         doc.addImage(cv.toDataURL("image/png"), "PNG", PW - x - 38, 44, 38, 38);
-        /* Leyenda debajo del QR: a dónde lleva y que hay que iniciar sesión. */
-        doc.setFont("helvetica", "normal"); doc.setFontSize(6.5); doc.setTextColor(muted[0], muted[1], muted[2]);
-        doc.text("Escanéalo para ver tus citas", PW - x - 19, 85, { align: "center" });
-        doc.text("(inicia sesión primero)", PW - x - 19, 88, { align: "center" });
+        /* Leyenda debajo del QR: a dónde lleva y que hay que iniciar sesión.
+           Se dibuja oscura y un poco más grande para que se lea bien (antes muy tenue). */
+        doc.setFont("helvetica", "bold"); doc.setFontSize(7.5); doc.setTextColor(dark[0], dark[1], dark[2]);
+        doc.text("Escanéalo para ver tus citas", PW - x - 19, 85.5, { align: "center" });
+        doc.setFont("helvetica", "normal"); doc.setFontSize(7);
+        doc.text("(inicia sesión primero)", PW - x - 19, 89, { align: "center" });
       }
     } catch (e) {}
     /* ── Fecha de emisión (los datos fiscales de la empresa se retiraron del ticket) ── */
