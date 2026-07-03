@@ -12,8 +12,10 @@ $servicesCol = table_has_column('appointments', 'services_json') ? 'services_jso
 $payCols     = table_has_column('appointments', 'amount_total')
     ? 'id, amount_total, payment_status, payment_reference,'
     : '';
+/* Cotización (migración 0023): distingue "por cotizar y aún sin anticipo" de "ya cotizada". */
+$quoteCols   = table_has_column('appointments', 'needs_quote') ? 'needs_quote, quoted_at,' : '';
 $st = db()->prepare(
-    "SELECT $payCols code, tramite, passport_subtype, party_size, $guestsCol $servicesCol contact_name, contact_phone,
+    "SELECT $payCols $quoteCols code, tramite, passport_subtype, party_size, $guestsCol $servicesCol contact_name, contact_phone,
             DATE_FORMAT(appt_date,'%Y-%m-%d') AS date,
             TIME_FORMAT(appt_time,'%H:%i')    AS time,
             status, created_at

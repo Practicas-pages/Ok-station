@@ -44,6 +44,29 @@ final class Payments
         return in_array($p, ['sandbox', 'stripe', 'mercadopago'], true) ? $p : 'sandbox';
     }
 
+    /** Public Key de Mercado Pago (segura de exponer al navegador; el front la usa para tokenizar). */
+    public static function mpPublicKey(): string
+    {
+        global $CONFIG;
+        return (string) ($CONFIG['payment']['mp_public_key'] ?? '');
+    }
+
+    /** Mapea el estado de un pago de Mercado Pago a nuestro ENUM interno. */
+    public static function mpMapStatus(string $mpStatus): string
+    {
+        $map = [
+            'approved'     => 'pagado',
+            'authorized'   => 'pagado',
+            'refunded'     => 'reembolsado',
+            'charged_back' => 'reembolsado',
+            'rejected'     => 'error',
+            'cancelled'    => 'error',
+            'in_process'   => 'procesando',
+            'pending'      => 'procesando',
+        ];
+        return $map[$mpStatus] ?? 'procesando';
+    }
+
     public static function isSandbox(): bool
     {
         return self::provider() === 'sandbox';
@@ -66,21 +89,40 @@ final class Payments
      * Devuelve ['ok'=>true,'checkout_url'=>..,'reference'=>..,'provider'=>..,'transaction_id'=>..]
      * El monto se toma de la BD (orders.total / appointments.amount_total); el cliente NO lo altera.
      */
-    public static function createSession(array $entity, array $user, string $kind = 'order'): array
+    public static function createSession(array $entity, array $user, string $kind = 'order', string $mode = 'api'): array
     {
         $t         = self::target($kind);
         $amount    = round((float) ($entity[$t['amount']] ?? 0), 2);
         $reference = self::makeReference($entity);
         $provider  = self::provider();
+        $param     = ($kind === 'appointment') ? 'appt' : 'order';
+        $payPage   = 'pago.html?ref=' . rawurlencode($reference) . '&' . $param . '=' . (int) $entity['id'];
 
         if ($provider === 'mercadopago') {
-            $session = self::mpCreatePreference($entity, $user, $amount, $reference, $kind);
+            // mode=pro → Checkout Pro: crea la preferencia y redirige al init_point de MP.
+            // mode=api (por defecto) → Checkout API: el cobro se hace en pago.html con el
+            //   Brick de tarjeta (tokeniza contra MP) y se confirma en payments/process.php.
+            //   Aquí NO se crea preferencia; solo se prepara la intención.
+            if ($mode === 'pro') {
+                $session = self::mpCreatePreference($entity, $user, $amount, $reference, $kind);
+                return [
+                    'ok'             => true,
+                    'provider'       => 'mercadopago',
+                    'mode'           => 'pro',
+                    'reference'      => $reference,
+                    'checkout_url'   => $session['url'],
+                    'transaction_id' => $session['id'],
+                    'amount'         => $amount,
+                ];
+            }
             return [
                 'ok'             => true,
                 'provider'       => 'mercadopago',
+                'mode'           => 'api',
                 'reference'      => $reference,
-                'checkout_url'   => $session['url'],
-                'transaction_id' => $session['id'],
+                'checkout_url'   => $payPage,
+                'public_key'     => self::mpPublicKey(),
+                'transaction_id' => null,
                 'amount'         => $amount,
             ];
         }
@@ -100,8 +142,7 @@ final class Payments
         // ── Sandbox: checkout alojado localmente (pago.html). URL relativa para
         //    funcionar en cualquier entorno (local, staging, producción). El
         //    parámetro (order|appt) le dice a pago.html qué entidad cobrar. ──
-        $param = ($kind === 'appointment') ? 'appt' : 'order';
-        $url   = 'pago.html?ref=' . rawurlencode($reference) . '&' . $param . '=' . (int) $entity['id'];
+        $url = $payPage;
         return [
             'ok'             => true,
             'provider'       => 'sandbox',
@@ -339,6 +380,83 @@ final class Payments
         return ['url' => $url, 'id' => (string) $json['id']];
     }
 
+    /* ============================================================
+       Mercado Pago (Checkout API — cobro con tarjeta tokenizada).
+       El navegador tokeniza la tarjeta contra MP (los datos NUNCA llegan al
+       servidor, solo el token de un solo uso) y aquí creamos el pago con el
+       Access Token de servidor. El webhook confirma después de forma definitiva.
+       ============================================================ */
+
+    /** Punto de entrada público del cobro por Checkout API (lo usa payments/process.php). */
+    public static function chargeCard(array $entity, float $amount, string $reference, array $card, string $kind = 'order'): array
+    {
+        return self::mpCreatePayment($entity, $amount, $reference, $card, $kind);
+    }
+
+    /**
+     * Crea un pago en Mercado Pago con una tarjeta ya tokenizada.
+     * $card: ['token','payment_method_id','issuer_id'?,'installments'?,'payer_email'?]
+     * Devuelve ['id'=>string, 'status'=>string(estado MP), 'status_detail'=>string].
+     */
+    private static function mpCreatePayment(array $entity, float $amount, string $reference, array $card, string $kind = 'order'): array
+    {
+        global $CONFIG;
+        $token = (string) ($CONFIG['payment']['mp_access_token'] ?? '');
+        if ($token === '') {
+            throw new RuntimeException('Mercado Pago no está configurado (falta MP_ACCESS_TOKEN).');
+        }
+        $isAppt = ($kind === 'appointment');
+        $base   = rtrim((string) ($CONFIG['app_url'] ?? ''), '/');
+        $desc   = ($isAppt ? 'Anticipo cita ' : 'Pedido ') . $entity['code'] . ' — Ok.station';
+
+        $payload = [
+            'transaction_amount' => round($amount, 2),
+            'token'              => (string) $card['token'],
+            'description'        => $desc,
+            'installments'       => max(1, (int) ($card['installments'] ?? 1)),
+            'payment_method_id'  => (string) $card['payment_method_id'],
+            'external_reference' => $reference,
+            'notification_url'   => $base . '/backend/api/payments/webhook.php',
+            'payer'              => ['email' => (string) ($card['payer_email'] ?? '')],
+        ];
+        if (!empty($card['issuer_id'])) $payload['issuer_id'] = (string) $card['issuer_id'];
+
+        /* Idempotencia por INTENTO de tarjeta: referencia + hash del token (de un
+           solo uso). Un doble clic/reintento con el MISMO token reusa la clave (no
+           duplica el cargo); un reintento con OTRA tarjeta genera un token nuevo y,
+           por tanto, una clave nueva (sí permite reintentar tras un rechazo). */
+        $idem = $reference . '-' . substr(hash('sha256', (string) $card['token']), 0, 16);
+
+        $ch = curl_init('https://api.mercadopago.com/v1/payments');
+        curl_setopt_array($ch, [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_POST           => true,
+            CURLOPT_POSTFIELDS     => json_encode($payload, JSON_UNESCAPED_UNICODE),
+            CURLOPT_HTTPHEADER     => [
+                'Authorization: Bearer ' . $token,
+                'Content-Type: application/json',
+                'X-Idempotency-Key: ' . $idem,
+            ],
+            CURLOPT_TIMEOUT        => 25,
+        ]);
+        $res  = curl_exec($ch);
+        $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+
+        $json = json_decode((string) $res, true);
+        if (!is_array($json) || !isset($json['status'])) {
+            // Error de la API (credenciales, red, validación). No exponemos datos sensibles.
+            $msg = is_array($json) ? (string) ($json['message'] ?? 'error') : 'sin respuesta';
+            error_log('[MP payments] HTTP ' . $code . ' ref=' . $reference . ' msg=' . $msg);
+            throw new RuntimeException('No se pudo procesar el pago con Mercado Pago.');
+        }
+        return [
+            'id'            => (string) ($json['id'] ?? ''),
+            'status'        => (string) $json['status'],
+            'status_detail' => (string) ($json['status_detail'] ?? ''),
+        ];
+    }
+
     /**
      * Verifica y normaliza un evento de webhook del proveedor.
      * Devuelve ['order_ref'=>, 'transaction_id'=>, 'status'=>] o null si no es válido.
@@ -454,20 +572,10 @@ final class Payments
         $pay = json_decode((string) $res, true);
         if ($code >= 300 || !is_array($pay) || !isset($pay['status'])) return null;
 
-        $map = [
-            'approved'     => 'pagado',
-            'authorized'   => 'pagado',
-            'refunded'     => 'reembolsado',
-            'charged_back' => 'reembolsado',
-            'rejected'     => 'error',
-            'cancelled'    => 'error',
-        ];
-        $status = $map[(string) $pay['status']] ?? 'procesando';
-
         return [
             'order_ref'      => (string) ($pay['external_reference'] ?? ''),
             'transaction_id' => (string) ($pay['id'] ?? $payId),
-            'status'         => $status,
+            'status'         => self::mpMapStatus((string) $pay['status']),
         ];
     }
 

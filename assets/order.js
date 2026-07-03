@@ -445,23 +445,11 @@
     if (pb) pb.addEventListener("click", function () { startOrderPayment(order.id, this); });
   }
 
-  /* Inicia el pago del pedido y redirige al checkout (mismo endpoint que citas). */
+  /* Lleva a la página de cobro unificada (pago.html), que decide el método de pago
+     (tarjeta en el sitio / Mercado Pago / sandbox) y recalcula el monto en el servidor. */
   function startOrderPayment(orderId, btn) {
-    var orig = btn ? btn.textContent : "";
-    if (btn) { btn.disabled = true; btn.textContent = "Conectando…"; }
-    fetch(API + "/payments/create.php", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: "Bearer " + token() },
-      body: JSON.stringify({ order_id: orderId })
-    }).then(function (r) { return r.json(); }).then(function (res) {
-      if (res && res.ok && res.checkout_url) { window.location.href = res.checkout_url; return; }
-      if (btn) { btn.disabled = false; btn.textContent = orig; }
-      if (res && res.payment_status === "pagado") { window.alert("Este pedido ya está pagado."); return; }
-      window.alert((res && res.error) || "No se pudo iniciar el pago. Inténtalo de nuevo.");
-    }).catch(function () {
-      if (btn) { btn.disabled = false; btn.textContent = orig; }
-      window.alert("Sin conexión con el servidor.");
-    });
+    if (btn) { btn.disabled = true; btn.textContent = "Abriendo…"; }
+    window.location.href = "pago.html?order=" + encodeURIComponent(orderId);
   }
 
   /* Ticket PDF con la identidad de Ok.station (degradado de marca, colores y lema). */

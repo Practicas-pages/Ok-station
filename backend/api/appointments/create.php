@@ -191,6 +191,10 @@ try {
        cotiza → amount_total queda NULL (no cobra en línea). */
     if (!$pricing['quote'] && table_has_column('appointments', 'amount_total')) {
         $pdo->prepare('UPDATE appointments SET amount_total=? WHERE id=?')->execute([$pricing['total'], $id]);
+    } elseif ($pricing['quote'] && table_has_column('appointments', 'needs_quote')) {
+        /* Trámite sin precio fijo (p. ej. apostille/médica): queda "por cotizar";
+           la trabajadora fijará el anticipo desde el panel (migración 0023). */
+        $pdo->prepare('UPDATE appointments SET needs_quote=1 WHERE id=?')->execute([$id]);
     }
 
     $pdo->commit();

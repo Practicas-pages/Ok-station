@@ -106,20 +106,11 @@
     }, 4000);
   }
 
+  /* Lleva a la página de cobro unificada (pago.html), que decide el método
+     (tarjeta en el sitio / Mercado Pago / sandbox) según la configuración. */
   function startPayment(id, btn) {
-    var orig = btn.textContent;
-    btn.disabled = true; btn.textContent = "Conectando…";
-    post("payments/create.php", { order_id: +id })
-      .then(function (res) {
-        if (res && res.ok && res.checkout_url) {
-          window.location.href = res.checkout_url;   // abre el checkout
-          return;
-        }
-        btn.disabled = false; btn.textContent = orig;
-        if (res && res.payment_status === "pagado") { window.alert("Este pedido ya está pagado."); load(); return; }
-        window.alert((res && res.error) || "No se pudo iniciar el pago. Inténtalo de nuevo.");
-      })
-      .catch(function () { btn.disabled = false; btn.textContent = orig; window.alert("Sin conexión con el servidor."); });
+    if (btn) { btn.disabled = true; btn.textContent = "Abriendo…"; }
+    window.location.href = "pago.html?order=" + encodeURIComponent(id);
   }
 
   function downloadTicket(id, code, btn) {

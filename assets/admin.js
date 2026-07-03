@@ -230,6 +230,10 @@
       if (DEMO) { var a = MOCK.appointments.find(function (x) { return String(x.id || x.code) === String(id); }); if (a) a.status = status; return Promise.resolve({ ok: true }); }
       return apiPost("/admin/appointment-status.php", { id: id, status: status });
     },
+    setApptPrice: function (id, amount) {
+      if (DEMO) { var a = MOCK.appointments.find(function (x) { return String(x.id || x.code) === String(id); }); if (a) { a.amount_total = amount; a.needs_quote = 0; } return Promise.resolve({ ok: true, emailed: true }); }
+      return apiPost("/admin/appointment-price.php", { id: id, amount: amount });
+    },
     report: function (period, date) {
       if (DEMO) {
         var oByStatus = {}; (MOCK.orders || []).forEach(function (o) { (oByStatus[o.status] = oByStatus[o.status] || { count: 0, sales: 0 }); oByStatus[o.status].count++; oByStatus[o.status].sales += (+o.total || 0); });
@@ -433,6 +437,30 @@
     if (!valueHtml) return "";
     return '<div style="display:flex;justify-content:space-between;gap:12px;padding:5px 0"><span style="color:var(--text-muted,#6b7280)">' + esc(label) + '</span><span style="text-align:right;font-weight:600">' + valueHtml + '</span></div>';
   }
+  /* Panel "Fijar anticipo" (cotización) del modal de cita. Solo aparece en trámites
+     que se cotizan (needs_quote: apostille/médica). Al guardar, el backend avisa al
+     cliente por correo con un botón de pago. Espejo de quotePanel de pedidos. */
+  function apptQuotePanel(a) {
+    if ((a.payment_status || "pendiente") === "pagado") return "";
+    var needsQuote = (+a.needs_quote === 1) || (String(a.needs_quote) === "1");
+    if (!needsQuote) return "";   // SOLO trámites sin precio fijo; el resto ya tiene anticipo
+    var total = +a.amount_total || 0;
+    var pending = !a.quoted_at;
+    var banner = pending
+      ? '<div style="background:#fff7ed;border:1px solid #fed7aa;color:#9a3412;border-radius:8px;padding:10px 12px;font-size:.85rem;margin:0 0 10px">Esta cita está <b>por cotizar</b>. Ponle el anticipo y el cliente recibirá un correo para pagarlo en línea.</div>'
+      : "";
+    return '<h4 style="margin:0 0 6px;font-size:.95rem">Fijar anticipo (cotización)</h4>' +
+      '<div style="background:#f8fafc;border-radius:8px;padding:12px 14px;margin:0 0 16px">' +
+        banner +
+        '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">' +
+          '<span style="color:var(--text-muted,#6b7280);font-size:.85rem">Anticipo (MXN)</span>' +
+          '<input type="number" id="appt-price-input" min="1" step="0.01" value="' + (total > 0 ? total : "") + '" placeholder="0.00" style="width:130px;padding:8px 10px;border:1px solid #d1d5db;border-radius:8px;font-size:.9rem">' +
+          '<button type="button" class="btn btn--primary btn--sm" id="appt-price-save">Guardar y avisar al cliente</button>' +
+        '</div>' +
+        '<div id="appt-price-msg" style="font-size:.82rem;margin-top:8px"></div>' +
+      '</div>';
+  }
+
   function openApptModal(a) {
     closeApptModal();
     var svc = TRAMITE_LABEL[a.tramite] || a.tramite;
@@ -558,6 +586,7 @@
               return apptRow("Anticipo", v);
             })() +
           '</div>' +
+          apptQuotePanel(a) +
           servicesHtml +
           '<h4 style="margin:0 0 6px;font-size:.95rem">Contacto</h4>' +
           '<div style="font-size:.9rem;background:#f8fafc;border-radius:8px;padding:8px 14px;margin:0 0 16px">' +
@@ -583,6 +612,33 @@
     document.body.style.overflow = "hidden";
     ov.addEventListener("click", function (e) { if (e.target === ov) closeApptModal(); });
     $("#appt-modal-close", ov).addEventListener("click", closeApptModal);
+
+    /* Guardar el anticipo de la cotización y avisar al cliente por correo. */
+    var apptSave = $("#appt-price-save", ov);
+    if (apptSave) apptSave.addEventListener("click", function () {
+      var inp = $("#appt-price-input", ov), msg = $("#appt-price-msg", ov);
+      var val = Math.round((parseFloat(inp && inp.value) || 0) * 100) / 100;
+      if (!(val > 0)) { msg.style.color = "#b91c1c"; msg.textContent = "Ingresa un anticipo válido mayor a $0."; if (inp) inp.focus(); return; }
+      var orig = apptSave.textContent;
+      apptSave.disabled = true; apptSave.textContent = "Guardando…";
+      msg.style.color = "var(--text-muted,#6b7280)"; msg.textContent = "";
+      DataSource.setApptPrice(a.id || a.code, val).then(function (res) {
+        apptSave.disabled = false; apptSave.textContent = orig;
+        if (res && res.ok) {
+          a.amount_total = val; a.needs_quote = 0; a.quoted_at = "1";
+          msg.style.color = "#166534";
+          msg.textContent = res.emailed
+            ? "Anticipo guardado. Se envió el correo al cliente con el botón de pago."
+            : "Anticipo guardado. (No se pudo enviar el correo — verifica el correo del cliente.)";
+        } else {
+          msg.style.color = "#b91c1c";
+          msg.textContent = (res && res.error) || "No se pudo guardar el anticipo.";
+        }
+      }).catch(function () {
+        apptSave.disabled = false; apptSave.textContent = orig;
+        msg.style.color = "#b91c1c"; msg.textContent = "Sin conexión con el servidor.";
+      });
+    });
     var pdfb = $("#appt-modal-pdf", ov);
     if (pdfb) pdfb.addEventListener("click", function () {
       window.OKCitaExpedienteDownload({ code: a.code, tramite: a.tramite, passport_subtype: a.passport_subtype, party_size: a.party_size, date: a.date, time: a.time, status: a.status, name: a.contact_name, phone: a.contact_phone, guests: parseGuests(a.guests_json), services: parseGuests(a.services_json), files: a.files });
@@ -656,9 +712,10 @@
      guardar, el backend avisa al cliente por correo con un botón de pago. */
   function quotePanel(o) {
     if ((o.payment_status || "pendiente") === "pagado") return "";  // ya pagado: no se recotiza
-    var total = +o.total || 0;
     var needsQuote = (+o.needs_quote === 1) || (String(o.needs_quote) === "1");
-    var pending = needsQuote && !o.quoted_at;   // por cotizar y aún sin precio fijado
+    if (!needsQuote) return "";   // SOLO se cotizan los casos especiales (gran formato); el resto ya tiene precio
+    var total = +o.total || 0;
+    var pending = !o.quoted_at;   // por cotizar y aún sin precio fijado
     var banner = pending
       ? '<div style="background:#fff7ed;border:1px solid #fed7aa;color:#9a3412;border-radius:8px;padding:10px 12px;font-size:.85rem;margin:0 0 10px">Este pedido está <b>por cotizar</b>. Ponle el precio final y el cliente recibirá un correo para pagarlo en línea.</div>'
       : "";

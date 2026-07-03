@@ -19,6 +19,9 @@ $user = current_user();
 $b    = body();
 $orderId = (int) ($b['order_id'] ?? 0);
 $apptId  = (int) ($b['appointment_id'] ?? 0);
+/* mode: 'api' (por defecto) = Checkout API (tarjeta en el sitio); 'pro' = Checkout
+   Pro (redirección a Mercado Pago). Solo afecta al proveedor mercadopago. */
+$mode = (($b['mode'] ?? 'api') === 'pro') ? 'pro' : 'api';
 
 /* ── Resolver la entidad cobrable (pedido o cita) ── */
 if ($apptId > 0) {
@@ -64,7 +67,7 @@ if (($entity['payment_status'] ?? 'pendiente') === 'pagado') {
 $amountCol = ($kind === 'appointment') ? 'amount_total' : 'total';
 
 try {
-    $session = Payments::createSession($entity, $user, $kind);
+    $session = Payments::createSession($entity, $user, $kind, $mode);
 } catch (Throwable $e) {
     Payments::log($id, $entity['payment_status'] ?? null, 'error', Payments::provider(), null, null,
         round((float) $entity[$amountCol], 2), 'cliente', (int) $user['id'], ['msg' => $e->getMessage()], $kind);
@@ -79,6 +82,8 @@ respond([
     'checkout_url'   => $session['checkout_url'],
     'reference'      => $session['reference'],
     'provider'       => $session['provider'],
+    'mode'           => $session['mode'] ?? 'api',
+    'public_key'     => $session['public_key'] ?? null,   // solo Checkout API (mercadopago)
     'payment_status' => 'procesando',
     'amount'         => $session['amount'],
 ], 201);

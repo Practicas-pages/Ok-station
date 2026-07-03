@@ -196,6 +196,30 @@ final class Emails
     }
 
     /**
+     * Correo "tu cita ya tiene anticipo" (cotización lista). $p: name, code, total, payUrl.
+     * La trabajadora fijó el anticipo de un trámite que se cotiza (p. ej. apostille/médica).
+     */
+    public static function citaPrecioHtml(array $p): string
+    {
+        $total = '$' . number_format((float) ($p['total'] ?? 0), 2) . ' MXN';
+        $rows =
+            '<tr><td style="padding:9px 0 2px;font-size:15px;font-weight:bold;color:#12141c">Anticipo</td>'
+            . '<td align="right" style="padding:9px 0 2px;font-size:16px;font-weight:bold;color:#066CFF">' . $total . '</td></tr>';
+
+        $inner =
+            '<h1 style="margin:0 0 6px;font-size:20px;color:#12141c">¡Hola ' . self::e((string) ($p['name'] ?? '')) . '!</h1>'
+            . '<p style="margin:0 0 18px;font-size:15px;line-height:1.6;color:#4a5068">'
+            . 'Ya cotizamos tu cita y tiene <b>anticipo</b>. Puedes pagarlo en línea de forma segura '
+            . 'para apartar tu lugar:</p>'
+            . self::ticketCard((string) ($p['code'] ?? ''), $rows)
+            . self::button((string) ($p['payUrl'] ?? self::appUrl()), 'Pagar mi anticipo')
+            . '<p style="margin:8px 0 0;font-size:13px;line-height:1.6;color:#6b7280;text-align:center">'
+            . 'Si prefieres, también puedes coordinar el pago por WhatsApp al (664) 719-4117.</p>';
+
+        return self::layout('Tu cita ' . (string) ($p['code'] ?? '') . ' ya tiene anticipo', $inner);
+    }
+
+    /**
      * Correo de cambio de estado de un pedido. $p: name, code, status, payUrl (opcional).
      * Si payUrl viene lleno (p. ej. está "listo" y sin pagar), añade botón de pago.
      */

@@ -45,24 +45,13 @@
     try { var p = JSON.parse(v); return Array.isArray(p) ? p : []; } catch (e) { return []; }
   }
 
-  /* Inicia el pago del anticipo y redirige al checkout (pago.html / pasarela).
-     El servidor verifica propiedad y recalcula el monto; el navegador no lo altera. */
+  /* Lleva a la página de cobro unificada (pago.html), que decide el método
+     (tarjeta en el sitio / Mercado Pago / sandbox) y recalcula el monto en el
+     servidor; el navegador nunca lo altera. */
   function startPayment(apptId, btn) {
     if (!apptId) return;
-    var orig = btn ? btn.textContent : "";
-    if (btn) { btn.disabled = true; btn.textContent = "Conectando…"; }
-    fetch(API + "/payments/create.php", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: "Bearer " + token() },
-      body: JSON.stringify({ appointment_id: apptId })
-    })
-      .then(function (r) { return r.json(); })
-      .then(function (res) {
-        if (res && res.ok && res.checkout_url) { location.href = res.checkout_url; return; }
-        if (btn) { btn.disabled = false; btn.textContent = orig; }
-        alert((res && res.error) || "No se pudo iniciar el pago.");
-      })
-      .catch(function () { if (btn) { btn.disabled = false; btn.textContent = orig; } alert("Sin conexión con el servidor."); });
+    if (btn) { btn.disabled = true; btn.textContent = "Abriendo…"; }
+    location.href = "pago.html?appt=" + encodeURIComponent(apptId);
   }
 
   function load() {
@@ -101,9 +90,15 @@
           /* Aviso cuando falta el anticipo obligatorio (visa/pasaporte sin pagar). */
           var warn = (requiresPay && amount > 0 && !closed && unpaid)
             ? ' · <span style="color:#B45309;font-weight:600">Falta pago para confirmar</span>' : '';
+          /* Trámite que se cotiza (apostille/médica): mientras el trabajador no fije
+             el anticipo, avisamos que llegará por correo (no mostramos botón de pago). */
+          var awaitingQuote = (amount <= 0) && !closed &&
+            ((+a.needs_quote === 1) || (String(a.needs_quote) === "1")) && !a.quoted_at;
+          var quoteNote = awaitingQuote
+            ? ' · <span style="color:#B45309;font-weight:600">En cotización — te avisaremos por correo</span>' : '';
           return '<div class="order-row">' +
             '<div><div class="order-row__code">' + esc(a.code) + '</div>' +
-            '<div class="order-row__meta">' + svc + ppl + ' · ' + esc(a.date) + ' · ' + esc(a.time) + ' hrs · creada ' + String(a.created_at).slice(0, 10) + warn + '</div></div>' +
+            '<div class="order-row__meta">' + svc + ppl + ' · ' + esc(a.date) + ' · ' + esc(a.time) + ' hrs · creada ' + String(a.created_at).slice(0, 10) + warn + quoteNote + '</div></div>' +
             '<div class="order-row__actions">' +
               '<span class="ostatus ostatus--' + esc(a.status) + '">' + (LABELS[a.status] || a.status) + '</span>' +
               payHtml +

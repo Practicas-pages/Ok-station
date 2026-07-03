@@ -1411,23 +1411,9 @@
     function startApptPayment(apptId, btn) {
       var tk = authToken();
       if (!tk) { showToast("Inicia sesión para pagar en línea."); return; }
-      var orig = btn ? btn.textContent : "";
-      if (btn) { btn.disabled = true; btn.textContent = "Conectando…"; }
-      fetch(API + "/payments/create.php", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: "Bearer " + tk },
-        body: JSON.stringify({ appointment_id: apptId })
-      })
-        .then(function (r) { return r.json().then(function (j) { return { status: r.status, body: j || {} }; }); })
-        .then(function (res) {
-          if (res.body && res.body.ok && res.body.checkout_url) { location.href = res.body.checkout_url; return; }
-          showToast((res.body && res.body.error) || "No se pudo iniciar el pago.");
-          if (btn) { btn.disabled = false; btn.textContent = orig; }
-        })
-        .catch(function () {
-          showToast("Sin conexión. Intenta de nuevo.");
-          if (btn) { btn.disabled = false; btn.textContent = orig; }
-        });
+      if (btn) { btn.disabled = true; btn.textContent = "Abriendo…"; }
+      /* Página de cobro unificada (pago.html): decide el método y recalcula el monto. */
+      location.href = "pago.html?appt=" + encodeURIComponent(apptId);
     }
 
     /* Bloque "Pagar anticipo" en el comprobante de éxito: si el trámite tiene precio
