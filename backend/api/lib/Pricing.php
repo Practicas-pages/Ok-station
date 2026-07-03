@@ -16,7 +16,7 @@ final class Pricing
         'tabloide' => ['bn' => [[PHP_INT_MAX, 5.0]],                        'color' => [[PHP_INT_MAX, 20.0]]],
     ];
     /** Precio por foto (sin tramos). */
-    const PHOTO  = ['foto_10x15' => 10.0, 'foto_13x18' => 30.0];
+    const PHOTO  = ['foto_10x15' => 10.0, 'foto_13x18' => 30.0, 'gran_formato_foto' => 380.0, 'gran_formato_bond' => 190.0];
     /** Enmicado: precio POR HOJA según el TAMAÑO del documento (catálogo Hoja2).
      *  Oficio y A4 quedan PENDIENTES (sin recargo de enmicado hasta definir su precio). */
     const ENMICADO = ['carta' => 20.0, 'tabloide' => 30.0];
@@ -33,6 +33,7 @@ final class Pricing
         'oficio_color_1' => 15.0, 'oficio_color_2' => 13.0, 'oficio_color_3' => 10.0,
         'tabloide_bn' => 5.0, 'tabloide_color' => 20.0,
         'foto_10x15' => 10.0, 'foto_13x18' => 30.0,
+        'gran_formato_foto' => 380.0, 'gran_formato_bond' => 190.0,
         'enmicado_carta' => 20.0, 'enmicado_tabloide' => 30.0,
         'engargolado' => 45.0,
     ];
@@ -73,7 +74,7 @@ final class Pricing
                 ],
                 'tabloide' => ['bn' => [[PHP_INT_MAX, $p['tabloide_bn']]], 'color' => [[PHP_INT_MAX, $p['tabloide_color']]]],
             ],
-            'photo'       => ['foto_10x15' => $p['foto_10x15'], 'foto_13x18' => $p['foto_13x18'], 'gran_formato_foto' => 380.0, 'gran_formato_bond' => 190.0],
+            'photo'       => ['foto_10x15' => $p['foto_10x15'], 'foto_13x18' => $p['foto_13x18'], 'gran_formato_foto' => $p['gran_formato_foto'], 'gran_formato_bond' => $p['gran_formato_bond']],
             'enmicado'    => ['carta' => $p['enmicado_carta'], 'tabloide' => $p['enmicado_tabloide']],
             'engargolado' => $p['engargolado'],
         ];

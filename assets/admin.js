@@ -1431,6 +1431,7 @@
         grp("Oficio — Color ($/hoja)", f("oficio_color_1", "1 a 10") + f("oficio_color_2", "11 a 50") + f("oficio_color_3", "51 o más")) +
         grp("Doble carta ($/hoja)", f("tabloide_bn", "Blanco y negro") + f("tabloide_color", "Color")) +
         grp("Fotografía ($/foto)", f("foto_10x15", "Foto 10×15 (6×4\")") + f("foto_13x18", "Foto 13×18 (5×7\")")) +
+        grp("Gran formato 24×36\" ($/impresión)", f("gran_formato_foto", "Foto Gloss") + f("gran_formato_bond", "Hoja bond")) +
         grp("Acabados", f("enmicado_carta", "Enmicado carta ($/hoja)") + f("enmicado_tabloide", "Enmicado doble carta ($/hoja)") + f("engargolado", "Engargolado ($)")) +
         grp("Impuesto", '<label class="pricing-f"><span>IVA (%)</span><input type="number" step="0.01" min="0" id="pricing-tax" value="' + taxPct + '"></label>') +
         '<div class="pricing-actions"><button class="btn btn--primary" id="pricing-save">Guardar precios</button><span id="pricing-msg" class="pricing-msg"></span></div>';
