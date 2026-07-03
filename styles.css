@@ -4281,7 +4281,7 @@ body {
   transform: none;
 }
 /* Mini-pasos: dan contexto y eliminan el hueco bajo la zona de carga */
-.photo-steps { display: grid; gap: 10px; margin: 0; padding: 0; list-style: none; }
+.photo-steps { display: grid; gap: 10px; margin: 0 auto; padding: 0; list-style: none; width: fit-content; max-width: 100%; }
 .photo-steps li { display: flex; align-items: center; gap: 11px; font-size: 0.85rem; color: var(--text-secondary); }
 .photo-steps li span {
   width: 26px; height: 26px; flex-shrink: 0;
