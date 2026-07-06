@@ -2947,6 +2947,10 @@ h1, h2, h3, h4, h5, h6 {
   transition: transform var(--transition-base), box-shadow var(--transition-base);
 }
 
+/* Tarjetas de contacto clickeables (llamar, WhatsApp, correo, mapa). */
+a.info-card { text-decoration: none; color: inherit; cursor: pointer; }
+a.info-card:hover { border-color: var(--brand-blue); }
+
 .info-card:hover {
   transform: translateY(-2px);
   box-shadow: var(--shadow-sm);
