@@ -444,6 +444,9 @@
       state.step = next;
 
       if (next === TOTAL_STEPS - 1) buildSummary();
+      /* Al entrar al paso "¿Cuántas personas?" (índice 1) ajustamos las opciones
+         al trámite: la licencia de manejo usa solo "Solo yo" + "Grupo (2 o más)". */
+      if (next === 1) configurePartyStep();
       /* Al entrar al paso "Información de cada persona" (índice 2) se generan los
          formularios y documentos por persona según la cantidad y el trámite. */
       if (next === 2) renderGuests();
@@ -560,7 +563,9 @@
         state.subtype = chosen.value;
         closeSubtypeModal();
         updateStep0Next();
-        scrollToStep0Next();
+        /* No desplazamos la página al elegir el tipo de pasaporte: los requisitos
+           aparecen en su sitio y el salto resultaba molesto. El usuario continúa
+           con el botón "Continuar" cuando esté listo. */
       });
       qsa("[data-subtype-close]", subtypeModal).forEach(function (el) { el.addEventListener("click", closeSubtypeModal); });
     }
@@ -614,11 +619,31 @@
     var partyValEl = qs("#party-val");
     var partyDurEl = qs("#party-duration");
     var MIN_PER_PERSON = 45;                       /* cada persona toma ~45 min */
+    /* Solo la LICENCIA DE MANEJO simplifica este paso a "Solo yo" + "Grupo (2 o
+       más)": ese trámite lo piden colegas/compañeros, no familias ni parejas.
+       El resto de trámites conserva Solo yo / Pareja / Familia / Grupo. */
+    function isLicenciaTramite() { return state.tramite === "licencia"; }
     function partyPreset(n) {
       if (n <= 1) return "Solo yo";
+      if (isLicenciaTramite()) return "Grupo";
       if (n === 2) return "Pareja";
       if (n >= 3 && n <= 5) return "Familia";
       return "Grupo";
+    }
+    /* Muestra u oculta las opciones según el trámite. Se llama al entrar al paso
+       (goToStep índice 1), cuando el trámite ya está elegido. */
+    function configurePartyStep() {
+      var lic = isLicenciaTramite();
+      qsa(".party-opt").forEach(function (b) {
+        var v = b.dataset.party;
+        if (v === "2" || v === "4") b.hidden = lic;   /* Pareja y Familia solo en modo normal */
+        if (v === "grupo") {
+          var sub = b.querySelector("span");
+          if (sub) sub.textContent = lic ? "2 o más" : "6 o más";
+        }
+      });
+      /* Re-evaluar resaltado/duración por si cambió el trámite (p. ej. Familia→Grupo). */
+      setParty(state.partySize);
     }
     function durationMins(n) { return n * MIN_PER_PERSON; }
     function fmtDuration(mins) {
@@ -634,9 +659,15 @@
       if (partyValEl) partyValEl.textContent = String(n);
       if (partyDurEl) partyDurEl.innerHTML = "Duración estimada de tu cita: <b>" + sanitize(fmtDuration(durationMins(n))) + "</b> (≈ 45 min por persona).";
       qsa(".party-opt").forEach(function (b) {
-        var on = String(b.dataset.party) === String(n) ||
-                 (b.dataset.party === "grupo" && n > 5) ||
-                 (b.dataset.party === "4" && n >= 3 && n <= 5);
+        var v = b.dataset.party, on;
+        if (isLicenciaTramite()) {
+          /* Licencia: "Solo yo" (1) y "Grupo" (2 o más). */
+          on = (v === "1" && n === 1) || (v === "grupo" && n >= 2);
+        } else {
+          on = String(v) === String(n) ||
+               (v === "grupo" && n > 5) ||
+               (v === "4" && n >= 3 && n <= 5);
+        }
         b.classList.toggle("is-selected", on);
         b.setAttribute("aria-pressed", String(on));
       });
@@ -652,7 +683,8 @@
     qsa(".party-opt").forEach(function (b) {
       b.addEventListener("click", function () {
         var v = b.dataset.party;
-        setParty(v === "grupo" ? 6 : parseInt(v, 10) || 1);
+        var grupoStart = isLicenciaTramite() ? 2 : 6;   /* licencia: 2+, resto: 6+ */
+        setParty(v === "grupo" ? grupoStart : parseInt(v, 10) || 1);
       });
     });
     var partyMinus = qs("#party-minus"), partyPlus = qs("#party-plus");

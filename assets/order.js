@@ -179,7 +179,7 @@
           cfgSeg(i, "color", "Color", colorOpts, f.cfg.color) +
           cfgSelect(i, "paper", "Papel", PAPERS.map(function (p2) { return { v: p2, t: p2 }; }), f.cfg.paper) +
           cfgSeg(i, "sides", "Caras", [["una", "Una"], ["doble", "Doble"]], f.cfg.sides) +
-          cfgSelect(i, "finish", "Acabado", finishOpts, f.cfg.finish) +
+          cfgSelect(i, "finish", "Extra", finishOpts, f.cfg.finish) +
           cfgQty(i, f.cfg.copies) +
         '</div>' +
         (p.quote ? '<p class="file-card__note">Gran formato 24": cotización personalizada — te confirmamos por WhatsApp.</p>' : '') +

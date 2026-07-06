@@ -461,9 +461,15 @@
   function init() {
     if (!qs(".tramite-grid")) return;    /* no estamos en una página con el wizard */
 
-    /* Escuchar selección de trámite (sin depender del estado interno de app.js) */
-    qsa(".tramite-btn").forEach(function (btn) {
-      btn.addEventListener("click", function () { setTimeout(onTramiteChanged, 0); });
+    /* Escuchar selección de trámite (sin depender del estado interno de app.js).
+       DELEGACIÓN: un solo listener capta el clic en cualquier .tramite-btn,
+       INCLUIDAS las tarjetas CLONADAS del carrusel infinito que crea app.js.
+       Los clones no heredan listeners por-elemento; por eso, al elegir un
+       trámite desde una tarjeta clonada, la caja de requisitos no se
+       actualizaba y seguía mostrando el servicio anterior. */
+    document.addEventListener("click", function (e) {
+      var btn = e.target.closest ? e.target.closest(".tramite-btn") : null;
+      if (btn) setTimeout(onTramiteChanged, 0);
     });
     /* Subtipo de pasaporte (radios del modal del propio wizard) */
     qsa("input[name='cita-subtype']").forEach(function (r) {
