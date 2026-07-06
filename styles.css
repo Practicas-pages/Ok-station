@@ -5334,12 +5334,20 @@ body.admin::before, body.admin::after { display: none !important; }
 .cita-reqs__head { display: flex; align-items: center; gap: 9px; color: #fff; font-size: 0.95rem; }
 .cita-reqs__head svg { width: 20px; height: 20px; color: var(--brand-cyan); flex: 0 0 auto; }
 .cita-reqs__note { color: rgba(255,255,255,0.7); font-size: 0.84rem; margin: 8px 0 0; }
-.cita-reqs__list { list-style: none; margin: 8px 0 0; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 2px 22px; }
-.cita-reqs__list li { position: relative; padding-left: 16px; color: #4B5563; font-size: 0.85rem; line-height: 1.35; }
-.cita-reqs__list li::before { content: ""; position: absolute; left: 2px; top: 8px; width: 5px; height: 5px; border-radius: 50%; background: var(--brand-cyan); }
-.cita-reqs__group { margin-top: 10px; }
+/* Lista de requisitos: multicolumna RESPONSIVA. `column-width` decide cuántas
+   columnas caben según el ancho disponible (2 en escritorio, 1 en móvil) sin
+   media queries; los puntos fluyen de arriba hacia abajo por columna (orden
+   natural, a diferencia de un grid fila-por-fila). */
+.cita-reqs__list { list-style: none; margin: 8px 0 0; padding: 0; columns: 220px 2; column-gap: 26px; }
+.cita-reqs__list li { position: relative; padding-left: 16px; color: #4B5563; font-size: 0.85rem; line-height: 1.4; break-inside: avoid; -webkit-column-break-inside: avoid; }
+.cita-reqs__list li::before { content: ""; position: absolute; left: 2px; top: 9px; width: 5px; height: 5px; border-radius: 50%; background: var(--brand-cyan); }
+/* Trámites con grupos (visa, SENTRI, pasaporte USA): cada grupo es un bloque
+   indivisible que se acomoda en columnas; título y puntos van juntos y en
+   orden. La lista DENTRO de cada grupo queda a 1 columna. */
+.cita-reqs__groups { columns: 260px 2; column-gap: 26px; margin-top: 4px; }
+.cita-reqs__group { break-inside: avoid; -webkit-column-break-inside: avoid; margin: 0 0 12px; }
+.cita-reqs__group .cita-reqs__list { columns: 1; margin-top: 4px; }
 .cita-reqs__gtitle { display: block; color: #cfe0ff; font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 3px; }
-@media (max-width: 600px) { .cita-reqs__list { grid-template-columns: 1fr; } }
 
 /* Botones agrupados en la barra del paso (Subir documentos + Continuar) */
 .cita-nav__group { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: flex-end; }
