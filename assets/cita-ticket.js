@@ -228,142 +228,135 @@
   window.OKCitaTicket = function (appt) {
     if (!appt || !window.jspdf || !window.jspdf.jsPDF || typeof QRCode === "undefined") return null;
     var doc = new window.jspdf.jsPDF({ unit: "mm", format: "a4" });
-    var PW = 210, x = 16;
-    var purple = [156, 29, 255], blue = [6, 108, 255], cyan = [0, 198, 255], dark = [15, 23, 42], muted = [110, 122, 140];
+    var PW = 210, x = 16, RIGHT = PW - 16, CW = RIGHT - x;
+    var purple = [156, 29, 255], blue = [6, 108, 255], cyan = [0, 198, 255],
+        dark = [15, 23, 42], muted = [110, 122, 140], rule = [228, 232, 240], green = [22, 163, 74];
     function lerp(a, b, t) { return [Math.round(a[0] + (b[0] - a[0]) * t), Math.round(a[1] + (b[1] - a[1]) * t), Math.round(a[2] + (b[2] - a[2]) * t)]; }
     function gradBand(x0, y0, w, h) {
       var n = Math.max(2, Math.round(w)), s = w / n;
       for (var i = 0; i < n; i++) { var t = i / (n - 1); var c = t < 0.5 ? lerp(purple, blue, t * 2) : lerp(blue, cyan, (t - 0.5) * 2); doc.setFillColor(c[0], c[1], c[2]); doc.rect(x0 + s * i, y0, s + 0.4, h, "F"); }
     }
-    /* Degradado en ÁNGULO (-21.3664°): morado #9C1DFF (0%) → azul #066CFF (50%)
-       → cyan #00C6FF (100%). Se dibujan franjas perpendiculares al eje del
-       degradado y se recortan al banner redondeado. */
-    function gradBandAngled(x0, y0, w, h, r, deg) {
-      var rad = deg * Math.PI / 180, cosA = Math.cos(rad), sinA = Math.sin(rad);
-      var cxA = [0, w, 0, w], cyA = [0, 0, h, h], uMin = Infinity, uMax = -Infinity, k, u;
-      for (k = 0; k < 4; k++) { u = cxA[k] * cosA + cyA[k] * sinA; if (u < uMin) uMin = u; if (u > uMax) uMax = u; }
-      var R = (uMax - uMin) || 1, px = -sinA, py = cosA, L = Math.sqrt(w * w + h * h) + 4;
-      doc.saveGraphicsState();
-      doc.roundedRect(x0, y0, w, h, r, r, null).clip().discardPath();
-      var du = 1.1, over = 0.5, t, c, b1x, b1y, b2x, b2y;
-      for (u = uMin; u < uMax; u += du) {
-        t = (u - uMin) / R;
-        c = t < 0.5 ? lerp(purple, blue, t * 2) : lerp(blue, cyan, (t - 0.5) * 2);
-        doc.setFillColor(c[0], c[1], c[2]);
-        b1x = x0 + u * cosA; b1y = y0 + u * sinA;
-        b2x = x0 + (u + du + over) * cosA; b2y = y0 + (u + du + over) * sinA;
-        doc.triangle(b1x + px * L, b1y + py * L, b1x - px * L, b1y - py * L, b2x - px * L, b2y - py * L, "F");
-        doc.triangle(b1x + px * L, b1y + py * L, b2x - px * L, b2y - py * L, b2x + px * L, b2y + py * L, "F");
-      }
-      doc.restoreGraphicsState();
+    function two(n) { return (n < 10 ? "0" : "") + n; }
+    function dt(d) { return two(d.getDate()) + "/" + two(d.getMonth() + 1) + "/" + d.getFullYear() + " " + two(d.getHours()) + ":" + two(d.getMinutes()); }
+    function sdate(iso) { if (!iso) return "—"; var p = String(iso).split("-"); if (p.length < 3) return String(iso); return two(+p[2]) + "/" + two(+p[1]) + "/" + p[0]; }
+
+    /* ── Franja de marca + título de comprobante de pago ── */
+    gradBand(0, 0, PW, 3);
+    doc.setTextColor(dark[0], dark[1], dark[2]); doc.setFont("helvetica", "bold"); doc.setFontSize(25);
+    doc.text("Comprobante", x, 24);
+    doc.text("de pago", x, 34);
+    if (_ticketLogo) {
+      var ar = _ticketLogo.w / _ticketLogo.h, lh = 9, lw = lh * ar; if (lw > 52) { lw = 52; lh = lw / ar; }
+      doc.addImage(_ticketLogo.png, "PNG", RIGHT - lw, 15, lw, lh);
+    } else {
+      doc.setFont("helvetica", "bold"); doc.setFontSize(16); doc.text("OK.station", RIGHT, 22, { align: "right" });
     }
-    /* Encabezado: banner degradado + tarjeta blanca con logo + píldora.
-       Ante cualquier fallo (clip/triangle no soportado) cae al banner plano. */
-    (function drawHeader() {
-      var MX = 8, bx = MX, by = 8, bw = PW - 2 * MX, bh = 30, br = 8;
-      try { gradBandAngled(bx, by, bw, bh, br, -21.3664); }
-      catch (e) { gradBand(0, 0, PW, 34); bx = 0; by = 0; bh = 34; }
-      /* Tarjeta blanca (izquierda) con el logo oficial centrado. */
-      var cw = 66, ch = 20, cx = bx + 6, cy = by + (bh - ch) / 2, cr = 7;
-      doc.setFillColor(255, 255, 255); doc.roundedRect(cx, cy, cw, ch, cr, cr, "F");
-      if (_ticketLogo) {
-        var ar = _ticketLogo.w / _ticketLogo.h, lh = 11, lw = lh * ar, maxw = cw - 12;
-        if (lw > maxw) { lw = maxw; lh = lw / ar; }
-        doc.addImage(_ticketLogo.png, "PNG", cx + (cw - lw) / 2, cy + (ch - lh) / 2, lw, lh);
-      } else {
-        doc.setFont("helvetica", "bold"); doc.setFontSize(19);
-        var t1 = "Ok", t2 = ".station", w1 = doc.getTextWidth(t1), w2 = doc.getTextWidth(t2);
-        var tx = cx + (cw - (w1 + w2)) / 2, tyv = cy + ch / 2 + 2.4;
-        doc.setTextColor(blue[0], blue[1], blue[2]); doc.text(t1, tx, tyv);
-        doc.setTextColor(dark[0], dark[1], dark[2]); doc.text(t2, tx + w1, tyv);
-      }
-      /* Píldora blanca (derecha) con "Comprobante de cita". */
-      doc.setFont("helvetica", "bold"); doc.setFontSize(12);
-      var plabel = "Comprobante de cita", pw = doc.getTextWidth(plabel) + 14, ph = 12;
-      var pxp = bx + bw - 6 - pw, pyp = by + (bh - ph) / 2;
-      doc.setFillColor(255, 255, 255); doc.roundedRect(pxp, pyp, pw, ph, ph / 2, ph / 2, "F");
-      doc.setTextColor(dark[0], dark[1], dark[2]); doc.text(plabel, pxp + 7, pyp + ph / 2 + 1.6);
-    })();
-    doc.setTextColor(255, 255, 255);
+    doc.setFont("helvetica", "normal"); doc.setFontSize(8); doc.setTextColor(muted[0], muted[1], muted[2]);
+    doc.text("Una marca de OK Dock", RIGHT, 30, { align: "right" });
+
+    /* ── DE (negocio) ── */
+    var dy = 50;
+    doc.setFont("helvetica", "bold"); doc.setFontSize(8); doc.setTextColor(muted[0], muted[1], muted[2]); doc.text("DE", x, dy);
+    doc.setFont("helvetica", "bold"); doc.setFontSize(10.5); doc.setTextColor(dark[0], dark[1], dark[2]); doc.text("Ok.station", x, dy + 6);
+    doc.setFont("helvetica", "normal"); doc.setFontSize(9); doc.setTextColor(muted[0], muted[1], muted[2]);
+    doc.text("Centro Comercial Otay, Local G-03", x, dy + 11.5);
+    doc.text("Carretera Aeropuerto 1900", x, dy + 16);
+    doc.text("22425 Tijuana, B.C.", x, dy + 20.5);
+
+    /* ── Metadatos (folio de la cita y fechas), apilados a la derecha ── */
+    var meta = [["EMITIDO", dt(new Date())], ["N° DE CITA", String(appt.code || "—")],
+                ["FECHA DE CITA", sdate(appt.date) + (appt.time ? " · " + appt.time + " hrs" : "")]];
+    var my = dy;
+    meta.forEach(function (r) {
+      doc.setFont("helvetica", "normal"); doc.setFontSize(7); doc.setTextColor(muted[0], muted[1], muted[2]); doc.text(r[0], RIGHT, my, { align: "right" }); my += 3.8;
+      doc.setFont("helvetica", "bold"); doc.setFontSize(9.5); doc.setTextColor(dark[0], dark[1], dark[2]);
+      var vl = doc.splitTextToSize(String(r[1]), 70); doc.text(vl, RIGHT, my, { align: "right" }); my += vl.length * 4.4 + 2.5;
+    });
+
+    /* ── CLIENTE ── */
+    var cyc = dy + 30;
+    doc.setFont("helvetica", "bold"); doc.setFontSize(8); doc.setTextColor(muted[0], muted[1], muted[2]); doc.text("CLIENTE", x, cyc);
+    doc.setFont("helvetica", "bold"); doc.setFontSize(10.5); doc.setTextColor(dark[0], dark[1], dark[2]); doc.text(String(appt.name || "—"), x, cyc + 6);
+    if (appt.phone) { doc.setFont("helvetica", "normal"); doc.setFontSize(9); doc.setTextColor(muted[0], muted[1], muted[2]); doc.text("Tel. " + appt.phone, x, cyc + 11); }
+
+    /* ── QR (se conserva: escanear → ver tus citas) ── */
+    var qrS = 26, qEnd = my + 4 + qrS + 8;
     try {
       var tmp = document.createElement("div");
       new QRCode(tmp, { text: location.origin + "/perfil.html?cita=" + appt.code, width: 160, height: 160 });
       var cv = tmp.querySelector("canvas");
       if (cv) {
-        doc.addImage(cv.toDataURL("image/png"), "PNG", PW - x - 38, 44, 38, 38);
-        /* Leyenda debajo del QR: a dónde lleva y que hay que iniciar sesión.
-           Se dibuja oscura y un poco más grande para que se lea bien (antes muy tenue). */
-        doc.setFont("helvetica", "bold"); doc.setFontSize(7.5); doc.setTextColor(dark[0], dark[1], dark[2]);
-        doc.text("Al escanear el código QR", PW - x - 19, 85.5, { align: "center" });
-        doc.text("te mandará a tus citas", PW - x - 19, 88.5, { align: "center" });
-        doc.setFont("helvetica", "normal"); doc.setFontSize(7);
-        doc.text("(inicia sesión primero)", PW - x - 19, 91.8, { align: "center" });
+        var qx = RIGHT - qrS, qy = my + 4;
+        doc.addImage(cv.toDataURL("image/png"), "PNG", qx, qy, qrS, qrS);
+        doc.setFont("helvetica", "bold"); doc.setFontSize(6.8); doc.setTextColor(dark[0], dark[1], dark[2]);
+        doc.text("Al escanear el código QR", qx + qrS / 2, qy + qrS + 3.6, { align: "center" });
+        doc.text("te mandará a tus citas", qx + qrS / 2, qy + qrS + 6.4, { align: "center" });
       }
     } catch (e) {}
-    /* ── Fecha de emisión (los datos fiscales de la empresa se retiraron del ticket) ── */
-    function two(n) { return (n < 10 ? "0" : "") + n; }
-    function fmtDateTime(d) { return two(d.getDate()) + "/" + two(d.getMonth() + 1) + "/" + d.getFullYear() + " " + two(d.getHours()) + ":" + two(d.getMinutes()); }
-    doc.setTextColor(muted[0], muted[1], muted[2]); doc.setFont("helvetica", "normal"); doc.setFontSize(8.5);
-    doc.text("Emitido: " + fmtDateTime(new Date()), x, 49);
-    doc.setTextColor(dark[0], dark[1], dark[2]); doc.setFont("helvetica", "bold"); doc.setFontSize(18); doc.text(String(appt.code || ""), x, 57);
-    var label = STATUS[appt.status] || "Pendiente de confirmar";
-    doc.setFont("helvetica", "bold"); doc.setFontSize(9); var lw = doc.getTextWidth(label) + 8;
-    doc.setFillColor(blue[0], blue[1], blue[2]); doc.roundedRect(x, 61, lw, 7, 3.5, 3.5, "F");
-    doc.setTextColor(255, 255, 255); doc.text(label, x + 4, 65.8);
-    /* El pie (mapa + contactos) va FIJO al pie; el contenido nunca debe invadirlo. */
-    var FOOTER_TOP = 250;   /* límite inferior del área de contenido (mm) */
-    var ty = 82;
-    doc.setTextColor(blue[0], blue[1], blue[2]); doc.setFont("helvetica", "bold"); doc.setFontSize(12); doc.text("Detalle de la cita", x, ty); ty += 8;
+
+    /* ── Tabla de conceptos ── */
+    var ty = Math.max(cyc + 20, qEnd);
+    var descX = x + 14, unitR = RIGHT - 30, impR = RIGHT;
+    doc.setFont("helvetica", "bold"); doc.setFontSize(7.5); doc.setTextColor(muted[0], muted[1], muted[2]);
+    doc.text("CANT.", x, ty); doc.text("DESCRIPCIÓN", descX, ty);
+    doc.text("P. UNITARIO", unitR, ty, { align: "right" }); doc.text("IMPORTE", impR, ty, { align: "right" });
+    ty += 2.5; doc.setDrawColor(rule[0], rule[1], rule[2]); doc.setLineWidth(0.4); doc.line(x, ty, RIGHT, ty); ty += 6.5;
+
     var svcName = SERVICE_NAMES[appt.tramite] || appt.tramite;
     if (appt.tramite === "pasaporte" && appt.passport_subtype) svcName += " (" + (SUBTYPE[appt.passport_subtype] || appt.passport_subtype) + ")";
-    var rows = [["Servicio", svcName], ["Personas", String(appt.party_size || 1)]];
-    if (appt.name) rows.push(["Contacto", appt.name]);
-    if (appt.phone) rows.push(["Teléfono", appt.phone]);
-    rows.push(["Fecha", fmtDate(appt.date)]);
-    rows.push(["Hora", (appt.time || "") + " hrs"]);
-    window.OKCitaPriceRows(appt.tramite, appt.passport_subtype, appt.party_size).forEach(function (pr) { rows.push(pr); });
-    doc.setFontSize(10.5);
-    rows.forEach(function (r) {
-      doc.setFont("helvetica", "normal"); doc.setTextColor(muted[0], muted[1], muted[2]); doc.text(r[0], x, ty);
-      doc.setFont("helvetica", "bold"); doc.setTextColor(dark[0], dark[1], dark[2]); doc.text(doc.splitTextToSize(String(r[1]), 120), x + 45, ty);
-      ty += 8;
+    var pr = window.OKCitaPrice(appt.tramite, appt.passport_subtype, appt.party_size);
+    var items = [];
+    if (pr.quote) items.push({ qty: pr.party, desc: "Gestión de cita — " + svcName, unit: "", imp: "Te confirmamos el precio" });
+    else items.push({ qty: pr.party, desc: "Gestión de cita — " + svcName, unit: mxn2(pr.unit), imp: mxn2(pr.total) });
+    (appt.services || []).forEach(function (sv) { items.push({ qty: 1, desc: sv.label || sv.key || "Servicio adicional", unit: "", imp: "—" }); });
+
+    items.forEach(function (it) {
+      var dl = doc.splitTextToSize(String(it.desc), unitR - 10 - descX);
+      var rh = Math.max(6, dl.length * 4.6);
+      doc.setFont("helvetica", "normal"); doc.setFontSize(9.5); doc.setTextColor(dark[0], dark[1], dark[2]);
+      doc.text(String(it.qty), x + 1, ty);
+      doc.text(dl, descX, ty);
+      doc.setTextColor(muted[0], muted[1], muted[2]); doc.text(String(it.unit || ""), unitR, ty, { align: "right" });
+      doc.setFont("helvetica", "bold"); doc.setTextColor(dark[0], dark[1], dark[2]); doc.text(String(it.imp), impR, ty, { align: "right" });
+      ty += rh; doc.setDrawColor(242, 244, 248); doc.setLineWidth(0.3); doc.line(x, ty - 1.5, RIGHT, ty - 1.5); ty += 1.5;
     });
 
-    /* El detalle por persona (datos del cuestionario) NO va en el comprobante:
-       este es el RECIBO del cliente. Toda esa información va en el EXPEDIENTE
-       (window.OKCitaExpedientePDF), que descarga el trabajador desde el panel. */
-    function needSpace(h) { if (ty + h > FOOTER_TOP) { doc.addPage(); ty = 22; } }
+    /* ── Totales (subtotal / IVA a la derecha, TOTAL en barra) ── */
+    var rowsT = window.OKCitaPriceRows(appt.tramite, appt.passport_subtype, appt.party_size);
+    var sub = null, iva = null, ivaLbl = "IVA", tot = null;
+    rowsT.forEach(function (r) {
+      if (/subtotal/i.test(r[0])) sub = r[1];
+      else if (/iva/i.test(r[0])) { ivaLbl = r[0]; iva = r[1]; }
+      else if (/total/i.test(r[0])) tot = r[1];
+    });
+    ty += 4;
+    if (sub) { doc.setFont("helvetica", "normal"); doc.setFontSize(9.5); doc.setTextColor(muted[0], muted[1], muted[2]); doc.text("Subtotal", unitR, ty, { align: "right" }); doc.setFont("helvetica", "bold"); doc.setTextColor(dark[0], dark[1], dark[2]); doc.text(String(sub), impR, ty, { align: "right" }); ty += 6; }
+    if (iva) { doc.setFont("helvetica", "normal"); doc.setTextColor(muted[0], muted[1], muted[2]); doc.text(ivaLbl, unitR, ty, { align: "right" }); doc.setFont("helvetica", "bold"); doc.setTextColor(dark[0], dark[1], dark[2]); doc.text(String(iva), impR, ty, { align: "right" }); ty += 6; }
+    ty += 2;
+    var barH = 14;
+    doc.setFillColor(blue[0], blue[1], blue[2]); doc.roundedRect(x, ty, CW, barH, 3, 3, "F");
+    doc.setTextColor(255, 255, 255); doc.setFont("helvetica", "bold"); doc.setFontSize(11); doc.text("TOTAL", x + 8, ty + barH / 2 + 1.2);
+    if (tot) { doc.setFontSize(15); doc.text(String(tot) + " MXN", RIGHT - 8, ty + barH / 2 + 1.6, { align: "right" }); }
+    else { doc.setFontSize(11); doc.text("Te confirmamos el precio", RIGHT - 8, ty + barH / 2 + 1.2, { align: "right" }); }
+    ty += barH + 12;
 
-    /* ── Servicios adicionales seleccionados (venta cruzada) ── */
-    var services = (appt.services && appt.services.length) ? appt.services : null;
-    if (services) {
-      ty += 3; needSpace(14);
-      doc.setTextColor(blue[0], blue[1], blue[2]); doc.setFont("helvetica", "bold"); doc.setFontSize(12);
-      doc.text("Servicios adicionales", x, ty); ty += 7;
-      for (var si = 0; si < services.length; si++) {
-        var sv = services[si] || {};
-        var slabel = sv.label || sv.key || "";
-        var slines = doc.splitTextToSize("• " + slabel, 165);
-        needSpace(slines.length * 5 + 1);
-        doc.setFont("helvetica", "normal"); doc.setFontSize(10.5); doc.setTextColor(dark[0], dark[1], dark[2]);
-        doc.text(slines, x + 5, ty); ty += slines.length * 5;
-      }
-      ty += 2;
-    }
+    /* ── Condiciones y forma de pago (según estado de la cita) ── */
+    var paid = (appt.status === "confirmada" || appt.status === "completada");
+    doc.setFont("helvetica", "bold"); doc.setFontSize(8.5); doc.setTextColor(muted[0], muted[1], muted[2]); doc.text("CONDICIONES Y FORMA DE PAGO", x, ty); ty += 5.5;
+    doc.setFont("helvetica", "normal"); doc.setFontSize(9); doc.setTextColor(dark[0], dark[1], dark[2]);
+    var cond = paid
+      ? "Pago recibido. Conserva este comprobante con tu folio para el día de tu cita."
+      : "Se requiere el pago del 100% para confirmar tu cita. Conserva este comprobante con tu folio.";
+    doc.text(doc.splitTextToSize(cond, CW), x, ty);
 
-    needSpace(10);
-    ty += 3; doc.setFont("helvetica", "normal"); doc.setFontSize(9); doc.setTextColor(muted[0], muted[1], muted[2]);
-    doc.text(doc.splitTextToSize("Se requiere el pago del 100% para confirmar tu cita. Conserva este comprobante con tu folio.", 175), x, ty);
-
-    /* ── Pie FIJO: cómo llegar (Google Maps) + WhatsApp ── */
-    doc.setFont("helvetica", "normal"); doc.setFontSize(9); doc.setTextColor(muted[0], muted[1], muted[2]);
-    doc.text("Dirección: Centro Comercial Otay, Local G-03 · Carretera Aeropuerto 1900, Tijuana, B.C.", x, 262);
-    doc.setFont("helvetica", "bold"); doc.setFontSize(10); doc.setTextColor(blue[0], blue[1], blue[2]);
-    doc.textWithLink("Cómo llegar — abrir en Google Maps", x, 269, { url: MAPS_URL });
-    doc.setTextColor(22, 163, 74);   /* verde WhatsApp */
-    doc.textWithLink("WhatsApp: (664) 719-4117 — abrir chat", x, 275.5, { url: WA_URL });
-    gradBand(0, 287, PW, 3); doc.setFont("helvetica", "normal"); doc.setFontSize(8.5); doc.setTextColor(muted[0], muted[1], muted[2]);
-    doc.text("okstation.mx · You say tech, we listen · Tel. 664 719 4117", x, 283);
+    /* ── Pie: contacto (Google Maps / WhatsApp / correo) ── */
+    doc.setDrawColor(rule[0], rule[1], rule[2]); doc.setLineWidth(0.4); doc.line(x, 276, RIGHT, 276);
+    doc.setFont("helvetica", "normal"); doc.setFontSize(8.5); doc.setTextColor(muted[0], muted[1], muted[2]);
+    doc.text("Ok.station · Centro Comercial Otay, Local G-03 · Tijuana, B.C.", x, 281);
+    doc.setFont("helvetica", "bold"); doc.setFontSize(9); doc.setTextColor(blue[0], blue[1], blue[2]);
+    doc.textWithLink("Cómo llegar", x, 286.5, { url: MAPS_URL });
+    doc.setTextColor(green[0], green[1], green[2]); doc.textWithLink("WhatsApp (664) 719-4117", x + 26, 286.5, { url: WA_URL });
+    doc.setTextColor(muted[0], muted[1], muted[2]); doc.textWithLink("station@okdock.mx", x + 92, 286.5, { url: "mailto:station@okdock.mx" });
     return doc.output("datauristring");
   };
 
@@ -405,107 +398,175 @@
   window.OKCitaExpedientePDF = function (appt) {
     if (!appt || !window.jspdf || !window.jspdf.jsPDF) return null;   /* no requiere QRCode */
     var doc = new window.jspdf.jsPDF({ unit: "mm", format: "a4" });
-    var PW = 210, x = 16, RIGHT = PW - 16;
-    var blue = [6, 108, 255], dark = [15, 23, 42], muted = [110, 122, 140], rule = [225, 229, 238];
-    var ty, CONTENT_BOTTOM = 280;
+    var MX = 12, PW = 210, x = MX, RIGHT = PW - MX, CW = PW - 2 * MX;
+    var blue = [6, 108, 255], purple = [156, 29, 255], teal = [13, 148, 136], navy = [10, 31, 77],
+        dark = [15, 23, 42], muted = [110, 122, 140], rule = [225, 229, 238], green = [22, 163, 74], soft = [247, 249, 252];
+    var ty, CONTENT_BOTTOM = 274;
     function two(n) { return (n < 10 ? "0" : "") + n; }
     function nowStr() { var d = new Date(); return two(d.getDate()) + "/" + two(d.getMonth() + 1) + "/" + d.getFullYear() + " " + two(d.getHours()) + ":" + two(d.getMinutes()); }
-    function needSpace(h) { if (ty + h > CONTENT_BOTTOM) { doc.addPage(); ty = 22; } }
+    function tint(c, t) { return [Math.round(c[0] + (255 - c[0]) * t), Math.round(c[1] + (255 - c[1]) * t), Math.round(c[2] + (255 - c[2]) * t)]; }
+    function needSpace(h) { if (ty + h > CONTENT_BOTTOM) { doc.addPage(); ty = 18; } }
+    function labelOf(k) { return window.OKQ ? window.OKQ.label(k) : k; }
+    function valueOf(k, ans) { return (window.OKQ ? window.OKQ.valueText(ans[k]) : String(ans[k])) || "—"; }
 
-    /* Encabezado sobrio (navy) */
-    doc.setFillColor(10, 31, 77); doc.rect(0, 0, PW, 24, "F");
-    doc.setTextColor(255, 255, 255); doc.setFont("helvetica", "bold"); doc.setFontSize(15); doc.text("Ok.station", x, 11);
-    doc.setFont("helvetica", "normal"); doc.setFontSize(10); doc.text("Expediente de la cita", x, 18);
-    doc.setFont("helvetica", "bold"); doc.setFontSize(13); doc.text(String(appt.code || ""), RIGHT, 15, { align: "right" });
+    /* Agrupación temática de respuestas por trámite (SOLO presentación: ningún dato
+       se pierde; lo no clasificado cae en "Otros datos"). */
+    var EXP_GROUPS = {
+      visa: [
+        { t: "Datos personales y estudios", c: blue,   keys: ["ocupacion", "empresa", "empresa_dir", "empresa_tel", "puesto", "salario", "estudios", "redes"] },
+        { t: "Familia y viajes",            c: purple, keys: ["padres", "conyuge", "familiares_us", "acompanantes", "paises", "ultima_visita", "visa_laser"] }
+      ],
+      pasaporte_americano: [
+        { t: "Datos personales", c: blue,   keys: ["correo", "direccion", "estado_civil", "ojos_cabello", "estatura", "has_pasaporte_us", "has_acta"] },
+        { t: "Familia",          c: purple, keys: ["padres", "padres_nac"] }
+      ],
+      pasaporte_mexicano: [
+        { t: "Documentos y CURP",      c: blue,   keys: ["curp", "has_acta", "has_domicilio", "has_ine"] },
+        { t: "Contacto de emergencia", c: purple, keys: ["emer_nombre", "emer_tel", "emer_dom"] }
+      ],
+      sentri: [
+        { t: "Ingreso y empleo",   c: blue,   keys: ["doc_ingreso", "has_doc_ingreso", "empleo", "rfc"] },
+        { t: "Domicilio y viajes", c: purple, keys: ["direccion", "direccion_us", "paises", "add_vehiculo", "vehiculo"] }
+      ]
+    };
+    function buildGroups(ans) {
+      var akeys = Object.keys(ans), key = okqKey(appt.tramite, appt.passport_subtype);
+      var cfg = key ? EXP_GROUPS[key] : null, out = [], used = {};
+      if (cfg) cfg.forEach(function (grp) {
+        var fields = [];
+        grp.keys.forEach(function (kk) { if (Object.prototype.hasOwnProperty.call(ans, kk)) { fields.push({ label: labelOf(kk), value: valueOf(kk, ans) }); used[kk] = 1; } });
+        if (fields.length) out.push({ t: grp.t, c: grp.c, fields: fields });
+      });
+      var rest = akeys.filter(function (k) { return !used[k]; });
+      if (rest.length) out.push({ t: cfg ? "Otros datos" : "Datos capturados", c: cfg ? teal : blue, fields: rest.map(function (k) { return { label: labelOf(k), value: valueOf(k, ans) }; }) });
+      return out;
+    }
+    /* Encabezado de sección: barra suave con acento de color. */
+    function groupHeader(title, c) {
+      needSpace(13);
+      var hh = 8, bg = tint(c, 0.86);
+      doc.setFillColor(bg[0], bg[1], bg[2]); doc.roundedRect(x, ty, CW, hh, 2, 2, "F");
+      doc.setFillColor(c[0], c[1], c[2]); doc.roundedRect(x, ty, 2.4, hh, 1, 1, "F");
+      doc.setFont("helvetica", "bold"); doc.setFontSize(8.5); doc.setTextColor(c[0], c[1], c[2]);
+      doc.text(String(title).toUpperCase(), x + 6, ty + 5.4);
+      ty += hh + 4;
+    }
+    /* Rejilla de 2 columnas etiqueta/valor. */
+    function fieldsGrid(fields) {
+      var gap = 8, colW = (CW - gap) / 2, wrap = colW - 1;
+      for (var i = 0; i < fields.length; i += 2) {
+        var L = fields[i], R = fields[i + 1];
+        var lLab = doc.splitTextToSize(L.label, wrap), lVal = doc.splitTextToSize(String(L.value), wrap);
+        var rLab = R ? doc.splitTextToSize(R.label, wrap) : [], rVal = R ? doc.splitTextToSize(String(R.value), wrap) : [];
+        var lH = lLab.length * 3.7 + lVal.length * 4.4 + 3, rH = R ? (rLab.length * 3.7 + rVal.length * 4.4 + 3) : 0;
+        var rowH = Math.max(lH, rH);
+        needSpace(rowH + 2);
+        var top = ty, rx = x + colW + gap;
+        doc.setFont("helvetica", "normal"); doc.setFontSize(8); doc.setTextColor(muted[0], muted[1], muted[2]); doc.text(lLab, x, top);
+        doc.setFont("helvetica", "bold"); doc.setFontSize(9.5); doc.setTextColor(dark[0], dark[1], dark[2]); doc.text(lVal, x, top + lLab.length * 3.7 + 1.5);
+        if (R) {
+          doc.setFont("helvetica", "normal"); doc.setFontSize(8); doc.setTextColor(muted[0], muted[1], muted[2]); doc.text(rLab, rx, top);
+          doc.setFont("helvetica", "bold"); doc.setFontSize(9.5); doc.setTextColor(dark[0], dark[1], dark[2]); doc.text(rVal, rx, top + rLab.length * 3.7 + 1.5);
+        }
+        ty = top + rowH;
+      }
+    }
 
-    ty = 34;
+    /* ── Encabezado navy con folio + estado ── */
+    var hy = 10, hh = 24, hr = 6;
+    doc.setFillColor(navy[0], navy[1], navy[2]); doc.roundedRect(x, hy, CW, hh, hr, hr, "F");
+    doc.setTextColor(255, 255, 255); doc.setFont("helvetica", "bold"); doc.setFontSize(16); doc.text("OK.station", x + 8, hy + 10.5);
+    doc.setFont("helvetica", "normal"); doc.setFontSize(9.5); doc.setTextColor(200, 210, 230); doc.text("Expediente de la cita", x + 8, hy + 17.5);
+    doc.setFont("helvetica", "bold"); doc.setFontSize(13); doc.setTextColor(255, 255, 255); doc.text(String(appt.code || ""), RIGHT - 8, hy + 10.5, { align: "right" });
+    var stTxt = STATUS[appt.status] || "Pendiente de confirmar";
+    var okState = (appt.status === "confirmada" || appt.status === "completada");
+    doc.setFont("helvetica", "bold"); doc.setFontSize(8);
+    var bw = doc.getTextWidth(stTxt) + 9, bxx = RIGHT - 8 - bw, byy = hy + 14.5;
+    var bf = okState ? green : [255, 255, 255], bt = okState ? [255, 255, 255] : navy;
+    doc.setFillColor(bf[0], bf[1], bf[2]); doc.roundedRect(bxx, byy, bw, 6.5, 3.25, 3.25, "F");
+    doc.setFillColor(bt[0], bt[1], bt[2]); doc.circle(bxx + 3.4, byy + 3.25, 0.9, "F");
+    doc.setTextColor(bt[0], bt[1], bt[2]); doc.text(stTxt, bxx + 6, byy + 4.4);
+
+    /* ── Banda de datos de la cita (2×2) ── */
+    ty = hy + hh + 6;
+    var bandH = 26;
+    doc.setFillColor(soft[0], soft[1], soft[2]); doc.setDrawColor(rule[0], rule[1], rule[2]); doc.setLineWidth(0.3); doc.roundedRect(x, ty, CW, bandH, 4, 4, "FD");
     var svcName = SERVICE_NAMES[appt.tramite] || appt.tramite;
     if (appt.tramite === "pasaporte" && appt.passport_subtype) svcName += " (" + (SUBTYPE[appt.passport_subtype] || appt.passport_subtype) + ")";
     var nPeople = appt.party_size || (appt.guests && appt.guests.length) || 1;
-    var info = [
-      ["Servicio", svcName],
-      ["Fecha", fmtDate(appt.date) + (appt.time ? "   ·   " + appt.time + " hrs" : "")],
-      ["Personas", String(nPeople)],
-      ["Contacto", (appt.name || "—") + (appt.phone ? "   ·   " + appt.phone : "")],
+    var cells = [
+      { c: blue,   k: "SERVICIO", v: svcName },
+      { c: purple, k: "FECHA",    v: fmtDate(appt.date) + (appt.time ? " · " + appt.time + " hrs" : "") },
+      { c: teal,   k: "PERSONAS", v: String(nPeople) },
+      { c: green,  k: "CONTACTO", v: (appt.name || "—") + (appt.phone ? " · " + appt.phone : "") }
     ];
-    doc.setFontSize(10);
-    info.forEach(function (r) {
-      doc.setFont("helvetica", "normal"); doc.setTextColor(muted[0], muted[1], muted[2]); doc.text(r[0], x, ty);
-      doc.setFont("helvetica", "bold"); doc.setTextColor(dark[0], dark[1], dark[2]); doc.text(doc.splitTextToSize(String(r[1]), 135), x + 32, ty);
-      ty += 7;
+    var cellW = CW / 2;
+    cells.forEach(function (cell, idx) {
+      var col = idx % 2, row = Math.floor(idx / 2);
+      var cx = x + 6 + col * cellW, cyr = ty + 9 + row * 12;
+      var chip = tint(cell.c, 0.8);
+      doc.setFillColor(chip[0], chip[1], chip[2]); doc.roundedRect(cx, cyr - 5, 7, 7, 1.6, 1.6, "F");
+      doc.setFillColor(cell.c[0], cell.c[1], cell.c[2]); doc.roundedRect(cx + 2.1, cyr - 2.9, 2.8, 2.8, 0.6, 0.6, "F");
+      doc.setFont("helvetica", "bold"); doc.setFontSize(6.8); doc.setTextColor(muted[0], muted[1], muted[2]); doc.text(cell.k, cx + 10, cyr - 1.4);
+      doc.setFont("helvetica", "bold"); doc.setFontSize(9.5); doc.setTextColor(dark[0], dark[1], dark[2]); doc.text(doc.splitTextToSize(String(cell.v), cellW - 15), cx + 10, cyr + 3);
     });
-    ty += 1; doc.setDrawColor(rule[0], rule[1], rule[2]); doc.line(x, ty, RIGHT, ty); ty += 9;
+    ty += bandH + 8;
 
     /* Documentos agrupados por persona (guest_index). */
     var filesByGuest = {};
     (appt.files || []).forEach(function (f) {
-      var gi = (f.guest_index === 0 || f.guest_index) ? parseInt(f.guest_index, 10) : NaN;
-      if (!isNaN(gi)) (filesByGuest[gi] = filesByGuest[gi] || []).push(f);
+      var gi2 = (f.guest_index === 0 || f.guest_index) ? parseInt(f.guest_index, 10) : NaN;
+      if (!isNaN(gi2)) (filesByGuest[gi2] = filesByGuest[gi2] || []).push(f);
     });
 
     var guests = (appt.guests && appt.guests.length) ? appt.guests : [{}];
-    doc.setTextColor(blue[0], blue[1], blue[2]); doc.setFont("helvetica", "bold"); doc.setFontSize(12);
-    needSpace(10); doc.text("Información de las personas (" + guests.length + ")", x, ty); ty += 8;
-
     for (var gi = 0; gi < guests.length; gi++) {
       var g = guests[gi] || {};
-      needSpace(18);
-      doc.setFont("helvetica", "bold"); doc.setFontSize(11); doc.setTextColor(dark[0], dark[1], dark[2]);
-      doc.text(doc.splitTextToSize((gi + 1) + ".  " + (g.name || "—"), 175), x, ty); ty += 5.5;
+      needSpace(20);
+      var pchip = tint(blue, 0.8);
+      doc.setFillColor(pchip[0], pchip[1], pchip[2]); doc.roundedRect(x, ty - 4.2, 5.5, 5.5, 1.4, 1.4, "F");
+      doc.setTextColor(blue[0], blue[1], blue[2]); doc.setFont("helvetica", "bold"); doc.setFontSize(11.5);
+      doc.text("Persona " + (gi + 1) + "  ·  " + (g.name || "—"), x + 8, ty); ty += 5.5;
       var sub = [];
       if (g.dob) sub.push("Nac. " + fmtDate(g.dob));
       if (g.doctype) sub.push(DOCTYPE[g.doctype] || g.doctype);
-      if (sub.length) { doc.setFont("helvetica", "normal"); doc.setFontSize(9); doc.setTextColor(muted[0], muted[1], muted[2]); doc.text(sub.join("   ·   "), x + 5, ty); ty += 6; }
+      if (sub.length) { doc.setFont("helvetica", "normal"); doc.setFontSize(8.5); doc.setTextColor(muted[0], muted[1], muted[2]); doc.text(sub.join("   ·   "), x + 8, ty); ty += 5.5; }
+      ty += 2;
 
-      /* Respuestas del cuestionario (etiqueta tenue, valor en negrita). */
-      var ans = g.answers || {}, akeys = Object.keys(ans);
-      if (akeys.length) {
-        for (var ai = 0; ai < akeys.length; ai++) {
-          var lbl = window.OKQ ? window.OKQ.label(akeys[ai]) : akeys[ai];
-          var val = window.OKQ ? window.OKQ.valueText(ans[akeys[ai]]) : String(ans[akeys[ai]]);
-          var lblLines = doc.splitTextToSize(lbl, 168);
-          var valLines = doc.splitTextToSize(String(val || "—"), 168);
-          needSpace((lblLines.length + valLines.length) * 4.4 + 3);
-          doc.setFont("helvetica", "normal"); doc.setFontSize(8.5); doc.setTextColor(muted[0], muted[1], muted[2]);
-          doc.text(lblLines, x + 5, ty); ty += lblLines.length * 4.2;
-          doc.setFont("helvetica", "bold"); doc.setFontSize(9.5); doc.setTextColor(dark[0], dark[1], dark[2]);
-          doc.text(valLines, x + 5, ty); ty += valLines.length * 4.6 + 2;
-        }
+      var ans = g.answers || {};
+      if (Object.keys(ans).length) {
+        buildGroups(ans).forEach(function (grp) { groupHeader(grp.t, grp.c); fieldsGrid(grp.fields); ty += 3; });
       } else {
-        doc.setFont("helvetica", "italic"); doc.setFontSize(9); doc.setTextColor(muted[0], muted[1], muted[2]);
-        doc.text("Sin respuestas capturadas.", x + 5, ty); ty += 6;
+        doc.setFont("helvetica", "italic"); doc.setFontSize(9); doc.setTextColor(muted[0], muted[1], muted[2]); doc.text("Sin respuestas capturadas.", x + 2, ty); ty += 6;
       }
 
       /* Documentos subidos por esta persona. */
       var gf = filesByGuest[gi] || [];
-      needSpace(8);
-      doc.setFont("helvetica", "bold"); doc.setFontSize(9); doc.setTextColor(blue[0], blue[1], blue[2]);
-      doc.text("Documentos subidos:", x + 5, ty); ty += 5;
+      groupHeader("Documentos subidos", green);
       if (gf.length) {
         for (var fi = 0; fi < gf.length; fi++) {
-          var dn = (gf[fi].doc_label || gf[fi].doc_key || "Documento") + (gf[fi].original_name ? "  (" + gf[fi].original_name + ")" : "");
-          var dlines = doc.splitTextToSize("•  " + dn, 163);
-          needSpace(dlines.length * 4.4);
-          doc.setFont("helvetica", "normal"); doc.setFontSize(8.5); doc.setTextColor(dark[0], dark[1], dark[2]);
-          doc.text(dlines, x + 8, ty); ty += dlines.length * 4.4;
+          var dn = (gf[fi].doc_label || gf[fi].doc_key || "Documento") + (gf[fi].original_name ? "  ·  " + gf[fi].original_name : "");
+          var dlines = doc.splitTextToSize(dn, CW - 8);
+          needSpace(dlines.length * 4.4 + 1);
+          doc.setFillColor(green[0], green[1], green[2]); doc.roundedRect(x, ty - 2.6, 2.6, 3.2, 0.5, 0.5, "F");
+          doc.setFont("helvetica", "normal"); doc.setFontSize(9); doc.setTextColor(dark[0], dark[1], dark[2]); doc.text(dlines, x + 5, ty); ty += dlines.length * 4.4 + 1;
         }
       } else {
-        doc.setFont("helvetica", "normal"); doc.setFontSize(8.5); doc.setTextColor(muted[0], muted[1], muted[2]);
-        doc.text("Ninguno (el cliente puede traerlos físicos el día de la cita).", x + 8, ty); ty += 5;
+        doc.setFont("helvetica", "normal"); doc.setFontSize(9); doc.setTextColor(muted[0], muted[1], muted[2]); doc.text("Ninguno (el cliente puede traerlos físicos el día de la cita).", x + 2, ty); ty += 5;
       }
 
-      ty += 4;
-      if (gi < guests.length - 1) { doc.setDrawColor(rule[0], rule[1], rule[2]); doc.line(x, ty, RIGHT, ty); ty += 7; }
+      ty += 6;
+      if (gi < guests.length - 1) { needSpace(6); doc.setDrawColor(rule[0], rule[1], rule[2]); doc.setLineWidth(0.3); doc.line(x, ty, RIGHT, ty); ty += 8; }
     }
 
     /* Pie con numeración en todas las páginas. */
     var total = doc.getNumberOfPages();
     for (var p = 1; p <= total; p++) {
       doc.setPage(p);
-      doc.setDrawColor(rule[0], rule[1], rule[2]); doc.line(x, 286, RIGHT, 286);
+      doc.setDrawColor(rule[0], rule[1], rule[2]); doc.setLineWidth(0.3); doc.line(x, 284, RIGHT, 284);
       doc.setFont("helvetica", "normal"); doc.setFontSize(8); doc.setTextColor(muted[0], muted[1], muted[2]);
-      doc.text("Expediente generado el " + nowStr() + "  ·  Ok.station", x, 291);
-      doc.text("Página " + p + " de " + total, RIGHT, 291, { align: "right" });
+      doc.text("Expediente generado el " + nowStr() + "  ·  Ok.station", x, 289);
+      doc.text("Página " + p + " de " + total, RIGHT, 289, { align: "right" });
     }
     return doc.output("datauristring");
   };
