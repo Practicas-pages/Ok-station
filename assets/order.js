@@ -438,10 +438,11 @@
     box.className = "order-pay-cta";
     box.style.cssText = "margin-top:18px;padding-top:16px;border-top:1px solid var(--border-light);text-align:center";
     box.innerHTML =
+      '<p style="margin:0 0 6px;font-weight:700;color:var(--text-strong)">Se necesita el pago para poder procesar tu pedido.</p>' +
       '<p style="margin:0 0 8px;color:var(--text-muted)">Total a pagar: ' +
         '<b style="color:var(--brand-blue)">' + mxn(total) + '</b></p>' +
       '<button type="button" class="btn btn--primary btn--sm" id="order-pay-btn">Pagar en línea ahora</button>' +
-      '<p style="margin:8px 0 0;font-size:.8rem;color:var(--text-muted)">Pago seguro con Mercado Pago. También puedes pagarlo después desde “Mis pedidos”.</p>';
+      '<p style="margin:8px 0 0;font-size:.8rem;color:var(--text-muted)">Pago seguro con Mercado Pago. También puedes pagarlo desde “Mis pedidos”.</p>';
     host.appendChild(box);
     var pb = $("#order-pay-btn", box);
     if (pb) pb.addEventListener("click", function () { startOrderPayment(order.id, this); });
@@ -454,7 +455,9 @@
     window.location.href = "pago.html?order=" + encodeURIComponent(orderId);
   }
 
-  /* Ticket PDF con la identidad de Ok.station (degradado de marca, colores y lema). */
+  /* Ticket PDF del pedido — MISMO diseño que el comprobante de cita (assets/cita-ticket.js):
+     banner degradado con tarjeta de logo, píldora "Comprobante de pedido", QR con leyenda,
+     detalle en filas etiqueta/valor y pie fijo (mapa + WhatsApp + franja de marca). */
   function buildTicket(order) {
     var jsPDF = window.jspdf.jsPDF;
     var doc = new jsPDF({ unit: "mm", format: "a4" });
@@ -465,110 +468,139 @@
     var dark = [15, 23, 42], muted = [110, 122, 140];
     function lerp(a, b, t) { return [Math.round(a[0] + (b[0] - a[0]) * t), Math.round(a[1] + (b[1] - a[1]) * t), Math.round(a[2] + (b[2] - a[2]) * t)]; }
     function gradBand(x0, y0, w, h) {
-      var n = Math.max(2, Math.round(w));
-      var step = w / n;
-      for (var i = 0; i < n; i++) {
-        var t = i / (n - 1);
-        var c = t < 0.5 ? lerp(purple, blue, t * 2) : lerp(blue, cyan, (t - 0.5) * 2);
+      var n = Math.max(2, Math.round(w)), s = w / n;
+      for (var i = 0; i < n; i++) { var t = i / (n - 1); var c = t < 0.5 ? lerp(purple, blue, t * 2) : lerp(blue, cyan, (t - 0.5) * 2); doc.setFillColor(c[0], c[1], c[2]); doc.rect(x0 + s * i, y0, s + 0.4, h, "F"); }
+    }
+    /* Degradado en ÁNGULO recortado a un banner redondeado — idéntico al del ticket de cita. */
+    function gradBandAngled(x0, y0, w, h, r, deg) {
+      var rad = deg * Math.PI / 180, cosA = Math.cos(rad), sinA = Math.sin(rad);
+      var cxA = [0, w, 0, w], cyA = [0, 0, h, h], uMin = Infinity, uMax = -Infinity, k, u;
+      for (k = 0; k < 4; k++) { u = cxA[k] * cosA + cyA[k] * sinA; if (u < uMin) uMin = u; if (u > uMax) uMax = u; }
+      var R = (uMax - uMin) || 1, px = -sinA, py = cosA, L = Math.sqrt(w * w + h * h) + 4;
+      doc.saveGraphicsState();
+      doc.roundedRect(x0, y0, w, h, r, r, null).clip().discardPath();
+      var du = 1.1, over = 0.5, t, c, b1x, b1y, b2x, b2y;
+      for (u = uMin; u < uMax; u += du) {
+        t = (u - uMin) / R;
+        c = t < 0.5 ? lerp(purple, blue, t * 2) : lerp(blue, cyan, (t - 0.5) * 2);
         doc.setFillColor(c[0], c[1], c[2]);
-        doc.rect(x0 + step * i, y0, step + 0.4, h, "F");
+        b1x = x0 + u * cosA; b1y = y0 + u * sinA;
+        b2x = x0 + (u + du + over) * cosA; b2y = y0 + (u + du + over) * sinA;
+        doc.triangle(b1x + px * L, b1y + py * L, b1x - px * L, b1y - py * L, b2x - px * L, b2y - py * L, "F");
+        doc.triangle(b1x + px * L, b1y + py * L, b2x - px * L, b2y - py * L, b2x + px * L, b2y + py * L, "F");
       }
+      doc.restoreGraphicsState();
     }
 
-    // ── Encabezado con degradado de marca ──
-    gradBand(0, 0, PW, 34);
-    doc.setTextColor(255, 255, 255);
-    doc.setFont("helvetica", "bold"); doc.setFontSize(24); doc.text("Ok.station", x, 18);
-    doc.setFont("helvetica", "normal"); doc.setFontSize(10.5); doc.text("Ticket de pedido", x, 26);
+    // ── Encabezado: banner degradado + tarjeta blanca con logo + píldora ──
+    var _logo = (window.OKTicketLogo && window.OKTicketLogo()) || null;   /* logo ya optimizado del ticket de cita */
+    (function drawHeader() {
+      var MX = 8, bx = MX, by = 8, bw = PW - 2 * MX, bh = 30, br = 8;
+      try { gradBandAngled(bx, by, bw, bh, br, -21.3664); }
+      catch (e) { gradBand(0, 0, PW, 34); bx = 0; by = 0; bh = 34; }
+      /* Tarjeta blanca (izquierda) con el logo oficial centrado. */
+      var cw = 66, ch = 20, cx = bx + 6, cy = by + (bh - ch) / 2, cr = 7;
+      doc.setFillColor(255, 255, 255); doc.roundedRect(cx, cy, cw, ch, cr, cr, "F");
+      if (_logo) {
+        var ar = _logo.w / _logo.h, lh = 11, lw = lh * ar, maxw = cw - 12;
+        if (lw > maxw) { lw = maxw; lh = lw / ar; }
+        doc.addImage(_logo.png, "PNG", cx + (cw - lw) / 2, cy + (ch - lh) / 2, lw, lh);
+      } else {
+        doc.setFont("helvetica", "bold"); doc.setFontSize(19);
+        var t1 = "Ok", t2 = ".station", w1 = doc.getTextWidth(t1), w2 = doc.getTextWidth(t2);
+        var tx = cx + (cw - (w1 + w2)) / 2, tyv = cy + ch / 2 + 2.4;
+        doc.setTextColor(blue[0], blue[1], blue[2]); doc.text(t1, tx, tyv);
+        doc.setTextColor(dark[0], dark[1], dark[2]); doc.text(t2, tx + w1, tyv);
+      }
+      /* Píldora blanca (derecha) con "Comprobante de pedido". */
+      doc.setFont("helvetica", "bold"); doc.setFontSize(12);
+      var plabel = "Comprobante de pedido", pw = doc.getTextWidth(plabel) + 14, ph = 12;
+      var pxp = bx + bw - 6 - pw, pyp = by + (bh - ph) / 2;
+      doc.setFillColor(255, 255, 255); doc.roundedRect(pxp, pyp, pw, ph, ph / 2, ph / 2, "F");
+      doc.setTextColor(dark[0], dark[1], dark[2]); doc.text(plabel, pxp + 7, pyp + ph / 2 + 1.6);
+    })();
 
-    // ── Datos fiscales del negocio (como el ticket de mostrador) ──
-    function two(n) { return (n < 10 ? "0" : "") + n; }
-    function fmtDateTime(d) { return two(d.getDate()) + "/" + two(d.getMonth() + 1) + "/" + d.getFullYear() + " " + two(d.getHours()) + ":" + two(d.getMinutes()); }
-    var emitted = order.created_at ? new Date(String(order.created_at).replace(" ", "T")) : new Date();
-    doc.setTextColor(muted[0], muted[1], muted[2]); doc.setFont("helvetica", "normal"); doc.setFontSize(8.5);
-    doc.text("Aeropuerto 1900 G03, Ctro. Com. Otay, Tijuana, B.C.", x, 40);
-    doc.text("Tel. (664) 623-1595  ·  RFC: RUOJ6704222M5", x, 44.5);
-    doc.text("Emitido: " + fmtDateTime(emitted), x, 49);
-
-    // ── QR (para consultar el pedido) ──
+    // ── QR (lleva a "Mis pedidos") ──
     try {
       var tmp = document.createElement("div");
       new QRCode(tmp, { text: location.origin + "/perfil.html?pedido=" + order.code, width: 160, height: 160 });
       var canvas = tmp.querySelector("canvas");
       if (canvas) {
         doc.addImage(canvas.toDataURL("image/png"), "PNG", PW - x - 38, 44, 38, 38);
-        /* Leyenda debajo del QR: a dónde lleva y que hay que iniciar sesión.
-           Se dibuja oscura y un poco más grande para que se lea bien (antes muy tenue). */
+        /* Leyenda debajo del QR: a dónde lleva y que hay que iniciar sesión. */
         doc.setFont("helvetica", "bold"); doc.setFontSize(7.5); doc.setTextColor(dark[0], dark[1], dark[2]);
-        doc.text("Escanéalo para ver tus pedidos", PW - x - 19, 85.5, { align: "center" });
+        doc.text("Al escanear el código QR", PW - x - 19, 85.5, { align: "center" });
+        doc.text("te mandará a tus pedidos", PW - x - 19, 88.5, { align: "center" });
         doc.setFont("helvetica", "normal"); doc.setFontSize(7);
-        doc.text("(inicia sesión primero)", PW - x - 19, 89, { align: "center" });
+        doc.text("(inicia sesión primero)", PW - x - 19, 91.8, { align: "center" });
       }
     } catch (e) {}
 
-    // ── Folio + estado (con holgura para no encimar los datos fiscales) ──
-    doc.setTextColor(dark[0], dark[1], dark[2]);
-    doc.setFont("helvetica", "bold"); doc.setFontSize(18); doc.text(String(order.code || ""), x, 57);
+    // ── Emitido + folio + estado ──
+    function two(n) { return (n < 10 ? "0" : "") + n; }
+    function fmtDateTime(d) { return two(d.getDate()) + "/" + two(d.getMonth() + 1) + "/" + d.getFullYear() + " " + two(d.getHours()) + ":" + two(d.getMinutes()); }
+    var emitted = order.created_at ? new Date(String(order.created_at).replace(" ", "T")) : new Date();
+    doc.setTextColor(muted[0], muted[1], muted[2]); doc.setFont("helvetica", "normal"); doc.setFontSize(8.5);
+    doc.text("Emitido: " + fmtDateTime(emitted), x, 49);
+    doc.setTextColor(dark[0], dark[1], dark[2]); doc.setFont("helvetica", "bold"); doc.setFontSize(18); doc.text(String(order.code || ""), x, 57);
 
     var STAT = { recibido: "Recibido", en_revision: "En revisión", en_produccion: "En producción", listo: "Listo", entregado: "Entregado", cancelado: "Cancelado" };
-    var label = STAT[order.status] || order.status || "—";
-    doc.setFont("helvetica", "bold"); doc.setFontSize(9);
-    var lw = doc.getTextWidth(label) + 8;
-    doc.setFillColor(blue[0], blue[1], blue[2]);
-    doc.roundedRect(x, 61, lw, 7, 3.5, 3.5, "F");
+    var label = STAT[order.status] || order.status || "Recibido";
+    doc.setFont("helvetica", "bold"); doc.setFontSize(9); var lw = doc.getTextWidth(label) + 8;
+    doc.setFillColor(blue[0], blue[1], blue[2]); doc.roundedRect(x, 61, lw, 7, 3.5, 3.5, "F");
     doc.setTextColor(255, 255, 255); doc.text(label, x + 4, 65.8);
 
-    // ── Archivos ──
-    // El pie (mapa/WhatsApp) es FIJO; reservamos espacio para los totales (~42mm)
-    // y, si hay demasiados archivos, resumimos el resto para no encimar el pie.
-    var ITEMS_LIMIT_Y = 208;   // los archivos no deben pasar de aquí (deja sitio a totales+pie)
+    /* El pie (mapa + contactos) va FIJO al pie; el contenido nunca debe invadirlo. */
+    var FOOTER_TOP = 250;   /* límite inferior del área de contenido (mm) */
+    var ty = 82;
+    doc.setTextColor(blue[0], blue[1], blue[2]); doc.setFont("helvetica", "bold"); doc.setFontSize(12); doc.text("Detalle del pedido", x, ty); ty += 8;
+    function needSpace(h) { if (ty + h > FOOTER_TOP) { doc.addPage(); ty = 22; } }
+
+    // ── Archivos (mismo estilo que "Servicios adicionales" del ticket de cita) ──
     var items = order.items || [];
-    var ty = 80;
-    doc.setTextColor(blue[0], blue[1], blue[2]);
-    doc.setFont("helvetica", "bold"); doc.setFontSize(12); doc.text("Archivos", x, ty);
-    ty += 7;
     for (var ii = 0; ii < items.length; ii++) {
-      if (ty > ITEMS_LIMIT_Y) {
-        doc.setFont("helvetica", "italic"); doc.setFontSize(9.5); doc.setTextColor(muted[0], muted[1], muted[2]);
-        doc.text("y " + (items.length - ii) + " archivo(s) más…", x, ty); ty += 8;
-        break;
-      }
       var it = items[ii];
       var cfg = {};
       if (it.config_json) { try { cfg = typeof it.config_json === "string" ? JSON.parse(it.config_json) : it.config_json; } catch (e) { cfg = {}; } }
-      doc.setFont("helvetica", "bold"); doc.setFontSize(10); doc.setTextColor(dark[0], dark[1], dark[2]);
-      doc.text(doc.splitTextToSize("• " + (it.original_name || "Archivo"), 170), x, ty);
       var meta = [cfg.size, cfg.color, cfg.sides, cfg.finish].filter(Boolean).join(" · ");
       meta = (meta ? meta + " · " : "") + "x" + (it.qty || 1);
-      doc.setFont("helvetica", "normal"); doc.setTextColor(muted[0], muted[1], muted[2]);
-      doc.text(doc.splitTextToSize(meta, 165), x + 5, ty + 5);
-      ty += 12;
+      var nameLines = doc.splitTextToSize("• " + (it.original_name || "Archivo"), 165);
+      var metaLines = doc.splitTextToSize(meta, 160);
+      needSpace(nameLines.length * 5 + metaLines.length * 4.6 + 3);
+      doc.setFont("helvetica", "bold"); doc.setFontSize(10.5); doc.setTextColor(dark[0], dark[1], dark[2]);
+      doc.text(nameLines, x, ty); ty += nameLines.length * 5;
+      doc.setFont("helvetica", "normal"); doc.setFontSize(9.5); doc.setTextColor(muted[0], muted[1], muted[2]);
+      doc.text(metaLines, x + 5, ty); ty += metaLines.length * 4.6 + 2;
     }
 
-    // ── Totales ──
-    ty += 2;
-    doc.setDrawColor(230, 233, 238); doc.line(x, ty, x + 95, ty); ty += 8;
-    doc.setFont("helvetica", "normal"); doc.setFontSize(10); doc.setTextColor(dark[0], dark[1], dark[2]);
-    var artCount = (order.items || []).reduce(function (s, it) { return s + (parseInt(it.qty, 10) || 1); }, 0);
-    doc.text("No. de artículos", x, ty); doc.text(String(artCount), x + 95, ty, { align: "right" }); ty += 6;
-    doc.text("Subtotal", x, ty); doc.text(mxn(order.subtotal), x + 95, ty, { align: "right" }); ty += 6;
-    doc.text("IVA (8%)", x, ty); doc.text(mxn(order.tax), x + 95, ty, { align: "right" }); ty += 9;
-    doc.setFont("helvetica", "bold"); doc.setFontSize(14); doc.setTextColor(blue[0], blue[1], blue[2]);
-    doc.text("Total", x, ty); doc.text(mxn(order.total), x + 95, ty, { align: "right" });
+    // ── Totales en filas etiqueta/valor (igual que el desglose del ticket de cita) ──
+    ty += 3; needSpace(34);
+    var artCount = items.reduce(function (s, it) { return s + (parseInt(it.qty, 10) || 1); }, 0);
+    var totalRows = [["No. de artículos", String(artCount)], ["Subtotal", mxn(order.subtotal)], ["IVA (8%)", mxn(order.tax)], ["Total", mxn(order.total)]];
+    doc.setFontSize(10.5);
+    totalRows.forEach(function (r) {
+      doc.setFont("helvetica", "normal"); doc.setTextColor(muted[0], muted[1], muted[2]); doc.text(r[0], x, ty);
+      doc.setFont("helvetica", "bold"); doc.setTextColor(dark[0], dark[1], dark[2]); doc.text(String(r[1]), x + 45, ty);
+      ty += 8;
+    });
 
-    // ── Cómo llegar (Google Maps) + WhatsApp — posición FIJA al pie para que SIEMPRE aparezcan ──
+    // ── Aviso de pago ──
+    needSpace(10);
+    ty += 1; doc.setFont("helvetica", "normal"); doc.setFontSize(9); doc.setTextColor(muted[0], muted[1], muted[2]);
+    doc.text(doc.splitTextToSize("Se necesita el pago para poder procesar tu pedido. Conserva este comprobante con tu folio.", 175), x, ty);
+
+    // ── Pie FIJO: cómo llegar (Google Maps) + WhatsApp ──
     var WA_URL = "https://wa.me/526647194117?text=" + encodeURIComponent("Hola Ok.station, tengo un pedido y quiero confirmar / hacer mi pago.");
+    var MAPS_URL = "https://www.google.com/maps/place/Ok.station/@32.5292376,-116.9514835,17z/data=!4m6!3m5!1s0x80d9475a2b534615:0x80c51bb5b3fe8f55!8m2!3d32.5292376!4d-116.9514835!16s%2Fg%2F11k63fhrhb";
     doc.setFont("helvetica", "normal"); doc.setFontSize(9); doc.setTextColor(muted[0], muted[1], muted[2]);
     doc.text("Dirección: Centro Comercial Otay, Local G-03 · Carretera Aeropuerto 1900, Tijuana, B.C.", x, 262);
     doc.setFont("helvetica", "bold"); doc.setFontSize(10); doc.setTextColor(blue[0], blue[1], blue[2]);
-    doc.textWithLink("Cómo llegar — abrir en Google Maps", x, 269, { url: "https://www.google.com/maps/place/Ok.station/@32.5292376,-116.9514835,17z/data=!4m6!3m5!1s0x80d9475a2b534615:0x80c51bb5b3fe8f55!8m2!3d32.5292376!4d-116.9514835!16s%2Fg%2F11k63fhrhb" });
+    doc.textWithLink("Cómo llegar — abrir en Google Maps", x, 269, { url: MAPS_URL });
     doc.setTextColor(22, 163, 74);   // verde WhatsApp
     doc.textWithLink("WhatsApp: (664) 719-4117 — abrir chat", x, 275.5, { url: WA_URL });
-
-    // ── Pie con línea de marca + lema ──
     gradBand(0, 287, PW, 3);
     doc.setFont("helvetica", "normal"); doc.setFontSize(8.5); doc.setTextColor(muted[0], muted[1], muted[2]);
-    doc.text("okstation.mx · You say tech, we listen", x, 283);
+    doc.text("okstation.mx · You say tech, we listen · Tel. 664 719 4117", x, 283);
 
     return doc.output("datauristring");
   }

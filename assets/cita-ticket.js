@@ -144,6 +144,9 @@
       img.src = LOGO_SRC;
     } catch (e) {}
   })();
+  /* Logo ya optimizado del ticket; lo reutiliza el comprobante de pedido (order.js)
+     para dibujar el mismo encabezado de marca. Devuelve null si aún no cargó. */
+  window.OKTicketLogo = function () { return _ticketLogo; };
 
   /* ── Precios de trámite/cita (MXN, por persona, IVA incluido). Los no listados se cotizan. ──
      Estos valores por defecto coinciden con la semilla del servidor (settings appt.prices);
@@ -291,9 +294,10 @@
         /* Leyenda debajo del QR: a dónde lleva y que hay que iniciar sesión.
            Se dibuja oscura y un poco más grande para que se lea bien (antes muy tenue). */
         doc.setFont("helvetica", "bold"); doc.setFontSize(7.5); doc.setTextColor(dark[0], dark[1], dark[2]);
-        doc.text("Escanéalo para ver tus citas", PW - x - 19, 85.5, { align: "center" });
+        doc.text("Al escanear el código QR", PW - x - 19, 85.5, { align: "center" });
+        doc.text("te mandará a tus citas", PW - x - 19, 88.5, { align: "center" });
         doc.setFont("helvetica", "normal"); doc.setFontSize(7);
-        doc.text("(inicia sesión primero)", PW - x - 19, 89, { align: "center" });
+        doc.text("(inicia sesión primero)", PW - x - 19, 91.8, { align: "center" });
       }
     } catch (e) {}
     /* ── Fecha de emisión (los datos fiscales de la empresa se retiraron del ticket) ── */
