@@ -508,18 +508,11 @@
       updateStep0Next();
     }
 
-    /* Tras elegir un trámite, guiar al usuario al siguiente paso: llevar el botón
-       "Continuar" (y los requisitos) a la vista, con desplazamiento suave. */
-    function scrollToStep0Next() {
-      setTimeout(function () {
-        var t = qs("#cita-next-0");
-        if (t && t.scrollIntoView) t.scrollIntoView({ behavior: "smooth", block: "center" });
-      }, 130);
-    }
-
     /* DELEGACIÓN de eventos: un solo listener en la sección capta el clic en
        cualquier .tramite-btn, INCLUIDAS las tarjetas clonadas del carrusel
-       infinito (los clones no heredan listeners por-elemento). */
+       infinito (los clones no heredan listeners por-elemento).
+       NO desplazamos la página al elegir un trámite: los requisitos aparecen en
+       su sitio y que la pantalla se moviera sola resultaba molesto. */
     section.addEventListener("click", function (e) {
       var btn = e.target.closest ? e.target.closest(".tramite-btn") : null;
       if (!btn || !section.contains(btn)) return;
@@ -527,7 +520,6 @@
       if (!id) return;
       selectService(id, btn);
       if (id === "pasaporte") { openSubtypeModal(); return; }   /* caso especial: subtipo obligatorio */
-      scrollToStep0Next();
     });
 
     /* ── Caso especial Pasaporte: modal de subtipo (mexicano/americano) ── */

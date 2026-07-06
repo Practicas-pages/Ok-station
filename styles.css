@@ -5334,11 +5334,12 @@ body.admin::before, body.admin::after { display: none !important; }
 .cita-reqs__head { display: flex; align-items: center; gap: 9px; color: #fff; font-size: 0.95rem; }
 .cita-reqs__head svg { width: 20px; height: 20px; color: var(--brand-cyan); flex: 0 0 auto; }
 .cita-reqs__note { color: rgba(255,255,255,0.7); font-size: 0.84rem; margin: 8px 0 0; }
-.cita-reqs__list { list-style: none; margin: 8px 0 0; padding: 0; display: grid; grid-template-columns: 1fr; gap: 1px; }
+.cita-reqs__list { list-style: none; margin: 8px 0 0; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 2px 22px; }
 .cita-reqs__list li { position: relative; padding-left: 16px; color: #4B5563; font-size: 0.85rem; line-height: 1.35; }
 .cita-reqs__list li::before { content: ""; position: absolute; left: 2px; top: 8px; width: 5px; height: 5px; border-radius: 50%; background: var(--brand-cyan); }
 .cita-reqs__group { margin-top: 10px; }
 .cita-reqs__gtitle { display: block; color: #cfe0ff; font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 3px; }
+@media (max-width: 600px) { .cita-reqs__list { grid-template-columns: 1fr; } }
 
 /* Botones agrupados en la barra del paso (Subir documentos + Continuar) */
 .cita-nav__group { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: flex-end; }
