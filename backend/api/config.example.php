@@ -32,13 +32,20 @@ return [
 
     'admin_emails'  => array_filter(array_map('trim', explode(',', (string) env('ADMIN_EMAILS', '')))),
 
+    /* Correo del NEGOCIO: recibe un aviso cuando entra un pedido o una cita nueva.
+       Si no se define, el código usa 'station@okdock.mx' por defecto. */
+    'business_email' => env('BUSINESS_EMAIL', 'station@okdock.mx'),
+
     /* Reseñas de Google (Places API). Si quedan vacías, el sitio solo muestra
        las reseñas propias (no rompe nada). */
     'google_places_api_key' => env('GOOGLE_PLACES_API_KEY', ''),
     'google_place_id'       => env('GOOGLE_PLACE_ID', ''),
 
     'storage_path'  => rtrim((string) env('STORAGE_PATH', __DIR__ . '/../storage'), '/'),
-    'max_upload_mb' => (int) env('MAX_UPLOAD_MB', 25),
+    /* Tope por archivo. 100 MB para permitir documentos grandes (100–200 pág).
+       OJO: el php.ini del servidor también debe permitir upload_max_filesize y
+       post_max_size >= este valor, si no PHP rechaza la subida antes. */
+    'max_upload_mb' => (int) env('MAX_UPLOAD_MB', 100),
 
     'smtp' => [
         'host'      => env('SMTP_HOST', ''),

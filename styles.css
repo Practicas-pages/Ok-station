@@ -5359,6 +5359,12 @@ body.admin::before, body.admin::after { display: none !important; }
 .cita-reqs__group .cita-reqs__list { columns: 1; margin-top: 4px; }
 .cita-reqs__gtitle { display: block; color: #cfe0ff; font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 3px; }
 
+/* Avisos de pago al 100% (pedidos y citas). Especificidad + !important para
+   ganarle a los temas de sección que fijan el color del texto. */
+.order-summary .order-note--pay { color: var(--brand-blue) !important; font-weight: 700; margin-bottom: 8px; }
+.cita-pay-note { margin: 4px 0 0; font-size: 0.9rem; font-weight: 700; text-align: center; }
+.citas-section .cita-pay-note { color: var(--brand-blue) !important; }
+
 /* Botones agrupados en la barra del paso (Subir documentos + Continuar) */
 .cita-nav__group { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: flex-end; }
 #cita-docs-toggle svg { width: 18px; height: 18px; }

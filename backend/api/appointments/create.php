@@ -209,6 +209,24 @@ if ($userId) {
         ->execute([$userId, 'appointment', 'Cita registrada', 'Tu cita ' . $code . ' quedó registrada para el ' . $date . ' a las ' . $time . '.']);
 }
 
+/* Aviso al NEGOCIO: cada cita nueva dispara un correo al correo del negocio
+   (config 'business_email'). Best-effort: si el correo falla NO afecta el
+   registro de la cita (Mail::sendHtml nunca lanza; el try/catch es un seguro). */
+try {
+    global $CONFIG;
+    require_once __DIR__ . '/../lib/Mail.php';
+    $bizTo = (string) ($CONFIG['business_email'] ?? 'station@okdock.mx');
+    if ($bizTo !== '') {
+        $bizHtml = '<p>Nueva <b>cita</b> en Ok.station.</p>'
+            . '<p><b>Folio:</b> ' . htmlspecialchars($code, ENT_QUOTES, 'UTF-8') . '<br>'
+            . '<b>Trámite:</b> ' . htmlspecialchars((string) $tramite, ENT_QUOTES, 'UTF-8') . '<br>'
+            . '<b>Fecha:</b> ' . htmlspecialchars((string) $date, ENT_QUOTES, 'UTF-8') . ' ' . htmlspecialchars((string) $time, ENT_QUOTES, 'UTF-8') . '<br>'
+            . '<b>Personas:</b> ' . (int) $party . '</p>'
+            . '<p>Entra al panel de Ok.station para gestionarla.</p>';
+        Mail::sendHtml($bizTo, 'Nueva cita ' . $code . ' · Ok.station', $bizHtml, 'Nueva cita ' . $code . ' (' . (string) $tramite . ').');
+    }
+} catch (Throwable $e) { error_log('[appt.notify-business] ' . $e->getMessage()); }
+
 /* Token de confirmación: el cliente confirma su cita desde el correo (enlace con
    token). Solo si la migración 0017 ya creó la columna (resiliente). */
 $confirmToken = null;

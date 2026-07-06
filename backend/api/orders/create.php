@@ -97,6 +97,25 @@ log_activity((int) $user['id'], 'order.create', 'orders', $orderId);
 db()->prepare('INSERT INTO notifications (user_id, type, title, body) VALUES (?,?,?,?)')
     ->execute([(int) $user['id'], 'order', 'Pedido recibido', 'Tu pedido ' . $code . ' fue recibido.']);
 
+/* Aviso al NEGOCIO: cada pedido nuevo dispara un correo al correo del negocio
+   (config 'business_email'). Best-effort: si el correo falla NO afecta la
+   creación del pedido (Mail::sendHtml nunca lanza; el try/catch es un seguro). */
+try {
+    global $CONFIG;
+    require_once __DIR__ . '/../lib/Mail.php';
+    $bizTo = (string) ($CONFIG['business_email'] ?? 'station@okdock.mx');
+    if ($bizTo !== '') {
+        $bizCliente = (string) ($user['email'] ?? 'cliente');
+        $bizHtml = '<p>Nuevo <b>pedido</b> en Ok.station.</p>'
+            . '<p><b>Folio:</b> ' . htmlspecialchars($code, ENT_QUOTES, 'UTF-8') . '<br>'
+            . '<b>Cliente:</b> ' . htmlspecialchars($bizCliente, ENT_QUOTES, 'UTF-8') . '<br>'
+            . '<b>Teléfono:</b> ' . htmlspecialchars((string) $phone, ENT_QUOTES, 'UTF-8') . '<br>'
+            . '<b>Total estimado:</b> $' . number_format((float) $total, 2) . ' MXN</p>'
+            . '<p>Entra al panel de Ok.station para gestionarlo.</p>';
+        Mail::sendHtml($bizTo, 'Nuevo pedido ' . $code . ' · Ok.station', $bizHtml, 'Nuevo pedido ' . $code . ' de ' . $bizCliente . '.');
+    }
+} catch (Throwable $e) { error_log('[order.notify-business] ' . $e->getMessage()); }
+
 /* Token de confirmación: el cliente confirma su pedido desde el correo (enlace con
    token). Solo si la migración 0017 ya creó la columna (resiliente). */
 $confirmToken = null;
