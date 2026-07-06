@@ -325,11 +325,16 @@
       if (typeof entry === "string") { loose.push(entry); return; }
     });
     if (loose.length) out += ul(loose);
+    /* Los grupos van dentro de un contenedor multicolumna: cada grupo es un
+       bloque INDIVISIBLE que se acomoda en las columnas que quepan (título +
+       puntos juntos y en orden), llenando el ancho sin descuadrar. */
+    var groups = "";
     data.forEach(function (entry) {
       if (typeof entry === "object" && entry.group) {
-        out += '<div class="cita-reqs__group"><span class="cita-reqs__gtitle">' + esc(entry.group) + '</span>' + ul(entry.items) + '</div>';
+        groups += '<div class="cita-reqs__group"><span class="cita-reqs__gtitle">' + esc(entry.group) + '</span>' + ul(entry.items) + '</div>';
       }
     });
+    if (groups) out += '<div class="cita-reqs__groups">' + groups + '</div>';
     return out;
   }
   function ul(items) {
