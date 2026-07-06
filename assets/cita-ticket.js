@@ -50,10 +50,16 @@
       { k: "direccion",    q: "Dirección para recibir el pasaporte",                 help: "Tu dirección permanente o una de EE. UU.", type: "text" },
       { k: "ojos_cabello", q: "Color de ojos y de cabello",                          type: "text" },
       { k: "estatura",     q: "Estatura (pies y pulgadas)",                          help: "Ej: 5'7\"", type: "text" },
-      { k: "estado_civil", q: "Estado civil",                                        type: "select", opts: ["Soltero(a)", "Casado(a)", "Divorciado(a)"] }
+      { k: "estado_civil", q: "Estado civil",                                        type: "select", opts: ["Soltero(a)", "Casado(a)", "Divorciado(a)"] },
+      { k: "tipo_pasaporte_us", q: "Tipo de pasaporte que tramitas (Libro o Tarjeta)", type: "select", opts: ["Libro", "Tarjeta"] },
+      { k: "emer_us_nombre", q: "Contacto de emergencia en EE. UU.: nombre completo", type: "text" },
+      { k: "emer_us_dir",    q: "Contacto de emergencia en EE. UU.: dirección completa", type: "text" },
+      { k: "emer_us_tel",    q: "Contacto de emergencia en EE. UU.: teléfono",         help: "Opcional.", type: "tel", optional: true },
+      { k: "conyuge",        q: "Cónyuge: nombre, fecha y lugar de nacimiento, y fecha de matrimonio o divorcio", help: "Solo si estás casado(a) o divorciado(a).", type: "text", optional: true }
     ],
     visa: [
       { k: "ocupacion",    q: "¿Cuál es tu ocupación actual?",                       type: "select", opts: ["Trabajador / Empleador", "Pensionado", "Estudiante", "Hogar / Otro"] },
+      { k: "direccion_casa", q: "Tu dirección actual (domicilio)",                   type: "text" },
       { k: "empresa",      q: "Nombre del trabajo o escuela",                        help: "Donde trabajas o estudias actualmente.", type: "text" },
       { k: "empresa_dir",  q: "Dirección del trabajo o escuela",                     type: "text" },
       { k: "empresa_tel",  q: "Teléfono del trabajo o escuela",                      type: "tel", optional: true },
@@ -71,19 +77,30 @@
     sentri: [
       { k: "doc_ingreso",  q: "¿Con qué documento ingresas a EE. UU.?",              type: "select", opts: ["Pasaporte americano", "Tarjeta de residente (green card)", "Visa americana"] },
       { k: "has_doc_ingreso", q: "¿Ese documento está vigente?",                     type: "check" },
-      { k: "empleo",       q: "Empleo: empresa, dirección, teléfono y puesto",       type: "textarea" },
-      { k: "rfc",          q: "RFC vigente",                                         type: "text" },
+      { k: "empleo",       q: "Historial laboral (últimos 5 años): empresa, dirección, teléfono, puesto y fechas", type: "textarea" },
+      { k: "rfc",          q: "RFC vigente",                                         help: "Solo para Global Entry.", type: "text", optional: true },
       { k: "direccion",    q: "Dirección y teléfono personal (celular y casa)",      type: "text" },
+      { k: "vivienda",     q: "Historial de vivienda (últimos 5 años): direcciones y fechas", type: "textarea" },
       { k: "direccion_us", q: "Dirección en EE. UU. (para recibir la tarjeta SENTRI)", type: "text" },
       { k: "paises",       q: "Países visitados en los últimos 5 años",              help: "Descarta EE. UU. y Canadá.", type: "textarea" },
       { k: "add_vehiculo", q: "¿Deseas añadir un vehículo?",                         type: "check", optional: true },
       { k: "vehiculo",     q: "Datos del vehículo (licencia vigente y tarjeta de circulación)", type: "text", optional: true }
+    ],
+    i94: [
+      { k: "i94_fecha", q: "Fecha aproximada de tu último ingreso a EE. UU.",        type: "text", optional: true },
+      { k: "i94_lugar", q: "Lugar/puerto de ingreso (garita o aeropuerto)",          type: "text", optional: true },
+      { k: "i94_doc",   q: "Documento con el que ingresaste (visa, pasaporte, etc.)", type: "text", optional: true }
+    ],
+    medica: [
+      { k: "med_tramite", q: "¿Para qué trámite necesitas el examen médico?",        help: "Ej. visa, residencia o ajuste de estatus.", type: "text", optional: true }
     ]
   };
   function okqKey(tramite, subtype) {
     if (tramite === "pasaporte") return subtype === "americano" ? "pasaporte_americano" : "pasaporte_mexicano";
     if (tramite === "visa") return "visa";
     if (tramite === "sentri") return "sentri";
+    if (tramite === "i94") return "i94";
+    if (tramite === "medica") return "medica";
     return null;
   }
   /* Devuelve los campos del cuestionario para un trámite/subtipo/tipo de trámite. */
@@ -412,12 +429,13 @@
        se pierde; lo no clasificado cae en "Otros datos"). */
     var EXP_GROUPS = {
       visa: [
-        { t: "Datos personales y estudios", c: blue,   keys: ["ocupacion", "empresa", "empresa_dir", "empresa_tel", "puesto", "salario", "estudios", "redes"] },
+        { t: "Datos personales y estudios", c: blue,   keys: ["ocupacion", "direccion_casa", "empresa", "empresa_dir", "empresa_tel", "puesto", "salario", "estudios", "redes"] },
         { t: "Familia y viajes",            c: purple, keys: ["padres", "conyuge", "familiares_us", "acompanantes", "paises", "ultima_visita", "visa_laser"] }
       ],
       pasaporte_americano: [
-        { t: "Datos personales", c: blue,   keys: ["correo", "direccion", "estado_civil", "ojos_cabello", "estatura", "has_pasaporte_us", "has_acta"] },
-        { t: "Familia",          c: purple, keys: ["padres", "padres_nac"] }
+        { t: "Datos personales", c: blue,   keys: ["correo", "direccion", "tipo_pasaporte_us", "estado_civil", "ojos_cabello", "estatura", "has_pasaporte_us", "has_acta"] },
+        { t: "Familia",          c: purple, keys: ["padres", "padres_nac"] },
+        { t: "Emergencia y cónyuge", c: teal, keys: ["emer_us_nombre", "emer_us_dir", "emer_us_tel", "conyuge"] }
       ],
       pasaporte_mexicano: [
         { t: "Documentos y CURP",      c: blue,   keys: ["curp", "has_acta", "has_domicilio", "has_ine"] },
@@ -425,7 +443,7 @@
       ],
       sentri: [
         { t: "Ingreso y empleo",   c: blue,   keys: ["doc_ingreso", "has_doc_ingreso", "empleo", "rfc"] },
-        { t: "Domicilio y viajes", c: purple, keys: ["direccion", "direccion_us", "paises", "add_vehiculo", "vehiculo"] }
+        { t: "Domicilio y viajes", c: purple, keys: ["direccion", "vivienda", "direccion_us", "paises", "add_vehiculo", "vehiculo"] }
       ]
     };
     function buildGroups(ans) {
