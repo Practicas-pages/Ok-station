@@ -279,23 +279,8 @@
     doc.setFont("helvetica", "bold"); doc.setFontSize(10.5); doc.setTextColor(dark[0], dark[1], dark[2]); doc.text(String(appt.name || "—"), x, cyc + 6);
     if (appt.phone) { doc.setFont("helvetica", "normal"); doc.setFontSize(9); doc.setTextColor(muted[0], muted[1], muted[2]); doc.text("Tel. " + appt.phone, x, cyc + 11); }
 
-    /* ── QR (se conserva: escanear → ver tus citas) ── */
-    var qrS = 26, qEnd = my + 4 + qrS + 8;
-    try {
-      var tmp = document.createElement("div");
-      new QRCode(tmp, { text: location.origin + "/perfil.html?cita=" + appt.code, width: 160, height: 160 });
-      var cv = tmp.querySelector("canvas");
-      if (cv) {
-        var qx = RIGHT - qrS, qy = my + 4;
-        doc.addImage(cv.toDataURL("image/png"), "PNG", qx, qy, qrS, qrS);
-        doc.setFont("helvetica", "bold"); doc.setFontSize(6.8); doc.setTextColor(dark[0], dark[1], dark[2]);
-        doc.text("Al escanear el código QR", qx + qrS / 2, qy + qrS + 3.6, { align: "center" });
-        doc.text("te mandará a tus citas", qx + qrS / 2, qy + qrS + 6.4, { align: "center" });
-      }
-    } catch (e) {}
-
-    /* ── Tabla de conceptos ── */
-    var ty = Math.max(cyc + 20, qEnd);
+    /* ── Tabla de conceptos (arranca justo bajo CLIENTE; el QR va al pie) ── */
+    var ty = cyc + 18;
     var descX = x + 14, unitR = RIGHT - 30, impR = RIGHT;
     doc.setFont("helvetica", "bold"); doc.setFontSize(7.5); doc.setTextColor(muted[0], muted[1], muted[2]);
     doc.text("CANT.", x, ty); doc.text("DESCRIPCIÓN", descX, ty);
@@ -340,14 +325,28 @@
     else { doc.setFontSize(11); doc.text("Te confirmamos el precio", RIGHT - 8, ty + barH / 2 + 1.2, { align: "right" }); }
     ty += barH + 12;
 
-    /* ── Condiciones y forma de pago (según estado de la cita) ── */
+    /* ── Condiciones y forma de pago (izquierda) + QR de consulta (derecha) ── */
+    var condY = ty;
     var paid = (appt.status === "confirmada" || appt.status === "completada");
-    doc.setFont("helvetica", "bold"); doc.setFontSize(8.5); doc.setTextColor(muted[0], muted[1], muted[2]); doc.text("CONDICIONES Y FORMA DE PAGO", x, ty); ty += 5.5;
+    doc.setFont("helvetica", "bold"); doc.setFontSize(8.5); doc.setTextColor(muted[0], muted[1], muted[2]); doc.text("CONDICIONES Y FORMA DE PAGO", x, condY);
     doc.setFont("helvetica", "normal"); doc.setFontSize(9); doc.setTextColor(dark[0], dark[1], dark[2]);
     var cond = paid
       ? "Pago recibido. Conserva este comprobante con tu folio para el día de tu cita."
       : "Se requiere el pago del 100% para confirmar tu cita. Conserva este comprobante con tu folio.";
-    doc.text(doc.splitTextToSize(cond, CW), x, ty);
+    doc.text(doc.splitTextToSize(cond, CW - 42), x, condY + 6);   /* ancho reducido: deja sitio al QR a la derecha */
+    /* QR (se conserva: escanear → ver tus citas). Se ancla abajo-derecha, sin encimar. */
+    try {
+      var tmp = document.createElement("div");
+      new QRCode(tmp, { text: location.origin + "/perfil.html?cita=" + appt.code, width: 160, height: 160 });
+      var cv = tmp.querySelector("canvas");
+      if (cv) {
+        var qrS = 24, qy = Math.min(condY - 3, 244), qx = RIGHT - qrS;
+        doc.addImage(cv.toDataURL("image/png"), "PNG", qx, qy, qrS, qrS);
+        doc.setFont("helvetica", "bold"); doc.setFontSize(6.6); doc.setTextColor(muted[0], muted[1], muted[2]);
+        doc.text("Al escanear el código QR", qx + qrS / 2, qy + qrS + 3.2, { align: "center" });
+        doc.text("te mandará a tus citas", qx + qrS / 2, qy + qrS + 5.8, { align: "center" });
+      }
+    } catch (e) {}
 
     /* ── Pie: contacto (Google Maps / WhatsApp / correo) ── */
     doc.setDrawColor(rule[0], rule[1], rule[2]); doc.setLineWidth(0.4); doc.line(x, 276, RIGHT, 276);
