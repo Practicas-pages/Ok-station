@@ -140,9 +140,8 @@
       "Identificación vigente"
     ],
     licencia: [
-      "Identificación oficial (INE)",
-      "CURP",
-      "Comprobante de domicilio"
+      "PDF de tu licencia (el que te entregan en la oficina de arrendamiento)",
+      "Identificación oficial (opcional)"
     ],
     apostille: [
       "Documento original a apostillar o traducir",
@@ -192,9 +191,8 @@
       { key: "identificacion", label: "Identificación vigente" }
     ],
     licencia: [
-      { key: "ine", label: "Identificación oficial (INE)" },
-      { key: "domicilio", label: "Comprobante de domicilio" },
-      { key: "curp", label: "CURP" }
+      { key: "licencia_pdf", label: "PDF de tu licencia (oficina de arrendamiento) — se imprime en PVC" },
+      { key: "id", label: "Identificación oficial (opcional)" }
     ],
     apostille: [
       { key: "documento", label: "Documento a apostillar o traducir" },
