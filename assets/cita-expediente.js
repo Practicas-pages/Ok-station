@@ -32,15 +32,44 @@
   /* ── Requisitos por trámite (informativos: qué traer / preparar) ──
      Cada entrada es un string (viñeta) o {group, items:[...]} para subsecciones. */
   var REQS = {
-    pasaporte_mexicano: [
+    /* Pasaporte mexicano (SRE) — 4 combinaciones oficiales (fuente: hojas de
+       requisitos 2026): primera vez / renovación × mayor / menor de edad. */
+    pasaporte_mexicano_primera_mayor: [
       "CURP",
       "Acta de nacimiento",
       "Comprobante de domicilio",
       "Número de teléfono",
-      "Credencial para votar (INE)",
-      "Nombre completo de contacto de emergencia",
-      "Teléfono de emergencia",
-      "Domicilio completo de emergencia"
+      "Credencial de elector (INE)",
+      "Nombre completo, número de teléfono y domicilio completo de una persona en caso de emergencia"
+    ],
+    pasaporte_mexicano_renovacion_mayor: [
+      "CURP",
+      "Pasaporte a renovar",
+      "Comprobante de domicilio",
+      "Número de teléfono",
+      "Credencial de elector (INE)",
+      "Nombre completo, número de teléfono y domicilio completo de una persona en caso de emergencia",
+      "En caso de robo o extravío del pasaporte, traer constancia de extravío expedida por la Fiscalía"
+    ],
+    pasaporte_mexicano_primera_menor: [
+      "CURP",
+      "Acta de nacimiento",
+      "Comprobante de domicilio y número de teléfono",
+      "Constancia de estudios, certificado o tarjeta IMSS",
+      { group: "Comparecencia de ambos padres (documento oficial vigente con fotografía y firma del titular)", items: [
+        "Credencial de elector (INE)", "Pasaporte mexicano", "Cédula profesional"
+      ]},
+      "Nombre completo, número de teléfono y domicilio completo de una persona en caso de emergencia"
+    ],
+    pasaporte_mexicano_renovacion_menor: [
+      "CURP",
+      "Pasaporte a renovar",
+      "Comprobante de domicilio y número de teléfono",
+      { group: "Comparecencia de ambos padres (documento oficial vigente con fotografía y firma del titular)", items: [
+        "Credencial de elector (INE)", "Pasaporte mexicano", "Cédula profesional"
+      ]},
+      "Nombre completo, número de teléfono y domicilio completo de una persona en caso de emergencia",
+      "En caso de robo o extravío del pasaporte, traer constancia de extravío expedida por la Fiscalía"
     ],
     pasaporte_americano: [
       { group: "Datos generales", items: [
@@ -228,6 +257,10 @@
 
   var TLABEL = {
     pasaporte_mexicano: "Pasaporte Mexicano",
+    pasaporte_mexicano_primera_mayor: "Pasaporte Mexicano — Primera vez (mayor de edad)",
+    pasaporte_mexicano_renovacion_mayor: "Pasaporte Mexicano — Renovación (mayor de edad)",
+    pasaporte_mexicano_primera_menor: "Pasaporte Mexicano — Primera vez (menor de edad)",
+    pasaporte_mexicano_renovacion_menor: "Pasaporte Mexicano — Renovación (menor de edad)",
     pasaporte_americano: "Pasaporte Americano",
     visa: "Visa Americana",
     sentri: "SENTRI / Global Entry",
@@ -283,13 +316,23 @@
     var r = qs("input[name='cita-subtype']:checked");
     return r ? r.value : "";
   }
-  /* Clave compuesta: pasaporte → pasaporte_mexicano / pasaporte_americano */
+  function passportTramite() { var r = qs("input[name='cita-ppt-tramite']:checked"); return r ? r.value : ""; }
+  function passportEdad()    { var r = qs("input[name='cita-ppt-edad']:checked");    return r ? r.value : ""; }
+  /* Clave compuesta:
+       americano → pasaporte_americano
+       mexicano  → pasaporte_mexicano_<primera|renovacion>_<mayor|menor> (4 combinaciones)
+     Si falta algún dato del pasaporte mexicano, devuelve "pasaporte" (placeholder). */
   function resolveKey() {
     var t = selectedTramite();
     if (!t) return null;
     if (t === "pasaporte") {
       var sub = passportSubtype();
-      return sub ? "pasaporte_" + sub : "pasaporte";
+      if (!sub) return "pasaporte";
+      if (sub === "mexicano") {
+        var tr = passportTramite(), ed = passportEdad();
+        return (tr && ed) ? ("pasaporte_mexicano_" + tr + "_" + ed) : "pasaporte";
+      }
+      return "pasaporte_" + sub;
     }
     return t;
   }
@@ -478,6 +521,10 @@
     });
     /* Subtipo de pasaporte (radios del modal del propio wizard) */
     qsa("input[name='cita-subtype']").forEach(function (r) {
+      r.addEventListener("change", function () { setTimeout(onTramiteChanged, 0); });
+    });
+    /* Pasaporte mexicano: primera/renovación y menor/mayor (radios del modal) */
+    qsa("input[name='cita-ppt-tramite'], input[name='cita-ppt-edad']").forEach(function (r) {
       r.addEventListener("change", function () { setTimeout(onTramiteChanged, 0); });
     });
     var subtypeConfirm = qs("#cita-subtype-confirm");

@@ -2061,6 +2061,16 @@ h1, h2, h3, h4, h5, h6 {
 .subtype-opt__text span { color: var(--text-muted); font-size: 0.78rem; }
 .subtype-opt:has(input:checked) { border-color: var(--brand-blue); background: var(--brand-blue-light); }
 
+/* Pasaporte mexicano: preguntas extra (primera/renovación · menor/mayor) */
+.subtype-extra { display: flex; flex-direction: column; gap: 14px; margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border-light); }
+.subtype-group__q { display: block; font-size: 0.85rem; font-weight: 600; color: var(--text-primary); margin-bottom: 8px; }
+.subtype-group__opts { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.subtype-chip { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 10px 12px; border: 1.5px solid var(--border-light); border-radius: var(--radius-md); cursor: pointer; font-size: 0.9rem; color: var(--text-primary); transition: border-color var(--transition-fast), background var(--transition-fast); }
+.subtype-chip:hover { border-color: var(--brand-blue); background: var(--brand-blue-light); }
+.subtype-chip:focus-within { border-color: var(--brand-blue); box-shadow: 0 0 0 3px rgba(6,108,255,0.15); }
+.subtype-chip input { accent-color: var(--brand-blue); width: 16px; height: 16px; flex-shrink: 0; }
+.subtype-chip:has(input:checked) { border-color: var(--brand-blue); background: var(--brand-blue-light); font-weight: 600; }
+
 /* Drawer: otros servicios */
 .cita-drawer { position: fixed; inset: 0; z-index: 120; }
 .cita-drawer[hidden] { display: none; }

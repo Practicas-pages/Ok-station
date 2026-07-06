@@ -829,6 +829,22 @@
                   <span class="subtype-opt__text"><b>Pasaporte Americano</b><span>U.S. Passport</span></span>
                 </label>
               </div>
+              <div class="subtype-extra" id="cita-subtype-extra" hidden>
+                <div class="subtype-group">
+                  <span class="subtype-group__q">¿Es primera vez o renovación?</span>
+                  <div class="subtype-group__opts" role="radiogroup" aria-label="Tipo de trámite">
+                    <label class="subtype-chip"><input type="radio" name="cita-ppt-tramite" value="primera"><span>Primera vez</span></label>
+                    <label class="subtype-chip"><input type="radio" name="cita-ppt-tramite" value="renovacion"><span>Renovación</span></label>
+                  </div>
+                </div>
+                <div class="subtype-group">
+                  <span class="subtype-group__q">¿Para menor o mayor de edad?</span>
+                  <div class="subtype-group__opts" role="radiogroup" aria-label="Edad">
+                    <label class="subtype-chip"><input type="radio" name="cita-ppt-edad" value="mayor"><span>Mayor de edad</span></label>
+                    <label class="subtype-chip"><input type="radio" name="cita-ppt-edad" value="menor"><span>Menor de edad</span></label>
+                  </div>
+                </div>
+              </div>
               <button type="button" class="btn btn--primary btn--block" id="cita-subtype-confirm" disabled aria-disabled="true">Confirmar</button>
             </div>
           </div>

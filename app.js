@@ -350,6 +350,7 @@
       step: 0,
       tramite: null, tramiteLabel: "",   /* servicio único elegido (cualquiera de los 9) */
       subtype: "",                 /* solo pasaporte: "mexicano" | "americano" */
+      pptTramite: "", pptEdad: "", /* pasaporte mexicano: primera|renovacion · mayor|menor */
       partySize: 1, partyLabel: "Solo yo",
       fecha: "", hora: "",
       nombre: "", tel: "", notas: "",
@@ -491,7 +492,8 @@
       var nextBtn = qs("#cita-next-0");
       if (!nextBtn) return;
       /* Continuar habilitado si hay principal y, si es pasaporte, además su subtipo. */
-      var ok = !!state.tramite && (state.tramite !== "pasaporte" || !!state.subtype);
+      var ok = !!state.tramite && (state.tramite !== "pasaporte" ||
+        (!!state.subtype && (state.subtype !== "mexicano" || (!!state.pptTramite && !!state.pptEdad))));
       nextBtn.disabled = !ok;
       nextBtn.setAttribute("aria-disabled", String(!ok));
     }
@@ -534,14 +536,29 @@
 
     /* ── Caso especial Pasaporte: modal de subtipo (mexicano/americano) ── */
     var subtypeModal = qs("#cita-subtype-modal");
+    var subtypeExtra = subtypeModal ? qs("#cita-subtype-extra", subtypeModal) : null;
     function subtypeEsc(e) { if (e.key === "Escape") closeSubtypeModal(); }
+    function subtypeSel(name) { return subtypeModal ? qs("input[name='" + name + "']:checked", subtypeModal) : null; }
+    /* El pasaporte MEXICANO pide además primera/renovación y menor/mayor (hay 4
+       juegos de requisitos). El AMERICANO no. "Confirmar" se habilita solo cuando
+       todo lo necesario está elegido, y se muestran/ocultan los grupos extra. */
+    function updateSubtypeExtra() {
+      var sub = subtypeSel("cita-subtype");
+      var isMex = !!sub && sub.value === "mexicano";
+      if (subtypeExtra) subtypeExtra.hidden = !isMex;
+      var ok = false;
+      if (sub) ok = (sub.value === "americano") || (isMex && !!subtypeSel("cita-ppt-tramite") && !!subtypeSel("cita-ppt-edad"));
+      var confirmB = qs("#cita-subtype-confirm", subtypeModal);
+      if (confirmB) { confirmB.disabled = !ok; confirmB.setAttribute("aria-disabled", String(!ok)); }
+    }
     function openSubtypeModal() {
       if (!subtypeModal) return;                 /* sin modal en el DOM no bloquea el flujo */
       subtypeModal.hidden = false;
       subtypeModal.classList.add("is-open");
       qsa("input[name='cita-subtype']", subtypeModal).forEach(function (r) { r.checked = (r.value === state.subtype); });
-      var confirmB = qs("#cita-subtype-confirm", subtypeModal);
-      if (confirmB) { confirmB.disabled = !state.subtype; confirmB.setAttribute("aria-disabled", String(!state.subtype)); }
+      qsa("input[name='cita-ppt-tramite']", subtypeModal).forEach(function (r) { r.checked = (r.value === state.pptTramite); });
+      qsa("input[name='cita-ppt-edad']", subtypeModal).forEach(function (r) { r.checked = (r.value === state.pptEdad); });
+      updateSubtypeExtra();
       var firstRadio = qs("input[name='cita-subtype']", subtypeModal);
       if (firstRadio) firstRadio.focus();
       document.addEventListener("keydown", subtypeEsc);
@@ -554,20 +571,22 @@
     }
     if (subtypeModal) {
       var subtypeConfirm = qs("#cita-subtype-confirm", subtypeModal);
-      qsa("input[name='cita-subtype']", subtypeModal).forEach(function (r) {
-        r.addEventListener("change", function () {
-          if (subtypeConfirm) { subtypeConfirm.disabled = false; subtypeConfirm.removeAttribute("aria-disabled"); }
-        });
+      qsa("input[name='cita-subtype'], input[name='cita-ppt-tramite'], input[name='cita-ppt-edad']", subtypeModal).forEach(function (r) {
+        r.addEventListener("change", updateSubtypeExtra);
       });
       if (subtypeConfirm) subtypeConfirm.addEventListener("click", function () {
-        var chosen = qs("input[name='cita-subtype']:checked", subtypeModal);
+        var chosen = subtypeSel("cita-subtype");
         if (!chosen) return;
+        if (chosen.value === "mexicano" && (!subtypeSel("cita-ppt-tramite") || !subtypeSel("cita-ppt-edad"))) return;
         state.subtype = chosen.value;
+        if (chosen.value === "mexicano") {
+          state.pptTramite = subtypeSel("cita-ppt-tramite").value;   /* primera | renovacion */
+          state.pptEdad    = subtypeSel("cita-ppt-edad").value;      /* mayor | menor */
+        } else { state.pptTramite = ""; state.pptEdad = ""; }
         closeSubtypeModal();
         updateStep0Next();
         /* No desplazamos la página al elegir el tipo de pasaporte: los requisitos
-           aparecen en su sitio y el salto resultaba molesto. El usuario continúa
-           con el botón "Continuar" cuando esté listo. */
+           aparecen en su sitio y el salto resultaba molesto. */
       });
       qsa("[data-subtype-close]", subtypeModal).forEach(function (el) { el.addEventListener("click", closeSubtypeModal); });
     }
@@ -1104,7 +1123,9 @@
     ];
     var DOCTYPE_LABEL = { primera: "Primera vez", renov_con: "Renovación con documentos", renov_sin: "Renovación sin documentos" };
     /* La pregunta de renovación con/sin documentos aplica a pasaporte, visa y SENTRI. */
-    function needsDoctype() { return state.tramite === "pasaporte" || state.tramite === "visa" || state.tramite === "sentri"; }
+    /* Pasaporte YA captura primera/renovación en el modal (con menor/mayor), así que
+       NO se vuelve a preguntar el "tipo de trámite" por persona (evita duplicar). */
+    function needsDoctype() { return state.tramite === "visa" || state.tramite === "sentri"; }
 
     /* Garantiza state.guests con exactamente partySize entradas (preserva lo escrito). */
     function ensureGuests() {
@@ -1392,7 +1413,12 @@
       /* Detalle de la cita */
       var detalle = item("Servicio", sanitize(state.tramiteLabel));
       if (state.tramite === "pasaporte" && state.subtype) {
-        detalle += item("Tipo de pasaporte", sanitize(SUBTYPE_LABEL[state.subtype] || state.subtype));
+        var pptLbl = SUBTYPE_LABEL[state.subtype] || state.subtype;
+        if (state.subtype === "mexicano" && state.pptTramite && state.pptEdad) {
+          pptLbl += " · " + (state.pptTramite === "renovacion" ? "Renovación" : "Primera vez") +
+                    " · " + (state.pptEdad === "menor" ? "Menor de edad" : "Mayor de edad");
+        }
+        detalle += item("Tipo de pasaporte", sanitize(pptLbl));
       }
       detalle += item("Personas", sanitize(String(state.partySize) + (state.partySize === 1 ? " (solo yo)" : ""))) +
         item("Fecha", sanitize(formatDate(state.fecha))) +
@@ -1562,7 +1588,12 @@
         phone: state.tel,
         email: emailEl ? emailEl.value.trim() : "",
         contact_pref: prefEl ? prefEl.value : "",
-        notes: state.notas || "",
+        /* El pasaporte mexicano guarda su combinación (primera/renovación · menor/mayor)
+           al inicio de las notas, para que el personal la vea sin cambios de esquema. */
+        notes: ((state.tramite === "pasaporte" && state.subtype === "mexicano" && state.pptTramite && state.pptEdad)
+          ? ("Pasaporte mexicano · " + (state.pptTramite === "renovacion" ? "Renovación" : "Primera vez") +
+             " · " + (state.pptEdad === "menor" ? "Menor de edad" : "Mayor de edad") + (state.notas ? " — " : ""))
+          : "") + (state.notas || ""),
         guests: (state.guests || []).map(function (g) {
           return { name: (g.name || "").trim(), dob: g.dob || "", doctype: g.doctype || "", answers: g.answers || {} };
         }),
@@ -1679,7 +1710,7 @@
     var resetBtn = qs("#cita-reset");
     if (resetBtn) {
       resetBtn.addEventListener("click", function () {
-        state = { step: 0, tramite: null, tramiteLabel: "", subtype: "", partySize: 1, partyLabel: "Solo yo", fecha: "", hora: "", nombre: "", tel: "", notas: "", guests: [], activeGuest: 0, contactChoice: "", contactGuest: null };
+        state = { step: 0, tramite: null, tramiteLabel: "", subtype: "", pptTramite: "", pptEdad: "", partySize: 1, partyLabel: "Solo yo", fecha: "", hora: "", nombre: "", tel: "", notas: "", guests: [], activeGuest: 0, contactChoice: "", contactGuest: null };
         if (personasHost) personasHost.innerHTML = "";
 
         qsa(".tramite-btn").forEach(function (b) {
