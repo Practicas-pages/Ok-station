@@ -148,7 +148,7 @@
         "Dirección", "Fecha inicio", "Fecha término"
       ]},
       { group: "Información adicional", items: [
-        "RFC vigente", "Dirección personal", "Celular", "Teléfono de casa",
+        "RFC vigente (solo para Global Entry)", "Dirección personal", "Celular", "Teléfono de casa",
         "Dirección en Estados Unidos",
         "Lista de países visitados en los últimos 5 años (excepto EUA y Canadá)"
       ]}
@@ -203,7 +203,7 @@
     sentri: [
       { key: "pasaporte", label: "Pasaporte vigente o acta de nacimiento" },
       { key: "doc_ingreso", label: "Documento para ingresar a EUA" },
-      { key: "rfc", label: "RFC vigente" }
+      { key: "rfc", label: "RFC vigente (solo para Global Entry)" }
     ],
     i94: [
       { key: "identificacion", label: "Identificación oficial" },
