@@ -5609,7 +5609,7 @@ body:has(.cita-drawer:not([hidden])) .citas-section > .wrap { z-index: 130; }
   line-height: 1.2;
 }
 .citas-section .cita-step.is-active .cita-step__title::before {
-  content: "PASO " attr(data-paso) " DE 6";
+  content: "PASO " attr(data-paso) " DE " attr(data-pasos);
   display: block;
   font-size: 0.6em;
   letter-spacing: 0.09em;

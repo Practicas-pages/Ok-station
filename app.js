@@ -427,7 +427,13 @@
         /* Número de paso para la cabecera "PASO N DE 6" (el CSS lo lee de
            data-paso; el contador CSS fallaba con los pasos en display:none). */
         var stepTitle = panel.querySelector(".cita-step__title");
-        if (stepTitle) stepTitle.setAttribute("data-paso", i + 1);
+        if (stepTitle) {
+          /* En licencia se omite el paso "¿cuántas personas?" (índice 1): se
+             renumera (0→1, 2→2, 3→3…) y el total baja a 5 para no saltar números. */
+          var isLic = state.tramite === "licencia";
+          stepTitle.setAttribute("data-paso", isLic ? (i === 0 ? 1 : i) : (i + 1));
+          stepTitle.setAttribute("data-pasos", isLic ? 5 : 6);
+        }
       });
     }
 
@@ -504,8 +510,12 @@
       var svc = serviceById(id);
       state.tramiteLabel = svc ? svc.name : id;
       if (id !== "pasaporte") state.subtype = "";  /* el subtipo solo aplica a pasaporte */
+      /* Licencia de conducir: es un solo documento (PDF) que se imprime en PVC;
+         no aplica "¿cuántas personas?" → se asume 1 y ese paso se omite. */
+      if (id === "licencia") { state.partySize = 1; state.partyLabel = "Solo yo"; }
       renderSelectedExtra();
       updateStep0Next();
+      renderSteps();   /* refleja el total de pasos del trámite en el contador (licencia = 5) */
     }
 
     /* DELEGACIÓN de eventos: un solo listener en la sección capta el clic en
@@ -1311,6 +1321,10 @@
     }
 
     function guestValid(g) {
+      /* Licencia: es un solo documento (PDF) que se imprime en PVC; los datos de
+         contacto se piden en "Tus datos". No se exige nombre/fecha aquí: basta con
+         (opcionalmente) subir el PDF y continuar. */
+      if (state.tramite === "licencia") return true;
       if (!g || !g.name || !g.name.trim() || !g.dob) return false;
       if (needsDoctype() && !g.doctype) return false;
       /* Todos los campos NO opcionales del cuestionario del trámite deben estar llenos
@@ -1647,13 +1661,17 @@
     /* Navegación del wizard */
     qsa("[data-cita-next]").forEach(function (btn) {
       btn.addEventListener("click", function () {
-        goToStep(state.step + 1);
+        var target = state.step + 1;
+        if (state.tramite === "licencia" && target === 1) target = 2;   /* omitir "¿cuántas personas?" */
+        goToStep(target);
       });
     });
 
     qsa("[data-cita-back]").forEach(function (btn) {
       btn.addEventListener("click", function () {
-        goToStep(state.step - 1);
+        var target = state.step - 1;
+        if (state.tramite === "licencia" && target === 1) target = 0;   /* omitir "¿cuántas personas?" */
+        goToStep(target);
       });
     });
 
