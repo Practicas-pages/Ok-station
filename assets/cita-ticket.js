@@ -199,11 +199,14 @@
     return mxn0(p.unit);
   };
   /* Filas [etiqueta, valor] de costo para resumen y ticket. Desglosa el IVA 8%
-     a partir del total (precio IVA incluido, igual que el ticket de mostrador). */
-  window.OKCitaPriceRows = function (tramite, subtype, party) {
+     a partir del total (precio IVA incluido, igual que el ticket de mostrador).
+     extrasTotal (opcional) = suma de servicios adicionales marcados (IVA incluido);
+     se agrega al total del trámite. Si el trámite se cotiza, se ignora (todo el
+     anticipo se coordina en mostrador). */
+  window.OKCitaPriceRows = function (tramite, subtype, party, extrasTotal) {
     var p = window.OKCitaPrice(tramite, subtype, party);
     if (p.quote) return [["Precio", "Te confirmamos el precio"]];
-    var total = p.total;
+    var total = p.total + (+extrasTotal || 0);
     var sub = Math.round(total / (1 + CITA_TAX) * 100) / 100;
     var iva = Math.round((total - sub) * 100) / 100;
     var rows = [];
@@ -224,6 +227,7 @@
       .then(function (r) { return r.json(); })
       .then(function (j) {
         if (j && j.ok && j.prices) window.OK_APPT_PRICES = j.prices;
+        if (j && j.service_prices) window.OK_APPT_SERVICE_PRICES = j.service_prices;
         if (j && j.require_payment) window.OK_APPT_REQUIRE_PAY = j.require_payment;
         if (j && j.tax_rate) CITA_TAX = +j.tax_rate;
         /* Re-pinta con los precios vigentes del servidor (por si difieren de los defaults). */
@@ -310,7 +314,14 @@
     var items = [];
     if (pr.quote) items.push({ qty: pr.party, desc: "Gestión de cita — " + svcName, unit: "", imp: "Te confirmamos el precio" });
     else items.push({ qty: pr.party, desc: "Gestión de cita — " + svcName, unit: mxn2(pr.unit), imp: mxn2(pr.total) });
-    (appt.services || []).forEach(function (sv) { items.push({ qty: 1, desc: sv.label || sv.key || "Servicio adicional", unit: "", imp: "—" }); });
+    /* Servicios adicionales: si traen precio, se muestran con su importe (y suman
+       al total de abajo); si no, quedan como "—" (se cotizan en mostrador). */
+    var extrasTotal = 0;
+    (appt.services || []).forEach(function (sv) {
+      var svPrice = sv && +sv.price > 0 ? +sv.price : 0;
+      if (svPrice) extrasTotal += svPrice;
+      items.push({ qty: 1, desc: (sv && (sv.label || sv.key)) || "Servicio adicional", unit: "", imp: svPrice ? mxn2(svPrice) : "—" });
+    });
 
     items.forEach(function (it) {
       var dl = doc.splitTextToSize(String(it.desc), unitR - 10 - descX);
@@ -324,7 +335,7 @@
     });
 
     /* ── Totales (subtotal / IVA a la derecha, TOTAL en barra) ── */
-    var rowsT = window.OKCitaPriceRows(appt.tramite, appt.passport_subtype, appt.party_size);
+    var rowsT = window.OKCitaPriceRows(appt.tramite, appt.passport_subtype, appt.party_size, extrasTotal);
     var sub = null, iva = null, ivaLbl = "IVA", tot = null;
     rowsT.forEach(function (r) {
       if (/subtotal/i.test(r[0])) sub = r[1];

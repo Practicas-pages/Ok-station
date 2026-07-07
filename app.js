@@ -1456,19 +1456,42 @@
         });
       }
 
-      /* Estimado: desglose (Subtotal + IVA) a un lado y el Total en caja destacada. */
+      /* Estimado: desglose (Subtotal + IVA) a un lado y el Total en caja destacada.
+         Incluye los SERVICIOS ADICIONALES marcados (venta cruzada): suman al total
+         y se listan con su precio. Los precios salen del expediente, sincronizados
+         con el catálogo del servidor (autoridad del cobro). */
+      var exped = (window.OKCitaExpediente && window.OKCitaExpediente.getState)
+        ? window.OKCitaExpediente.getState() : null;
+      var citaExtras = (exped && exped.services) ? exped.services : [];
+      var extrasTotal = 0;
+      citaExtras.forEach(function (sv) { if (sv && +sv.price > 0) extrasTotal += +sv.price; });
+
       var priceRows = window.OKCitaPriceRows
-        ? window.OKCitaPriceRows(state.tramite, state.subtype, state.partySize)
+        ? window.OKCitaPriceRows(state.tramite, state.subtype, state.partySize, extrasTotal)
         : [["Precio", "Te confirmamos el precio"]];
-      var totalVal = null, isQuote = false, estItems = "";
+      var totalVal = null, isQuote = false, breakdown = "";
       priceRows.forEach(function (pr) {
         if (/^total/i.test(pr[0]) || pr[0] === "Precio") {
           totalVal = sanitize(pr[1]);
           if (pr[0] === "Precio") isQuote = true;
         } else {
-          estItems += item(sanitize(pr[0]), sanitize(pr[1]));
+          breakdown += item(sanitize(pr[0]), sanitize(pr[1]));
         }
       });
+      var estItems = "";
+      /* Cada servicio adicional con su precio (solo si el trámite cobra en línea;
+         si se cotiza, todo el anticipo se coordina en mostrador). */
+      if (!isQuote) {
+        citaExtras.forEach(function (sv) {
+          if (!sv) return;
+          var lbl = sanitize(sv.label || sv.key || "Servicio adicional");
+          var val = (+sv.price > 0)
+            ? sanitize(window.OKMxn0 ? window.OKMxn0(sv.price) : ("$" + sv.price))
+            : "Incluido";
+          estItems += item(lbl, val);
+        });
+      }
+      estItems += breakdown;
       estItems += item("Duración estimada", sanitize(fmtDuration(durationMins(state.partySize))));
       var totalBox = '<div class="cita-summary__total' + (isQuote ? ' cita-summary__total--quote' : '') + '">' +
         '<span class="cita-summary__total-label">Total</span>' +

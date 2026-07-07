@@ -11,6 +11,7 @@ only_method('GET');
 respond([
     'ok'              => true,
     'prices'          => Pricing::apptPrices(),          // { "pasaporte_mexicano":200, "visa":800, ... }
+    'service_prices'  => Pricing::apptServicePrices(),   // { "acta":150, "copias":20, ... } (adicionales)
     'require_payment' => Pricing::apptRequirePayment(),  // ["visa","pasaporte"]
     'currency'        => 'MXN',
     'tax_rate'        => Pricing::taxRate(),

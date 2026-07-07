@@ -291,8 +291,14 @@
        visa: { copias: 25 },
        apostille: { copias: 30 } */
   };
-  /* Devuelve el precio de un servicio para el trámite activo (o null si no aplica). */
+  /* Devuelve el precio de un servicio para el trámite activo (o null si no aplica).
+     Prioridad: catálogo del SERVIDOR (window.OK_APPT_SERVICE_PRICES, sincronizado
+     desde /appointments/prices.php) → override local por trámite → base local.
+     Se antepone el servidor para que lo que se MUESTRA coincida con lo que se COBRA
+     (el backend es la autoridad del monto). */
   function upPrice(upKey, tramiteKey) {
+    var srv = window.OK_APPT_SERVICE_PRICES;
+    if (srv && typeof srv === "object" && srv[upKey] != null) return +srv[upKey];
     var byT = UP_PRICE_TRAMITE[tramiteKey];
     if (byT && byT[upKey] != null) return byT[upKey];
     return (UP_PRICE[upKey] != null) ? UP_PRICE[upKey] : null;
@@ -545,7 +551,8 @@
         return { key: k, label: label, name: f.name, size: f.size, type: f.type, file: f };
       });
       var svc = Object.keys(services).filter(function (k) { return services[k]; }).map(function (k) {
-        return { key: k, label: UP[k] ? UP[k].cta : k };
+        var pr = upPrice(k, current);
+        return { key: k, label: UP[k] ? UP[k].cta : k, price: (pr != null ? +pr : null) };
       });
       return { tramite: current, documents: docs, services: svc };
     },

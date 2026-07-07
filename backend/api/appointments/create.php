@@ -84,16 +84,24 @@ $guestsJson = $cleanGuests ? json_encode($cleanGuests, JSON_UNESCAPED_UNICODE) :
 $cleanServices = [];
 $svcIn = $b['services'] ?? [];
 if (is_array($svcIn)) {
+    $svcPrices = Pricing::apptServicePrices();   // catálogo autoritativo (servidor)
+    $svcSeen = [];
     foreach ($svcIn as $s) {
         if (!is_array($s)) continue;
         $sk = preg_replace('/[^a-z0-9_]/i', '', (string) ($s['key'] ?? ''));
-        if ($sk === '') continue;
+        if ($sk === '' || isset($svcSeen[$sk])) continue;   // sin duplicados
+        $svcSeen[$sk] = true;
         $sl = trim((string) ($s['label'] ?? $sk));
-        $cleanServices[] = ['key' => $sk, 'label' => mb_substr($sl !== '' ? $sl : $sk, 0, 120)];
+        /* El PRECIO lo pone el servidor (nunca el cliente): garantiza que el cobro
+           no se pueda manipular desde el navegador. null → se cotiza en mostrador. */
+        $sp = (isset($svcPrices[$sk]) && (float) $svcPrices[$sk] > 0) ? round((float) $svcPrices[$sk], 2) : null;
+        $cleanServices[] = ['key' => $sk, 'label' => mb_substr($sl !== '' ? $sl : $sk, 0, 120), 'price' => $sp];
         if (count($cleanServices) >= 20) break;
     }
 }
 $servicesJson = $cleanServices ? json_encode($cleanServices, JSON_UNESCAPED_UNICODE) : null;
+/* Suma de adicionales (autoridad del servidor) para agregar al anticipo. */
+$servicesTotal = Pricing::apptServicesTotal(array_column($cleanServices, 'key'));
 
 /* Usuario opcional: si hay sesión válida, se asocia. */
 $userId = null;
@@ -139,6 +147,12 @@ $time = Availability::normTime($time);
 /* Precio del anticipo (autoridad del servidor): precio del trámite × personas.
    quote=true → el trámite se cotiza (no cobra en línea). */
 $pricing = Pricing::appointmentPricing($tramite, ($subtype !== '' ? $subtype : null), $party);
+/* Los servicios adicionales (acta, copias, etc.) se SUMAN al anticipo del trámite.
+   Si el trámite se cotiza (sin precio fijo), todo se coordina en mostrador y no se
+   cobra en línea, así que no se prorratean aquí. */
+if (!$pricing['quote'] && $servicesTotal > 0) {
+    $pricing['total'] = round((float) $pricing['total'] + $servicesTotal, 2);
+}
 
 $pdo  = db();
 

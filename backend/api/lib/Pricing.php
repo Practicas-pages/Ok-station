@@ -157,6 +157,54 @@ final class Pricing
         return $out;
     }
 
+    /* ============================================================
+       Servicios ADICIONALES de una cita (venta cruzada: acta, copias, etc.).
+       MXN, IVA incluido (igual que los precios de trámite). Se SUMAN al anticipo.
+       Espejo de assets/cita-expediente.js (UP_PRICE) para que coincidan front/cobro.
+       ============================================================ */
+
+    /** Precios por defecto de servicios adicionales (si no hay setting). */
+    const APPT_SERVICE_PRICE_DEFAULTS = [
+        'curp'      => 50.0,
+        'acta'      => 150.0,
+        'fotos'     => 90.0,
+        'impresion' => 15.0,
+        'copias'    => 20.0,
+    ];
+
+    /** Catálogo vigente de precios de servicios adicionales (settings `appt.service_prices`,
+     *  con respaldo en los defaults). Editable desde el panel sin tocar código. */
+    public static function apptServicePrices(): array
+    {
+        $out = self::APPT_SERVICE_PRICE_DEFAULTS;
+        $row = db()->query("SELECT `value` FROM settings WHERE `key`='appt.service_prices'")->fetch();
+        if ($row) {
+            $j = json_decode((string) $row['value'], true);
+            if (is_array($j)) {
+                foreach ($j as $k => $v) {
+                    $k = preg_replace('/[^a-z0-9_]/i', '', (string) $k);
+                    if ($k !== '' && is_numeric($v)) $out[$k] = round((float) $v, 2);
+                }
+            }
+        }
+        return $out;
+    }
+
+    /** Suma (MXN, IVA incluido) de los servicios adicionales seleccionados.
+     *  $keys = ['acta','copias',…]. Ignora duplicados y claves sin precio. */
+    public static function apptServicesTotal(array $keys): float
+    {
+        $prices = self::apptServicePrices();
+        $sum = 0.0; $seen = [];
+        foreach ($keys as $k) {
+            $k = preg_replace('/[^a-z0-9_]/i', '', (string) $k);
+            if ($k === '' || isset($seen[$k])) continue;
+            $seen[$k] = true;
+            if (isset($prices[$k]) && (float) $prices[$k] > 0) $sum += (float) $prices[$k];
+        }
+        return round($sum, 2);
+    }
+
     /** Clave de precio para un trámite (pasaporte se distingue por subtipo). */
     public static function apptPriceKey(string $tramite, ?string $subtype): string
     {
