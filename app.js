@@ -403,6 +403,15 @@
        Se corre en un timeout porque OKCitaPrice se define en cita-ticket.js, que
        carga DESPUÉS de app.js (ambos defer → init corre antes de ese script). */
     function tramitePriceLabel(tramite) {
+      /* Acta: el precio depende del estado → mostramos el RANGO (no "a cotizar"). */
+      if (tramite === "acta") {
+        var r = window.OKActaPriceRange ? window.OKActaPriceRange() : null;
+        if (r) {
+          var fm = window.OKMxn0 || function (n) { return "$" + n; };
+          return (r.min === r.max) ? fm(r.min) : (fm(r.min) + " – " + fm(r.max));
+        }
+        return "Precio por estado";
+      }
       var p = window.OKCitaPrice ? window.OKCitaPrice(tramite, null, 1) : null;
       if (!p || p.quote) return "Precio a cotizar";
       return (tramite === "pasaporte" ? "Desde " : "") + (window.OKMxn0 ? window.OKMxn0(p.unit) : ("$" + p.unit));
@@ -425,7 +434,8 @@
           if (anchor && anchor.parentNode) anchor.parentNode.insertBefore(el, anchor.nextSibling);
           else btn.appendChild(el);
         }
-        var quote = !(window.OKCitaPrice && !window.OKCitaPrice(t, null, 1).quote);
+        /* El acta muestra rango de precios: no es "por cotizar". */
+        var quote = (t === "acta") ? false : !(window.OKCitaPrice && !window.OKCitaPrice(t, null, 1).quote);
         el.classList.toggle("tramite-btn__price--quote", quote);
         el.textContent = tramitePriceLabel(t);
       });
@@ -618,17 +628,28 @@
     }
 
     /* ── Caso especial Acta de Nacimiento: modal de ESTADO (define el precio) ──
-       Mismo patrón que el modal de pasaporte. Diferencias: el usuario elige un
-       estado en un <select>, se muestra el precio en vivo, y se BLOQUEA el scroll
-       de la página mientras el modal está abierto. NO afecta la lógica de agendado. */
+       Mismo patrón/estilo que el modal de pasaporte: el usuario elige el estado
+       en TARJETAS (no una lista), cada una con su precio. Se BLOQUEA el scroll de
+       la página mientras el modal está abierto. NO afecta la lógica de agendado. */
+    var ACTA_STATES = [
+      ["aguascalientes", "Aguascalientes"], ["baja_california", "Baja California"],
+      ["baja_california_sur", "Baja California Sur"], ["campeche", "Campeche"], ["chiapas", "Chiapas"],
+      ["chihuahua", "Chihuahua"], ["ciudad_de_mexico", "Ciudad de México"], ["coahuila", "Coahuila"],
+      ["colima", "Colima"], ["durango", "Durango"], ["guanajuato", "Guanajuato"], ["guerrero", "Guerrero"],
+      ["hidalgo", "Hidalgo"], ["jalisco", "Jalisco"], ["mexico", "Estado de México"], ["michoacan", "Michoacán"],
+      ["morelos", "Morelos"], ["nayarit", "Nayarit"], ["nuevo_leon", "Nuevo León"], ["oaxaca", "Oaxaca"],
+      ["puebla", "Puebla"], ["queretaro", "Querétaro"], ["quintana_roo", "Quintana Roo"],
+      ["san_luis_potosi", "San Luis Potosí"], ["sinaloa", "Sinaloa"], ["sonora", "Sonora"], ["tabasco", "Tabasco"],
+      ["tamaulipas", "Tamaulipas"], ["tlaxcala", "Tlaxcala"], ["veracruz", "Veracruz"], ["yucatan", "Yucatán"],
+      ["zacatecas", "Zacatecas"]
+    ];
     var actaModal   = qs("#cita-acta-modal");
-    var actaSelect  = actaModal ? qs("#cita-acta-state", actaModal) : null;
-    var actaPriceEl = actaModal ? qs("#cita-acta-price", actaModal) : null;
+    var actaHost    = actaModal ? qs("#cita-acta-states", actaModal) : null;
     var actaConfirm = actaModal ? qs("#cita-acta-confirm", actaModal) : null;
     function actaEsc(e) { if (e.key === "Escape") closeActaModal(); }
     function actaPreventScroll(e) {
       var box = actaModal ? qs(".cita-modal__box", actaModal) : null;
-      if (box && box.contains(e.target)) return;   /* permite interactuar dentro del modal */
+      if (box && box.contains(e.target)) return;   /* permite interactuar/scrollear dentro del modal */
       e.preventDefault();
     }
     function actaLockScroll(lock) {
@@ -637,30 +658,41 @@
       if (lock) document.addEventListener("touchmove", actaPreventScroll, { passive: false });
       else document.removeEventListener("touchmove", actaPreventScroll, { passive: false });
     }
-    function updateActaPrice() {
-      var slug = actaSelect ? actaSelect.value : "";
-      var ok = !!slug;
+    /* Pinta una TARJETA por estado con su precio (vigente: catálogo del servidor o
+       defaults). Se regenera al abrir para reflejar precios actualizados. */
+    function renderActaStates() {
+      if (!actaHost) return;
+      var f = window.OKMxn0 || function (n) { return "$" + n; };
+      actaHost.innerHTML = ACTA_STATES.map(function (s) {
+        var slug = s[0], label = s[1];
+        var p = window.OKCitaPrice ? window.OKCitaPrice("acta", slug, 1) : null;
+        var price = (p && !p.quote) ? f(p.unit) : "—";
+        var checked = (state.actaState === slug) ? " checked" : "";
+        return '<label class="acta-opt">' +
+                 '<input type="radio" name="cita-acta-state" value="' + slug + '"' + checked + '>' +
+                 '<span class="acta-opt__name">' + label + '</span>' +
+                 '<span class="acta-opt__price">' + price + '</span>' +
+               '</label>';
+      }).join("");
+    }
+    function actaSelectedSlug() {
+      var r = actaModal ? qs("input[name='cita-acta-state']:checked", actaModal) : null;
+      return r ? r.value : "";
+    }
+    function updateActaConfirm() {
+      var ok = !!actaSelectedSlug();
       if (actaConfirm) { actaConfirm.disabled = !ok; actaConfirm.setAttribute("aria-disabled", String(!ok)); }
-      if (!actaPriceEl) return;
-      var p = (ok && window.OKCitaPrice) ? window.OKCitaPrice("acta", slug, 1) : null;
-      if (p && !p.quote && window.OKMxn0) {
-        actaPriceEl.textContent = "Precio del acta: " + window.OKMxn0(p.unit);
-        actaPriceEl.hidden = false;
-      } else if (ok) {
-        actaPriceEl.textContent = "Te confirmamos el precio de este estado.";
-        actaPriceEl.hidden = false;
-      } else {
-        actaPriceEl.hidden = true;
-      }
     }
     function openActaModal() {
       if (!actaModal) return;                    /* sin modal en el DOM no bloquea el flujo */
+      renderActaStates();
       actaModal.hidden = false;
       actaModal.classList.add("is-open");
-      if (actaSelect) actaSelect.value = state.actaState || "";
-      updateActaPrice();
+      updateActaConfirm();
       actaLockScroll(true);
-      if (actaSelect) actaSelect.focus();
+      var checked = actaModal ? qs("input[name='cita-acta-state']:checked", actaModal) : null;
+      var first = checked || (actaHost ? qs("input[name='cita-acta-state']", actaHost) : null);
+      if (first) first.focus();
       document.addEventListener("keydown", actaEsc);
     }
     function closeActaModal() {
@@ -671,12 +703,16 @@
       document.removeEventListener("keydown", actaEsc);
     }
     if (actaModal) {
-      if (actaSelect) actaSelect.addEventListener("change", updateActaPrice);
+      if (actaHost) actaHost.addEventListener("change", function (e) {
+        if (e.target && e.target.name === "cita-acta-state") updateActaConfirm();
+      });
       if (actaConfirm) actaConfirm.addEventListener("click", function () {
-        var slug = actaSelect ? actaSelect.value : "";
+        var slug = actaSelectedSlug();
         if (!slug) return;
+        var found = null;
+        for (var i = 0; i < ACTA_STATES.length; i++) { if (ACTA_STATES[i][0] === slug) { found = ACTA_STATES[i]; break; } }
         state.actaState = slug;
-        state.actaStateLabel = (actaSelect && actaSelect.selectedIndex >= 0) ? actaSelect.options[actaSelect.selectedIndex].text : slug;
+        state.actaStateLabel = found ? found[1] : slug;
         state.tramiteLabel = "Acta de Nacimiento — " + state.actaStateLabel;  /* etiqueta con el estado */
         closeActaModal();
         updateStep0Next();

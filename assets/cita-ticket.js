@@ -246,6 +246,15 @@
     return rows;
   };
   window.OKMxn0 = mxn0;
+  /* Rango de precios del acta (min–max) a partir del catálogo vigente (servidor o
+     defaults). Lo usa app.js para mostrar el rango en la tarjeta del trámite. */
+  window.OKActaPriceRange = function () {
+    var ap = (window.OK_APPT_ACTA_PRICES && typeof window.OK_APPT_ACTA_PRICES === "object") ? window.OK_APPT_ACTA_PRICES : ACTA_PRICES;
+    var vals = [];
+    for (var k in ap) { if (Object.prototype.hasOwnProperty.call(ap, k) && +ap[k] > 0) vals.push(+ap[k]); }
+    if (!vals.length) return null;
+    return { min: Math.min.apply(null, vals), max: Math.max.apply(null, vals) };
+  };
   /* Ya hay catálogo (los defaults de arriba): pinta los precios de las tarjetas de
      trámite YA, sin esperar al servidor, para que nunca salga "a cotizar" por lentitud. */
   if (window.OKRenderTramitePrices) { try { window.OKRenderTramitePrices(); } catch (e) {} }
