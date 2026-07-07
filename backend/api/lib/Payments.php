@@ -198,15 +198,26 @@ final class Payments
             if (!$row) { $pdo->rollBack(); return false; }
 
             $prev = (string) ($row['payment_status'] ?? 'pendiente');
-            if ($prev === 'pagado') { $pdo->commit(); return true; } // ya finalizado: idempotente
+            // Máquina de estados: idempotente y SIN retrocesos por webhooks fuera de orden.
+            //  · Misma transición repetida (webhook duplicado) → no hace nada.
+            //  · 'reembolsado' es TERMINAL: una notificación tardía no lo reabre.
+            //  · Un pago 'pagado' solo puede avanzar a 'reembolsado' (reembolso/contracargo);
+            //    nunca retrocede a procesando/error/pendiente por una notificación tardía.
+            if ($prev === $newStatus)    { $pdo->commit(); return true; }
+            if ($prev === 'reembolsado') { $pdo->commit(); return true; }
+            if ($prev === 'pagado' && $newStatus !== 'reembolsado') { $pdo->commit(); return true; }
 
             $data = [
                 'payment_status'         => $newStatus,
                 'payment_transaction_id' => $transactionId ?: $row['payment_transaction_id'],
             ];
             if ($newStatus === 'pagado') {
-                $data['payment_date']   = date('Y-m-d H:i:s');
-                $data['payment_amount'] = round((float) $row[$amountCol], 2);
+                $data['payment_date'] = date('Y-m-d H:i:s');
+                // Congela el importe REALMENTE cobrado (el de la intención, guardado en
+                // startIntent), no el total actual de la entidad: si el total cambió entre
+                // el inicio del pago y su confirmación, registra lo que de verdad se cobró.
+                $frozen = round((float) ($row['payment_amount'] ?? 0), 2);
+                $data['payment_amount'] = $frozen > 0 ? $frozen : round((float) $row[$amountCol], 2);
             }
             $set = []; $params = [];
             foreach ($data as $k => $v) { $set[] = "$k = ?"; $params[] = $v; }

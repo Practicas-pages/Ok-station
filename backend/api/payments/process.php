@@ -54,6 +54,9 @@ if ($apptId > 0) {
     if (!$entity) fail('Cita no encontrada.', 404);
     if ((int) ($entity['user_id'] ?? 0) !== (int) $user['id']) fail('No autorizado.', 403);
     if (($entity['status'] ?? '') === 'cancelada') fail('Esta cita está cancelada y no se puede pagar.', 409);
+    if (!empty($entity['needs_quote']) && empty($entity['quoted_at'])) {
+        fail('Esta cita está en cotización. Te avisaremos por correo cuando tengas el precio final.', 409);
+    }
     $amount = round((float) ($entity['amount_total'] ?? 0), 2);
 } elseif ($orderId > 0) {
     $kind = 'order'; $noun = 'pedido';

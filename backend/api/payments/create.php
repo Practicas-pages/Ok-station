@@ -35,6 +35,11 @@ if ($apptId > 0) {
         fail('Esta cita no está asociada a tu cuenta. Inicia sesión con la cuenta que la agendó.', 403);
     }
     if (($entity['status'] ?? '') === 'cancelada') fail('Esta cita está cancelada y no se puede pagar.', 409);
+    /* Cita "por cotizar" y aún sin precio fijado: no se puede cobrar todavía (espejo
+       del guard de pedidos). Se libera cuando el trabajador fija el precio (quoted_at). */
+    if (!empty($entity['needs_quote']) && empty($entity['quoted_at'])) {
+        fail('Esta cita está en cotización. Te avisaremos por correo cuando tengas el precio final para pagar.', 409);
+    }
     if (round((float) ($entity['amount_total'] ?? 0), 2) <= 0) {
         fail('Este trámite se cotiza; el pago se coordina por WhatsApp.', 409);
     }

@@ -22,7 +22,10 @@
   if (!pago) return; // no venimos de un checkout
 
   var MSG = {
-    ok:        { t: "¡Pago autorizado!",     d: "Tu pago se autorizó correctamente. ¡Gracias! Aquí abajo puedes ver tu comprobante.",   c: "#15803D", bg: "#DCFCE7" },
+    // El estado REAL lo confirma el servidor (webhook) y el historial hace polling;
+    // este aviso NO afirma un cobro exitoso por sí solo (los parámetros de la URL son
+    // manipulables). Por eso el texto habla de "confirmando", no de "autorizado".
+    ok:        { t: "Recibimos tu pago",      d: "Estamos confirmando tu pago con el banco. En cuanto se confirme lo verás reflejado aquí en tu historial y te llegará un correo.",   c: "#15803D", bg: "#DCFCE7" },
     pendiente: { t: "Pago en revisión",      d: "Tu pago quedó pendiente de aprobación. Te avisaremos en cuanto se confirme.",          c: "#B45309", bg: "#FEF3C7" },
     cancelado: { t: "Pago no completado",    d: "No se realizó ningún cargo. Puedes intentarlo de nuevo cuando quieras.",               c: "#B91C1C", bg: "#FEE2E2" }
   };
