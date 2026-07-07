@@ -179,6 +179,18 @@
 }
 .profile-nav a:hover { background: var(--brand-blue-light); color: var(--brand-blue); }
 
+/* "Datos personales" 🔒 — apartado sensible, separado al fondo de la barra. */
+.profile-nav__datos {
+  display: flex; align-items: center; gap: 8px;
+  margin-top: var(--space-4);
+  padding-top: var(--space-4) !important;
+  border-top: 1px solid var(--border-light);
+  color: var(--text-muted) !important;
+}
+.profile-nav__datos svg { width: 16px; height: 16px; flex: 0 0 auto; }
+.profile-nav__datos:hover { color: var(--brand-blue) !important; }
+.profile-nav__datos[aria-expanded="true"] { color: var(--brand-blue) !important; background: var(--brand-blue-light); }
+
 .profile-panel {
   background: var(--surface-card);
   border: 1px solid var(--border-light);

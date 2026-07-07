@@ -282,6 +282,27 @@
         window.location.href = "cuenta.html";
       });
     }
+
+    /* ── "Datos personales" 🔒 ──
+       Los apartados sensibles (editar información + cambiar contraseña) quedan
+       ocultos hasta que el usuario los abre desde la barra lateral. Así, al abrir
+       el perfil, lo primero que ve son sus pedidos y sus citas. */
+    var toggleDatos = qs("#toggle-datos");
+    var settings = qs("#account-settings");
+    if (toggleDatos && settings) {
+      function openSettings(show) {
+        settings.hidden = !show;
+        toggleDatos.setAttribute("aria-expanded", show ? "true" : "false");
+        if (show) settings.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+      toggleDatos.addEventListener("click", function (e) {
+        e.preventDefault();
+        openSettings(settings.hidden);   /* alterna: si está oculto → mostrar y bajar */
+      });
+      /* Si se llega con enlace directo a los datos/contraseña, se abre el grupo. */
+      var h = location.hash;
+      if (h === "#datos" || h === "#info" || h === "#password") openSettings(true);
+    }
   }
 
   function fillProfile(u) {
