@@ -55,6 +55,10 @@
   });
   document.addEventListener("click", function (e) { if (!wrap.contains(e.target)) close(); });
   document.addEventListener("keydown", function (e) { if (e.key === "Escape") close(); });
+  /* Cerrar al hacer scroll: el header se oculta al bajar y el menú, anclado a él,
+     quedaba "volando" sobre la página. Cerrarlo es el comportamiento esperado de
+     un menú de encabezado (y evita que se despegue del botón). */
+  window.addEventListener("scroll", function () { if (!menu.hidden) close(); }, { passive: true });
   wrap.querySelector("#acct-logout").addEventListener("click", function () {
     try { localStorage.removeItem("okstation.token"); localStorage.removeItem("okstation.user"); } catch (e) {}
     window.location.reload();
