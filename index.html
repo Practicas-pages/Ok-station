@@ -75,7 +75,7 @@
   <!-- ===================== HOJA DE ESTILOS ===================== -->
   <link rel="stylesheet" href="styles.css?v=20260707d">
   <!-- Estilos del configurador de pedido embebido en #fotos -->
-  <link rel="stylesheet" href="assets/order.css?v=20260626t">
+  <link rel="stylesheet" href="assets/order.css?v=20260707d">
 
   <!-- ===================== DATOS ESTRUCTURADOS (JSON-LD) ===================== -->
   <script type="application/ld+json">
@@ -919,6 +919,8 @@
               <textarea id="order-comments" maxlength="1000" placeholder="Colores específicos, fecha límite, instrucciones de acabado…"></textarea>
               <p class="order-note">Las cifras son un estimado; confirmamos el precio final al revisar tus archivos. El gran formato se cotiza aparte. Para subir y enviar tu pedido necesitas <a href="cuenta.html">iniciar sesión</a>.</p>
               <p class="order-note order-note--pay">Los pedidos se pagan al <b>100%</b> al confirmar.</p>
+              <p class="order-note">El monto mínimo para pagar en línea es de <b>$5 MXN</b>.</p>
+              <p class="order-note order-note--warn" id="order-min-warn" hidden>Tu total es menor al mínimo de <b>$5 MXN</b> para pago en línea. Agrega más copias o páginas para continuar.</p>
               <button class="btn btn--primary btn--block" id="order-submit" disabled>Enviar pedido</button>
             </aside>
           </div>
@@ -1361,7 +1363,7 @@
 <!-- Configurador de pedido embebido (#fotos): librerías de ticket PDF + QR y lógica -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" defer></script>
-<script src="assets/order.js?v=20260706a" defer></script>
+<script src="assets/order.js?v=20260707d" defer></script>
 <!-- Comprobante PDF de cita (compartido con perfil y admin) -->
 <script src="assets/cita-ticket.js?v=20260707d" defer></script>
 <script src="assets/pagos-servicios.js?v=20260626" defer></script>

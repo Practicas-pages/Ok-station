@@ -57,6 +57,7 @@
   var PAPERS = ["Bond", "Opalina", "Couché", "Fotográfico", "Cartulina", "Adhesivo"];
 
   var TAX = 0.08;   /* IVA 8% (los precios del catálogo ya lo incluyen) */
+  var MIN_PAY = 5;  /* Monto mínimo para pago en línea (MercadoPago MX): $5 MXN */
   var files = [];        // {fileId, name, mime, pages, size, thumb, cfg}
 
   /* ── Formatos permitidos (validación en cliente; el backend revalida) ── */
@@ -193,8 +194,7 @@
     }).join("");
 
     wire();
-    renderSummary();
-    $("#order-submit").disabled = files.length === 0;
+    renderSummary();   /* también fija el estado del botón (vacío o por debajo del mínimo) */
   }
 
   function cfgSelect(i, key, label, opts, val) {
@@ -271,6 +271,15 @@
     $("#sum-subtotal").textContent = mxn(subtotal);
     $("#sum-tax").textContent = mxn(tax);
     $("#sum-total").textContent = mxn(totalIncl);
+
+    /* Mínimo para pago en línea ($5 MXN): si hay un total cobrable menor al mínimo,
+       se avisa y se BLOQUEA el envío (MercadoPago rechaza montos < $5). Un total de
+       $0 (solo cotización, p. ej. gran formato) no cuenta como monto cobrable. */
+    var belowMin = totalIncl > 0 && totalIncl < MIN_PAY;
+    var warn = $("#order-min-warn");
+    if (warn) warn.hidden = !belowMin;
+    var submitBtn = $("#order-submit");
+    if (submitBtn) submitBtn.disabled = (files.length === 0) || belowMin;
   }
 
   /* Precios de referencia CON TRAMOS por cantidad (para que el cliente sepa cuánto baja por volumen). */
@@ -347,6 +356,13 @@
     if (!requireAuth()) return;
     alertErr("");
     if (!files.length) return;
+    /* Mínimo para pago en línea: bloquea el envío si el total cobrable es < $5 MXN. */
+    var totalNow = 0; files.forEach(function (f) { totalNow += priceOf(f).line; });
+    totalNow = Math.round(totalNow * 100) / 100;
+    if (totalNow > 0 && totalNow < MIN_PAY) {
+      alertErr("El monto mínimo para pagar en línea es de $5 MXN. Agrega más copias o páginas para continuar.");
+      return;
+    }
     /* Teléfono OBLIGATORIO: lo usan las trabajadoras para contactar al cliente. */
     var phoneEl = $("#order-phone");
     /* El módulo compartido (assets/phone-cc.js) fuerza dígitos y añade el código
