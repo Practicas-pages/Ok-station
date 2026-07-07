@@ -2,8 +2,7 @@
 <!--
   Ok.station — sitemap. La página es one-page; las rutas privadas
   (cuenta, perfil, admin) se excluyen a propósito (noindex).
-  Al crear páginas dedicadas (/impresion-de-fotos, /impresion-de-documentos,
-  /servicios, /nosotros, /contacto) agrégalas aquí.
+  Al crear páginas dedicadas agrégalas aquí.
 -->
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
@@ -83,5 +82,17 @@
     <lastmod>2026-06-26</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://okstation.mx/quienes-somos.html</loc>
+    <lastmod>2026-07-06</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://okstation.mx/contactanos.html</loc>
+    <lastmod>2026-07-06</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.5</priority>
   </url>
 </urlset>
