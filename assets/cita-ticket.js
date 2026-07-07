@@ -10,8 +10,19 @@
 
   var SERVICE_NAMES = {
     pasaporte: "Pasaporte", visa: "Visa Americana", sentri: "SENTRI / Global Entry", i94: "I-94 / Permiso de Viaje",
-    curp: "CURP / Acta", ine: "INE / Credencial", licencia: "Licencia de conducir",
+    curp: "CURP", acta: "Acta de Nacimiento", ine: "INE / Credencial", licencia: "Licencia de conducir",
     apostille: "Apostille / Traducción", medica: "Cita médica / Examen"
+  };
+  /* Nombres de estado (slug → etiqueta) para mostrar el estado del acta en el ticket. */
+  var ACTA_STATE_NAMES = {
+    aguascalientes: "Aguascalientes", baja_california: "Baja California", baja_california_sur: "Baja California Sur",
+    campeche: "Campeche", chiapas: "Chiapas", chihuahua: "Chihuahua", ciudad_de_mexico: "Ciudad de México",
+    coahuila: "Coahuila", colima: "Colima", durango: "Durango", guanajuato: "Guanajuato", guerrero: "Guerrero",
+    hidalgo: "Hidalgo", jalisco: "Jalisco", mexico: "Estado de México", michoacan: "Michoacán", morelos: "Morelos",
+    nayarit: "Nayarit", nuevo_leon: "Nuevo León", oaxaca: "Oaxaca", puebla: "Puebla", queretaro: "Querétaro",
+    quintana_roo: "Quintana Roo", san_luis_potosi: "San Luis Potosí", sinaloa: "Sinaloa", sonora: "Sonora",
+    tabasco: "Tabasco", tamaulipas: "Tamaulipas", tlaxcala: "Tlaxcala", veracruz: "Veracruz", yucatan: "Yucatán",
+    zacatecas: "Zacatecas"
   };
   var SUBTYPE = { mexicano: "Mexicano", americano: "Americano" };
   /* Tipo de trámite por persona (renovación con/sin documentos, etc.). */
@@ -169,12 +180,30 @@
      Estos valores por defecto coinciden con la semilla del servidor (settings appt.prices);
      al cargar la página se sincronizan con el panel vía /appointments/prices.php (abajo). */
   var CITA_PRICES = { pasaporte: 200, pasaporte_americano: 400, visa: 800, sentri: 900, ine: 80, curp: 35, i94: 200, licencia: 40 };
+  /* Acta de Nacimiento: el precio depende del ESTADO (MXN, IVA incluido). Estos
+     defaults coinciden con la semilla del servidor (settings appt.acta_prices);
+     se sincronizan con /appointments/prices.php al cargar la página. */
+  var ACTA_PRICES = {
+    aguascalientes: 335, baja_california: 345, baja_california_sur: 345, campeche: 275, chiapas: 345,
+    chihuahua: 325, ciudad_de_mexico: 300, coahuila: 370, colima: 305, durango: 345, guanajuato: 305,
+    guerrero: 335, hidalgo: 335, jalisco: 305, mexico: 275, michoacan: 355, morelos: 310, nayarit: 285,
+    nuevo_leon: 275, oaxaca: 325, puebla: 340, queretaro: 335, quintana_roo: 265, san_luis_potosi: 320,
+    sinaloa: 320, sonora: 320, tabasco: 310, tamaulipas: 310, tlaxcala: 355, veracruz: 385, yucatan: 400,
+    zacatecas: 365
+  };
   var CITA_TAX = 0.08;   /* IVA 8% (los precios ya lo incluyen, como el ticket de mostrador) */
   function mxn0(n) { return new Intl.NumberFormat("es-MX", { style: "currency", currency: "MXN", maximumFractionDigits: 0 }).format(n); }
   function mxn2(n) { return new Intl.NumberFormat("es-MX", { style: "currency", currency: "MXN", minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n); }
   /* Resuelve el precio unitario: usa el catálogo del servidor (OK_APPT_PRICES, claves
      'pasaporte_mexicano'…) si ya se cargó; si no, los valores por defecto de arriba. */
   function apptUnit(tramite, subtype) {
+    /* Acta de nacimiento: precio por ESTADO (subtype = slug del estado). Usa el
+       catálogo del servidor si ya cargó; si no, los defaults locales de arriba. */
+    if (tramite === "acta") {
+      var ap = window.OK_APPT_ACTA_PRICES;
+      if (ap && typeof ap === "object" && ap[subtype] != null) return +ap[subtype];
+      return ACTA_PRICES[subtype];
+    }
     var srv = window.OK_APPT_PRICES;
     if (srv && typeof srv === "object") {
       var key = (tramite === "pasaporte") ? ("pasaporte_" + (subtype === "americano" ? "americano" : "mexicano")) : tramite;
@@ -228,6 +257,7 @@
       .then(function (j) {
         if (j && j.ok && j.prices) window.OK_APPT_PRICES = j.prices;
         if (j && j.service_prices) window.OK_APPT_SERVICE_PRICES = j.service_prices;
+        if (j && j.acta_prices) window.OK_APPT_ACTA_PRICES = j.acta_prices;
         if (j && j.require_payment) window.OK_APPT_REQUIRE_PAY = j.require_payment;
         if (j && j.tax_rate) CITA_TAX = +j.tax_rate;
         /* Re-pinta con los precios vigentes del servidor (por si difieren de los defaults). */
@@ -310,7 +340,10 @@
 
     var svcName = SERVICE_NAMES[appt.tramite] || appt.tramite;
     if (appt.tramite === "pasaporte" && appt.passport_subtype) svcName += " (" + (SUBTYPE[appt.passport_subtype] || appt.passport_subtype) + ")";
-    var pr = window.OKCitaPrice(appt.tramite, appt.passport_subtype, appt.party_size);
+    if (appt.tramite === "acta" && appt.acta_state) svcName += " (" + (ACTA_STATE_NAMES[appt.acta_state] || appt.acta_state) + ")";
+    /* El precio del acta depende del ESTADO; los demás usan el subtipo de pasaporte. */
+    var priceSub = (appt.tramite === "acta") ? (appt.acta_state || "") : appt.passport_subtype;
+    var pr = window.OKCitaPrice(appt.tramite, priceSub, appt.party_size);
     var items = [];
     if (pr.quote) items.push({ qty: pr.party, desc: "Gestión de cita — " + svcName, unit: "", imp: "Te confirmamos el precio" });
     else items.push({ qty: pr.party, desc: "Gestión de cita — " + svcName, unit: mxn2(pr.unit), imp: mxn2(pr.total) });
@@ -335,7 +368,7 @@
     });
 
     /* ── Totales (subtotal / IVA a la derecha, TOTAL en barra) ── */
-    var rowsT = window.OKCitaPriceRows(appt.tramite, appt.passport_subtype, appt.party_size, extrasTotal);
+    var rowsT = window.OKCitaPriceRows(appt.tramite, priceSub, appt.party_size, extrasTotal);
     var sub = null, iva = null, ivaLbl = "IVA", tot = null;
     rowsT.forEach(function (r) {
       if (/subtotal/i.test(r[0])) sub = r[1];
@@ -521,6 +554,7 @@
     doc.setFillColor(soft[0], soft[1], soft[2]); doc.setDrawColor(rule[0], rule[1], rule[2]); doc.setLineWidth(0.3); doc.roundedRect(x, ty, CW, bandH, 4, 4, "FD");
     var svcName = SERVICE_NAMES[appt.tramite] || appt.tramite;
     if (appt.tramite === "pasaporte" && appt.passport_subtype) svcName += " (" + (SUBTYPE[appt.passport_subtype] || appt.passport_subtype) + ")";
+    if (appt.tramite === "acta" && appt.acta_state) svcName += " (" + (ACTA_STATE_NAMES[appt.acta_state] || appt.acta_state) + ")";
     var nPeople = appt.party_size || (appt.guests && appt.guests.length) || 1;
     var cells = [
       { c: blue,   k: "SERVICIO", v: svcName },

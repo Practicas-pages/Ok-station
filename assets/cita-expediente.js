@@ -162,6 +162,10 @@
       "Acta de nacimiento",
       "Identificación oficial"
     ],
+    acta: [
+      "CURP",
+      "Nombre completo de los padres"
+    ],
     ine: [
       "Acta de nacimiento",
       "CURP",
@@ -213,6 +217,9 @@
       { key: "acta", label: "Acta de nacimiento" },
       { key: "identificacion", label: "Identificación oficial" }
     ],
+    acta: [
+      { key: "curp", label: "CURP" }
+    ],
     ine: [
       { key: "acta", label: "Acta de nacimiento" },
       { key: "curp", label: "CURP" },
@@ -249,6 +256,7 @@
     sentri: ["fotos", "impresion", "copias"],
     i94: ["fotos", "impresion", "copias"],
     curp: ["acta", "impresion", "copias"],
+    acta: ["curp", "impresion", "copias"],
     ine: ["curp", "acta", "fotos", "copias"],
     licencia: ["curp", "fotos", "copias"],
     apostille: ["acta", "impresion", "copias"],
@@ -265,7 +273,8 @@
     visa: "Visa Americana",
     sentri: "SENTRI / Global Entry",
     i94: "I-94 / Permiso de Viaje",
-    curp: "CURP / Acta",
+    curp: "CURP",
+    acta: "Acta de Nacimiento",
     ine: "INE / Credencial",
     licencia: "Licencia de Conducir",
     apostille: "Apostille / Traducción",

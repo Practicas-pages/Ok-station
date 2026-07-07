@@ -12,6 +12,7 @@ respond([
     'ok'              => true,
     'prices'          => Pricing::apptPrices(),          // { "pasaporte_mexicano":200, "visa":800, ... }
     'service_prices'  => Pricing::apptServicePrices(),   // { "acta":150, "copias":20, ... } (adicionales)
+    'acta_prices'     => Pricing::apptActaPrices(),       // { "jalisco":305, "veracruz":385, ... } (acta por estado)
     'require_payment' => Pricing::apptRequirePayment(),  // ["visa","pasaporte"]
     'currency'        => 'MXN',
     'tax_rate'        => Pricing::taxRate(),

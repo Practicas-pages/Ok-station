@@ -24,7 +24,7 @@ $subtype = (string) ($b['passport_subtype'] ?? '');   // solo pasaporte: mexican
 $party   = (int) ($b['party_size'] ?? 1);             // cantidad de personas (mín. 1)
 
 /* Catálogo completo de servicios independientes (una cita = un servicio). */
-$validTramite = ['pasaporte', 'visa', 'sentri', 'i94', 'curp', 'ine', 'licencia', 'apostille', 'medica'];
+$validTramite = ['pasaporte', 'visa', 'sentri', 'i94', 'curp', 'acta', 'ine', 'licencia', 'apostille', 'medica'];
 $validPref    = ['whatsapp', 'llamada', 'correo'];
 $validSubtype = ['mexicano', 'americano'];
 
@@ -44,6 +44,17 @@ if ($tramite === 'pasaporte') {
     if ($subtype !== '' && !in_array($subtype, $validSubtype, true)) fail('Tipo de pasaporte inválido.');
 } else {
     $subtype = '';
+}
+
+/* Acta de nacimiento: el ESTADO define el precio. Se exige un estado válido del
+   catálogo (autoridad del servidor). En otros trámites se ignora. */
+$actaState = preg_replace('/[^a-z0-9_]/', '', strtolower((string) ($b['acta_state'] ?? '')));
+if ($tramite === 'acta') {
+    if ($actaState === '' || !array_key_exists($actaState, Pricing::apptActaPrices())) {
+        fail('Selecciona el estado del acta de nacimiento.');
+    }
+} else {
+    $actaState = '';
 }
 /* Cantidad de personas: mínimo 1, tope razonable. */
 if ($party < 1)  $party = 1;
@@ -146,7 +157,11 @@ $time = Availability::normTime($time);
 
 /* Precio del anticipo (autoridad del servidor): precio del trámite × personas.
    quote=true → el trámite se cotiza (no cobra en línea). */
-$pricing = Pricing::appointmentPricing($tramite, ($subtype !== '' ? $subtype : null), $party);
+/* Discriminador de precio: pasaporte → subtipo; acta → estado; los demás, ninguno. */
+$priceSub = ($tramite === 'acta')
+    ? ($actaState !== '' ? $actaState : null)
+    : ($subtype !== '' ? $subtype : null);
+$pricing = Pricing::appointmentPricing($tramite, $priceSub, $party);
 /* Los servicios adicionales (acta, copias, etc.) se SUMAN al anticipo del trámite.
    Si el trámite se cotiza (sin precio fijo), todo se coordina en mostrador y no se
    cobra en línea, así que no se prorratean aquí. */
@@ -198,6 +213,11 @@ try {
     /* Servicios adicionales: solo si la migración 0013 ya creó la columna (resiliente). */
     if ($servicesJson !== null && table_has_column('appointments', 'services_json')) {
         $pdo->prepare('UPDATE appointments SET services_json=? WHERE id=?')->execute([$servicesJson, $id]);
+    }
+    /* Estado del acta de nacimiento: solo si la migración 0025 ya creó la columna
+       (resiliente). El precio ya se cobró correcto vía amount_total aunque no exista. */
+    if ($actaState !== '' && table_has_column('appointments', 'acta_state')) {
+        $pdo->prepare('UPDATE appointments SET acta_state=? WHERE id=?')->execute([$actaState, $id]);
     }
 
     /* MONTO DEL ANTICIPO (autoridad del servidor): precio del trámite × personas.
@@ -261,6 +281,7 @@ respond([
     'appointment' => [
         'id' => $id, 'code' => $code, 'tramite' => $tramite,
         'passport_subtype' => ($subtype !== '' ? $subtype : null),
+        'acta_state' => ($actaState !== '' ? $actaState : null),
         'party_size' => $party,
         'guests' => $cleanGuests,
         'services' => $cleanServices,

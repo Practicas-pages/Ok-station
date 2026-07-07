@@ -371,6 +371,7 @@
       tramite: null, tramiteLabel: "",   /* servicio único elegido (cualquiera de los 9) */
       subtype: "",                 /* solo pasaporte: "mexicano" | "americano" */
       pptTramite: "", pptEdad: "", /* pasaporte mexicano: primera|renovacion · mayor|menor */
+      actaState: "", actaStateLabel: "",  /* solo acta de nacimiento: estado (define el precio) */
       partySize: 1, partyLabel: "Solo yo",
       fecha: "", hora: "",
       nombre: "", tel: "", notas: "",
@@ -511,9 +512,12 @@
     function updateStep0Next() {
       var nextBtn = qs("#cita-next-0");
       if (!nextBtn) return;
-      /* Continuar habilitado si hay principal y, si es pasaporte, además su subtipo. */
-      var ok = !!state.tramite && (state.tramite !== "pasaporte" ||
-        (!!state.subtype && (state.subtype !== "mexicano" || (!!state.pptTramite && !!state.pptEdad))));
+      /* Continuar habilitado si hay principal y, si es pasaporte, además su subtipo;
+         si es acta de nacimiento, además el estado elegido (define el precio). */
+      var ok = !!state.tramite
+        && (state.tramite !== "pasaporte" ||
+            (!!state.subtype && (state.subtype !== "mexicano" || (!!state.pptTramite && !!state.pptEdad))))
+        && (state.tramite !== "acta" || !!state.actaState);
       nextBtn.disabled = !ok;
       nextBtn.setAttribute("aria-disabled", String(!ok));
     }
@@ -532,6 +536,7 @@
       var svc = serviceById(id);
       state.tramiteLabel = svc ? svc.name : id;
       if (id !== "pasaporte") state.subtype = "";  /* el subtipo solo aplica a pasaporte */
+      if (id !== "acta") { state.actaState = ""; state.actaStateLabel = ""; }  /* el estado solo aplica al acta */
       /* Licencia de conducir: es un solo documento (PDF) que se imprime en PVC;
          no aplica "¿cuántas personas?" → se asume 1 y ese paso se omite. */
       if (id === "licencia") { state.partySize = 1; state.partyLabel = "Solo yo"; }
@@ -552,6 +557,7 @@
       if (!id) return;
       selectService(id, btn);
       if (id === "pasaporte") { openSubtypeModal(); return; }   /* caso especial: subtipo obligatorio */
+      if (id === "acta") { openActaModal(); return; }           /* caso especial: estado (define el precio) */
     });
 
     /* ── Caso especial Pasaporte: modal de subtipo (mexicano/americano) ── */
@@ -609,6 +615,73 @@
            aparecen en su sitio y el salto resultaba molesto. */
       });
       qsa("[data-subtype-close]", subtypeModal).forEach(function (el) { el.addEventListener("click", closeSubtypeModal); });
+    }
+
+    /* ── Caso especial Acta de Nacimiento: modal de ESTADO (define el precio) ──
+       Mismo patrón que el modal de pasaporte. Diferencias: el usuario elige un
+       estado en un <select>, se muestra el precio en vivo, y se BLOQUEA el scroll
+       de la página mientras el modal está abierto. NO afecta la lógica de agendado. */
+    var actaModal   = qs("#cita-acta-modal");
+    var actaSelect  = actaModal ? qs("#cita-acta-state", actaModal) : null;
+    var actaPriceEl = actaModal ? qs("#cita-acta-price", actaModal) : null;
+    var actaConfirm = actaModal ? qs("#cita-acta-confirm", actaModal) : null;
+    function actaEsc(e) { if (e.key === "Escape") closeActaModal(); }
+    function actaPreventScroll(e) {
+      var box = actaModal ? qs(".cita-modal__box", actaModal) : null;
+      if (box && box.contains(e.target)) return;   /* permite interactuar dentro del modal */
+      e.preventDefault();
+    }
+    function actaLockScroll(lock) {
+      document.documentElement.style.overflow = lock ? "hidden" : "";
+      document.body.style.overflow = lock ? "hidden" : "";
+      if (lock) document.addEventListener("touchmove", actaPreventScroll, { passive: false });
+      else document.removeEventListener("touchmove", actaPreventScroll, { passive: false });
+    }
+    function updateActaPrice() {
+      var slug = actaSelect ? actaSelect.value : "";
+      var ok = !!slug;
+      if (actaConfirm) { actaConfirm.disabled = !ok; actaConfirm.setAttribute("aria-disabled", String(!ok)); }
+      if (!actaPriceEl) return;
+      var p = (ok && window.OKCitaPrice) ? window.OKCitaPrice("acta", slug, 1) : null;
+      if (p && !p.quote && window.OKMxn0) {
+        actaPriceEl.textContent = "Precio del acta: " + window.OKMxn0(p.unit);
+        actaPriceEl.hidden = false;
+      } else if (ok) {
+        actaPriceEl.textContent = "Te confirmamos el precio de este estado.";
+        actaPriceEl.hidden = false;
+      } else {
+        actaPriceEl.hidden = true;
+      }
+    }
+    function openActaModal() {
+      if (!actaModal) return;                    /* sin modal en el DOM no bloquea el flujo */
+      actaModal.hidden = false;
+      actaModal.classList.add("is-open");
+      if (actaSelect) actaSelect.value = state.actaState || "";
+      updateActaPrice();
+      actaLockScroll(true);
+      if (actaSelect) actaSelect.focus();
+      document.addEventListener("keydown", actaEsc);
+    }
+    function closeActaModal() {
+      if (!actaModal) return;
+      actaModal.classList.remove("is-open");
+      actaModal.hidden = true;
+      actaLockScroll(false);
+      document.removeEventListener("keydown", actaEsc);
+    }
+    if (actaModal) {
+      if (actaSelect) actaSelect.addEventListener("change", updateActaPrice);
+      if (actaConfirm) actaConfirm.addEventListener("click", function () {
+        var slug = actaSelect ? actaSelect.value : "";
+        if (!slug) return;
+        state.actaState = slug;
+        state.actaStateLabel = (actaSelect && actaSelect.selectedIndex >= 0) ? actaSelect.options[actaSelect.selectedIndex].text : slug;
+        state.tramiteLabel = "Acta de Nacimiento — " + state.actaStateLabel;  /* etiqueta con el estado */
+        closeActaModal();
+        updateStep0Next();
+      });
+      qsa("[data-acta-close]", actaModal).forEach(function (el) { el.addEventListener("click", closeActaModal); });
     }
 
     /* ── Botón "Más servicios" → panel lateral (drawer) con servicios adicionales ── */
@@ -1466,8 +1539,10 @@
       var extrasTotal = 0;
       citaExtras.forEach(function (sv) { if (sv && +sv.price > 0) extrasTotal += +sv.price; });
 
+      /* Para el acta el precio depende del ESTADO (no del subtipo de pasaporte). */
+      var priceDiscriminator = (state.tramite === "acta") ? state.actaState : state.subtype;
       var priceRows = window.OKCitaPriceRows
-        ? window.OKCitaPriceRows(state.tramite, state.subtype, state.partySize, extrasTotal)
+        ? window.OKCitaPriceRows(state.tramite, priceDiscriminator, state.partySize, extrasTotal)
         : [["Precio", "Te confirmamos el precio"]];
       var totalVal = null, isQuote = false, breakdown = "";
       priceRows.forEach(function (pr) {
@@ -1624,6 +1699,7 @@
       var payload = {
         tramite: state.tramite,
         passport_subtype: state.subtype || "",
+        acta_state: state.actaState || "",   /* solo acta: estado que define el precio */
         party_size: state.partySize,
         date: state.fecha,
         time: state.hora,
@@ -1631,11 +1707,14 @@
         phone: state.tel,
         email: emailEl ? emailEl.value.trim() : "",
         contact_pref: prefEl ? prefEl.value : "",
-        /* El pasaporte mexicano guarda su combinación (primera/renovación · menor/mayor)
-           al inicio de las notas, para que el personal la vea sin cambios de esquema. */
-        notes: ((state.tramite === "pasaporte" && state.subtype === "mexicano" && state.pptTramite && state.pptEdad)
-          ? ("Pasaporte mexicano · " + (state.pptTramite === "renovacion" ? "Renovación" : "Primera vez") +
-             " · " + (state.pptEdad === "menor" ? "Menor de edad" : "Mayor de edad") + (state.notas ? " — " : ""))
+        /* El pasaporte mexicano y el acta guardan su detalle (combinación / estado) al
+           inicio de las notas, para que el personal lo vea sin depender del esquema. */
+        notes: (
+          (state.tramite === "pasaporte" && state.subtype === "mexicano" && state.pptTramite && state.pptEdad)
+            ? ("Pasaporte mexicano · " + (state.pptTramite === "renovacion" ? "Renovación" : "Primera vez") +
+               " · " + (state.pptEdad === "menor" ? "Menor de edad" : "Mayor de edad") + (state.notas ? " — " : ""))
+          : (state.tramite === "acta" && state.actaStateLabel)
+            ? ("Acta de nacimiento · Estado: " + state.actaStateLabel + (state.notas ? " — " : ""))
           : "") + (state.notas || ""),
         guests: (state.guests || []).map(function (g) {
           return { name: (g.name || "").trim(), dob: g.dob || "", doctype: g.doctype || "", answers: g.answers || {} };
@@ -1675,6 +1754,7 @@
                 var apptForTicket = {
                   code: j.appointment.code, tramite: j.appointment.tramite,
                   passport_subtype: j.appointment.passport_subtype, party_size: j.appointment.party_size,
+                  acta_state: (j.appointment.acta_state || state.actaState || ""),   /* acta: estado (para el precio del ticket) */
                   date: j.appointment.date, time: j.appointment.time, status: j.appointment.status,
                   name: state.nombre, phone: state.tel, guests: state.guests,
                   services: citaServices

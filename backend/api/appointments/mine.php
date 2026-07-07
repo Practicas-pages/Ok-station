@@ -9,13 +9,14 @@ $user = current_user();
    guests_json (0011), services_json (0013), pago (0016). */
 $guestsCol   = table_has_column('appointments', 'guests_json')   ? 'guests_json,'   : '';
 $servicesCol = table_has_column('appointments', 'services_json') ? 'services_json,' : '';
+$actaCol     = table_has_column('appointments', 'acta_state')    ? 'acta_state,'    : '';
 $payCols     = table_has_column('appointments', 'amount_total')
     ? 'id, amount_total, payment_status, payment_reference,'
     : '';
 /* Cotización (migración 0023): distingue "por cotizar y aún sin anticipo" de "ya cotizada". */
 $quoteCols   = table_has_column('appointments', 'needs_quote') ? 'needs_quote, quoted_at,' : '';
 $st = db()->prepare(
-    "SELECT $payCols $quoteCols code, tramite, passport_subtype, party_size, $guestsCol $servicesCol contact_name, contact_phone,
+    "SELECT $payCols $quoteCols code, tramite, passport_subtype, $actaCol party_size, $guestsCol $servicesCol contact_name, contact_phone,
             DATE_FORMAT(appt_date,'%Y-%m-%d') AS date,
             TIME_FORMAT(appt_time,'%H:%i')    AS time,
             status, created_at

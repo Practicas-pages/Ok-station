@@ -205,6 +205,40 @@ final class Pricing
         return round($sum, 2);
     }
 
+    /* ============================================================
+       Acta de Nacimiento: el precio depende del ESTADO de registro.
+       MXN, IVA incluido (igual que los demás trámites). Editable desde el panel
+       vía settings `appt.acta_prices`. Espejo de assets/cita-ticket.js (ACTA_PRICES).
+       ============================================================ */
+    const APPT_ACTA_PRICE_DEFAULTS = [
+        'aguascalientes' => 335.0, 'baja_california' => 345.0, 'baja_california_sur' => 345.0,
+        'campeche' => 275.0, 'chiapas' => 345.0, 'chihuahua' => 325.0, 'ciudad_de_mexico' => 300.0,
+        'coahuila' => 370.0, 'colima' => 305.0, 'durango' => 345.0, 'guanajuato' => 305.0,
+        'guerrero' => 335.0, 'hidalgo' => 335.0, 'jalisco' => 305.0, 'mexico' => 275.0,
+        'michoacan' => 355.0, 'morelos' => 310.0, 'nayarit' => 285.0, 'nuevo_leon' => 275.0,
+        'oaxaca' => 325.0, 'puebla' => 340.0, 'queretaro' => 335.0, 'quintana_roo' => 265.0,
+        'san_luis_potosi' => 320.0, 'sinaloa' => 320.0, 'sonora' => 320.0, 'tabasco' => 310.0,
+        'tamaulipas' => 310.0, 'tlaxcala' => 355.0, 'veracruz' => 385.0, 'yucatan' => 400.0,
+        'zacatecas' => 365.0,
+    ];
+
+    /** Catálogo vigente de precios del acta por estado (settings `appt.acta_prices` + defaults). */
+    public static function apptActaPrices(): array
+    {
+        $out = self::APPT_ACTA_PRICE_DEFAULTS;
+        $row = db()->query("SELECT `value` FROM settings WHERE `key`='appt.acta_prices'")->fetch();
+        if ($row) {
+            $j = json_decode((string) $row['value'], true);
+            if (is_array($j)) {
+                foreach ($j as $k => $v) {
+                    $k = preg_replace('/[^a-z0-9_]/i', '', (string) $k);
+                    if ($k !== '' && is_numeric($v)) $out[$k] = round((float) $v, 2);
+                }
+            }
+        }
+        return $out;
+    }
+
     /** Clave de precio para un trámite (pasaporte se distingue por subtipo). */
     public static function apptPriceKey(string $tramite, ?string $subtype): string
     {
@@ -249,6 +283,18 @@ final class Pricing
     public static function appointmentPricing(string $tramite, ?string $subtype, int $party): array
     {
         $party  = max(1, $party);
+
+        /* Acta de nacimiento: el precio depende del ESTADO (subtype = slug del estado). */
+        if ($tramite === 'acta') {
+            $actaPrices = self::apptActaPrices();
+            $u = ($subtype !== null && isset($actaPrices[$subtype])) ? $actaPrices[$subtype] : null;
+            if ($u === null || (float) $u <= 0) {
+                return ['quote' => true, 'unit' => null, 'party' => $party, 'total' => null];
+            }
+            $u = round((float) $u, 2);
+            return ['quote' => false, 'unit' => $u, 'party' => $party, 'total' => round($u * $party, 2)];
+        }
+
         $prices = self::apptPrices();
         $key    = self::apptPriceKey($tramite, $subtype);
         $unit   = $prices[$key] ?? null;

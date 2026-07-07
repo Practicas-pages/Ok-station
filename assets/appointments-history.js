@@ -33,10 +33,20 @@
   var LABELS = { pendiente: "Pendiente", confirmada: "Confirmada", completada: "Completada", cancelada: "Cancelada", no_show: "No asistió" };
   var TRAMITE = {
     pasaporte: "Pasaporte", visa: "Visa Americana", sentri: "SENTRI / Global Entry", i94: "I-94",
-    curp: "CURP / Acta", ine: "INE / Credencial", licencia: "Licencia de conducir",
+    curp: "CURP", acta: "Acta de Nacimiento", ine: "INE / Credencial", licencia: "Licencia de conducir",
     apostille: "Apostille / Traducción", medica: "Cita médica / Examen"
   };
   var SUBTYPE = { mexicano: "Mexicano", americano: "Americano" };
+  var ACTA_STATE_NAMES = {
+    aguascalientes: "Aguascalientes", baja_california: "Baja California", baja_california_sur: "Baja California Sur",
+    campeche: "Campeche", chiapas: "Chiapas", chihuahua: "Chihuahua", ciudad_de_mexico: "Ciudad de México",
+    coahuila: "Coahuila", colima: "Colima", durango: "Durango", guanajuato: "Guanajuato", guerrero: "Guerrero",
+    hidalgo: "Hidalgo", jalisco: "Jalisco", mexico: "Estado de México", michoacan: "Michoacán", morelos: "Morelos",
+    nayarit: "Nayarit", nuevo_leon: "Nuevo León", oaxaca: "Oaxaca", puebla: "Puebla", queretaro: "Querétaro",
+    quintana_roo: "Quintana Roo", san_luis_potosi: "San Luis Potosí", sinaloa: "Sinaloa", sonora: "Sonora",
+    tabasco: "Tabasco", tamaulipas: "Tamaulipas", tlaxcala: "Tlaxcala", veracruz: "Veracruz", yucatan: "Yucatán",
+    zacatecas: "Zacatecas"
+  };
   function esc(s) { var d = document.createElement("div"); d.textContent = s == null ? "" : s; return d.innerHTML; }
   /* Datos por persona (requisitos): JSON guardado en la cita, o []. */
   function parseGuests(v) {
@@ -69,6 +79,7 @@
         host.innerHTML = list.map(function (a, i) {
           var svc = esc(TRAMITE[a.tramite] || a.tramite);
           if (a.tramite === "pasaporte" && a.passport_subtype) svc += " (" + esc(SUBTYPE[a.passport_subtype] || a.passport_subtype) + ")";
+          if (a.tramite === "acta" && a.acta_state) svc += " (" + esc(ACTA_STATE_NAMES[a.acta_state] || a.acta_state) + ")";
           var ppl = (parseInt(a.party_size, 10) || 1) > 1 ? " · " + parseInt(a.party_size, 10) + " personas" : "";
           /* Anticipo: cobrable solo si el trámite tiene precio fijo (amount_total) y la
              cita no está cancelada/no asistió. Estado de pago según payment_status. */
@@ -109,7 +120,7 @@
         Array.prototype.forEach.call(host.querySelectorAll(".cita-dl"), function (btn) {
           btn.addEventListener("click", function () {
             var a = list[+btn.dataset.i];
-            if (a) window.OKCitaTicketDownload({ code: a.code, tramite: a.tramite, passport_subtype: a.passport_subtype, party_size: a.party_size, date: a.date, time: a.time, status: a.status, name: a.contact_name, phone: a.contact_phone, guests: parseGuests(a.guests_json), services: parseGuests(a.services_json) });
+            if (a) window.OKCitaTicketDownload({ code: a.code, tramite: a.tramite, passport_subtype: a.passport_subtype, acta_state: a.acta_state, party_size: a.party_size, date: a.date, time: a.time, status: a.status, name: a.contact_name, phone: a.contact_phone, guests: parseGuests(a.guests_json), services: parseGuests(a.services_json) });
           });
         });
         Array.prototype.forEach.call(host.querySelectorAll(".cita-pay"), function (btn) {
