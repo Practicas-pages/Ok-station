@@ -233,6 +233,9 @@
   .admin.is-nav-open .admin-sidebar { transform: translateX(0); }
   .admin-burger { display: grid; }
   .admin-user__meta { display: none; }
+  /* En móvil el botón "Inicio" queda solo con el ícono para no saturar la barra. */
+  .admin-topbar__home-label { display: none; }
+  .admin-topbar__home { padding-left: 12px; padding-right: 12px; }
 }
 
 /* Citas: subtipo de pasaporte + servicios adicionales + personas (celda Servicio) */
