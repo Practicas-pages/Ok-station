@@ -283,26 +283,33 @@
       });
     }
 
-    /* ── "Datos personales" 🔒 ──
-       Los apartados sensibles (editar información + cambiar contraseña) quedan
-       ocultos hasta que el usuario los abre desde la barra lateral. Así, al abrir
-       el perfil, lo primero que ve son sus pedidos y sus citas. */
-    var toggleDatos = qs("#toggle-datos");
-    var settings = qs("#account-settings");
-    if (toggleDatos && settings) {
-      function openSettings(show) {
-        settings.hidden = !show;
-        toggleDatos.setAttribute("aria-expanded", show ? "true" : "false");
-        if (show) settings.scrollIntoView({ behavior: "smooth", block: "start" });
-      }
-      toggleDatos.addEventListener("click", function (e) {
-        e.preventDefault();
-        openSettings(settings.hidden);   /* alterna: si está oculto → mostrar y bajar */
+    /* ── Navegación por PESTAÑAS (cambia el apartado visible, SIN scroll) ──
+       Cada enlace de la barra muestra su apartado y oculta los demás:
+         Mis pedidos → #pedidos · Mis citas → #citas · Datos personales → #account-settings
+       Al abrir el perfil, la vista por defecto es "Mis pedidos" (o la que pida el
+       enlace directo #citas / #datos / #info / #password). */
+    var views = { pedidos: qs("#pedidos"), citas: qs("#citas"), datos: qs("#account-settings") };
+    var tabs  = {
+      pedidos: qs('.profile-nav a[href="#pedidos"]'),
+      citas:   qs('.profile-nav a[href="#citas"]'),
+      datos:   qs("#toggle-datos")
+    };
+    function showView(name) {
+      if (!views[name]) name = "pedidos";
+      Object.keys(views).forEach(function (k) { if (views[k]) views[k].hidden = (k !== name); });
+      Object.keys(tabs).forEach(function (k) {
+        var t = tabs[k]; if (!t) return;
+        t.classList.toggle("is-active", k === name);
+        if (k === "datos") t.setAttribute("aria-expanded", k === name ? "true" : "false");
       });
-      /* Si se llega con enlace directo a los datos/contraseña, se abre el grupo. */
-      var h = location.hash;
-      if (h === "#datos" || h === "#info" || h === "#password") openSettings(true);
     }
+    Object.keys(tabs).forEach(function (k) {
+      if (tabs[k]) tabs[k].addEventListener("click", function (e) { e.preventDefault(); showView(k); });
+    });
+    var h = location.hash;
+    showView(h === "#citas" ? "citas"
+      : (h === "#datos" || h === "#info" || h === "#password") ? "datos"
+      : "pedidos");
   }
 
   function fillProfile(u) {

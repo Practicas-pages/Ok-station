@@ -178,6 +178,8 @@
   transition: background var(--transition-fast), color var(--transition-fast);
 }
 .profile-nav a:hover { background: var(--brand-blue-light); color: var(--brand-blue); }
+/* Pestaña activa (la que se está mostrando) */
+.profile-nav a.is-active { background: var(--brand-blue-light); color: var(--brand-blue); font-weight: 600; }
 
 /* "Datos personales" 🔒 — apartado sensible, separado al fondo de la barra. */
 .profile-nav__datos {

@@ -14,7 +14,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap">
   <link rel="stylesheet" href="styles.css?v=20260702a">
-  <link rel="stylesheet" href="assets/auth.css?v=20260707">
+  <link rel="stylesheet" href="assets/auth.css?v=20260707b">
   <link rel="stylesheet" href="assets/order.css?v=20260626t">
 </head>
 <body class="auth-page" data-requires-auth>
@@ -68,8 +68,9 @@
             <div class="orders-list" id="orders-history"></div>
           </section>
 
-          <!-- Citas registradas (historial) -->
-          <section class="profile-panel" id="citas">
+          <!-- Citas registradas (historial). Oculto por defecto: se muestra al
+               tocar "Mis citas" en la barra (navegación por pestañas, sin scroll). -->
+          <section class="profile-panel" id="citas" hidden>
             <h3>Citas registradas</h3>
             <a class="btn btn--primary btn--sm" href="index.html#citas" style="margin-bottom:16px">+ Agenda una cita</a>
             <div class="orders-list" id="appts-history"></div>
@@ -136,7 +137,7 @@
   </main>
 
   <script src="assets/phone-cc.js?v=20260702a" defer></script>
-  <script src="assets/auth.js?v=20260707" defer></script>
+  <script src="assets/auth.js?v=20260707b" defer></script>
   <!-- Librerías para regenerar el comprobante PDF de cita -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" defer></script>
