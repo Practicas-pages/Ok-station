@@ -535,6 +535,15 @@
     /* Selección ÚNICA entre los 9 servicios (tarjetas principales + panel "Más servicios").
        Todos son independientes: elegir uno deselecciona cualquier otro. */
     function selectService(id, el) {
+      /* Agendar una cita REQUIERE cuenta. Si no hay sesión, guardamos a dónde volver y
+         mandamos a iniciar sesión / registrarse ANTES de empezar (no al final). Devuelve
+         false para que quien llama no siga abriendo modales mientras se redirige. */
+      var signedIn = false; try { signedIn = !!localStorage.getItem("okstation.token"); } catch (e) {}
+      if (!signedIn) {
+        try { sessionStorage.setItem("oks_intended", location.pathname + location.search + "#citas"); } catch (e2) {}
+        window.location.href = "cuenta.html";
+        return false;
+      }
       /* Resalta por ID (no por elemento) para que TODAS las copias del carrusel
          infinito —original y clones— queden marcadas igual. */
       qsa(".tramite-btn, .extra-card").forEach(function (b) {
@@ -553,6 +562,7 @@
       renderSelectedExtra();
       updateStep0Next();
       renderSteps();   /* refleja el total de pasos del trámite en el contador (licencia = 5) */
+      return true;
     }
 
     /* DELEGACIÓN de eventos: un solo listener en la sección capta el clic en
@@ -565,7 +575,7 @@
       if (!btn || !section.contains(btn)) return;
       var id = btn.dataset.tramite;
       if (!id) return;
-      selectService(id, btn);
+      if (!selectService(id, btn)) return;   /* sin sesión: se redirigió a iniciar sesión */
       if (id === "pasaporte") { openSubtypeModal(); return; }   /* caso especial: subtipo obligatorio */
       if (id === "acta") { openActaModal(); return; }           /* caso especial: estado (define el precio) */
     });
@@ -759,7 +769,7 @@
       qsa(".cita-drawer__close, .cita-drawer__overlay, .cita-drawer__done", drawer).forEach(function (el) { el.addEventListener("click", closeDrawer); });
       qsa(".extra-card", drawer).forEach(function (card) {
         card.addEventListener("click", function () {
-          selectService(card.dataset.service, card);  /* selección única */
+          if (!selectService(card.dataset.service, card)) return;  /* sin sesión: redirigido */
           closeDrawer();
         });
       });

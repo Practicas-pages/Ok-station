@@ -121,11 +121,27 @@
           /* El staff (empleado/administrador/directivo) entra directo a su panel; el cliente, a su perfil. */
           var roles = (res.body.user && res.body.user.roles) || [];
           var staff = roles.indexOf("administrador") >= 0 || roles.indexOf("empleado") >= 0 || roles.indexOf("directivo") >= 0;
-          window.location.href = staff ? "admin.html" : "perfil.html";
+          window.location.href = staff ? "admin.html" : afterAuthDest("perfil.html");
         }
         else showAlert(box, "error", res.body.error || "No se pudo iniciar sesión.");
       });
     });
+  }
+
+  /* Tras iniciar sesión/registrarse, regresa a donde el usuario quería ir (si guardó
+     'oks_intended', p. ej. al intentar agendar una cita o hacer un pedido sin sesión).
+     Solo acepta una URL del MISMO sitio y que no sea una página de auth (anti open-redirect
+     y anti bucle). Si no hay destino guardado, usa el fallback (perfil.html). */
+  function afterAuthDest(fallback) {
+    var next = null;
+    try { next = sessionStorage.getItem("oks_intended"); sessionStorage.removeItem("oks_intended"); } catch (e) {}
+    if (!next) return fallback;
+    try {
+      var u = new URL(next, location.href);
+      if (u.origin !== location.origin) return fallback;
+      if (/\/(cuenta|recuperar|restablecer|maintenance)\.html$/i.test(u.pathname)) return fallback;
+      return u.pathname + u.search + u.hash;
+    } catch (e) { return fallback; }
   }
 
   function initRegister() {
@@ -159,7 +175,7 @@
       setLoading(btn, true);
       api("register.php", "POST", payload).then(function (res) {
         setLoading(btn, false, "Crear cuenta");
-        if (res.body.ok) { setSession(res.body.token, res.body.user); window.location.href = "perfil.html"; }
+        if (res.body.ok) { setSession(res.body.token, res.body.user); window.location.href = afterAuthDest("perfil.html"); }
         else showAlert(box, "error", res.body.error || "No se pudo crear la cuenta.");
       });
     });
