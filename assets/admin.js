@@ -400,10 +400,18 @@
 
   function bindStatusSelects(scope) {
     $$(".status-select", scope).forEach(function (sel) {
+      var prev = sel.value;   // valor previo, para revertir si el backend rechaza
       sel.addEventListener("change", function () {
-        DataSource.updateStatus(sel.dataset.id, sel.value).then(function () {
+        var nv = sel.value;
+        DataSource.updateStatus(sel.dataset.id, nv).then(function (res) {
+          if (!res || res.ok === false) {
+            sel.value = prev;   // el backend NO cambió el estado: revertir y avisar
+            window.alert((res && res.error) || "No se pudo cambiar el estado del pedido.");
+            return;
+          }
+          prev = nv;
           loadDashboardCounts();
-        });
+        }).catch(function () { sel.value = prev; window.alert("Sin conexión. No se cambió el estado."); });
       });
     });
   }
@@ -1247,8 +1255,18 @@
       }).join("");
       t.innerHTML = head + '<tbody>' + body + '</tbody>';
       $$(".appt-status-select", t).forEach(function (sel) {
+        var prev = sel.value;   // valor previo, para revertir si el backend rechaza
         sel.addEventListener("change", function () {
-          DataSource.updateApptStatus(sel.dataset.id, sel.value).then(function () { loadDashboardCounts(); });
+          var nv = sel.value;
+          DataSource.updateApptStatus(sel.dataset.id, nv).then(function (res) {
+            if (!res || res.ok === false) {
+              sel.value = prev;   // no se cambió (p. ej. requiere el pago del anticipo): revertir y avisar
+              window.alert((res && res.error) || "No se pudo cambiar el estado de la cita.");
+              return;
+            }
+            prev = nv;
+            loadDashboardCounts();
+          }).catch(function () { sel.value = prev; window.alert("Sin conexión. No se cambió el estado."); });
         });
       });
       $$(".appt-pdf", t).forEach(function (btn) {
