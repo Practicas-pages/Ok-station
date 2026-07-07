@@ -298,8 +298,11 @@
     var r = accessRoles();
     return r.indexOf("empleado") >= 0 && r.indexOf("administrador") < 0 && r.indexOf("directivo") < 0;
   }
-  /* Vistas restringidas para empleado puro (se ocultan en el sidebar y se bloquean). */
-  var EMPLEADO_BLOCKED_VIEWS = ["usuarios", "reportes", "precios"];
+  /* Vistas restringidas para empleado puro (se ocultan en el sidebar y se bloquean).
+     Lo ÚNICO vetado es Reportes. Usuarios es visible pero en modo solo lectura: ve la
+     lista y el historial, sin desactivar cuentas ni cambiar roles (ver renderUsers).
+     Precios SÍ es visible y editable para el empleado. */
+  var EMPLEADO_BLOCKED_VIEWS = ["reportes"];
   function enforceAccess() {
     if (DEMO) return true;             // demo: se permite ver el panel
     if (!token()) { window.location.href = "cuenta.html"; return false; }
@@ -1039,14 +1042,23 @@
         $("#users-table").innerHTML = head + '<tbody><tr><td colspan="8" style="text-align:center;color:var(--text-muted);padding:24px">' + (q ? 'No se encontraron usuarios para “' + esc(userSearch.trim()) + '”.' : "No hay usuarios.") + '</td></tr></tbody>';
         return;
       }
+      /* El empleado puro solo VE (lista + historial): sin cambiar roles ni desactivar
+         cuentas. Admin/directivo mantienen el select de rol y el botón Desactivar. */
+      var canManageUsers = !isEmpleadoOnly();
+      var ROLE_LABEL = { cliente: "Cliente", empleado: "Empleado", administrador: "Administrador", directivo: "Directivo" };
       var body = list.map(function (u) {
         var active = +u.active ? 1 : 0;
         var isSelf = String(u.id) === meId;
+        var role = primaryRole(u.roles);
+        var roleCell = canManageUsers
+          ? '<td data-urole="' + esc(u.id) + '">' + roleSelectHtml(role, isSelf) + '</td>'
+          : '<td>' + esc(ROLE_LABEL[role] || role) + '</td>';
+        var actions = '<button class="admin-btn-sm" data-uview="' + esc(u.id) + '">Historial</button>' +
+          (canManageUsers ? ' <button class="admin-btn-sm" data-utoggle="' + esc(u.id) + '" data-active="' + (active ? 0 : 1) + '">' + (active ? "Desactivar" : "Reactivar") + '</button>' : '');
         return '<tr><td><b>' + esc(u.name) + '</b></td><td>' + esc(u.email) + '</td><td>' + esc(u.phone) + '</td><td>' + (u.orders || 0) + '</td>' +
-          '<td data-urole="' + esc(u.id) + '">' + roleSelectHtml(primaryRole(u.roles), isSelf) + '</td>' +
+          roleCell +
           '<td><span class="badge badge--' + (active ? "listo" : "cancelado") + '">' + (active ? "Activo" : "Inactivo") + '</span></td>' +
-          '<td>' + esc(u.joined) + '</td><td><button class="admin-btn-sm" data-uview="' + esc(u.id) + '">Historial</button> ' +
-          '<button class="admin-btn-sm" data-utoggle="' + esc(u.id) + '" data-active="' + (active ? 0 : 1) + '">' + (active ? "Desactivar" : "Reactivar") + '</button></td></tr>';
+          '<td>' + esc(u.joined) + '</td><td>' + actions + '</td></tr>';
       }).join("");
       var t = $("#users-table"); t.innerHTML = head + '<tbody>' + body + '</tbody>';
       $$("[data-utoggle]", t).forEach(function (b) {
