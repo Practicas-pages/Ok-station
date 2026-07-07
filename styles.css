@@ -3451,11 +3451,52 @@ a.info-card:hover { border-color: var(--brand-blue); }
     display: none;
   }
 
-  /* Barra superior en celular: se ocultan enlaces y redes; queda solo el lema
-     centrado para no amontonar el espacio angosto. */
-  .header-bar__links,
-  .header-bar__social { display: none; }
-  .header-bar__tagline { text-align: center; }
+  /* ── Barra superior en celular ──
+     Se oculta el lema largo y se muestran accesos rápidos (izquierda) + redes
+     (derecha), compactos y equilibrados. Diseño limpio y atractivo en pantalla
+     angosta: separador con punto medio entre enlaces y redes en cápsulas. */
+  .header-bar {
+    padding: 7px 0;
+    font-size: 0.75rem;
+  }
+  .header-bar__inner {
+    gap: var(--space-3);
+    justify-content: space-between;
+  }
+  .header-bar__tagline { display: none; }
+
+  .header-bar__links {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+  .header-bar__links a {
+    font-weight: 600;
+    opacity: 0.95;
+    white-space: nowrap;
+  }
+  /* Separador con punto medio entre "¿Quiénes somos?" y "Contacto" */
+  .header-bar__links a + a::before {
+    content: "·";
+    margin: 0 9px;
+    opacity: 0.55;
+    font-weight: 400;
+  }
+
+  .header-bar__social {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    flex: 0 0 auto;
+  }
+  .header-bar__social a {
+    width: 30px;
+    height: 30px;
+    background: rgba(255,255,255,0.18);
+  }
+  .header-bar__social svg { width: 15px; height: 15px; }
 
   /* Compactar header: logo + botón Cuenta + hamburguesa deben caber en 375px
      sin que el contenido toque o rebase el borde. */
