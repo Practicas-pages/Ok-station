@@ -787,11 +787,18 @@ h1, h2, h3, h4, h5, h6 {
 /* Banner superior: enlaces rápidos · lema · redes sociales */
 .header-bar {
   background: var(--grad-purple);
-  padding: 8px 0;
+  padding: 8px 16px;
   font-size: 0.8125rem;
   font-weight: 500;
   color: rgba(255,255,255,0.95);
+  /* Centra el lema en las páginas simples (contáctanos, legales) que usan
+     .header-bar como texto suelto. En la home el contenido va en .header-bar__inner
+     (flex), que se centra por su propio layout, así que esto no lo mueve. */
+  text-align: center;
 }
+/* En la home el contenido va dentro de .header-bar__inner (.wrap con su propio
+   padding); anulamos el padding lateral extra para no desalinear esa barra. */
+.header-bar:has(.header-bar__inner) { padding-left: 0; padding-right: 0; }
 
 .header-bar__inner {
   display: flex;
