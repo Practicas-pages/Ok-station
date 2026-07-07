@@ -1,7 +1,7 @@
 /* ============================================================
    Ok.station — Sesión en el header del sitio (index)
    Si hay sesión, reemplaza el botón "Cuenta" por un menú con
-   avatar + nombre → Mi perfil / Mis pedidos / Panel (staff) / Salir.
+   avatar + nombre → Mi perfil / Mis pedidos / Mis citas / Panel (staff) / Salir.
    ============================================================ */
 (function () {
   "use strict";
@@ -39,6 +39,7 @@
       '<div class="acct__head"><b>' + esc(u.full_name || "") + '</b><span>' + esc(u.email || "") + '</span></div>' +
       '<a role="menuitem" href="perfil.html">Mi perfil</a>' +
       '<a role="menuitem" href="perfil.html#pedidos">Mis pedidos</a>' +
+      '<a role="menuitem" href="perfil.html#citas">Mis citas</a>' +
       (isStaff ? '<a role="menuitem" href="admin.html" class="acct__admin">' + panelLabel + '</a>' : '') +
       '<button role="menuitem" id="acct-logout" type="button">Cerrar sesión</button>' +
     '</div>';
