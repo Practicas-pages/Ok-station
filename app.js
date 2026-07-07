@@ -1242,7 +1242,7 @@
         '<div class="persona-card__head"><span class="persona-card__badge">' + (i + 1) + '</span> Persona ' + (i + 1) + ' de ' + state.guests.length + '</div>' +
         '<div class="field-group">' +
           '<div class="field"><label for="pg-' + i + '-name">Nombre completo</label>' +
-          '<input type="text" id="pg-' + i + '-name" data-pg="name" data-idx="' + i + '" autocomplete="off" placeholder="Ej. María González"></div>' +
+          '<input type="text" id="pg-' + i + '-name" data-pg="name" data-idx="' + i + '" autocomplete="off" placeholder="Ej. Juan Pérez"></div>' +
           '<div class="field"><label for="pg-' + i + '-dob">Fecha de nacimiento</label>' +
           '<input type="date" id="pg-' + i + '-dob" data-pg="dob" data-idx="' + i + '" min="1900-01-01" max="9999-12-31"></div>' +
         '</div>' + radios + qhtml + guestDocsHtml(i) +

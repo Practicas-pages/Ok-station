@@ -140,7 +140,7 @@
       { name: "Enmicado", count: 18 }
     ],
     orders: [
-      { code: "OKS-2026-000128", client: "María González", items: 3, total: 240, status: "recibido", date: "2026-06-10" },
+      { code: "OKS-2026-000128", client: "Juan Pérez", items: 3, total: 240, status: "recibido", date: "2026-06-10" },
       { code: "OKS-2026-000127", client: "Jorge Ramírez", items: 1, total: 85, status: "en_revision", date: "2026-06-10" },
       { code: "OKS-2026-000126", client: "Ana López", items: 5, total: 620, status: "en_produccion", date: "2026-06-09" },
       { code: "OKS-2026-000125", client: "Luis Pérez", items: 2, total: 150, status: "listo", date: "2026-06-09" },
@@ -149,7 +149,7 @@
       { code: "OKS-2026-000122", client: "Paola Ruiz", items: 6, total: 880, status: "recibido", date: "2026-06-08" }
     ],
     users: [
-      { name: "María González", email: "maria@ejemplo.com", phone: "664 100 0001", orders: 7, active: true, joined: "2026-01-12" },
+      { name: "Juan Pérez", email: "juan@ejemplo.com", phone: "664 100 0001", orders: 7, active: true, joined: "2026-01-12" },
       { name: "Jorge Ramírez", email: "jorge@ejemplo.com", phone: "664 100 0002", orders: 3, active: true, joined: "2026-02-03" },
       { name: "Ana López", email: "ana@ejemplo.com", phone: "664 100 0003", orders: 12, active: true, joined: "2025-11-20" },
       { name: "Diego Salas", email: "diego@ejemplo.com", phone: "664 100 0004", orders: 1, active: false, joined: "2026-05-30" }
@@ -162,12 +162,12 @@
       { name: "Enmicado", category: "Acabados", price: 20, unit: "carta", active: true }
     ],
     reviews: [
-      { name: "María G.", rating: 5, comment: "Rápido y excelente atención.", status: "aprobada", date: "2026-06-09" },
+      { name: "Karla T.", rating: 5, comment: "Rápido y excelente atención.", status: "aprobada", date: "2026-06-09" },
       { name: "Jorge R.", rating: 5, comment: "Mi tesis quedó impecable.", status: "pendiente", date: "2026-06-10" },
       { name: "Anónimo", rating: 2, comment: "Tardó más de lo esperado.", status: "oculta", date: "2026-06-07" }
     ],
     appointments: [
-      { code: "CITA-2026-000031", tramite: "pasaporte", passport_subtype: "mexicano", party_size: 2, date: "2026-06-20", time: "09:00", status: "pendiente", contact_name: "María González", contact_phone: "664 100 0001", contact_email: "maria@ejemplo.com", contact_pref: "whatsapp", notes: "Renovación", account_name: "María González" },
+      { code: "CITA-2026-000031", tramite: "pasaporte", passport_subtype: "mexicano", party_size: 2, date: "2026-06-20", time: "09:00", status: "pendiente", contact_name: "Juan Pérez", contact_phone: "664 100 0001", contact_email: "juan@ejemplo.com", contact_pref: "whatsapp", notes: "Renovación", account_name: "Juan Pérez" },
       { code: "CITA-2026-000030", tramite: "curp", party_size: 4, date: "2026-06-20", time: "11:00", status: "confirmada", contact_name: "Jorge Ramírez", contact_phone: "664 100 0002", contact_email: "", contact_pref: "llamada", notes: "", account_name: null },
       { code: "CITA-2026-000029", tramite: "sentri", date: "2026-06-19", time: "16:00", status: "completada", contact_name: "Ana López", contact_phone: "664 100 0003", contact_email: "ana@ejemplo.com", contact_pref: "correo", notes: "Primera vez", account_name: "Ana López" },
       { code: "CITA-2026-000028", tramite: "i94", date: "2026-06-18", time: "10:00", status: "cancelada", contact_name: "Diego Salas", contact_phone: "664 100 0004", contact_email: "", contact_pref: "whatsapp", notes: "", account_name: null }

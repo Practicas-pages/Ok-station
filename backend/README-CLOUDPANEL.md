@@ -64,12 +64,12 @@ backend/
 # Registro
 curl -X POST https://tudominio/backend/api/register.php \
   -H "Content-Type: application/json" \
-  -d '{"full_name":"María González","email":"maria@ej.com","phone":"6640000000","password":"clave1234","password_confirm":"clave1234"}'
+  -d '{"full_name":"Juan Pérez","email":"juan@ej.com","phone":"6640000000","password":"clave1234","password_confirm":"clave1234"}'
 
 # Login (guarda el "token")
 curl -X POST https://tudominio/backend/api/login.php \
   -H "Content-Type: application/json" \
-  -d '{"email":"maria@ej.com","password":"clave1234"}'
+  -d '{"email":"juan@ej.com","password":"clave1234"}'
 
 # Perfil (usa el token)
 curl https://tudominio/backend/api/me.php -H "Authorization: Bearer EL_TOKEN"

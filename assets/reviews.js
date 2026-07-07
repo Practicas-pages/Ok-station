@@ -38,7 +38,7 @@
      ============================================================ */
   function seed() {
     return [
-      { id: "seed-1", rating: 5, author: "María G.", comment: "Me ayudaron con la cita de mi visa y además imprimí las fotos en el mismo lugar. Rápido y sin vueltas.", owner: "seed" },
+      { id: "seed-1", rating: 5, author: "Karla T.", comment: "Me ayudaron con la cita de mi visa y además imprimí las fotos en el mismo lugar. Rápido y sin vueltas.", owner: "seed" },
       { id: "seed-2", rating: 5, author: "Jorge R.", comment: "Engargolé mi tesis y quedó impecable. El trato es súper amable y te asesoran en todo.", owner: "seed" },
       { id: "seed-3", rating: 5, author: "Ana L.", comment: "Imprimí fotos en gran formato para un regalo y quedaron de excelente calidad. Volveré seguro.", owner: "seed" }
     ];
