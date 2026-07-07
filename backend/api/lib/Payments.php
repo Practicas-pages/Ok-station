@@ -79,10 +79,14 @@ final class Payments
         return strtoupper((string) ($CONFIG['payment']['currency'] ?? 'MXN'));
     }
 
-    /** Referencia interna única y estable por intento (legible en el panel). */
+    /** Referencia interna ESTABLE por entidad (legible en el panel).
+     *  Sin sufijo aleatorio a propósito: así, tras un intento cuyo resultado se perdió
+     *  (p. ej. timeout tras el cargo), la reconciliación puede buscar en Mercado Pago por
+     *  este mismo external_reference y NO cobrar dos veces. El código de pedido/cita ya es
+     *  único (OKS-… vs CITA-…), así que la referencia también lo es. */
     public static function makeReference(array $order): string
     {
-        return 'PAY-' . strtoupper((string) $order['code']) . '-' . substr(bin2hex(random_bytes(4)), 0, 6);
+        return 'PAY-' . strtoupper((string) $order['code']);
     }
 
     /**
@@ -517,6 +521,51 @@ final class Payments
             'id'            => (string) ($json['id'] ?? ''),
             'status'        => (string) $json['status'],
             'status_detail' => (string) ($json['status_detail'] ?? ''),
+        ];
+    }
+
+    /**
+     * Reconciliación anti doble cobro: busca en Mercado Pago un pago APROBADO o EN CURSO
+     * para esta referencia (external_reference). Se usa ANTES de cobrar con tarjeta: si un
+     * intento anterior sí prosperó pero su respuesta se perdió (timeout, cierre de pestaña),
+     * evita generar un segundo cargo. Devuelve ['id','status'(interno),'amount'] o null.
+     * Falla en abierto (devuelve null si la API no responde): nunca bloquea un pago legítimo.
+     */
+    public static function mpFindPaymentByReference(string $reference): ?array
+    {
+        global $CONFIG;
+        $token = (string) ($CONFIG['payment']['mp_access_token'] ?? '');
+        if ($token === '' || $reference === '') return null;
+
+        $url = 'https://api.mercadopago.com/v1/payments/search?sort=date_created&criteria=desc&external_reference=' . rawurlencode($reference);
+        $ch  = curl_init($url);
+        curl_setopt_array($ch, [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_HTTPHEADER     => ['Authorization: Bearer ' . $token],
+            CURLOPT_TIMEOUT        => 15,
+        ]);
+        $res  = curl_exec($ch);
+        $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+        if ($code >= 300) return null;
+
+        $json    = json_decode((string) $res, true);
+        $results = is_array($json) ? ($json['results'] ?? []) : [];
+        if (!is_array($results)) return null;
+
+        // Prioriza un pago YA aprobado; si no, uno en curso (in_process/pending/authorized).
+        $best = null;
+        foreach ($results as $p) {
+            $st = (string) ($p['status'] ?? '');
+            if ($st === 'approved') { $best = $p; break; }
+            if (!$best && in_array($st, ['in_process', 'pending', 'authorized'], true)) { $best = $p; }
+        }
+        if (!$best) return null;
+
+        return [
+            'id'     => (string) ($best['id'] ?? ''),
+            'status' => self::mpMapStatus((string) ($best['status'] ?? '')),
+            'amount' => isset($best['transaction_amount']) ? round((float) $best['transaction_amount'], 2) : null,
         ];
     }
 

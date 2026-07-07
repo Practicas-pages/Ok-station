@@ -90,6 +90,26 @@ if (!hash_equals((string) ($entity['payment_reference'] ?? ''), $reference)) {
 /* Email del pagador: si el Brick no lo mandó, usamos el del cliente en sesión. */
 if ($payerEmail === '') $payerEmail = (string) ($user['email'] ?? '');
 
+/* Reconciliación anti doble cobro: antes de crear el cargo, verificamos en Mercado Pago
+   si YA existe un pago aprobado o en curso para esta referencia (p. ej. un intento previo
+   que sí prosperó pero cuya respuesta se perdió por timeout/cierre de pestaña). Si lo hay,
+   NO cobramos otra vez: reflejamos ese pago. Falla en abierto (si la búsqueda no responde,
+   se cobra normalmente): nunca bloquea un pago legítimo. */
+$already = Payments::mpFindPaymentByReference($reference);
+if ($already && in_array($already['status'], ['pagado', 'procesando'], true)) {
+    Payments::finalize((int) $entity['id'], $already['status'], $already['id'] ?: null, 'cliente', (int) $user['id'], $kind);
+    if ($already['status'] === 'pagado') RateLimit::reset($ip, $rlKey);
+    log_activity((int) $user['id'], 'payment.reconciled', ($kind === 'appointment' ? 'appointments' : 'orders'),
+        (int) $entity['id'], ['status' => $already['status'], 'reference' => $reference]);
+    respond([
+        'ok'             => true,
+        'payment_status' => $already['status'],
+        'message'        => $already['status'] === 'pagado'
+            ? '¡Pago aprobado! Gracias por tu compra.'
+            : 'Tu pago quedó en revisión. Te avisaremos en cuanto se confirme.',
+    ]);
+}
+
 try {
     $pay = Payments::chargeCard($entity, $amount, $reference, [
         'token'             => $token,
