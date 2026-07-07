@@ -143,12 +143,32 @@
         "backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px);";
       document.body.insertBefore(overlay, document.body.firstChild);
 
+      /* ── Bloqueo de scroll robusto (incluye iOS Safari) ──
+         overflow:hidden en el body NO frena el scroll en iOS; por eso además
+         cancelamos el touchmove del fondo. Se permite el scroll DENTRO del menú
+         (por si algún día crece), pero se bloquea el de la página detrás.
+         No usamos position:fixed en el body para no romper el header sticky. */
+      function preventBgScroll(e) {
+        if (navLinks && navLinks.contains(e.target)) return;
+        e.preventDefault();
+      }
+      function lockScroll() {
+        document.documentElement.style.overflow = "hidden";
+        document.body.style.overflow = "hidden";
+        document.addEventListener("touchmove", preventBgScroll, { passive: false });
+      }
+      function unlockScroll() {
+        document.documentElement.style.overflow = "";
+        document.body.style.overflow = "";
+        document.removeEventListener("touchmove", preventBgScroll, { passive: false });
+      }
+
       function openMenu() {
         navLinks.classList.add("is-open");
         toggle.setAttribute("aria-expanded", "true");
         overlay.style.opacity = "1";
         overlay.style.pointerEvents = "auto";
-        document.body.style.overflow = "hidden";
+        lockScroll();
         /* Foco al primer link */
         var firstLink = qs("a, button", navLinks);
         if (firstLink) firstLink.focus();
@@ -159,7 +179,7 @@
         toggle.setAttribute("aria-expanded", "false");
         overlay.style.opacity = "0";
         overlay.style.pointerEvents = "none";
-        document.body.style.overflow = "";
+        unlockScroll();
         toggle.focus();
       }
 

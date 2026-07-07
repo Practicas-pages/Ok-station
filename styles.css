@@ -3413,7 +3413,9 @@ a.info-card:hover { border-color: var(--brand-blue); }
     -webkit-backdrop-filter: blur(16px);
     flex-direction: column;
     align-items: stretch;
-    padding: var(--space-5) var(--space-5) var(--space-6);
+    /* Sin padding-top: el primer link queda pegado al borde inferior del
+       header, evitando la banda blanca ("vacío") arriba del menú. */
+    padding: var(--space-1) var(--space-5) var(--space-6);
     gap: var(--space-1);
     border-bottom: 1px solid var(--border-light);
     box-shadow: var(--shadow-lg);
