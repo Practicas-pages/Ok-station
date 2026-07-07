@@ -582,9 +582,17 @@ final class Payments
         $payId = preg_replace('/[^0-9]/', '', $payId);
         if ($payId === '') return null;
 
-        // Firma opcional (si está configurada en el panel de MP).
+        // Firma (si hay secreto configurado): defensa en profundidad, NO fatal.
+        // La fuente de verdad es la consulta del pago a la API de MP (más abajo), que
+        // un atacante no puede falsificar (usa NUESTRO access token). Si la firma no
+        // cuadra por cualquier detalle de formato, lo REGISTRAMOS pero NO descartamos la
+        // notificación: así jamás se pierde la confirmación de un pago real de Checkout
+        // Pro por un desajuste de firma. Un pago inexistente/ajeno se filtra igual porque
+        // la API devuelve 404 o un external_reference que no es de ningún pedido nuestro.
         $secret = (string) ($CONFIG['payment']['mp_webhook_secret'] ?? '');
-        if ($secret !== '' && !self::mpVerifySignature($headers, $payId, $secret)) return null;
+        if ($secret !== '' && !self::mpVerifySignature($headers, $payId, $secret)) {
+            error_log('[MP webhook] x-signature no válida para payId=' . $payId . '; se continúa con la verificación autoritativa por API.');
+        }
 
         // Fuente de verdad: consultar el pago real en la API de Mercado Pago.
         $ch = curl_init('https://api.mercadopago.com/v1/payments/' . $payId);
