@@ -69,6 +69,13 @@ if (($entity['payment_status'] ?? 'pendiente') === 'pagado') {
     fail('Este ' . $noun . ' ya está pagado.', 409, ['payment_status' => 'pagado']);
 }
 
+/* Anti doble cobro: si ya hay un pago en curso RECIENTE con una transacción real de
+   Mercado Pago (Checkout Pro redirigido o tarjeta en 3DS), no abrimos otra intención
+   sobre la misma entidad. Tras ~20 min se considera abandonado y se permite reintentar. */
+if (Payments::hasRecentInFlight($entity, $kind)) {
+    fail('Ya tienes un pago en proceso para este ' . $noun . '. Espera a que se confirme o inténtalo de nuevo en unos minutos.', 409, ['payment_status' => 'procesando']);
+}
+
 $amountCol = ($kind === 'appointment') ? 'amount_total' : 'total';
 
 try {

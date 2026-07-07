@@ -309,6 +309,7 @@
               return;
             }
             if (tries < 10) setTimeout(poll, 3000);   // sigue en proceso: el mensaje ya está puesto y el correo avisará
+            else setPending("Pago en proceso", "Tu pago sigue validándose. Te avisaremos por correo en cuanto se confirme y lo verás en tus " + noun + ". Puedes cerrar esta ventana con tranquilidad.");
           })
           .catch(function () { if (tries < 10) setTimeout(poll, 3000); });
       })();
@@ -367,6 +368,12 @@
               onError: function () { alertBox("Revisa los datos de tu tarjeta e inténtalo de nuevo."); }
             }
           });
+          // Respaldo: si el Brick no dispara onReady en ~12s (recursos de MP bloqueados),
+          // avisamos y dejamos claro que se puede usar "Pagar en Mercado Pago".
+          setTimeout(function () {
+            var l = $("mp-brick-loader");
+            if (l) l.innerHTML = '<p style="color:var(--text-muted);font-size:.85rem;text-align:center;margin:6px 0">¿No cargó el formulario de tarjeta? Usa el botón “Pagar en Mercado Pago” de abajo.</p>';
+          }, 12000);
         } catch (e) {
           $("mp-brick").innerHTML = '<p style="color:var(--color-error);font-size:.88rem;text-align:center;margin:6px 0">No se pudo cargar el formulario de tarjeta. Usa "Pagar en Mercado Pago".</p>';
         }

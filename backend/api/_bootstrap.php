@@ -108,6 +108,10 @@ function jwt_verify(string $token): ?array {
     $parts = explode('.', $token);
     if (count($parts) !== 3) return null;
     [$h, $p, $s] = $parts;
+    // Fija el algoritmo: SOLO se acepta HS256 firmado con nuestro secreto. Bloquea
+    // 'alg:none' y la confusión de algoritmo si algún día se añade verificación asimétrica.
+    $header = json_decode(b64url_decode($h), true);
+    if (!is_array($header) || ($header['alg'] ?? '') !== 'HS256' || ($header['typ'] ?? 'JWT') !== 'JWT') return null;
     $expected = b64url(hash_hmac('sha256', "$h.$p", $CONFIG['jwt_secret'], true));
     if (!hash_equals($expected, $s)) return null;
     $claims = json_decode(b64url_decode($p), true);

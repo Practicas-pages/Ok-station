@@ -26,6 +26,9 @@ if (!$a) fail('Cita no encontrada.', 404);
 if (($a['payment_status'] ?? 'pendiente') === 'pagado') {
     respond(['ok' => true, 'payment_status' => 'pagado', 'already' => true]);
 }
+if ($status === 'pagado' && round((float) ($a['amount_total'] ?? 0), 2) <= 0) {
+    fail('Esta cita no tiene un monto para registrar como pagado. Fija el precio primero.', 409);
+}
 
 $txn = 'ADMIN-' . strtoupper(substr(bin2hex(random_bytes(4)), 0, 8));
 $ok  = Payments::finalize($id, $status, $txn, 'admin', (int) $user['id'], 'appointment');

@@ -75,6 +75,11 @@ if ($apptId > 0) {
 if (($entity['payment_status'] ?? 'pendiente') === 'pagado') {
     respond(['ok' => true, 'payment_status' => 'pagado', 'message' => 'Este ' . $noun . ' ya está pagado.']);
 }
+/* Anti doble cobro: no cobrar con tarjeta si ya hay un pago reciente en curso (p. ej.
+   una preferencia de Checkout Pro sin confirmar) sobre la misma entidad. */
+if (Payments::hasRecentInFlight($entity, $kind)) {
+    fail('Ya tienes un pago en proceso para este ' . $noun . '. Espera a que se confirme o inténtalo de nuevo en unos minutos.', 409);
+}
 if ($amount <= 0) fail('Este ' . $noun . ' no tiene un monto para cobrar.', 409);
 
 /* La referencia debe coincidir con la intención abierta por payments/create.php. */
@@ -102,9 +107,11 @@ try {
 $status = Payments::mpMapStatus($pay['status']);
 Payments::finalize((int) $entity['id'], $status, $pay['id'] ?: null, 'cliente', (int) $user['id'], $kind);
 
-/* Un rechazo cuenta como intento fallido (anti card-testing); aprobado/pendiente limpia. */
-if ($status === 'error') { RateLimit::hit($ip, $rlKey); }
-else                     { RateLimit::reset($ip, $rlKey); }
+/* Anti card-testing: un rechazo suma intento fallido; SOLO un pago APROBADO limpia el
+   contador. Un 'procesando'/3DS no debe servir para resetear (evita amortizar pruebas
+   de tarjetas robadas intercalando un pago diferido). */
+if ($status === 'error')      { RateLimit::hit($ip, $rlKey); }
+elseif ($status === 'pagado') { RateLimit::reset($ip, $rlKey); }
 
 log_activity((int) $user['id'], 'payment.process', ($kind === 'appointment' ? 'appointments' : 'orders'),
     (int) $entity['id'], ['status' => $status, 'reference' => $reference]);

@@ -12,6 +12,10 @@ require __DIR__ . '/../lib/authz.php';
 require __DIR__ . '/../lib/Payments.php';
 only_method('POST');
 
+// Doble candado: además de exigir provider=sandbox, en producción este endpoint de
+// confirmación de DEMOSTRACIÓN queda deshabilitado siempre (por si el proveedor quedara
+// mal configurado y cayera al 'sandbox' por defecto, para que jamás confirme pagos falsos).
+if (($CONFIG['app_env'] ?? '') === 'production') fail('Confirmación de demostración deshabilitada en producción.', 403);
 if (!Payments::isSandbox()) fail('Confirmación no disponible para este proveedor.', 403);
 
 $user = current_user();

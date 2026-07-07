@@ -56,7 +56,8 @@ final class Payments
     {
         $map = [
             'approved'     => 'pagado',
-            'authorized'   => 'pagado',
+            'authorized'   => 'procesando',  // autorizado pero NO capturado aún: no es un cobro firme
+
             'refunded'     => 'reembolsado',
             'charged_back' => 'reembolsado',
             'rejected'     => 'error',
@@ -173,6 +174,29 @@ final class Payments
         ]);
         self::log($id, $prev, 'procesando', $session['provider'], $session['reference'],
             $session['transaction_id'], $session['amount'], $source, $userId, [], $kind);
+    }
+
+    /**
+     * ¿Hay un pago en curso RECIENTE (Checkout Pro redirigido, o tarjeta en 3DS) con una
+     * transacción/preferencia REAL de Mercado Pago sobre esta entidad? Se usa para NO abrir
+     * una segunda intención de cobro sobre la misma entidad (anti doble cobro entre métodos).
+     * Tras $within segundos el intento se considera abandonado y se permite reintentar, para
+     * no dejar varado a un cliente. Solo cuenta si ya existe un transaction_id (una preferencia
+     * de Checkout Pro o un pago de tarjeta iniciado); el 'procesando' optimista que fija
+     * create.php al abrir la página (sin transaction_id) NO bloquea.
+     */
+    public static function hasRecentInFlight(array $entity, string $kind, int $within = 1200): bool
+    {
+        if (($entity['payment_status'] ?? '') !== 'procesando') return false;
+        if (empty($entity['payment_transaction_id']))          return false;
+        $fk = self::target($kind)['fk'];
+        try {
+            $st = db()->prepare('SELECT created_at FROM payment_logs WHERE ' . $fk . ' = ? ORDER BY id DESC LIMIT 1');
+            $st->execute([(int) $entity['id']]);
+            $last = $st->fetchColumn();
+        } catch (Throwable $e) { return false; }
+        if (!$last) return false;
+        return (time() - strtotime((string) $last)) < $within;
     }
 
     /**

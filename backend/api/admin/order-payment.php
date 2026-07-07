@@ -29,6 +29,9 @@ if (($o['payment_status'] ?? 'pendiente') === 'pagado') {
     // Ya está pagado: no se revierte desde aquí (evita deshacer un cobro por error).
     respond(['ok' => true, 'payment_status' => 'pagado', 'already' => true]);
 }
+if ($status === 'pagado' && round((float) ($o['total'] ?? 0), 2) <= 0) {
+    fail('Este pedido no tiene un total para registrar como pagado. Fija el precio primero.', 409);
+}
 
 $txn = 'ADMIN-' . strtoupper(substr(bin2hex(random_bytes(4)), 0, 8));
 $ok  = Payments::finalize($id, $status, $txn, 'admin', (int) $user['id'], 'order');
