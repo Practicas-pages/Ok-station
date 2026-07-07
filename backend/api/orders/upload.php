@@ -7,13 +7,23 @@ only_method('POST');
 
 $user = current_user();
 
-if (empty($_FILES['file']) || ($_FILES['file']['error'] ?? 1) !== UPLOAD_ERR_OK) {
+global $CONFIG;
+$postMax = (int) ($CONFIG['max_upload_mb'] ?? 25);
+
+/* Mensaje claro cuando el archivo supera el límite del servidor (php.ini): PHP vacía
+   $_FILES si se excede post_max_size, o marca UPLOAD_ERR_INI_SIZE si excede
+   upload_max_filesize. Sin esto, el usuario veía un genérico "No se recibió archivo". */
+$err = $_FILES['file']['error'] ?? UPLOAD_ERR_NO_FILE;
+if ((empty($_FILES) && (int) ($_SERVER['CONTENT_LENGTH'] ?? 0) > 0)
+    || $err === UPLOAD_ERR_INI_SIZE || $err === UPLOAD_ERR_FORM_SIZE) {
+    fail('El archivo es demasiado grande (máximo ' . $postMax . ' MB). Comprímelo e inténtalo de nuevo.', 413);
+}
+if (empty($_FILES['file']) || $err !== UPLOAD_ERR_OK) {
     fail('No se recibió ningún archivo válido.');
 }
 $f = $_FILES['file'];
 
-global $CONFIG;
-$maxBytes = (int) ($CONFIG['max_upload_mb'] ?? 25) * 1024 * 1024;
+$maxBytes = $postMax * 1024 * 1024;
 if ($f['size'] > $maxBytes) fail('El archivo supera el límite de ' . (int) $CONFIG['max_upload_mb'] . ' MB.');
 
 $allowed = [

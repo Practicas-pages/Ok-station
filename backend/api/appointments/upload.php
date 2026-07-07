@@ -37,13 +37,20 @@ try {
     fail('La carga de documentos aún no está disponible.', 503); // migración 0013 pendiente
 }
 
-if (empty($_FILES['file']) || ($_FILES['file']['error'] ?? 1) !== UPLOAD_ERR_OK) {
+global $CONFIG;
+$postMax = (int) ($CONFIG['max_upload_mb'] ?? 25);
+/* Mensaje claro si el archivo supera el límite del servidor (php.ini). */
+$err = $_FILES['file']['error'] ?? UPLOAD_ERR_NO_FILE;
+if ((empty($_FILES) && (int) ($_SERVER['CONTENT_LENGTH'] ?? 0) > 0)
+    || $err === UPLOAD_ERR_INI_SIZE || $err === UPLOAD_ERR_FORM_SIZE) {
+    fail('El archivo es demasiado grande (máximo ' . $postMax . ' MB). Comprímelo e inténtalo de nuevo.', 413);
+}
+if (empty($_FILES['file']) || $err !== UPLOAD_ERR_OK) {
     fail('No se recibió ningún archivo válido.');
 }
 $f = $_FILES['file'];
 
-global $CONFIG;
-$maxBytes = (int) ($CONFIG['max_upload_mb'] ?? 25) * 1024 * 1024;
+$maxBytes = $postMax * 1024 * 1024;
 if ($f['size'] > $maxBytes) fail('El archivo supera el límite de ' . (int) $CONFIG['max_upload_mb'] . ' MB.');
 
 $allowed = ['application/pdf' => 'pdf', 'image/jpeg' => 'jpg', 'image/png' => 'png'];

@@ -33,7 +33,7 @@ if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $date))   fail('Fecha inválida.');
 if (!preg_match('/^\d{1,2}:\d{2}$/', $time))       fail('Hora inválida.');
 if (mb_strlen($name) < 2)                          fail('Ingresa tu nombre completo.');
 if (strlen(preg_replace('/\D/', '', $phone)) < 10) fail('Ingresa un teléfono válido (10 dígitos).');
-if ($email !== '' && !valid_email($email))         fail('Correo electrónico inválido.');
+if ($email === '' || !valid_email($email))         fail('Ingresa un correo electrónico válido para enviarte el comprobante de tu cita.');
 if (mb_strlen($notes) > 1000)                      fail('Las notas son demasiado largas.');
 if ($pref !== '' && !in_array($pref, $validPref, true)) $pref = '';
 

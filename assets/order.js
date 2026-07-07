@@ -155,12 +155,18 @@
       var colorOpts = PRINT_TIERS[f.cfg.size]
         ? [["color", "Color · " + mxn(perSheetFor(f.cfg.size, "color", count))], ["bn", "B/N · " + mxn(perSheetFor(f.cfg.size, "bn", count))]]
         : [["color", "Color"], ["bn", "B/N"]];
-      /* Opciones de Acabado con su precio (enmicado por hoja según tamaño; engargolado plano pendiente). */
+      /* Opciones de Acabado. El enmicado SOLO se ofrece en tamaños con tarifa definida
+         (carta/tabloide); en los demás no hay precio aún, así que no se ofrece — evita
+         cobrar $0 por el acabado. Si estaba seleccionado y el tamaño ya no lo soporta,
+         se normaliza a "ninguno". */
+      if (f.cfg.finish === "enmicado" && !ENMICADO[f.cfg.size]) f.cfg.finish = "ninguno";
       var finishOpts = [
         { v: "ninguno", t: "Ninguno" },
-        { v: "engargolado", t: "Engargolado · " + mxn(45) },
-        { v: "enmicado", t: "Enmicado" + (ENMICADO[f.cfg.size] ? (" · " + mxn(ENMICADO[f.cfg.size]) + "/hoja") : "") }
+        { v: "engargolado", t: "Engargolado · " + mxn(FINISH_FLAT.engargolado) }
       ];
+      if (ENMICADO[f.cfg.size]) {
+        finishOpts.push({ v: "enmicado", t: "Enmicado · " + mxn(ENMICADO[f.cfg.size]) + "/hoja" });
+      }
       var thumb = f.thumb
         ? '<img class="file-card__thumb" src="' + f.thumb + '" alt="">'
         : '<span class="file-card__thumb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></span>';
