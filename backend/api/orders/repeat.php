@@ -33,10 +33,14 @@ try {
             (int) $it['qty'], (float) $it['unit_price'], (float) $it['line_total'],
         ]);
     }
-    // Recalcula el IVA con la misma tasa efectiva del pedido original.
-    $taxRate = (float) $o['subtotal'] > 0 ? ((float) $o['tax'] / (float) $o['subtotal']) : 0.08;
-    $tax   = round($subtotal * $taxRate, 2);
-    $total = round($subtotal + $tax, 2);
+    // Los precios del catálogo son IVA INCLUIDO: la suma de líneas ES el total; el
+    // subtotal (base) y el IVA se DESGLOSAN (misma tasa efectiva del pedido original).
+    // NO se suma el IVA encima (antes se duplicaba al pagar).
+    $totalIncl = round($subtotal, 2);
+    $taxRate   = (float) $o['subtotal'] > 0 ? ((float) $o['tax'] / (float) $o['subtotal']) : 0.08;
+    $subtotal  = $taxRate > 0 ? round($totalIncl / (1 + $taxRate), 2) : $totalIncl;
+    $tax       = round($totalIncl - $subtotal, 2);
+    $total     = $totalIncl;
     $pdo->prepare('UPDATE orders SET code=?, subtotal=?, tax=?, total=? WHERE id=?')
         ->execute([$code, $subtotal, $tax, $total, $newId]);
     $pdo->commit();

@@ -70,9 +70,14 @@ try {
         ]);
     }
 
-    $subtotal = round($subtotal, 2);
-    $tax      = round($subtotal * $taxRate, 2);
-    $total    = round($subtotal + $tax, 2);
+    /* Los precios del catálogo son IVA INCLUIDO (igual que order.js y el ticket de
+       mostrador): la suma de líneas ES el total. El subtotal (base) y el IVA se
+       DESGLOSAN a partir del total; NO se suma el IVA encima (antes se duplicaba
+       el IVA al momento de pagar). */
+    $totalIncl = round($subtotal, 2);
+    $subtotal  = $taxRate > 0 ? round($totalIncl / (1 + $taxRate), 2) : $totalIncl;
+    $tax       = round($totalIncl - $subtotal, 2);
+    $total     = $totalIncl;
     $pdo->prepare('UPDATE orders SET code=?, subtotal=?, tax=?, total=? WHERE id=?')
         ->execute([$code, $subtotal, $tax, $total, $orderId]);
 
