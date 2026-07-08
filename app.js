@@ -535,14 +535,14 @@
     /* Selección ÚNICA entre los 9 servicios (tarjetas principales + panel "Más servicios").
        Todos son independientes: elegir uno deselecciona cualquier otro. */
     function selectService(id, el) {
-      /* Agendar una cita REQUIERE cuenta. Si no hay sesión, guardamos a dónde volver y
-         mandamos a iniciar sesión / registrarse ANTES de empezar (no al final). Devuelve
-         false para que quien llama no siga abriendo modales mientras se redirige. */
+      /* Agendar NO exige cuenta: sin sesión se pregunta UNA vez (modal) si quiere
+         iniciar sesión o continuar como invitado dejando solo sus datos de contacto
+         en el paso "Tus datos". Ver "Mis citas" y pagar en línea sí piden cuenta.
+         Devuelve false mientras el modal decide, para que quien llama no siga. */
       var signedIn = false; try { signedIn = !!localStorage.getItem("okstation.token"); } catch (e) {}
       if (!signedIn) {
-        try { sessionStorage.setItem("oks_intended", location.pathname + location.search + "#citas"); } catch (e2) {}
-        window.location.href = "cuenta.html";
-        return false;
+        var asGuest = false; try { asGuest = sessionStorage.getItem("oks_cita_guest") === "1"; } catch (e2) {}
+        if (!asGuest) { openGuestModal(id); return false; }
       }
       /* Resalta por ID (no por elemento) para que TODAS las copias del carrusel
          infinito —original y clones— queden marcadas igual. */
@@ -563,6 +563,61 @@
       updateStep0Next();
       renderSteps();   /* refleja el total de pasos del trámite en el contador (licencia = 5) */
       return true;
+    }
+
+    /* ── Modal "¿Cómo quieres continuar?" (cuenta o invitado) ──
+       Se construye aquí por JS (no en el HTML) para no duplicarlo en home e index.
+       "Invitado" se recuerda en sessionStorage para no volver a preguntar en la
+       misma visita; al elegir, se retoma el trámite que el usuario había tocado. */
+    var guestModal = null, guestPendingId = "";
+    function guestEsc(e) { if (e.key === "Escape") closeGuestModal(); }
+    function buildGuestModal() {
+      guestModal = document.createElement("div");
+      guestModal.className = "cita-modal";
+      guestModal.id = "cita-guest-modal";
+      guestModal.setAttribute("role", "dialog");
+      guestModal.setAttribute("aria-modal", "true");
+      guestModal.setAttribute("aria-labelledby", "cita-guest-title");
+      guestModal.hidden = true;
+      guestModal.innerHTML =
+        '<div class="cita-modal__overlay" data-guest-close></div>' +
+        '<div class="cita-modal__box" role="document">' +
+          '<button type="button" class="cita-modal__close" data-guest-close aria-label="Cerrar">&times;</button>' +
+          '<h4 class="cita-modal__title" id="cita-guest-title">¿Cómo quieres continuar?</h4>' +
+          '<p class="cita-modal__sub">Con tu cuenta puedes ver tus citas y pagar en línea. Como invitado solo te pediremos tus datos de contacto.</p>' +
+          '<button type="button" class="btn btn--primary btn--block" id="cita-guest-login">Iniciar sesión o crear cuenta</button>' +
+          '<button type="button" class="btn btn--ghost-dark btn--block" id="cita-guest-continue" style="margin-top:10px">Continuar como invitado</button>' +
+        '</div>';
+      section.appendChild(guestModal);
+      qsa("[data-guest-close]", guestModal).forEach(function (el) { el.addEventListener("click", closeGuestModal); });
+      qs("#cita-guest-login", guestModal).addEventListener("click", function () {
+        try { sessionStorage.setItem("oks_intended", location.pathname + location.search + "#citas"); } catch (e) {}
+        window.location.href = "cuenta.html";
+      });
+      qs("#cita-guest-continue", guestModal).addEventListener("click", function () {
+        try { sessionStorage.setItem("oks_cita_guest", "1"); } catch (e) {}
+        closeGuestModal();
+        var id = guestPendingId; guestPendingId = "";
+        if (!id || !selectService(id)) return;
+        closeDrawer();                              /* por si el trámite venía del panel "Más servicios" */
+        if (id === "pasaporte") openSubtypeModal(); /* mismos casos especiales que el clic normal */
+        else if (id === "acta") openActaModal();
+      });
+    }
+    function openGuestModal(serviceId) {
+      if (!guestModal) buildGuestModal();
+      guestPendingId = serviceId;
+      guestModal.hidden = false;
+      guestModal.classList.add("is-open");
+      var b = qs("#cita-guest-login", guestModal);
+      if (b) b.focus();
+      document.addEventListener("keydown", guestEsc);
+    }
+    function closeGuestModal() {
+      if (!guestModal) return;
+      guestModal.classList.remove("is-open");
+      guestModal.hidden = true;
+      document.removeEventListener("keydown", guestEsc);
     }
 
     /* DELEGACIÓN de eventos: un solo listener en la sección capta el clic en
