@@ -354,28 +354,6 @@
     }
   }
 
-  /* ── "Continuar como invitado" (SOLO citas) ──
-     El bloque #auth-guest (cuenta.html) se muestra únicamente si se llegó desde el
-     wizard de citas (oks_intended → #citas): agendar no exige cuenta, pero el
-     invitado se elige AQUÍ, no en el wizard. Al continuar se marca oks_cita_guest
-     (misma visita) y se regresa al wizard, que ya deja pasar del paso 1. */
-  function initGuestCta() {
-    var box = qs("#auth-guest");
-    if (!box) return;
-    var dest = "";
-    try { dest = sessionStorage.getItem("oks_intended") || ""; } catch (e) {}
-    if (dest.indexOf("#citas") < 0 || dest.charAt(0) !== "/") return;
-    box.hidden = false;
-    var btn = qs("#auth-guest-btn");
-    if (btn) btn.addEventListener("click", function () {
-      try {
-        sessionStorage.setItem("oks_cita_guest", "1");
-        sessionStorage.removeItem("oks_intended");
-      } catch (e) {}
-      window.location.href = dest;
-    });
-  }
-
   /* ── Init ── */
   function init() {
 
@@ -423,7 +401,6 @@
   initForgot();
   initReset();
   initProfile();
-  initGuestCta();
 }
 
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);

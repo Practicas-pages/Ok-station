@@ -528,17 +528,21 @@
         && (state.tramite !== "pasaporte" ||
             (!!state.subtype && (state.subtype !== "mexicano" || (!!state.pptTramite && !!state.pptEdad))))
         && (state.tramite !== "acta" || !!state.actaState);
-      nextBtn.disabled = !ok;
-      nextBtn.setAttribute("aria-disabled", String(!ok));
+      /* Sin sesión, Continuar queda BLOQUEADO y el aviso junto al botón explica que
+         hay que iniciar sesión o crear cuenta (ver requisitos sigue siendo libre). */
+      var logged = citaSessionOk();
+      var note = qs("#cita-login-note");
+      if (note) note.hidden = !(state.tramite && !logged);
+      nextBtn.disabled = !ok || !logged;
+      nextBtn.setAttribute("aria-disabled", String(!ok || !logged));
     }
 
     /* Selección ÚNICA entre los 9 servicios (tarjetas principales + panel "Más servicios").
        Todos son independientes: elegir uno deselecciona cualquier otro. */
     function selectService(id, el) {
-      /* Elegir un trámite y VER sus requisitos es libre (sin cuenta). El control
-         está al CONTINUAR del paso 1: sin sesión ni modo invitado se manda a
-         cuenta.html, donde se elige iniciar sesión, registrarse o continuar como
-         invitado (ver citaSessionOk y el handler de [data-cita-next]). */
+      /* Elegir un trámite y VER sus requisitos es libre (sin cuenta). Sin sesión,
+         el botón Continuar del paso 1 queda deshabilitado y un aviso junto a él
+         pide iniciar sesión o crear cuenta (updateStep0Next / #cita-login-note). */
       /* Resalta por ID (no por elemento) para que TODAS las copias del carrusel
          infinito —original y clones— queden marcadas igual. */
       qsa(".tramite-btn, .extra-card").forEach(function (b) {
@@ -560,16 +564,20 @@
       return true;
     }
 
-    /* ¿Puede LLENAR datos en el wizard? Con sesión, o como invitado elegido en
-       cuenta.html ("Continuar como invitado" guarda oks_cita_guest; el invitado
-       deja sus datos de contacto en el paso "Tus datos"). Sin ninguna de las dos,
-       el paso 1 solo deja ver requisitos. */
+    /* ¿Puede LLENAR datos en el wizard? Solo con sesión (ya NO hay modo invitado:
+       se retiró a petición del cliente). Sin sesión, el paso 1 solo deja ver
+       requisitos y el aviso #cita-login-note pide iniciar sesión o crear cuenta. */
     function citaSessionOk() {
-      var signedIn = false, guest = false;
+      var signedIn = false;
       try { signedIn = !!localStorage.getItem("okstation.token"); } catch (e) {}
-      try { guest = sessionStorage.getItem("oks_cita_guest") === "1"; } catch (e2) {}
-      return signedIn || guest;
+      return signedIn;
     }
+    /* El enlace del aviso guarda a dónde volver: tras iniciar sesión o registrarse,
+       auth.js (afterAuthDest) regresa al usuario aquí, al wizard. */
+    var loginNoteLink = qs("#cita-login-link");
+    if (loginNoteLink) loginNoteLink.addEventListener("click", function () {
+      try { sessionStorage.setItem("oks_intended", location.pathname + location.search + "#citas"); } catch (e) {}
+    });
 
     /* DELEGACIÓN de eventos: un solo listener en la sección capta el clic en
        cualquier .tramite-btn, INCLUIDAS las tarjetas clonadas del carrusel
@@ -1867,12 +1875,11 @@
     /* Navegación del wizard */
     qsa("[data-cita-next]").forEach(function (btn) {
       btn.addEventListener("click", function () {
-        /* Sin cuenta se pueden VER los requisitos del paso 1, pero para continuar
-           y llenar datos hay que pasar por cuenta.html: iniciar sesión, crear
-           cuenta o "Continuar como invitado" (el botón de invitado vive allá). */
+        /* Red de seguridad: sin sesión el botón ya está deshabilitado
+           (updateStep0Next); si aun así llega un clic, solo se muestra el aviso. */
         if (state.step === 0 && !citaSessionOk()) {
-          try { sessionStorage.setItem("oks_intended", location.pathname + location.search + "#citas"); } catch (e) {}
-          window.location.href = "cuenta.html";
+          var note = qs("#cita-login-note");
+          if (note) note.hidden = false;
           return;
         }
         var target = state.step + 1;

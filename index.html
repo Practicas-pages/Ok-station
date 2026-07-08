@@ -73,7 +73,7 @@
   </noscript>
 
   <!-- ===================== HOJA DE ESTILOS ===================== -->
-  <link rel="stylesheet" href="styles.css?v=20260708b">
+  <link rel="stylesheet" href="styles.css?v=20260708c">
   <!-- Estilos del configurador de pedido embebido en #fotos -->
   <link rel="stylesheet" href="assets/order.css?v=20260707d">
 
@@ -647,6 +647,11 @@
               </button>
             </div>
             <div id="cita-requisitos" class="cita-reqs" hidden aria-live="polite"></div>
+            <!-- Aviso al pie del paso 1: sin sesión se pueden ver los requisitos, pero
+                 Continuar queda bloqueado; app.js muestra este aviso al elegir trámite. -->
+            <div class="cita-login-note" id="cita-login-note" role="alert" hidden>
+              Para continuar y agendar tu cita necesitas <a href="cuenta.html" id="cita-login-link">iniciar sesión o crear una cuenta</a>. Sin cuenta puedes consultar los requisitos de cada trámite.
+            </div>
             <div class="cita-nav">
               <span></span>
               <button type="button" class="btn btn--primary" id="cita-next-0" data-cita-next disabled aria-disabled="true">Continuar
@@ -1357,7 +1362,7 @@
 <!-- ============================ SCRIPTS ============================ -->
 <script src="assets/cita-expediente.js?v=20260707c" defer></script>
 <script src="assets/phone-cc.js?v=20260702a" defer></script>
-<script src="app.js?v=20260708c" defer></script>
+<script src="app.js?v=20260708d" defer></script>
 <script src="assets/reviews.js?v=20260625" defer></script>
 <script src="assets/session-nav.js?v=20260630c" defer></script>
 <!-- Configurador de pedido embebido (#fotos): librerías de ticket PDF + QR y lógica -->
