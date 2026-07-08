@@ -2,7 +2,8 @@
    Ok.station — Configurador de pedidos (Fase 2, front)
    Subida (PDF/imagen) → configuración independiente por archivo →
    costo en tiempo real → crear pedido → ticket PDF con QR.
-   Habla con /backend/api (orders/*). Requiere sesión.
+   Habla con /backend/api (orders/*). Subir archivos y ver precios es LIBRE
+   (sin sesión); ENVIAR el pedido exige cuenta (aviso #order-login-note).
    ============================================================ */
 (function () {
   "use strict";
@@ -18,12 +19,12 @@
   if (document.body.hasAttribute("data-requires-auth") && !token()) {
     window.location.href = "cuenta.html"; return;
   }
-  function requireAuth() {
-    if (token()) return true;
-    try { sessionStorage.setItem("oks_intended", location.href); } catch (e) {}
-    window.location.href = "cuenta.html";
-    return false;
-  }
+  /* El enlace del aviso "inicia sesión para enviar" guarda a dónde volver:
+     tras iniciar sesión o registrarse, auth.js (afterAuthDest) regresa aquí. */
+  var orderLoginLink = document.getElementById("order-login-link");
+  if (orderLoginLink) orderLoginLink.addEventListener("click", function () {
+    try { sessionStorage.setItem("oks_intended", location.pathname + location.search + "#fotos"); } catch (e) {}
+  });
 
   /* ── Catálogo de precios OFICIAL Ok.station (estimado en cliente; el servidor recalcula).
      `price` es el precio "desde" (por hoja) que se muestra como pista. El cálculo real
@@ -113,15 +114,15 @@
   function uploadOne(file) {
     var fd = new FormData();
     fd.append("file", file);
+    var tk = token();   /* sin sesión el backend guarda el archivo como anónimo */
     return fetch(API + "/orders/upload.php", {
       method: "POST",
-      headers: { Authorization: "Bearer " + token() },
+      headers: tk ? { Authorization: "Bearer " + tk } : {},
       body: fd
     }).then(function (r) { return r.json(); });
   }
 
   function addFiles(list) {
-    if (!requireAuth()) return;
     alertErr("");
     Array.prototype.forEach.call(list, function (file) {
       if (!typeOk(file)) {
@@ -278,8 +279,13 @@
     var belowMin = totalIncl > 0 && totalIncl < MIN_PAY;
     var warn = $("#order-min-warn");
     if (warn) warn.hidden = !belowMin;
+    /* Sin sesión, "Enviar pedido" queda BLOQUEADO y el aviso junto al botón pide
+       iniciar sesión o crear cuenta (subir archivos y ver precios sigue libre). */
+    var logged = !!token();
+    var loginNote = $("#order-login-note");
+    if (loginNote) loginNote.hidden = !(files.length > 0 && !logged);
     var submitBtn = $("#order-submit");
-    if (submitBtn) submitBtn.disabled = (files.length === 0) || belowMin;
+    if (submitBtn) submitBtn.disabled = (files.length === 0) || belowMin || !logged;
   }
 
   /* Precios de referencia CON TRAMOS por cantidad (para que el cliente sepa cuánto baja por volumen). */
@@ -353,7 +359,13 @@
 
   /* ── Crear pedido + ticket ── */
   function submit() {
-    if (!requireAuth()) return;
+    /* Red de seguridad: sin sesión el botón ya está deshabilitado; si aun así
+       llega un clic, solo se muestra el aviso (el servidor también lo exige). */
+    if (!token()) {
+      var note = $("#order-login-note");
+      if (note) note.hidden = false;
+      return;
+    }
     alertErr("");
     if (!files.length) return;
     /* Mínimo para pago en línea: bloquea el envío si el total cobrable es < $5 MXN. */

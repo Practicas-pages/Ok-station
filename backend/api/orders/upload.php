@@ -1,11 +1,21 @@
 <?php
-/** POST /backend/api/orders/upload.php — sube un PDF o imagen (multipart). Requiere sesión. */
+/** POST /backend/api/orders/upload.php — sube un PDF o imagen (multipart).
+ *  Sesión OPCIONAL: con Bearer válido el archivo queda ligado a la cuenta; sin sesión
+ *  se guarda con user_id NULL (exploración libre de precios en el configurador).
+ *  ENVIAR el pedido sí exige sesión: orders/create.php requiere auth y además valida
+ *  que cada archivo pertenezca al usuario, así que un archivo anónimo no puede
+ *  terminar en un pedido. Mismo patrón de token opcional que appointments/create.php. */
 require __DIR__ . '/../_bootstrap.php';
 require __DIR__ . '/../lib/authz.php';
 require __DIR__ . '/../lib/Storage.php';
 only_method('POST');
 
-$user = current_user();
+$userId = null;
+$hdr = $_SERVER['HTTP_AUTHORIZATION'] ?? ($_SERVER['REDIRECT_HTTP_AUTHORIZATION'] ?? '');
+if (preg_match('/Bearer\s+(.+)/i', $hdr, $m)) {
+    $claims = jwt_verify(trim($m[1]));
+    if ($claims) $userId = (int) $claims['sub'];
+}
 
 global $CONFIG;
 $postMax = (int) ($CONFIG['max_upload_mb'] ?? 25);
@@ -49,7 +59,7 @@ if ($mime === 'application/pdf' && !isset($_POST['pages'])) {
 }
 
 $id = UploadedFile::create([
-    'user_id'       => (int) $user['id'],
+    'user_id'       => $userId,   /* NULL para invitados (uploaded_files.user_id es NULLable, migración 0014) */
     'original_name' => $f['name'],
     'stored_path'   => $path,
     'mime_type'     => $mime,

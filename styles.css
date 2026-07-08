@@ -5646,9 +5646,10 @@ body:has(.cita-drawer:not([hidden])) { overflow: hidden; }
    siguen; el overlay vuelve a cubrir toda la página. Solo afecta con el modal abierto. */
 body:has(.cita-modal:not([hidden])) .citas-section > .wrap,
 body:has(.cita-drawer:not([hidden])) .citas-section > .wrap { z-index: 130; }
-/* Aviso "inicia sesión para continuar" (paso 1 del wizard): app.js lo muestra al
-   elegir un trámite SIN sesión; el botón Continuar queda deshabilitado. */
-.cita-login-note {
+/* Aviso "inicia sesión para continuar": en CITAS (paso 1, app.js) y en PEDIDOS
+   (junto a "Enviar pedido", order.js). Sin sesión el botón queda deshabilitado. */
+.cita-login-note,
+.order-login-note {
   margin: 14px 0 0;
   padding: 10px 14px;
   border-radius: 10px;
@@ -5658,7 +5659,9 @@ body:has(.cita-drawer:not([hidden])) .citas-section > .wrap { z-index: 130; }
   font-size: 0.875rem;
   line-height: 1.5;
 }
-.cita-login-note a { color: var(--brand-blue); font-weight: 700; text-decoration: underline; }
+.cita-login-note a, .order-login-note a { color: var(--brand-blue); font-weight: 700; text-decoration: underline; }
+/* En el resumen del pedido va pegado al botón de enviar. */
+.order-login-note { margin-bottom: 10px; }
 .hero__title { color: #FFFFFF !important; }
 .hero__title .accent {
   /* Color SÓLIDO (sin degradado en el texto): azul de la marca. */
