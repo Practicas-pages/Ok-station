@@ -588,7 +588,11 @@
           '<button type="button" class="btn btn--primary btn--block" id="cita-guest-login">Iniciar sesión o crear cuenta</button>' +
           '<button type="button" class="btn btn--ghost-dark btn--block" id="cita-guest-continue" style="margin-top:10px">Continuar como invitado</button>' +
         '</div>';
-      section.appendChild(guestModal);
+      /* En <body>, NO dentro de la sección: el wizard vive en .citas-section > .wrap,
+         que se eleva a z-index 130 con un modal abierto (styles.css) y taparía este
+         modal; además .cita-layout anima con transform (reveal), lo que rompería el
+         position:fixed. En body nada lo tapa ni lo desplaza (su z-index va en CSS). */
+      document.body.appendChild(guestModal);
       qsa("[data-guest-close]", guestModal).forEach(function (el) { el.addEventListener("click", closeGuestModal); });
       qs("#cita-guest-login", guestModal).addEventListener("click", function () {
         try { sessionStorage.setItem("oks_intended", location.pathname + location.search + "#citas"); } catch (e) {}
