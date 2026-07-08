@@ -14,7 +14,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap">
   <link rel="stylesheet" href="styles.css?v=20260702a">
-  <link rel="stylesheet" href="assets/auth.css?v=20260708a">
+  <link rel="stylesheet" href="assets/auth.css?v=20260708c">
 </head>
 <body class="auth-page">
 
@@ -94,10 +94,19 @@
           <button type="submit" class="btn btn--primary btn--block">Crear cuenta</button>
         </form>
       </section>
+
+      <!-- INVITADO (solo citas): oculto por defecto; auth.js lo muestra únicamente
+           cuando se llegó desde el wizard de citas (oks_intended apunta a #citas).
+           El invitado deja sus datos de contacto en el propio wizard. -->
+      <div class="auth-guest" id="auth-guest" hidden>
+        <div class="auth-guest__sep" aria-hidden="true"><span>o</span></div>
+        <button type="button" class="btn btn--block auth-guest__btn" id="auth-guest-btn">Continuar como invitado</button>
+        <p class="auth-guest__note">Solo para agendar tu cita: te pediremos tus datos de contacto al final.</p>
+      </div>
     </div>
   </main>
 
   <script src="assets/phone-cc.js?v=20260702a" defer></script>
-  <script src="assets/auth.js?v=20260708a" defer></script>
+  <script src="assets/auth.js?v=20260708c" defer></script>
 </body>
 </html>

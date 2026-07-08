@@ -152,6 +152,15 @@
 /* Botón ocupa el ancho dentro del card */
 .auth-card .btn--block { margin-top: var(--space-2); }
 
+/* "Continuar como invitado" (SOLO citas): oculto por defecto; auth.js lo muestra
+   cuando se llegó desde el wizard (oks_intended → #citas). */
+.auth-guest { margin-top: var(--space-5); text-align: center; }
+.auth-guest__sep { display: flex; align-items: center; gap: 10px; color: var(--text-muted); font-size: 0.8rem; margin-bottom: var(--space-3); }
+.auth-guest__sep::before, .auth-guest__sep::after { content: ""; flex: 1; height: 1px; background: var(--border-light); }
+.auth-guest__btn { background: #FFFFFF; border: 1px solid var(--border-medium); color: var(--text-primary); }
+.auth-guest__btn:hover { border-color: var(--brand-blue); color: var(--brand-blue); background: var(--brand-blue-light); }
+.auth-guest__note { margin-top: 8px; font-size: 0.78rem; color: var(--text-muted); }
+
 /* ── Perfil ── */
 .profile-grid { display: grid; grid-template-columns: 280px 1fr; gap: var(--space-6); align-items: start; }
 .profile-side {

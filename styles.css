@@ -5646,22 +5646,6 @@ body:has(.cita-drawer:not([hidden])) { overflow: hidden; }
    siguen; el overlay vuelve a cubrir toda la página. Solo afecta con el modal abierto. */
 body:has(.cita-modal:not([hidden])) .citas-section > .wrap,
 body:has(.cita-drawer:not([hidden])) .citas-section > .wrap { z-index: 130; }
-/* Modal "¿cuenta o invitado?" (app.js lo crea en <body>, fuera de la sección, para
-   que ni el z-index del wrap ni el transform del reveal lo afecten): va por encima
-   del wrap elevado, y su botón secundario necesita la versión clara del ghost
-   (la base .btn--ghost-dark es blanca-translúcida, pensada para fondo oscuro). */
-#cita-guest-modal { z-index: 200; }
-#cita-guest-modal .btn--ghost-dark {
-  background: #FFFFFF;
-  border: 1px solid var(--border-medium);
-  color: var(--text-primary);
-}
-#cita-guest-modal .btn--ghost-dark:hover {
-  border-color: var(--brand-blue);
-  color: var(--brand-blue);
-  background: var(--brand-blue-light);
-}
-
 .hero__title { color: #FFFFFF !important; }
 .hero__title .accent {
   /* Color SÓLIDO (sin degradado en el texto): azul de la marca. */

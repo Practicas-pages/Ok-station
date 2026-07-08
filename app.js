@@ -535,15 +535,10 @@
     /* Selección ÚNICA entre los 9 servicios (tarjetas principales + panel "Más servicios").
        Todos son independientes: elegir uno deselecciona cualquier otro. */
     function selectService(id, el) {
-      /* Agendar NO exige cuenta: sin sesión se pregunta UNA vez (modal) si quiere
-         iniciar sesión o continuar como invitado dejando solo sus datos de contacto
-         en el paso "Tus datos". Ver "Mis citas" y pagar en línea sí piden cuenta.
-         Devuelve false mientras el modal decide, para que quien llama no siga. */
-      var signedIn = false; try { signedIn = !!localStorage.getItem("okstation.token"); } catch (e) {}
-      if (!signedIn) {
-        var asGuest = false; try { asGuest = sessionStorage.getItem("oks_cita_guest") === "1"; } catch (e2) {}
-        if (!asGuest) { openGuestModal(id); return false; }
-      }
+      /* Elegir un trámite y VER sus requisitos es libre (sin cuenta). El control
+         está al CONTINUAR del paso 1: sin sesión ni modo invitado se manda a
+         cuenta.html, donde se elige iniciar sesión, registrarse o continuar como
+         invitado (ver citaSessionOk y el handler de [data-cita-next]). */
       /* Resalta por ID (no por elemento) para que TODAS las copias del carrusel
          infinito —original y clones— queden marcadas igual. */
       qsa(".tramite-btn, .extra-card").forEach(function (b) {
@@ -565,63 +560,15 @@
       return true;
     }
 
-    /* ── Modal "¿Cómo quieres continuar?" (cuenta o invitado) ──
-       Se construye aquí por JS (no en el HTML) para no duplicarlo en home e index.
-       "Invitado" se recuerda en sessionStorage para no volver a preguntar en la
-       misma visita; al elegir, se retoma el trámite que el usuario había tocado. */
-    var guestModal = null, guestPendingId = "";
-    function guestEsc(e) { if (e.key === "Escape") closeGuestModal(); }
-    function buildGuestModal() {
-      guestModal = document.createElement("div");
-      guestModal.className = "cita-modal";
-      guestModal.id = "cita-guest-modal";
-      guestModal.setAttribute("role", "dialog");
-      guestModal.setAttribute("aria-modal", "true");
-      guestModal.setAttribute("aria-labelledby", "cita-guest-title");
-      guestModal.hidden = true;
-      guestModal.innerHTML =
-        '<div class="cita-modal__overlay" data-guest-close></div>' +
-        '<div class="cita-modal__box" role="document">' +
-          '<button type="button" class="cita-modal__close" data-guest-close aria-label="Cerrar">&times;</button>' +
-          '<h4 class="cita-modal__title" id="cita-guest-title">¿Cómo quieres continuar?</h4>' +
-          '<p class="cita-modal__sub">Con tu cuenta puedes ver tus citas y pagar en línea. Como invitado solo te pediremos tus datos de contacto.</p>' +
-          '<button type="button" class="btn btn--primary btn--block" id="cita-guest-login">Iniciar sesión o crear cuenta</button>' +
-          '<button type="button" class="btn btn--ghost-dark btn--block" id="cita-guest-continue" style="margin-top:10px">Continuar como invitado</button>' +
-        '</div>';
-      /* En <body>, NO dentro de la sección: el wizard vive en .citas-section > .wrap,
-         que se eleva a z-index 130 con un modal abierto (styles.css) y taparía este
-         modal; además .cita-layout anima con transform (reveal), lo que rompería el
-         position:fixed. En body nada lo tapa ni lo desplaza (su z-index va en CSS). */
-      document.body.appendChild(guestModal);
-      qsa("[data-guest-close]", guestModal).forEach(function (el) { el.addEventListener("click", closeGuestModal); });
-      qs("#cita-guest-login", guestModal).addEventListener("click", function () {
-        try { sessionStorage.setItem("oks_intended", location.pathname + location.search + "#citas"); } catch (e) {}
-        window.location.href = "cuenta.html";
-      });
-      qs("#cita-guest-continue", guestModal).addEventListener("click", function () {
-        try { sessionStorage.setItem("oks_cita_guest", "1"); } catch (e) {}
-        closeGuestModal();
-        var id = guestPendingId; guestPendingId = "";
-        if (!id || !selectService(id)) return;
-        closeDrawer();                              /* por si el trámite venía del panel "Más servicios" */
-        if (id === "pasaporte") openSubtypeModal(); /* mismos casos especiales que el clic normal */
-        else if (id === "acta") openActaModal();
-      });
-    }
-    function openGuestModal(serviceId) {
-      if (!guestModal) buildGuestModal();
-      guestPendingId = serviceId;
-      guestModal.hidden = false;
-      guestModal.classList.add("is-open");
-      var b = qs("#cita-guest-login", guestModal);
-      if (b) b.focus();
-      document.addEventListener("keydown", guestEsc);
-    }
-    function closeGuestModal() {
-      if (!guestModal) return;
-      guestModal.classList.remove("is-open");
-      guestModal.hidden = true;
-      document.removeEventListener("keydown", guestEsc);
+    /* ¿Puede LLENAR datos en el wizard? Con sesión, o como invitado elegido en
+       cuenta.html ("Continuar como invitado" guarda oks_cita_guest; el invitado
+       deja sus datos de contacto en el paso "Tus datos"). Sin ninguna de las dos,
+       el paso 1 solo deja ver requisitos. */
+    function citaSessionOk() {
+      var signedIn = false, guest = false;
+      try { signedIn = !!localStorage.getItem("okstation.token"); } catch (e) {}
+      try { guest = sessionStorage.getItem("oks_cita_guest") === "1"; } catch (e2) {}
+      return signedIn || guest;
     }
 
     /* DELEGACIÓN de eventos: un solo listener en la sección capta el clic en
@@ -634,7 +581,7 @@
       if (!btn || !section.contains(btn)) return;
       var id = btn.dataset.tramite;
       if (!id) return;
-      if (!selectService(id, btn)) return;   /* sin sesión: se redirigió a iniciar sesión */
+      selectService(id, btn);
       if (id === "pasaporte") { openSubtypeModal(); return; }   /* caso especial: subtipo obligatorio */
       if (id === "acta") { openActaModal(); return; }           /* caso especial: estado (define el precio) */
     });
@@ -828,7 +775,7 @@
       qsa(".cita-drawer__close, .cita-drawer__overlay, .cita-drawer__done", drawer).forEach(function (el) { el.addEventListener("click", closeDrawer); });
       qsa(".extra-card", drawer).forEach(function (card) {
         card.addEventListener("click", function () {
-          if (!selectService(card.dataset.service, card)) return;  /* sin sesión: redirigido */
+          selectService(card.dataset.service, card);
           closeDrawer();
         });
       });
@@ -1920,6 +1867,14 @@
     /* Navegación del wizard */
     qsa("[data-cita-next]").forEach(function (btn) {
       btn.addEventListener("click", function () {
+        /* Sin cuenta se pueden VER los requisitos del paso 1, pero para continuar
+           y llenar datos hay que pasar por cuenta.html: iniciar sesión, crear
+           cuenta o "Continuar como invitado" (el botón de invitado vive allá). */
+        if (state.step === 0 && !citaSessionOk()) {
+          try { sessionStorage.setItem("oks_intended", location.pathname + location.search + "#citas"); } catch (e) {}
+          window.location.href = "cuenta.html";
+          return;
+        }
         var target = state.step + 1;
         if (state.tramite === "licencia" && target === 1) target = 2;   /* omitir "¿cuántas personas?" */
         goToStep(target);
