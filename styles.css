@@ -5418,7 +5418,7 @@ body.admin::before, body.admin::after { display: none !important; }
    columnas caben según el ancho disponible (2 en escritorio, 1 en móvil) sin
    media queries; los puntos fluyen de arriba hacia abajo por columna (orden
    natural, a diferencia de un grid fila-por-fila). */
-.cita-reqs__list { list-style: none; margin: 8px 0 0; padding: 0; columns: 220px 2; column-gap: 26px; }
+.cita-reqs__list { list-style: none; margin: 8px 0 0; padding: 0; columns: 220px 2; column-gap: 26px; max-width: 620px; }
 .cita-reqs__list li { position: relative; padding-left: 16px; color: #4B5563; font-size: 0.85rem; line-height: 1.4; break-inside: avoid; -webkit-column-break-inside: avoid; }
 .cita-reqs__list li::before { content: ""; position: absolute; left: 2px; top: 9px; width: 5px; height: 5px; border-radius: 50%; background: var(--brand-cyan); }
 /* Trámites con grupos (visa, SENTRI, pasaporte USA): cada grupo es un bloque
