@@ -62,6 +62,11 @@
   <!-- ===================== FAVICONS (EDITAR rutas) ===================== -->
   <link rel="icon" href="/assets/img/OKD-Isotipo-Azul.svg?v=20260630" type="image/svg+xml">
 
+  <!-- Preload de la imagen del hero (elemento LCP): el navegador la baja cuanto
+       antes para reducir el Largest Contentful Paint, sobre todo en móvil.
+       IMPORTANTE: si cambias la foto del hero, actualiza también este href. -->
+  <link rel="preload" as="image" href="assets/img/provisional.webp" fetchpriority="high">
+
   <!-- ===================== TIPOGRAFÍA (Poppins) ===================== -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
