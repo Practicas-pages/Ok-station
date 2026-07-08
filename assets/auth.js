@@ -168,7 +168,6 @@
         full_name: form.full_name.value.trim(),
         email: emailVal,
         phone: (window.OKPhone ? window.OKPhone.full(form.phone) : form.phone.value.trim()),
-        address: form.address.value.trim(),
         password: passVal,
         password_confirm: form.password_confirm.value
       };
@@ -256,7 +255,7 @@
         e.preventDefault();
         clearAlert(infoBox);
         var btn = qs('button[type="submit"]', infoForm);
-        var payload = { full_name: infoForm.full_name.value.trim(), phone: (window.OKPhone ? window.OKPhone.full(infoForm.phone) : infoForm.phone.value.trim()), address: infoForm.address.value.trim() };
+        var payload = { full_name: infoForm.full_name.value.trim(), phone: (window.OKPhone ? window.OKPhone.full(infoForm.phone) : infoForm.phone.value.trim()) };
         setLoading(btn, true);
         api("me.php", "PUT", payload, true).then(function (res) {
           setLoading(btn, false, "Guardar cambios");
@@ -340,7 +339,6 @@
     if (f) {
       if (f.full_name) f.full_name.value = u.full_name || "";
       if (f.phone) { if (window.OKPhone) window.OKPhone.set(f.phone, u.phone || ""); else f.phone.value = u.phone || ""; }
-      if (f.address) f.address.value = u.address || "";
     }
     /* Acceso al panel solo para staff (oculto para clientes) */
     var adminLink = qs("#profile-admin-link");
