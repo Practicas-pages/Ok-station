@@ -154,13 +154,6 @@
       { name: "Ana López", email: "ana@ejemplo.com", phone: "664 100 0003", orders: 12, active: true, joined: "2025-11-20" },
       { name: "Diego Salas", email: "diego@ejemplo.com", phone: "664 100 0004", orders: 1, active: false, joined: "2026-05-30" }
     ],
-    services: [
-      { name: "Copias fotostáticas", category: "Impresión y copias", price: 1.30, unit: "hoja (desde)", active: true },
-      { name: "Impresión de fotografías", category: "Fotografía", price: 10, unit: "foto 10×15", active: true },
-      { name: "Fotos para trámites", category: "Fotografía", price: 55, unit: "paquete (desde)", active: true },
-      { name: "Engargolado", category: "Acabados", price: 45, unit: "pieza (mediano)", active: true },
-      { name: "Enmicado", category: "Acabados", price: 20, unit: "carta", active: true }
-    ],
     reviews: [
       { name: "Karla T.", rating: 5, comment: "Rápido y excelente atención.", status: "aprobada", date: "2026-06-09" },
       { name: "Jorge R.", rating: 5, comment: "Mi tesis quedó impecable.", status: "pendiente", date: "2026-06-10" },
@@ -216,7 +209,6 @@
       return apiGet("/orders/get.php?id=" + encodeURIComponent(id));
     },
     users:    function () { return DEMO ? Promise.resolve(MOCK.users)    : apiGet("/admin/users.php").then(function (j) { return j.users || []; }); },
-    services: function () { return DEMO ? Promise.resolve(MOCK.services) : apiGet("/admin/services.php").then(function (j) { return j.services || []; }); },
     reviews:  function () { return DEMO ? Promise.resolve(MOCK.reviews)  : apiGet("/admin/reviews.php").then(function (j) { return j.reviews || []; }); },
     moderateReview: function (id, action) { return DEMO ? Promise.resolve({ ok: true }) : apiPost("/admin/review-moderate.php", { id: id, action: action }); },
     toggleUser: function (id, active) { return DEMO ? Promise.resolve({ ok: true }) : apiPost("/admin/user-toggle.php", { id: id, active: active }); },
@@ -1167,18 +1159,8 @@
     var el = $("#appt-search"); if (el) el.value = code;
     renderAppointments("", "");
   }
-  function renderServices() {
-    var head = '<thead><tr><th>Servicio</th><th>Categoría</th><th>Precio</th><th>Unidad</th><th>Estado</th><th></th></tr></thead>';
-    DataSource.services().then(function (list) {
-      var body = list.map(function (s) {
-        var active = +s.active ? 1 : 0;
-        return '<tr><td><b>' + esc(s.name) + '</b></td><td>' + esc(s.category) + '</td><td class="mono">' + mxn(parseFloat(s.price) || 0) + '</td><td>' + esc(s.unit) + '</td>' +
-          '<td><span class="badge badge--' + (active ? "listo" : "oculta") + '">' + (active ? "Activo" : "Inactivo") + '</span></td>' +
-          '<td><button class="admin-btn-sm" disabled title="Edición de servicios: próxima fase">Editar</button></td></tr>';
-      }).join("");
-      $("#services-table").innerHTML = head + '<tbody>' + body + '</tbody>';
-    });
-  }
+  /* La vista "Servicios" se retiró (jul 2026): la tabla `services` nunca tuvo
+     datos ni consumidores; los precios se administran en la vista "Precios". */
   var reviewSearch = "";
   function renderReviews() {
     var STR = { pendiente: "Pendiente", aprobada: "Aprobada", oculta: "Oculta" };
@@ -1390,7 +1372,7 @@
   /* ============================================================
      NAVEGACIÓN ENTRE VISTAS
      ============================================================ */
-  var TITLES = { dashboard: "Dashboard", pedidos: "Pedidos", citas: "Citas", usuarios: "Usuarios", servicios: "Servicios", resenas: "Reseñas", reportes: "Reportes", precios: "Precios" };
+  var TITLES = { dashboard: "Dashboard", pedidos: "Pedidos", citas: "Citas", usuarios: "Usuarios", resenas: "Reseñas", reportes: "Reportes", precios: "Precios" };
   var rendered = {};
   function showView(view) {
     /* Blindaje: el empleado puro no entra a Usuarios ni Reportes aunque fuerce la URL/nav. */
@@ -1404,7 +1386,6 @@
       if (view === "pedidos") renderOrdersTable();
       if (view === "citas") renderAppointments("");
       if (view === "usuarios") renderUsers();
-      if (view === "servicios") renderServices();
       if (view === "resenas") renderReviews();
       if (view === "reportes") renderReport();
       if (view === "precios") renderPricing();

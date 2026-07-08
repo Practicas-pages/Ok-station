@@ -40,10 +40,10 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
         Usuarios
       </button>
-      <button class="admin-nav__item" data-view="servicios">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>
-        Servicios
-      </button>
+      <!-- La vista "Servicios" se retiró (jul 2026): la tabla `services` nunca se
+           llenó ni se usa — los precios reales se administran en la pestaña
+           "Precios" (settings). Si algún día se construye el catálogo editable,
+           ver git log (renderServices en admin.js y admin/services.php). -->
       <button class="admin-nav__item" data-view="resenas">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
         Reseñas
@@ -157,16 +157,12 @@
         </div>
       </section>
 
-      <!-- USUARIOS / SERVICIOS / RESEÑAS (estructura lista, datos simulados) -->
+      <!-- USUARIOS / RESEÑAS -->
       <section data-view="usuarios" hidden>
         <div class="admin-toolbar">
           <input type="search" class="admin-search" id="user-search" placeholder="Buscar por nombre, correo o teléfono…" aria-label="Buscar usuario" autocomplete="off">
         </div>
         <div class="admin-card"><div class="table-wrap"><table class="admin-table" id="users-table"></table></div></div>
-      </section>
-
-      <section data-view="servicios" hidden>
-        <div class="admin-card"><div class="table-wrap"><table class="admin-table" id="services-table"></table></div></div>
       </section>
 
       <section data-view="resenas" hidden>
