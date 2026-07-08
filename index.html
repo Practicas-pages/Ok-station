@@ -65,7 +65,8 @@
   <!-- Preload de la imagen del hero (elemento LCP): el navegador la baja cuanto
        antes para reducir el Largest Contentful Paint, sobre todo en móvil.
        IMPORTANTE: si cambias la foto del hero, actualiza también este href. -->
-  <link rel="preload" as="image" href="assets/img/provisional.webp" fetchpriority="high">
+  <link rel="preload" as="image" href="assets/img/provisional.webp"
+    imagesrcset="assets/img/provisional-800.webp 828w, assets/img/provisional.webp 1600w" imagesizes="100vw" fetchpriority="high">
 
   <!-- ===================== TIPOGRAFÍA (Poppins) ===================== -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -264,7 +265,9 @@
       <div class="hero__bg" aria-hidden="true">
         <!-- Foto de Ok.station de fondo (en assets/img/hero-okstation.webp).
              Si no existe, se oculta sola y el hero se ve con el degradado oscuro. -->
-        <img class="hero__bg-img" src="assets/img/provisional.webp" alt="" loading="eager" fetchpriority="high" decoding="async"
+        <img class="hero__bg-img" src="assets/img/provisional.webp"
+          srcset="assets/img/provisional-800.webp 828w, assets/img/provisional.webp 1600w" sizes="100vw"
+          alt="" loading="eager" fetchpriority="high" decoding="async"
           onerror="this.style.display='none'">
         <div class="hero__bg-overlay"></div>
         <div class="hero__photo-zone" aria-hidden="true"></div>
