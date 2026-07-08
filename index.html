@@ -1082,7 +1082,27 @@
           <span class="eyebrow eyebrow--cyan">Reseñas verificadas en Google</span>
         </div>
         <div id="featurable-30bf3581-fa31-45bf-b825-63cf9e6bb10e" data-featurable-async style="display:block; margin-top: var(--space-5)"></div>
-        <script src="https://cdn.featurable.com/widget/v2/embed.js" defer charset="UTF-8"></script>
+        <!-- Widget de reseñas (Featurable, terceros): se carga cuando la seccion entra
+             en viewport, para no bloquear el hilo principal en la carga inicial (baja TBT). -->
+        <script>
+          (function () {
+            var el = document.getElementById("featurable-30bf3581-fa31-45bf-b825-63cf9e6bb10e");
+            if (!el) return;
+            var done = false;
+            function load() {
+              if (done) return; done = true;
+              var s = document.createElement("script");
+              s.src = "https://cdn.featurable.com/widget/v2/embed.js"; s.async = true; s.charset = "UTF-8";
+              document.head.appendChild(s);
+            }
+            if ("IntersectionObserver" in window) {
+              var io = new IntersectionObserver(function (entries) {
+                if (entries.some(function (e) { return e.isIntersecting; })) { load(); io.disconnect(); }
+              }, { rootMargin: "400px" });
+              io.observe(el);
+            } else { load(); }
+          })();
+        </script>
       </div>
     </section>
 
@@ -1378,8 +1398,22 @@
 <script src="assets/reviews.js?v=20260625" defer></script>
 <script src="assets/session-nav.js?v=20260630c" defer></script>
 <!-- Configurador de pedido embebido (#fotos): librerías de ticket PDF + QR y lógica -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" defer></script>
+<!-- jsPDF + QRCode: se cargan en tiempo IDLE (no en la carga crítica) para reducir el
+     Total Blocking Time. Solo se usan al generar un PDF (ticket/pedido), mucho despues,
+     asi que estan listos de sobra cuando el usuario los necesita. -->
+<script>
+  (function () {
+    function loadPdfLibs() {
+      ["https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js",
+       "https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"].forEach(function (src) {
+        if (document.querySelector('script[src="' + src + '"]')) return;
+        var s = document.createElement("script"); s.src = src; s.async = true; document.head.appendChild(s);
+      });
+    }
+    if ("requestIdleCallback" in window) requestIdleCallback(loadPdfLibs, { timeout: 4000 });
+    else window.addEventListener("load", function () { setTimeout(loadPdfLibs, 1500); });
+  })();
+</script>
 <script src="assets/order.js?v=20260708a" defer></script>
 <!-- Comprobante PDF de cita (compartido con perfil y admin) -->
 <script src="assets/cita-ticket.js?v=20260707d" defer></script>
