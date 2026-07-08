@@ -109,6 +109,14 @@
   .file-cfg { grid-template-columns: 1fr 1fr; }
 }
 @media (max-width: 480px) { .file-cfg { grid-template-columns: 1fr; } }
+/* Móvil: iOS hace ZOOM al enfocar campos <16px, y los controles del
+   configurador quedaban por debajo del área táctil recomendada (~44px). */
+@media (max-width: 768px) {
+  .file-cfg select, .order-summary textarea { font-size: 16px; }
+  .file-cfg select { min-height: 44px; }
+  .seg button { min-height: 44px; }
+  .qty button { width: 44px; height: 44px; }
+}
 
 /* Badges de estado (historial) */
 .ostatus { display: inline-flex; align-items: center; gap: 5px; font-size: 0.72rem; font-weight: 600; padding: 3px 10px; border-radius: var(--radius-full); white-space: nowrap; }

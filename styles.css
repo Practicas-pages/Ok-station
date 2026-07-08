@@ -4934,8 +4934,13 @@ body {
    MÓVIL — ajustes finos de usabilidad (≤768px)
    ============================================================ */
 @media (max-width: 768px) {
-  /* iOS: evita el ZOOM automático al enfocar un campo (exige ≥16px). */
-  input, select, textarea { font-size: 16px; }
+  /* iOS: evita el ZOOM automático al enfocar un campo (exige ≥16px).
+     Se repite con los selectores de componente porque `.field input` (15px)
+     y `.order-summary .input-prefix input` (0.95rem, teléfono del pedido)
+     ganan en especificidad al `input` a secas y el zoom volvía. */
+  input, select, textarea,
+  .field input, .field select, .field textarea,
+  .order-summary .input-prefix input { font-size: 16px; }
 
   /* Áreas táctiles cómodas (mínimo recomendado ~44px). */
   .time-slot { min-height: 44px; }

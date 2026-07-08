@@ -215,4 +215,7 @@
   .auth-row { grid-template-columns: 1fr; }
   .profile-grid { grid-template-columns: 1fr; }
   .profile-side { position: static; }
+  /* iOS: evita el ZOOM automático al enfocar (exige ≥16px). El 15px de
+     .auth-field input ganaba en especificidad al arreglo global de styles.css. */
+  .auth-field input, .auth-field select, .auth-field textarea { font-size: 16px; }
 }
