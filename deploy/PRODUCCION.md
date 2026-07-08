@@ -72,7 +72,22 @@ El **esquema** (`orders`, `order_items`, `uploaded_files`, `orders.ticket_path`)
 - Endpoints `orders/*` (crear pedido + items + subir archivos a `uploads/`) y la **generación del ticket PDF** (a `tickets/`, guardando la ruta en `orders.ticket_path`).
 Es la siguiente fase; el resto ya queda productivo.
 
-## 9. Verificación rápida
+## 9. Publicar cambios (día a día)
+```bash
+bash deploy/publicar.sh
+```
+Hace `git pull` y además **re-versiona automáticamente** todos los `?v=` de los
+`.html` con el hash del commit publicado (cache-busting). Con eso:
+- Los visitantes ven los cambios en su **siguiente visita o con F5 normal** —
+  nunca hace falta Ctrl+Shift+R ni vaciar caché.
+- Ya **no hay que subir el `?v=` a mano** al editar `styles.css`, `app.js` o
+  cualquier asset (aunque no estorba si alguien lo hace).
+> Nota: por esta reescritura, en el servidor los `.html` aparecen modificados
+> en `git status`; es normal. `publicar.sh` los restaura antes de cada pull.
+> Si haces un `git pull` manual en el servidor, corre antes:
+> `git checkout -- '*.html'`
+
+## 10. Verificación rápida
 ```bash
 # Registro (usa tu correo de ADMIN_EMAILS)
 curl -X POST https://TU_DOMINIO/backend/api/register.php -H "Content-Type: application/json" \
