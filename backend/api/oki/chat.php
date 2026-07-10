@@ -98,7 +98,13 @@ $ip = $_SERVER['HTTP_X_FORWARDED_FOR'] ?? $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
 $ip = trim(explode(',', $ip)[0]);
 oki_rate_limit($ip);
 
-/* ── 3) Cerebro por reglas ── */
+/* ── 3) ¿Navegación directa? ("llévame a agendar mi cita…") ── */
+$nav = oki_navigate(oki_norm($text));
+if ($nav !== null) {
+    respond(['ok' => true, 'reply' => $nav['reply'], 'go' => $nav['go']]);
+}
+
+/* ── 4) Cerebro por reglas ── */
 $reply = oki_brain_reply($text, $prev);
 
 /* ── 4) Regla de oro: si no reconoce, deriva a WhatsApp (no inventa) ── */

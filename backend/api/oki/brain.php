@@ -194,6 +194,43 @@ function oki_acta_estado(string $t, string $prev): ?string
     return null;
 }
 
+/** Navegación directa: "llévame a...". Devuelve ['reply'=>, 'go'=>url] o null. $t ya normalizado. */
+function oki_navigate(string $t): ?array
+{
+    $nav = preg_match('/\b(llevame|llevar|llevas|vamos a|quiero ir|mandame|dirigeme|ir a|abreme|dame el link)\b/', $t)
+        || mb_strpos($t, 'donde hago') !== false
+        || mb_strpos($t, 'donde puedo hacer') !== false;
+    if (!$nav) return null;
+
+    if (mb_strpos($t,'requisito')!==false)
+        return ['reply'=>"Te llevo a los requisitos del pasaporte 📋", 'go'=>"/requisitos-pasaporte-tijuana.html"];
+
+    if (mb_strpos($t,'pagar')!==false || mb_strpos($t,'pago')!==false)
+        return ['reply'=>"Te llevo a tu perfil para pagar tus pedidos o citas 💳", 'go'=>"/perfil.html"];
+
+    if (mb_strpos($t,'cita')!==false || mb_strpos($t,'agendar')!==false || mb_strpos($t,'agendo')!==false
+        || mb_strpos($t,'pasaporte')!==false || mb_strpos($t,'visa')!==false || mb_strpos($t,'sentri')!==false
+        || mb_strpos($t,'tramite')!==false)
+        return ['reply'=>"¡Claro! Te llevo a agendar tu cita 🚀 (para agendar necesitas cuenta).", 'go'=>"/#citas"];
+
+    if (mb_strpos($t,'imprimir')!==false || mb_strpos($t,'imprime')!==false || mb_strpos($t,'subir')!==false
+        || mb_strpos($t,'archivo')!==false || mb_strpos($t,'foto')!==false || mb_strpos($t,'copia')!==false
+        || mb_strpos($t,'pedido')!==false)
+        return ['reply'=>"¡Va! Te llevo a subir tus archivos e imprimir 🖨️", 'go'=>"/#fotos"];
+
+    if (mb_strpos($t,'ubica')!==false || mb_strpos($t,'como llego')!==false || mb_strpos($t,'como llegar')!==false
+        || mb_strpos($t,'mapa')!==false || mb_strpos($t,'visitanos')!==false || mb_strpos($t,'direccion')!==false)
+        return ['reply'=>"Te llevo al mapa para llegar 📍", 'go'=>"/#visitanos"];
+
+    if (mb_strpos($t,'cuenta')!==false || mb_strpos($t,'registr')!==false || mb_strpos($t,'sesion')!==false || mb_strpos($t,'login')!==false)
+        return ['reply'=>"Te llevo a tu cuenta 👤", 'go'=>"/cuenta.html"];
+
+    if (mb_strpos($t,'contact')!==false)
+        return ['reply'=>"Te llevo a Contáctanos 📞", 'go'=>"/contactanos.html"];
+
+    return null; // hay verbo de navegación pero no reconozco el destino → deja que el cerebro conteste
+}
+
 /** Devuelve la respuesta de OKi, o null si no reconoce el mensaje. */
 function oki_brain_reply(string $text, string $prev = ''): ?string
 {

@@ -267,6 +267,10 @@
           "Uy, no pude procesar eso. Escríbenos por WhatsApp: 664 719 4117 (" + WA + ").";
         addMsg(reply, "bot");
         history.push({ role: "assistant", content: reply });
+        // Navegación directa: OKi lleva al usuario a la sección pedida.
+        if (data && data.go) {
+          setTimeout(function () { window.location.href = data.go; }, 950);
+        }
       })
       .catch(function () {
         typing(false);
