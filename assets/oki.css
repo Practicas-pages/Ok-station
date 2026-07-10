@@ -110,3 +110,4 @@
 .oki-list-clear{flex:0 0 auto;border:1.5px solid var(--line2);background:#fff;color:var(--ink2);border-radius:var(--r-full);padding:8px 14px;font-weight:700;font-size:.78rem;cursor:pointer}
 .oki-list-send{flex:1;border:0;background:var(--grad-blue);color:#fff;border-radius:var(--r-full);padding:8px 14px;font-weight:800;font-size:.82rem;cursor:pointer;box-shadow:var(--sh-blue)}
 .oki-list-send:disabled{opacity:.5;cursor:default;box-shadow:none}
+.oki-list-soon{margin-left:auto;color:var(--muted);font-size:.72rem;font-weight:600;align-self:center;text-align:right}

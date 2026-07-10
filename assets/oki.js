@@ -93,19 +93,12 @@
         li.appendChild(s); li.appendChild(x); ul.appendChild(li);
       });
     }
-    var send = document.getElementById("oki-list-send");
-    if (send) send.disabled = !listItems.length;
   }
   function showList() {
     panel.setAttribute("data-view", "list"); renderList();
     setTimeout(function () { var i = document.getElementById("oki-list-input"); if (i) i.focus(); }, 150);
   }
   function showChat() { panel.setAttribute("data-view", "chat"); }
-  function sendList() {
-    if (!listItems.length) return;
-    var txt = "Hola, quiero cotizar/pedir esto en Ok.station:\n" + listItems.map(function (x) { return "• " + x; }).join("\n");
-    window.open(WA + "?text=" + encodeURIComponent(txt), "_blank");
-  }
 
   function build() {
     if (document.getElementById("oki-dock")) return;
@@ -144,16 +137,16 @@
       '<input id="oki-text" placeholder="Escríbele a OKi…" aria-label="Mensaje para OKi">' +
       '<button type="submit" aria-label="Enviar">➤</button>' +
       '</form></div>' +
-      // Vista MI LISTA (armar pedido/papelería y mandarlo por WhatsApp)
+      // Vista MI LISTA (arma tu pedido; se conectará al e-commerce cuando exista)
       '<div class="oki-view oki-view--list">' +
-      '<div class="oki-list-head">📝 Mi lista <small>Arma lo que necesitas y mándalo por WhatsApp</small></div>' +
+      '<div class="oki-list-head">📝 Mi lista <small>Guarda lo que necesitas para tu pedido</small></div>' +
       '<form class="oki-list-add" id="oki-list-form" autocomplete="off">' +
       '<input id="oki-list-input" placeholder="Ej. 2 resmas de papel carta" aria-label="Agregar a la lista">' +
       '<button type="submit" aria-label="Agregar">＋</button></form>' +
       '<ul class="oki-list-items" id="oki-list-items"></ul>' +
       '<div class="oki-list-actions">' +
       '<button type="button" id="oki-list-clear" class="oki-list-clear">Vaciar</button>' +
-      '<button type="button" id="oki-list-send" class="oki-list-send">Enviar por WhatsApp</button>' +
+      '<span class="oki-list-soon">🛒 Pronto podrás pedir en línea</span>' +
       '</div></div>' +
       '</div>'
     );
@@ -194,7 +187,6 @@
     document.getElementById("oki-list-clear").addEventListener("click", function () {
       if (listItems.length) { listItems = []; saveList(); renderList(); }
     });
-    document.getElementById("oki-list-send").addEventListener("click", sendList);
     loadList();
 
     // Cerrar al hacer clic fuera del panel.
