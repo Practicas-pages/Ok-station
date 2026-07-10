@@ -1,0 +1,689 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tienda en línea — OK.station</title>
+<link rel="icon" href="/assets/img/OKD-Isotipo-Azul-96.png" type="image/png" sizes="96x96">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap">
+<link rel="stylesheet" href="styles.css">
+<style>
+
+#site{
+    --paper:#F5F8FD; --card:#fff; --ink:#12141C; --muted:#5b6474; --line:#E3E8F1;
+    --blue:#066CFF; --cyan:#00C6FF; --purple:#9C1DFF; --green:#0E9F6E; --amber:#FF8A00;
+    --grad:linear-gradient(100deg,#9C1DFF,#066CFF 55%,#00C6FF);
+    --sans:"Segoe UI",system-ui,-apple-system,Roboto,Arial,sans-serif;
+    --sh:0 1px 3px rgba(18,20,28,.06); --sh2:0 8px 26px rgba(18,20,28,.1);
+    
+    --blue-l:#EAF1FF; --blue-h:#0558CC; --ink2:#4A5068; --line2:#C8CEDF; --soft:#F4F6FD;
+    --good:#0F7B4D; --bad:#B91C1C; --wa:#25D366; --orange:#FF7C19;
+    --grad-blue:linear-gradient(135deg,#066CFF,#00C6FF); --grad-cyan:linear-gradient(135deg,#0096FF,#00C6FF); --grad-deep:linear-gradient(135deg,#0558CC,#066CFF);
+    --r-full:9999px; --r-md:16px; --r-sm:10px; --r-xs:6px;
+    --sh-sm:0 4px 12px rgba(12,20,50,.07),0 2px 4px rgba(12,20,50,.04); --sh-md:0 12px 32px rgba(12,20,50,.09),0 4px 12px rgba(12,20,50,.05); --sh-blue:0 14px 40px rgba(6,108,255,.30),0 4px 16px rgba(6,108,255,.18);
+  }
+#site *{box-sizing:border-box; min-width:0}
+#site{font-family:var(--sans); color:var(--ink); background:var(--paper); font-size:15px; min-height:100vh; overflow-x:clip}
+#site button{font-family:inherit; cursor:pointer}
+#site img,#site svg{max-width:100%}
+#site :focus-visible{outline:2px solid var(--blue); outline-offset:2px}
+#site .view{display:none}
+#site .view.on{display:block}
+#site .wrap{max-width:1180px; margin:0 auto; padding:0 clamp(14px,4vw,40px)}
+#site .ph{background:linear-gradient(135deg,#eef2f8,#e5ebf4); border:2px dashed #b9c6da; border-radius:14px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px; color:#8b99b0; position:relative; overflow:hidden; text-align:center; padding:8px}
+#site .ph svg{width:clamp(26px,5vw,38px); height:auto}
+#site .ph small{font-size:.62rem; font-weight:700; letter-spacing:.08em; text-transform:uppercase}
+#site .ph.lg svg{width:clamp(40px,7vw,58px)}
+#site .headerbar{background:var(--grad); color:#fff; display:flex; align-items:center; gap:16px; padding:7px clamp(14px,4vw,40px); font-size:.78rem; font-weight:600}
+#site .headerbar a{color:#fff; text-decoration:none; opacity:.95}
+#site .headerbar .hb-links{display:flex; gap:16px}
+#site .headerbar .tag{flex:1; text-align:center; opacity:.95; font-weight:500}
+#site .headerbar .soc{display:flex; gap:8px}
+#site .headerbar .soc span{width:24px;height:24px;border-radius:7px;background:rgba(255,255,255,.2);display:grid;place-items:center}
+#site .siteheader{background:#fff; border-bottom:1px solid var(--line); display:flex; align-items:center; gap:clamp(8px,2vw,18px); padding:12px clamp(14px,4vw,40px); position:sticky; top:0; z-index:40}
+#site .logo{font-weight:800; font-size:clamp(1.1rem,3.4vw,1.3rem); letter-spacing:-.02em; white-space:nowrap}
+#site .logo b{color:var(--blue)}
+#site .mainnav{display:flex; align-items:center; gap:clamp(14px,2.2vw,24px); margin:0 auto}
+#site .mainnav a{text-decoration:none; color:#33404f; font-weight:600; font-size:.92rem; padding-bottom:3px; border-bottom:2px solid transparent; white-space:nowrap}
+#site .mainnav a:hover,#site .mainnav a.act{color:var(--blue); border-color:var(--blue)}
+#site .navtienda{flex:none; border:none; background:var(--grad); color:#fff; padding:8px 14px; border-radius:11px; display:inline-flex; align-items:center; gap:7px; box-shadow:0 4px 13px rgba(6,108,255,.3); font-weight:700; font-size:.9rem; white-space:nowrap}
+#site .navtienda:hover{filter:brightness(1.06)}
+#site .navtienda .nuevo{background:#FFE000; color:#0a1a3a; font-size:.58rem; font-weight:800; padding:2px 6px; border-radius:6px; letter-spacing:.04em}
+#site .hactions{display:flex; gap:9px; flex:none}
+#site .btnlight{border:1px solid var(--line); background:#fff; border-radius:99px; padding:9px 15px; font-weight:700; font-size:.85rem; display:flex; gap:6px; align-items:center; white-space:nowrap}
+#site .btnwa{border:none; background:#25D366; color:#fff; border-radius:99px; padding:9px 16px; font-weight:700; font-size:.85rem; display:flex; gap:6px; align-items:center; white-space:nowrap}
+#site .home-hero{position:relative; min-height:clamp(400px,60vh,600px); display:flex; align-items:center; padding:clamp(24px,5vw,56px) clamp(14px,4vw,40px)}
+#site .home-hero .ph{position:absolute; inset:0; border-radius:0; border-width:0; border-bottom:2px dashed #b9c6da}
+#site .home-hero .ph::after{content:""; position:absolute; inset:0; background:linear-gradient(90deg,rgba(8,12,26,.82),rgba(8,12,26,.5) 55%,rgba(8,12,26,.15))}
+#site .home-hero .inner{position:relative; z-index:2; color:#fff; max-width:640px}
+#site .hero-badge{display:inline-flex; gap:7px; align-items:center; background:rgba(255,255,255,.14); border:1px solid rgba(255,255,255,.28); border-radius:99px; padding:7px 14px; font-size:.76rem; font-weight:700}
+#site .home-hero h1{font-size:clamp(2rem,5.5vw,3.4rem); font-weight:800; line-height:1.03; letter-spacing:-.03em; margin:16px 0 14px; text-wrap:balance}
+#site .home-hero h1 .b{color:#3b9bff}
+#site .home-hero p{font-size:clamp(1rem,2vw,1.15rem); color:rgba(255,255,255,.9); max-width:40ch; margin:0 0 24px}
+#site .hero-btns{display:flex; gap:12px; flex-wrap:wrap}
+#site .hb-primary{border:none; background:var(--blue); color:#fff; font-weight:800; padding:14px 24px; border-radius:13px}
+#site .hb-ghost{border:none; background:#fff; color:var(--ink); font-weight:800; padding:14px 24px; border-radius:13px}
+#site .promostrip{position:sticky; top:0; z-index:35; background:#0a1a3a; color:#fff; display:flex; align-items:center; gap:12px; padding:9px clamp(14px,4vw,40px); font-size:.85rem; font-weight:600; flex-wrap:wrap}
+#site .promostrip .ps-txt{display:flex; align-items:center; gap:9px}
+#site .promostrip .k{background:#FFE000; color:#0a1a3a; font-size:.62rem; font-weight:800; padding:2px 7px; border-radius:6px; letter-spacing:.04em}
+#site .promostrip .gostore{margin-left:auto}
+#site .gostore{border:none; background:var(--grad); color:#fff; font-weight:800; padding:10px 20px; border-radius:11px; font-size:.9rem; display:inline-flex; align-items:center; gap:7px; box-shadow:0 5px 16px rgba(6,108,255,.3)}
+#site .gostore:hover{filter:brightness(1.06)}
+#site .sec{padding:clamp(34px,5.5vw,60px) 0}
+#site .eyebrow{font-size:.72rem; font-weight:800; letter-spacing:.14em; text-transform:uppercase; color:var(--blue)}
+#site .sec h2{font-size:clamp(1.5rem,3.6vw,2.15rem); font-weight:800; letter-spacing:-.02em; margin:.15em 0 .12em; text-wrap:balance; line-height:1.1}
+#site .sec .lead{color:var(--muted); font-size:clamp(.95rem,1.6vw,1.05rem); margin:0 0 22px; max-width:60ch}
+#site .head-row{display:flex; align-items:flex-end; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-bottom:18px}
+#site .see-all{color:var(--blue); font-weight:700; font-size:.86rem; text-decoration:none; white-space:nowrap}
+#site .store-hero{padding:clamp(28px,5vw,56px) 0}
+#site .sh-grid{display:grid; grid-template-columns:1fr 1.12fr; gap:clamp(16px,3vw,36px); align-items:center}
+#site .sh-copy h1{font-size:clamp(1.9rem,5vw,3rem); font-weight:800; line-height:1.05; letter-spacing:-.03em; margin:12px 0 12px; text-wrap:balance}
+#site .sh-copy h1 .hl{background:var(--grad); -webkit-background-clip:text; background-clip:text; color:transparent}
+#site .sh-copy p{color:var(--muted); font-size:clamp(1rem,2vw,1.18rem); max-width:46ch; margin:0 0 18px}
+#site .sh-rating{display:flex; align-items:center; gap:10px; margin-bottom:16px; flex-wrap:wrap}
+#site .stars{color:#FFB100; letter-spacing:2px; font-size:1.05rem}
+#site .sh-rating b{font-weight:800}
+#site .sh-rating span{color:var(--muted); font-size:.86rem}
+#site .price-anchor{display:flex; align-items:baseline; gap:12px; flex-wrap:wrap; margin-bottom:6px}
+#site .price-anchor .now{font-size:clamp(1.8rem,4vw,2.4rem); font-weight:800; font-variant-numeric:tabular-nums}
+#site .price-anchor .was{color:var(--muted); text-decoration:line-through; font-weight:600}
+#site .price-anchor .save{background:#e7f8f0; color:var(--green); font-weight:800; font-size:.75rem; padding:5px 10px; border-radius:8px}
+#site .reframe{color:var(--muted); font-size:.9rem; margin:0 0 18px}
+#site .reframe b{color:var(--ink)}
+#site .sh-cta{display:flex; gap:12px; flex-wrap:wrap; align-items:center}
+#site .sh-cta .gostore{padding:14px 26px; font-size:1.02rem}
+#site .sh-mini{font-size:.8rem; color:var(--muted); display:flex; align-items:center; gap:6px}
+#site .sh-media{position:relative; margin-left:clamp(-56px,-3vw,0px)}
+#site .sh-carousel{position:relative; width:100%; aspect-ratio:5/4; border:2px dashed #b9c6da; border-radius:20px; overflow:hidden; background:#eef2f8}
+#site .sh-slide{position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px; color:#8b99b0; text-align:center; padding:14px; opacity:0; transition:opacity .9s ease}
+#site .sh-slide.on{opacity:1}
+#site .sh-slide svg{width:clamp(48px,8vw,78px); height:auto; opacity:.85}
+#site .sh-slide small{font-size:clamp(.62rem,1.4vw,.74rem); font-weight:800; letter-spacing:.09em; text-transform:uppercase}
+#site .sh-slide .imgtag{position:absolute; top:12px; left:12px; display:flex; align-items:center; gap:6px; background:rgba(255,255,255,.85); color:#5b6474; font-size:.58rem; font-weight:800; letter-spacing:.07em; text-transform:uppercase; padding:5px 9px; border-radius:8px}
+#site .sh-dots{position:absolute; bottom:12px; left:50%; transform:translateX(-50%); display:flex; gap:7px; z-index:3}
+#site .sh-dots button{width:8px; height:8px; padding:0; border:none; border-radius:99px; background:rgba(91,100,116,.35); transition:.25s}
+#site .sh-dots button.on{background:var(--blue); width:22px}
+#site .sh-media .float{position:absolute; bottom:14px; left:-10px; z-index:4; background:#fff; border:1px solid var(--line); border-radius:13px; padding:10px 14px; box-shadow:var(--sh2); display:flex; align-items:center; gap:9px; font-size:.82rem; font-weight:700; max-width:82%}
+#site .sh-media .float .ic{width:34px; height:34px; border-radius:9px; background:#e7f8f0; color:var(--green); display:grid; place-items:center; flex:none}
+#site .trustbar{background:#fff; border:1px solid var(--line); border-radius:18px; padding:clamp(14px,2vw,20px); display:grid; grid-template-columns:repeat(4,1fr); gap:14px; box-shadow:var(--sh)}
+#site .tb{display:flex; gap:11px; align-items:center; min-width:0}
+#site .tb svg{color:var(--blue); flex:none}
+#site .tb b{display:block; font-size:.88rem; line-height:1.15}
+#site .tb span{font-size:.76rem; color:var(--muted)}
+#site .proof{text-align:center}
+#site .proof .nums{display:flex; justify-content:center; gap:clamp(18px,5vw,60px); flex-wrap:wrap; margin-bottom:26px}
+#site .proof .nums .n{font-size:clamp(1.8rem,4vw,2.6rem); font-weight:800; color:var(--blue); line-height:1}
+#site .proof .nums small{display:block; color:var(--muted); font-size:.82rem; margin-top:5px; font-weight:600}
+#site .logos{display:grid; grid-template-columns:repeat(auto-fit,minmax(120px,1fr)); gap:14px; max-width:820px; margin:0 auto}
+#site .logos .ph{height:60px}
+#site .pain-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:16px}
+#site .paincard{background:#fff; border:1px solid var(--line); border-left:4px solid var(--amber); border-radius:14px; padding:20px; box-shadow:var(--sh)}
+#site .paincard .em{font-size:1.5rem}
+#site .paincard h4{margin:8px 0 5px; font-size:1.02rem}
+#site .paincard p{margin:0; color:var(--muted); font-size:.9rem; line-height:1.4}
+#site .sol{background:#0a1a3a; color:#fff; border-radius:24px; overflow:hidden}
+#site .sol-grid2{display:grid; grid-template-columns:1fr 1fr; gap:0; align-items:stretch}
+#site .sol-copy{padding:clamp(24px,4vw,44px)}
+#site .sol-copy .eyebrow{color:#8fe6ff}
+#site .sol-copy h2{color:#fff; font-size:clamp(1.5rem,3.4vw,2.1rem); font-weight:800; margin:10px 0 10px; line-height:1.1}
+#site .sol-copy p{color:rgba(255,255,255,.82); margin:0 0 18px}
+#site .mech{list-style:none; padding:0; margin:0 0 22px; display:grid; gap:12px}
+#site .mech li{display:flex; gap:12px; align-items:flex-start}
+#site .mech li .num{width:28px; height:28px; border-radius:8px; background:rgba(255,255,255,.14); display:grid; place-items:center; font-weight:800; font-size:.85rem; flex:none; color:#8fe6ff}
+#site .mech li b{display:block}
+#site .mech li span{color:rgba(255,255,255,.72); font-size:.86rem}
+#site .sol-media{position:relative; min-height:280px}
+#site .sol-media .ph{position:absolute; inset:0; border-radius:0; border-width:0; background:linear-gradient(135deg,#12244f,#0a1a3a); border-left:2px dashed rgba(255,255,255,.2); color:rgba(255,255,255,.5)}
+#site .cat-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:14px}
+#site .ctile{border:1px solid var(--line); background:#fff; border-radius:16px; padding:12px; cursor:pointer; text-align:center; transition:transform .12s; box-shadow:var(--sh)}
+#site .ctile:hover{transform:translateY(-3px); border-color:#c3d3f0}
+#site .ctile .ph{height:92px; margin-bottom:10px}
+#site .ctile b{font-size:.88rem; font-weight:800; display:block}
+#site .ctile span{font-size:.72rem; color:var(--blue); font-weight:700}
+#site .deal-band{background:linear-gradient(100deg,#FF8A00,#FF5E3A); color:#fff; border-radius:22px; padding:clamp(20px,4vw,32px); display:grid; grid-template-columns:1fr auto; gap:18px; align-items:center; box-shadow:0 12px 30px rgba(255,94,58,.25)}
+#site .deal-band h2{color:#fff; margin:0}
+#site .deal-band p{color:rgba(255,255,255,.92); margin:6px 0 0}
+#site .countdown{display:flex; gap:7px; margin-top:12px}
+#site .countdown b{background:rgba(255,255,255,.2); border-radius:8px; padding:6px 10px; font-variant-numeric:tabular-nums; font-size:1.05rem; min-width:42px; text-align:center}
+#site .btn-w{background:#fff; color:#FF5E3A; border:none; font-weight:800; padding:14px 26px; border-radius:12px; white-space:nowrap; align-self:center}
+#site .feat{display:grid; grid-template-columns:repeat(auto-fill,minmax(180px,1fr)); gap:14px}
+#site .fcard{position:relative; background:#fff; border:1px solid var(--line); border-radius:16px; padding:12px; box-shadow:var(--sh); cursor:pointer; transition:transform .12s; display:flex; flex-direction:column}
+#site .fcard:hover{transform:translateY(-2px)}
+#site .fcard .ph{height:118px; margin-bottom:10px}
+#site .fcard .off{position:absolute; top:9px; left:9px; z-index:2; background:linear-gradient(100deg,#FF8A00,#FF5E3A); color:#fff; font-size:.66rem; font-weight:800; padding:3px 8px; border-radius:8px}
+#site .fcard h4{font-size:.86rem; font-weight:700; margin:0 0 5px; line-height:1.25}
+#site .fcard .fp{font-weight:800; font-variant-numeric:tabular-nums}
+#site .fcard .fp s{color:var(--muted); font-weight:500; font-size:.78em; margin-left:3px}
+#site .fcard .scarce{margin-top:6px; font-size:.68rem; font-weight:700; color:#c2410c}
+#site .fcard .fadd{margin-top:10px; border:none; background:var(--blue); color:#fff; border-radius:10px; padding:9px; font-weight:800; font-size:.82rem}
+#site .faq{max-width:760px; margin:0 auto}
+#site .faq .qa{border:1px solid var(--line); background:#fff; border-radius:13px; margin-bottom:10px; overflow:hidden; box-shadow:var(--sh)}
+#site .faq .q{width:100%; text-align:left; border:none; background:none; padding:16px 18px; font-weight:700; font-size:.96rem; display:flex; align-items:center; gap:12px}
+#site .faq .q .chev{margin-left:auto; transition:transform .2s; flex:none}
+#site .faq .qa.open .chev{transform:rotate(180deg)}
+#site .faq .a{max-height:0; overflow:hidden; transition:max-height .25s ease; color:var(--muted); font-size:.9rem; line-height:1.5}
+#site .faq .qa.open .a{max-height:240px}
+#site .faq .a p{margin:0; padding:0 18px 16px}
+#site .finalcta{position:relative; overflow:hidden; border-radius:24px; padding:clamp(44px,6vw,80px) clamp(22px,5vw,52px); text-align:center; color:#fff; min-height:clamp(320px,42vw,460px); display:grid; place-items:center; border:2px dashed #9fb2cc}
+#site .finalcta .ph{position:absolute; inset:0; border-radius:0; border-width:0; background:linear-gradient(135deg,#e9eef6,#d8e1ee)}
+#site .finalcta .ph svg{width:clamp(46px,8vw,72px); color:#a9b7cd; opacity:.7}
+#site .finalcta .ph::after{content:""; position:absolute; inset:0; background:linear-gradient(120deg,rgba(6,20,60,.8),rgba(11,58,168,.66))}
+#site .finalcta .imgtag{position:absolute; top:14px; left:14px; z-index:3; display:flex; align-items:center; gap:6px; background:rgba(255,255,255,.85); color:#5b6474; font-size:.62rem; font-weight:800; letter-spacing:.08em; text-transform:uppercase; padding:5px 10px; border-radius:8px}
+#site .finalcta .c{position:relative; z-index:2; max-width:640px}
+#site .finalcta h2{color:#fff; margin:0 0 12px; font-size:clamp(1.8rem,4.5vw,2.8rem)}
+#site .finalcta p{color:rgba(255,255,255,.9); margin:0 0 26px; font-size:clamp(1rem,2vw,1.15rem)}
+#site .mcta{display:none; position:fixed; left:0; right:0; bottom:0; z-index:50; background:rgba(255,255,255,.96); backdrop-filter:blur(10px); border-top:1px solid var(--line); padding:10px clamp(14px,4vw,40px) calc(10px + env(safe-area-inset-bottom))}
+#site .mcta .gostore{width:100%; justify-content:center; padding:14px}
+#site #tienda.on ~ .mcta{}
+#site #app{background:var(--paper); border-top:3px solid var(--blue)}
+#site #store .siteheader{position:static}
+#site .app-benefits{background:var(--grad); color:#fff; font-size:.72rem; font-weight:600; text-align:center; padding:6px 10px}
+#site .topbar{display:flex; align-items:center; gap:10px; padding:10px 14px; background:var(--blue); position:sticky; top:0; z-index:40}
+#site .hamb{display:flex; flex-direction:column; gap:4px; background:none; border:none; padding:8px 7px; border-radius:9px; flex:none}
+#site .hamb:hover{background:rgba(255,255,255,.14)}
+#site .hamb span{display:block; width:20px; height:2.4px; background:#fff; border-radius:2px}
+#site .topbrand{font-weight:800; font-size:1rem; color:#fff; white-space:nowrap}
+#site .topbrand .k{background:#FFE000; color:#0a1a3a; border-radius:5px; padding:0 5px}
+#site .search{flex:1; min-width:0; position:relative}
+#site .search input{width:100%; font:inherit; padding:10px 14px 10px 40px; border:none; border-radius:11px; background:#fff}
+#site .search input:focus{outline:none; box-shadow:0 0 0 3px rgba(255,255,255,.5)}
+#site .search svg{position:absolute; left:13px; top:50%; transform:translateY(-50%); color:var(--muted)}
+#site .cartpill{margin-left:auto; display:flex; align-items:center; gap:8px; background:rgba(255,255,255,.15); color:#fff; border:1px solid rgba(255,255,255,.25); border-radius:12px; padding:9px 13px; font-weight:700; white-space:nowrap; flex:none}
+#site .cartpill .ct{background:#FFE000; color:#0a1a3a; border-radius:99px; font-size:.7rem; min-width:19px; height:19px; display:grid; place-items:center; padding:0 5px; font-weight:800}
+#site .popbar{display:flex; align-items:center; gap:8px; padding:9px 14px; background:var(--card); border-bottom:1px solid var(--line); overflow-x:auto}
+#site .poplab{font-size:.72rem; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.06em; white-space:nowrap; flex:none}
+#site .pop{white-space:nowrap; border:1.5px solid var(--line); background:var(--paper); border-radius:99px; padding:7px 14px; font-size:.84rem; font-weight:600; color:#33404f; flex:none; display:flex; align-items:center; gap:6px}
+#site .pop.on{border-color:var(--blue); background:#eef4ff; color:var(--blue)}
+#site .pop.hot{border:none; color:#fff; font-weight:800; background:linear-gradient(100deg,#FF8A00,#FF5E3A)}
+#site .pop .dot{width:8px; height:8px; border-radius:3px; flex:none}
+#site .shell{display:block}
+#site .catalog{display:block}
+#site .catbar{display:flex; align-items:baseline; justify-content:space-between; gap:10px; padding:14px 18px 8px; flex:none}
+#site .catbar .ctitle{font-size:1.02rem; font-weight:800}
+#site .catbar .cnt{font-size:.8rem; color:var(--muted); white-space:nowrap}
+#site .grid{padding:14px 18px 44px; display:grid; grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); gap:13px}
+#site .prod{position:relative; background:var(--card); border:1px solid var(--line); border-radius:15px; padding:11px; box-shadow:var(--sh); display:flex; flex-direction:column; transition:transform .12s}
+#site .prod:hover{transform:translateY(-2px); border-color:#c9d8f2}
+#site .prod .ph{height:92px; margin-bottom:10px}
+#site .deal-badge{position:absolute; top:8px; left:8px; z-index:3; pointer-events:none; background:linear-gradient(100deg,#FF8A00,#FF5E3A); color:#fff; font-size:.64rem; font-weight:800; padding:3px 7px; border-radius:8px}
+#site .prod h3{font-size:.84rem; font-weight:700; margin:0 0 3px; line-height:1.25}
+#site .prod .cat{font-size:.66rem; color:var(--muted); text-transform:uppercase; margin-bottom:7px}
+#site .prod .row{margin-top:auto; display:flex; align-items:center; justify-content:space-between; gap:6px}
+#site .prod .price{font-weight:800; font-variant-numeric:tabular-nums; font-size:.92rem}
+#site .prod .price s{color:var(--muted); font-weight:500; font-size:.76em; margin-left:2px}
+#site .prod .stock{font-size:.64rem; color:var(--green); font-weight:600}
+#site .prod .stock.low{color:#c2410c}
+#site .add{border:none; background:var(--blue); color:#fff; border-radius:9px; padding:7px 10px; font-weight:700; font-size:.78rem; flex:none}
+#site .empty{grid-column:1/-1; text-align:center; color:var(--muted); padding:50px 20px}
+#site .cart{position:fixed; top:0; right:0; height:100%; width:min(400px,92vw); background:var(--card); display:flex; flex-direction:column; transform:translateX(100%); transition:transform .3s cubic-bezier(.4,0,.2,1); z-index:120; box-shadow:-18px 0 50px rgba(18,20,28,.22)}
+#site #app.cart-open .cart{transform:translateX(0)}
+#site .cart .ch{padding:14px 18px 10px; font-weight:800; display:flex; align-items:center; gap:8px; flex:none; border-bottom:1px solid var(--line)}
+#site .cart .close{display:block; margin-left:auto; border:none; background:none; font-size:1.3rem; color:var(--muted)}
+#site .items{flex:1; overflow-y:auto; padding:10px 14px}
+#site .ci{display:grid; grid-template-columns:40px 1fr auto; gap:10px; align-items:center; padding:9px 0; border-bottom:1px solid #eef1f7}
+#site .ci .t{border-radius:8px; height:40px; background:#eef2f8; border:1px dashed #c3cede; display:grid; place-items:center; color:#9aa7bd}
+#site .ci .t svg{width:16px; height:16px}
+#site .ci .nm{font-size:.82rem; font-weight:600; line-height:1.2}
+#site .ci .pu{font-size:.72rem; color:var(--muted)}
+#site .qty{display:flex; align-items:center; gap:5px; margin-top:4px}
+#site .qty button{width:22px; height:22px; border:1px solid var(--line); background:var(--paper); border-radius:6px; font-weight:800}
+#site .qty span{min-width:18px; text-align:center; font-size:.82rem; font-weight:700}
+#site .ci .lt{font-weight:800; font-size:.85rem; text-align:right; font-variant-numeric:tabular-nums}
+#site .rm{display:block; margin-top:3px; border:none; background:none; color:#c2410c; font-size:.68rem; text-align:right; width:100%}
+#site .cart-empty{color:var(--muted); text-align:center; padding:40px 20px; font-size:.88rem}
+#site .sum{flex:none; border-top:1px solid var(--line); padding:14px 18px}
+#site .ship{display:flex; gap:7px; margin-bottom:12px}
+#site .ship button{flex:1; border:1.5px solid var(--line); background:var(--paper); border-radius:9px; padding:8px 6px; font-size:.76rem; font-weight:600; color:#33404f}
+#site .ship button.on{border-color:var(--blue); background:#eef4ff; color:var(--blue)}
+#site .ship button b{display:block; font-size:.82rem}
+#site .sline{display:flex; justify-content:space-between; font-size:.85rem; color:var(--muted); margin:5px 0}
+#site .sline.total{color:var(--ink); font-weight:800; font-size:1.1rem; margin-top:9px; padding-top:9px; border-top:1px solid var(--line)}
+#site .sline span:last-child{font-variant-numeric:tabular-nums}
+#site .checkout{width:100%; margin-top:12px; border:none; background:var(--grad); color:#fff; font-weight:800; padding:13px; border-radius:12px}
+#site .checkout:disabled{opacity:.5}
+#site .taxnote{font-size:.68rem; color:var(--muted); text-align:center; margin-top:8px}
+#site .drawer{position:fixed; top:0; left:0; height:100%; width:min(300px,86vw); background:#fff; transform:translateX(-100%); transition:transform .25s; z-index:60; box-shadow:12px 0 44px rgba(18,20,28,.22); display:flex; flex-direction:column}
+#site #app.drawer-open .drawer{transform:translateX(0)}
+#site .drawer .dh{display:flex; align-items:center; gap:8px; padding:15px 18px; border-bottom:1px solid var(--line); font-weight:800}
+#site .drawer .dh .x{margin-left:auto; border:none; background:none; font-size:1.4rem; color:var(--muted)}
+#site .dlist{padding:10px; overflow-y:auto}
+#site .dlist button{display:flex; align-items:center; gap:11px; width:100%; text-align:left; border:none; background:none; padding:12px; border-radius:10px; font-size:.95rem; font-weight:500; color:#33404f}
+#site .dlist button:hover{background:var(--paper)}
+#site .dlist button.on{background:#eef4ff; color:var(--blue); font-weight:700}
+#site .dlist button .dot{width:9px; height:9px; border-radius:3px; flex:none}
+#site .dlist button.hot{background:linear-gradient(100deg,#FF8A00,#FF5E3A); color:#fff; font-weight:800; margin-bottom:6px}
+#site .scrim{position:fixed; inset:0; background:rgba(18,20,28,.45); z-index:56; display:none}
+#site #app.drawer-open .scrim,#site #app.cart-open .scrim{display:block}
+#site .ov{position:fixed; inset:0; background:rgba(18,20,28,.5); display:none; align-items:center; justify-content:center; padding:18px; z-index:70}
+#site .ov.show{display:flex}
+#site .modal{background:#fff; border-radius:18px; max-width:460px; width:100%; max-height:90vh; overflow:auto; box-shadow:0 20px 60px rgba(18,20,28,.3)}
+#site .modal .mh{position:relative; height:170px}
+#site .modal .mh .ph{position:absolute; inset:0; border-radius:18px 18px 0 0; border-width:0 0 2px}
+#site .modal .x{position:absolute; top:12px; right:12px; z-index:3; width:32px; height:32px; border-radius:9px; border:none; background:rgba(255,255,255,.92); font-size:1.1rem}
+#site .mb{padding:20px 22px 22px}
+#site .mb .cat{font-size:.7rem; color:var(--muted); text-transform:uppercase}
+#site .mb h3{font-size:1.3rem; font-weight:800; margin:4px 0 8px}
+#site .mb .desc{color:#33404f; font-size:.92rem; margin:0 0 14px}
+#site .specs{list-style:none; padding:0; margin:0 0 16px; display:grid; gap:7px}
+#site .specs li{display:flex; gap:9px; font-size:.86rem; color:#33404f}
+#site .specs li svg{color:var(--green); flex:none}
+#site .mprice{display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:14px; flex-wrap:wrap}
+#site .mprice .p{font-size:1.5rem; font-weight:800; font-variant-numeric:tabular-nums}
+#site .mprice .st{font-size:.76rem; font-weight:600; color:var(--green)}
+#site .maddbtn{width:100%; border:none; background:var(--blue); color:#fff; font-weight:800; padding:13px; border-radius:12px}
+#site .steps{display:flex; gap:6px; margin-bottom:16px}
+#site .steps .s{flex:1; height:5px; border-radius:99px; background:var(--line)}
+#site .steps .s.on{background:var(--grad)}
+#site .field{margin-bottom:11px}
+#site .field label{display:block; font-size:.78rem; font-weight:600; margin-bottom:4px}
+#site .field input{width:100%; font:inherit; padding:9px 12px; border:1.5px solid var(--line); border-radius:9px}
+#site .paybadges{display:flex; gap:6px; flex-wrap:wrap; margin:10px 0 4px}
+#site .paybadges span{font-size:.68rem; font-weight:700; color:#33404f; background:var(--paper); border:1px solid var(--line); border-radius:7px; padding:4px 9px}
+#site .ok-anim{text-align:center; padding:14px 0}
+#site .ok-anim .circle{width:64px; height:64px; border-radius:99px; background:#e7f8f0; color:var(--green); display:grid; place-items:center; margin:0 auto 12px}
+#site .toast{position:fixed; bottom:22px; left:50%; transform:translateX(-50%) translateY(20px); background:var(--ink); color:#fff; padding:11px 20px; border-radius:12px; font-weight:600; font-size:.88rem; opacity:0; pointer-events:none; transition:.25s; z-index:80}
+#site .toast.show{opacity:1; transform:translateX(-50%) translateY(0)}
+@media(max-width:1000px){
+#site .sh-grid{grid-template-columns:1fr; gap:22px}
+#site .sh-media{margin-left:0}
+#site .sol-grid2{grid-template-columns:1fr}
+#site .sol-media{min-height:200px}
+#site .trustbar{grid-template-columns:repeat(2,1fr)} }
+@media(max-width:900px){
+#site .headerbar .hb-links,#site .headerbar .soc{display:none}
+#site .headerbar .tag{text-align:left}
+#site .mainnav{display:none}
+#site .deal-band{grid-template-columns:1fr}
+#site .btn-w{justify-self:start}
+#site #tienda.on ~ .mcta{display:block}
+  }
+@media(max-width:620px){
+#site .headerbar{justify-content:space-between}
+#site .headerbar .tag{display:none}
+#site .navtienda{margin-left:auto; padding:8px 12px; font-size:.84rem}
+#site .btnlight{display:none}
+#site .btnwa span{display:none}
+#site .btnwa{padding:9px 12px}
+#site .trustbar{grid-template-columns:1fr 1fr}
+#site .tb span{display:none}
+#site .promostrip .ps-txt small{display:none}
+#site .topbrand{font-size:.9rem}
+#site .cartpill span:not(.ct){display:none}
+  }
+@media(max-width:380px){
+#site .trustbar{grid-template-columns:1fr} }
+@media(prefers-reduced-motion:reduce){
+#site *{transition:none!important; scroll-behavior:auto!important} }
+
+
+</style>
+
+<div class="header-bar">
+    <div class="wrap header-bar__inner">
+      <nav class="header-bar__links" aria-label="Enlaces rápidos">
+        <a href="quienes-somos.html">¿Quiénes somos?</a>
+        <a href="contactanos.html">Contacto</a>
+      </nav>
+      <p class="header-bar__tagline">Te atendemos con gusto y una sonrisa — tú lo imaginas, nosotros lo hacemos. Aquí en Centro Comercial Otay, Tijuana.</p>
+      <div class="header-bar__social">
+        <a href="https://www.facebook.com/okdock.station" aria-label="Facebook" target="_blank" rel="noopener">
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+        </a>
+        <a href="https://www.instagram.com/okdock.station/" aria-label="Instagram" target="_blank" rel="noopener">
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>
+        </a>
+        <a href="mailto:station@okdock.mx" aria-label="Correo">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 5L2 7"/></svg>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================ HEADER ============================ -->
+  <header class="site-header">
+    <div class="wrap nav">
+      <a href="index.html" class="logo" aria-label="Ok.station — Ir al inicio">
+        <img src="assets/img/okstation-logo.webp" alt="Ok.station" class="logo__img" width="158" height="24">
+      </a>
+
+      <nav class="nav__links" id="nav-menu" aria-label="Navegación principal">
+
+        <a class="nav__link" href="index.html#citas">Citas</a>
+        <a class="nav__link" href="index.html#fotos">Imprime tus fotos</a>
+        <a class="nav__link" href="index.html#testimonios">Reseñas</a>
+        <a class="nav__link" href="index.html#visitanos">Visítanos</a>
+      </nav>
+
+      <div class="nav__actions">
+
+        <a href="tienda.html" class="btn btn--brand btn--sm nav__tienda" aria-label="Tienda (nuevo)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+            stroke-linejoin="round" aria-hidden="true">
+            <path d="M3 9l1-5h16l1 5" />
+            <path d="M4 9v11h16V9" />
+            <path d="M9 20v-6h6v6" />
+          </svg>
+          <span class="nav__tienda-label">Tienda</span>
+          <span class="nav__tienda-badge">Nuevo</span>
+        </a>
+
+        <div class="acct" id="acct">
+          <a class="btn btn--light btn--sm" href="cuenta.html" id="acct-login" aria-label="Iniciar sesión"> <svg
+              viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+              stroke-linejoin="round" aria-hidden="true">
+              <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" />
+              <circle cx="12" cy="7" r="4" />
+            </svg> Cuenta </a>
+        </div>
+        <a class="btn btn--wa btn--sm"
+          href="https://wa.me/526647194117?text=Hola,%20quiero%20solicitar%20informaci%C3%B3n" target="_blank"
+          rel="noopener">
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path
+              d="M.057 24l1.687-6.163a11.867 11.867 0 01-1.587-5.945C.16 5.335 5.495 0 12.05 0a11.82 11.82 0 018.413 3.488 11.82 11.82 0 013.48 8.414c-.003 6.557-5.338 11.892-11.893 11.892a11.9 11.9 0 01-5.688-1.448L.057 24zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884a9.86 9.86 0 001.51 5.26l-.999 3.648 3.978-1.040zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.017-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.247-.694.247-1.29.173-1.414z" />
+          </svg>
+          WhatsApp
+        </a>
+        <button class="nav__toggle" aria-label="Abrir menú de navegación" aria-expanded="false"
+          aria-controls="nav-menu">
+          <span class="nav__toggle-bar"></span>
+          <span class="nav__toggle-bar"></span>
+          <span class="nav__toggle-bar"></span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+<div id="site">
+  <!-- ══════════ VISTA TIENDA (landing) ══════════ -->
+  <div class="view on" id="tienda">
+    <div class="promostrip">
+      <div class="ps-txt"><span class="k">NUEVO</span> Tienda en línea OK.station <small>— arma tu pedido en minutos</small></div>
+      <button class="gostore" data-go-store>Ir a la tienda <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></button>
+    </div>
+
+    <!-- 1) HERO -->
+    <div class="wrap store-hero"><div class="sh-grid">
+      <div class="sh-copy">
+        <span class="eyebrow">Papelería · Tinta y tóner · Cómputo</span>
+        <h1>Una tienda local, con respaldo de verdad, <span class="hl">ahora en línea</span></h1>
+        <p>Todo lo que tu oficina, escuela o negocio necesita, con <b>envío a todo México</b>. ¿Estás en Tijuana? Recógelo el mismo día en nuestra tienda de Otay o recíbelo a domicilio.</p>
+        <div class="sh-rating"><span class="stars">★★★★★</span><b>X.X</b><span>· +XXX clientes en Tijuana</span></div>
+        <div class="price-anchor"><span class="now">$XX</span><span class="was">$XX</span><span class="save">Ahorra hasta XX%</span></div>
+        <p class="reframe">Surtir tu papelería del mes desde <b>$X.XX al día</b>. Menos que un café.</p>
+        <div class="sh-cta">
+          <button class="gostore" data-go-store>Ir a la tienda <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></button>
+          <span class="sh-mini"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Envío a todo México</span>
+        </div>
+      </div>
+      <div class="sh-media">
+        <div class="sh-carousel" id="heroCarousel"></div>
+        <div class="float"><span class="ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>Listo el mismo día en Otay</div>
+      </div>
+    </div></div>
+
+    <!-- 2) BARRA DE CONFIANZA -->
+    <div class="wrap"><div class="trustbar">
+      <div class="tb"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="6" width="14" height="11" rx="1"/><path d="M15 9h4l3 3v5h-7z"/><circle cx="6" cy="19" r="1.6"/><circle cx="18" cy="19" r="1.6"/></svg><div><b>Envío a domicilio</b><span>Según tu C.P.</span></div></div>
+      <div class="tb"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l1-5h16l1 5"/><path d="M4 9v11h16V9"/><path d="M9 20v-6h6v6"/></svg><div><b>Recoge gratis</b><span>Local G-03, Otay</span></div></div>
+      <div class="tb"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l8 4v6c0 5-3.5 8-8 10-4.5-2-8-5-8-10V6z"/><path d="M9 12l2 2 4-4"/></svg><div><b>Pago seguro</b><span>Mercado Pago · SSL</span></div></div>
+      <div class="tb"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="9"/></svg><div><b>Garantía real</b><span>En cómputo</span></div></div>
+    </div></div>
+
+    <!-- 3) PRUEBA SOCIAL -->
+    <div class="wrap sec proof">
+      <span class="eyebrow">Nos recomiendan</span>
+      <div class="nums" style="margin-top:14px">
+        <div><div class="n">+XXX</div><small>clientes atendidos</small></div>
+        <div><div class="n">X.X★</div><small>XXX+ reseñas</small></div>
+        <div><div class="n">XX+</div><small>años en Tijuana</small></div>
+        <div><div class="n">XX%</div><small>pedidos a tiempo</small></div>
+      </div>
+      <div class="logos">
+        <div class="ph"><small>Logo prensa</small></div><div class="ph"><small>Logo prensa</small></div><div class="ph"><small>Logo prensa</small></div><div class="ph"><small>Logo prensa</small></div><div class="ph"><small>Logo prensa</small></div>
+      </div>
+    </div>
+
+    <!-- 4) DOLOR (PAS) -->
+    <div class="wrap sec">
+      <span class="eyebrow">¿Te suena?</span>
+      <h2>Comprar lo básico no debería ser un dolor de cabeza</h2>
+      <p class="lead">Sabemos lo que se siente. Por eso armamos la tienda en línea de OK.station.</p>
+      <div class="pain-grid">
+        <div class="paincard"><div class="em">😩</div><h4>Se te acabó la tinta a media entrega</h4><p>Y la tienda de la esquina no tenía tu cartucho. Otra vez.</p></div>
+        <div class="paincard"><div class="em">🏃</div><h4>Perdiste la mañana buscando papelería</h4><p>Tres tiendas, tráfico y estacionamiento… para juntar un pedido.</p></div>
+        <div class="paincard"><div class="em">📦</div><h4>Compraste en línea y llegó tarde</h4><p>O llegó dañado, sin quién te resolviera y sin factura.</p></div>
+      </div>
+    </div>
+
+    <!-- 5) SOLUCIÓN + mecanismo -->
+    <div class="wrap sec"><div class="sol"><div class="sol-grid2">
+      <div class="sol-copy">
+        <span class="eyebrow">Cómo funciona</span>
+        <h2>Así de fácil es comprar con nosotros</h2>
+        <p>Sin filas, sin adivinar: eliges, pagas seguro y lo recibes como más te convenga.</p>
+        <ul class="mech">
+          <li><span class="num">1</span><div><b>Pídelo en línea</b><span>Arma tu carrito en minutos, sin filas.</span></div></li>
+          <li><span class="num">2</span><div><b>Elige cómo recibirlo</b><span>Recoge gratis el mismo día o recíbelo en tu domicilio.</span></div></li>
+          <li><span class="num">3</span><div><b>Te atendemos personas</b><span>Asesoría real por WhatsApp y factura al instante.</span></div></li>
+        </ul>
+        <button class="gostore" data-go-store>Empezar mi pedido</button>
+      </div>
+      <div class="sol-media"><div class="ph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg><small>Equipo / tienda en acción</small></div></div>
+    </div></div></div>
+
+    <!-- Categorías -->
+    <div class="wrap sec" style="padding-top:0">
+      <div class="head-row"><div><span class="eyebrow">Explora</span><h2>Compra por categoría</h2></div><a href="#" class="see-all" data-go-store>Ver todo →</a></div>
+      <div class="cat-grid" id="landCats"></div>
+    </div>
+
+    <!-- Ofertas + urgencia -->
+    <div class="wrap sec" style="padding-top:0"><div class="deal-band">
+      <div><span style="font-weight:800;font-size:.72rem;letter-spacing:.14em">SOLO HOY</span><h2>Ofertas del día</h2><p>Hasta XX% de descuento en productos seleccionados.</p>
+        <div class="countdown"><b id="cdH">05</b><b id="cdM">59</b><b id="cdS">30</b></div></div>
+      <button class="btn-w" data-go-store data-cat="ofertas">Ver ofertas</button>
+    </div></div>
+
+    <!-- Productos (buy box: anclaje + escasez) -->
+    <div class="wrap sec" style="padding-top:0">
+      <div class="head-row"><div><span class="eyebrow">Los más buscados</span><h2>Productos populares</h2></div><a href="#" class="see-all" data-go-store>Ver todos →</a></div>
+      <div class="feat" id="landFeat"></div>
+    </div>
+
+    <!-- CTA final -->
+    <div class="wrap sec"><div class="finalcta">
+      <span class="imgtag"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>Imagen de fondo</span>
+      <div class="ph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg></div>
+      <div class="c"><h2>Arma tu pedido en 2 minutos</h2><p>Recoge gratis el mismo día o recíbelo en tu domicilio. Pago seguro con Mercado Pago.</p>
+      <button class="gostore" data-go-store style="padding:16px 34px;font-size:1.1rem">Ir a la tienda ahora</button></div>
+    </div></div>
+
+    <!-- FAQ -->
+    <div class="wrap sec" style="padding-top:0">
+      <div style="text-align:center;margin-bottom:20px"><span class="eyebrow">¿Dudas?</span><h2>Preguntas frecuentes</h2></div>
+      <div class="faq" id="faq">
+        <div class="qa"><button class="q">¿Hacen envíos a domicilio? <svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></button><div class="a"><p>Sí. El costo se calcula según tu código postal, o puedes recoger gratis en nuestra tienda de Centro Comercial Otay, Local G-03.</p></div></div>
+        <div class="qa"><button class="q">¿Qué métodos de pago aceptan? <svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></button><div class="a"><p>Pago 100% seguro con Mercado Pago: tarjetas Visa, MasterCard y Amex, pagos a meses sin intereses, efectivo en OXXO y transferencia bancaria (SPEI).</p></div></div>
+        <div class="qa"><button class="q">¿Puedo recoger en tienda el mismo día? <svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></button><div class="a"><p>Sí, en la mayoría de los productos en existencia. Te avisamos por WhatsApp cuando tu pedido esté listo.</p></div></div>
+        <div class="qa"><button class="q">¿Emiten factura? <svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></button><div class="a"><p>Claro. Solicítala al momento de tu compra y te la enviamos a tu correo.</p></div></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ═══════════ PÁGINA DE TIENDA (independiente) ═══════════ -->
+  <div class="view" id="store">
+    <div id="app">
+
+      <div class="topbar">
+        <button class="hamb" id="hamb" aria-label="Categorías"><span></span><span></span><span></span></button>
+        <div class="search"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+          <input id="q" type="search" placeholder="Busca un producto…" autocomplete="off"></div>
+        <button class="cartpill" id="cartBtn"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.7 13.4a2 2 0 002 1.6h9.7a2 2 0 002-1.6L23 6H6"/></svg><span class="ct" id="cartCount">0</span><span id="cartTotalTop">$0.00</span></button>
+      </div>
+      <nav class="popbar" id="popbar"></nav>
+      <div class="shell">
+        <div class="catalog"><div class="catbar"><span class="ctitle" id="catTitle">Todos los productos</span><span class="cnt" id="catCount"></span></div><div class="grid" id="grid"></div></div>
+        <aside class="cart" id="cart"><div class="ch">Tu carrito <button class="close" id="cartClose">×</button></div><div class="items" id="items"></div>
+          <div class="sum"><div class="ship"><button class="on" data-ship="retiro"><b>Recoger en tienda</b>Gratis</button><button data-ship="envio"><b>Envío a domicilio</b>$99</button></div>
+            <div class="sline"><span>Subtotal</span><span id="sub">$0.00</span></div><div class="sline"><span>Envío</span><span id="shipCost">—</span></div><div class="sline total"><span>Total</span><span id="total">$0.00</span></div>
+            <button class="checkout" id="checkoutBtn" disabled>Finalizar compra</button><div class="taxnote">Precios con IVA · productos de ejemplo</div></div></aside>
+      </div>
+      <aside class="drawer" id="drawer"><div class="dh">Categorías <button class="x" id="drawerClose">×</button></div><div class="dlist" id="drawerList"></div></aside>
+      <div class="scrim" id="scrim"></div>
+    </div>
+  </div>
+
+  <!-- CTA pegajoso móvil -->
+  <div class="mcta"><button class="gostore" data-go-store>Ir a la tienda <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></button></div>
+</div>
+
+<div class="ov" id="prodOv"><div class="modal" id="prodModal"></div></div>
+<div class="ov" id="coOv"><div class="modal" id="coModal"></div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+  var mxn=function(n){return "$"+n.toLocaleString("es-MX",{minimumFractionDigits:2,maximumFractionDigits:2});};
+  var $=function(s){return document.getElementById(s);};
+  var PHIMG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>';
+  function ph(cls){return '<div class="ph '+(cls||'')+'">'+PHIMG+'<small>Imagen</small></div>';}
+  var BOLT='<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M13 2L4 14h6l-1 8 9-12h-6l1-8z"/></svg>';
+
+  // Cambio de vista
+  function showView(id){ ["tienda","store"].forEach(function(v){$(v).classList.toggle("on",v===id);}); window.scrollTo(0,0); }
+  document.addEventListener("click",function(e){
+    if(e.target.closest("[data-open-tienda]")){e.preventDefault(); showView("tienda");}
+    if(e.target.closest("[data-go-store]")){e.preventDefault(); showView("store");}
+  });
+
+  // FAQ acordeón
+  $("faq").addEventListener("click",function(e){var q=e.target.closest(".q"); if(!q)return; q.parentNode.classList.toggle("open");});
+
+  // Contador de ofertas (visual)
+  var secs=6*3600-30;
+  function tick(){secs=Math.max(0,secs-1); var h=Math.floor(secs/3600),m=Math.floor((secs%3600)/60),s=secs%60; var p=function(n){return (n<10?"0":"")+n;}; if($("cdH")){$("cdH").textContent=p(h);$("cdM").textContent=p(m);$("cdS").textContent=p(s);}}
+  setInterval(tick,1000);
+
+  // Hero slider (estilo Compustar): fondo + contenido que cambia con animación
+  var hs=$("heroSlider");
+  if(hs){
+    var hslides=hs.querySelectorAll(".hs-slide"), hdots=hs.querySelector(".hs-dots"), hcount=hs.querySelector(".hs-counter"), hi=0, htimer;
+    hdots.innerHTML=[].map.call(hslides,function(s,i){return '<button data-hs="'+i+'"'+(i===0?' class="on"':'')+' aria-label="Slide '+(i+1)+'"></button>';}).join("");
+    var hdotEls=hdots.querySelectorAll("button");
+    function hGo(n){hi=(n+hslides.length)%hslides.length; for(var i=0;i<hslides.length;i++){hslides[i].classList.toggle("on",i===hi); hdotEls[i].classList.toggle("on",i===hi);} if(hcount)hcount.textContent=(hi+1)+" / "+hslides.length;}
+    function hStart(){var rm=window.matchMedia&&window.matchMedia("(prefers-reduced-motion:reduce)").matches; if(rm)return; clearInterval(htimer); htimer=setInterval(function(){hGo(hi+1);},5000);}
+    hs.addEventListener("click",function(e){
+      if(e.target.closest(".hs-next")){hGo(hi+1); hStart(); return;}
+      if(e.target.closest(".hs-prev")){hGo(hi-1); hStart(); return;}
+      var d=e.target.closest("[data-hs]"); if(d){hGo(+d.dataset.hs); hStart();}
+    });
+    if(hcount)hcount.textContent="1 / "+hslides.length;
+    hStart();
+  }
+
+  // Datos
+  var CATS=[{id:"ofertas",name:"Ofertas del día",hot:true},{id:"all",name:"Todos",color:"#66748a"},{id:"consumibles",name:"Tinta y tóner",color:"#066CFF"},{id:"papeleria",name:"Papelería",color:"#9C1DFF"},{id:"accesorios",name:"Accesorios",color:"#0596b8"},{id:"computo",name:"Cómputo",color:"#0E9F6E"}];
+  var GRADC={consumibles:"var(--grad-blue)",papeleria:"var(--grad-cyan)",accesorios:"var(--grad-deep)",computo:"linear-gradient(135deg,#0E9F6E,#00C6FF)"};
+  var P=[
+    {id:1,cat:"consumibles",name:"Tóner HP 105A Negro",price:1290,old:1490,stock:8,emoji:"🖨",desc:"Cartucho de tóner original HP para impresoras LaserJet.",specs:["Rinde ~1,000 páginas","Original HP","LaserJet 107/135"]},
+    {id:2,cat:"consumibles",name:"Cartucho Canon 145 Negro",price:389,stock:14,emoji:"🩸",desc:"Cartucho de tinta negra para Canon PIXMA.",specs:["Tinta negra","PIXMA MG/MX","~180 páginas"]},
+    {id:3,cat:"consumibles",name:"Hojas Bond carta (500)",price:135,stock:40,emoji:"📄",desc:"Paquete de 500 hojas tamaño carta, 75 g.",specs:["500 hojas","75 g · carta","Blancura 95%"]},
+    {id:4,cat:"consumibles",name:"Papel fotográfico Gloss",price:180,old:229,stock:6,emoji:"🖼",desc:"Papel brillante para fotografías.",specs:["20 hojas","Acabado brillante","180 g"]},
+    {id:5,cat:"papeleria",name:"Cuaderno profesional",price:59,stock:33,emoji:"📓",desc:"100 hojas, raya, pasta dura.",specs:["100 hojas","Raya","Pasta dura"]},
+    {id:6,cat:"papeleria",name:"Bolígrafos BIC (caja 12)",price:75,stock:21,emoji:"🖊",desc:"12 bolígrafos punto medio.",specs:["12 piezas","Tinta azul","1.0 mm"]},
+    {id:7,cat:"papeleria",name:"Folders carta (paq. 25)",price:89,stock:18,emoji:"🗂",desc:"Folders manila con pestaña.",specs:["25 piezas","Manila","Carta"]},
+    {id:8,cat:"papeleria",name:"Cinta adhesiva",price:22,stock:52,emoji:"📏",desc:"Rollo 18 mm x 33 m.",specs:["18 mm × 33 m","Transparente"]},
+    {id:9,cat:"accesorios",name:"Memoria USB 64 GB",price:159,stock:12,emoji:"💾",desc:"USB 3.2 de alta velocidad.",specs:["64 GB","USB 3.2","120 MB/s"]},
+    {id:10,cat:"accesorios",name:"Mouse inalámbrico",price:229,old:299,stock:9,emoji:"🖱",desc:"Mouse óptico con receptor USB.",specs:["2.4 GHz","1600 DPI","Pilas incluidas"]},
+    {id:11,cat:"computo",name:"Regulador 8 tomas",price:499,old:599,stock:4,emoji:"🔌",desc:"Con supresor de picos.",specs:["8 contactos","Supresor","Garantía 1 año"]},
+    {id:12,cat:"computo",name:"Audífonos con micrófono",price:349,stock:15,emoji:"🎧",desc:"Diadema con micrófono.",specs:["Con micrófono","Volumen","3.5 mm"]}
+  ];
+  P.forEach(function(p){p.grad=GRADC[p.cat]||"var(--grad-blue)";});
+  var cart={}, activeCat="all", query="", shipMode="retiro", coStep=0;
+
+  // Landing: categorías + productos
+  var LANDCATS=[["consumibles","Tinta y tóner"],["papeleria","Papelería"],["computo","Cómputo"],["accesorios","Accesorios"],["ofertas","Ofertas del día"]];
+  $("landCats").innerHTML=LANDCATS.map(function(c){return '<button class="ctile" data-cat="'+c[0]+'" data-go-store>'+ph()+'<b>'+c[1]+'</b><span>Ver productos →</span></button>';}).join("");
+  $("landFeat").innerHTML=[1,10,11,4,9,3].map(function(id){var p=P.filter(function(x){return x.id===id;})[0]; var low=p.stock<=6;
+    return '<div class="fcard" data-open-feat="'+p.id+'">'+(p.old?'<span class="off">−'+Math.round((1-p.price/p.old)*100)+'%</span>':'')+ph()+'<h4>'+p.name+'</h4><div class="fp">'+mxn(p.price)+(p.old?' <s>'+mxn(p.old)+'</s>':'')+'</div>'+(low?'<div class="scarce">🔥 Solo quedan '+p.stock+'</div>':'')+'<button class="fadd" data-go-store data-cat="'+p.cat+'">Ver en tienda</button></div>';}).join("");
+  $("landFeat").addEventListener("click",function(e){var c=e.target.closest("[data-open-feat]"); if(c && !e.target.closest(".fadd")){showView("store"); selectCat(prod(+c.dataset.openFeat).cat);}});
+
+  // Tienda interactiva
+  function renderCats(){
+    $("popbar").innerHTML='<span class="poplab">Populares</span>'+CATS.map(function(c){var on=activeCat===c.id;
+      if(c.hot) return '<button class="pop hot" data-cat="ofertas">'+BOLT+c.name+'</button>';
+      return '<button class="pop'+(on?' on':'')+'" data-cat="'+c.id+'"><span class="dot" style="background:'+c.color+'"></span>'+c.name+'</button>';}).join("");
+    $("drawerList").innerHTML=CATS.map(function(c){var on=activeCat===c.id;
+      if(c.hot) return '<button class="hot" data-cat="ofertas">'+BOLT+c.name+'</button>';
+      return '<button class="'+(on?'on':'')+'" data-cat="'+c.id+'"><span class="dot" style="background:'+c.color+'"></span>'+c.name+'</button>';}).join("");
+  }
+  function selectCat(id){activeCat=id; renderCats(); renderGrid(); $("app").classList.remove("drawer-open");}
+  document.addEventListener("click",function(e){var b=e.target.closest("[data-cat]"); if(b){selectCat(b.dataset.cat);}});
+
+  function filtered(){return P.filter(function(p){
+    if(activeCat==="ofertas"){if(!p.old)return false;} else if(activeCat!=="all"&&p.cat!==activeCat)return false;
+    if(query.length>=2){var q=query.toLowerCase(); if(!(p.name.toLowerCase().indexOf(q)>=0||p.cat.indexOf(q)>=0))return false;} return true;});}
+  function catName(id){var c=CATS.filter(function(x){return x.id===id;})[0]; return c?c.name:id;}
+  function renderGrid(){var list=filtered();
+    $("catTitle").textContent=query.length>=2?'Resultados de "'+query+'"':catName(activeCat);
+    $("catCount").textContent=list.length+" producto"+(list.length===1?"":"s");
+    if(!list.length){$("grid").innerHTML='<div class="empty">No encontramos productos.</div>'; return;}
+    $("grid").innerHTML=list.map(function(p){var low=p.stock<=5;
+      return '<div class="prod">'+(p.old?'<span class="deal-badge">−'+Math.round((1-p.price/p.old)*100)+'%</span>':'')+ph()+
+        '<div class="cat">'+catName(p.cat)+'</div><h3>'+p.name+'</h3>'+
+        '<div class="row"><div><div class="price">'+mxn(p.price)+(p.old?' <s>'+mxn(p.old)+'</s>':'')+'</div><div class="stock'+(low?' low':'')+'">'+(low?"¡Últimas "+p.stock+"!":p.stock+" en stock")+'</div></div><button class="add" data-add="'+p.id+'">+</button></div>'+
+        '<button style="position:absolute;inset:0;opacity:0;cursor:pointer" data-open="'+p.id+'" aria-label="Ver"></button></div>';}).join("");
+  }
+  $("grid").addEventListener("click",function(e){var a=e.target.closest("[data-add]"); if(a){e.stopPropagation(); addToCart(+a.dataset.add,1); return;} var o=e.target.closest("[data-open]"); if(o){openProduct(+o.dataset.open);}});
+  var t; $("q").addEventListener("input",function(e){clearTimeout(t); var v=e.target.value; t=setTimeout(function(){query=v.trim(); renderGrid();},160);});
+
+  $("hamb").addEventListener("click",function(){$("app").classList.add("drawer-open");});
+  $("drawerClose").addEventListener("click",function(){$("app").classList.remove("drawer-open");});
+  $("cartBtn").addEventListener("click",function(){$("app").classList.add("cart-open");});
+  $("cartClose").addEventListener("click",function(){$("app").classList.remove("cart-open");});
+  $("scrim").addEventListener("click",function(){$("app").classList.remove("drawer-open","cart-open");});
+
+  function prod(id){return P.filter(function(p){return p.id===id;})[0];}
+  function addToCart(id,q){var p=prod(id); if(!p)return; var c=cart[id]||{p:p,qty:0}; c.qty=Math.min(p.stock,c.qty+q); cart[id]=c; renderCart(); flash(p.name+" agregado");}
+  function changeQty(id,d){var c=cart[id]; if(!c)return; c.qty+=d; if(c.qty<=0)delete cart[id]; else c.qty=Math.min(c.p.stock,c.qty); renderCart();}
+  function removeItem(id){delete cart[id]; renderCart();}
+  function totals(){var sub=0,n=0; for(var k in cart){sub+=cart[k].p.price*cart[k].qty; n+=cart[k].qty;} var ship=(n>0&&shipMode==="envio")?99:0; return {sub:sub,ship:ship,total:sub+ship,n:n};}
+  function renderCart(){var keys=Object.keys(cart);
+    if(!keys.length){$("items").innerHTML='<div class="cart-empty">Tu carrito está vacío.</div>';}
+    else{$("items").innerHTML=keys.map(function(k){var c=cart[k],p=c.p;
+      return '<div class="ci"><div class="t"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg></div><div><div class="nm">'+p.name+'</div><div class="pu">'+mxn(p.price)+' c/u</div><div class="qty"><button data-dec="'+p.id+'">−</button><span>'+c.qty+'</span><button data-inc="'+p.id+'">+</button></div></div><div><div class="lt">'+mxn(p.price*c.qty)+'</div><button class="rm" data-rm="'+p.id+'">Quitar</button></div></div>';}).join("");}
+    var tt=totals(); $("sub").textContent=mxn(tt.sub); $("shipCost").textContent=tt.ship?mxn(tt.ship):"—"; $("total").textContent=mxn(tt.total); $("cartTotalTop").textContent=mxn(tt.total); $("cartCount").textContent=tt.n; $("checkoutBtn").disabled=tt.n===0;
+  }
+  $("items").addEventListener("click",function(e){var i=e.target.closest("[data-inc]"),d=e.target.closest("[data-dec]"),r=e.target.closest("[data-rm]"); if(i)changeQty(+i.dataset.inc,1); if(d)changeQty(+d.dataset.dec,-1); if(r)removeItem(+r.dataset.rm);});
+  [].forEach.call(document.querySelectorAll(".ship button"),function(b){b.addEventListener("click",function(){shipMode=b.dataset.ship; [].forEach.call(document.querySelectorAll(".ship button"),function(x){x.classList.toggle("on",x===b);}); renderCart();});});
+
+  function openProduct(id){var p=prod(id); if(!p)return; var low=p.stock<=5;
+    $("prodModal").innerHTML='<div class="mh">'+ph()+'<button class="x" data-close>×</button></div><div class="mb"><div class="cat">'+catName(p.cat)+'</div><h3>'+p.name+'</h3><p class="desc">'+p.desc+'</p><ul class="specs">'+p.specs.map(function(s){return '<li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>'+s+'</li>';}).join("")+'</ul><div class="mprice"><span class="p">'+mxn(p.price)+(p.old?' <s style="color:var(--muted);font-size:.55em;font-weight:600">'+mxn(p.old)+'</s>':'')+'</span><span class="st" style="color:'+(low?"#c2410c":"#0E9F6E")+'">'+(low?"¡Últimas "+p.stock+"!":p.stock+" disponibles")+'</span></div><button class="maddbtn" data-madd="'+p.id+'">Agregar al carrito · '+mxn(p.price)+'</button></div>';
+    show("prodOv");
+  }
+  $("prodOv").addEventListener("click",function(e){if(e.target.id==="prodOv"||e.target.closest("[data-close]")){hide("prodOv"); return;} var a=e.target.closest("[data-madd]"); if(a){addToCart(+a.dataset.madd,1); hide("prodOv");}});
+
+  function renderCheckout(){var tt=totals(),body;
+    if(coStep<2){body='<div class="steps"><div class="s'+(coStep>=0?' on':'')+'"></div><div class="s'+(coStep>=1?' on':'')+'"></div><div class="s"></div></div>';
+      if(coStep===0){body+='<h3 style="margin:0 0 12px;font-size:1.2rem">Tus datos</h3><div class="field"><label>Nombre</label><input placeholder="Ej. María González"></div><div class="field"><label>WhatsApp</label><input placeholder="(664) 000 0000"></div>'+(shipMode==="envio"?'<div class="field"><label>Dirección</label><input placeholder="Calle, número, colonia, C.P."></div>':'<p class="desc" style="font-size:.86rem">Recoges en <b>Centro Comercial Otay, Local G-03</b>.</p>');}
+      else{body+='<h3 style="margin:0 0 4px;font-size:1.2rem">Pago</h3><p class="desc" style="font-size:.86rem">Paga seguro con Mercado Pago.</p><div class="paybadges"><span>Mercado Pago</span><span>12 MSI</span><span>OXXO</span><span>SPEI</span><span>Visa · Master · Amex</span></div><div class="sline" style="margin-top:14px"><span>Subtotal</span><span>'+mxn(tt.sub)+'</span></div><div class="sline"><span>Envío</span><span>'+(tt.ship?mxn(tt.ship):"Gratis")+'</span></div><div class="sline total"><span>Total</span><span>'+mxn(tt.total)+'</span></div>';}
+      body+='<button class="maddbtn" style="margin-top:16px" data-conext>'+(coStep===0?"Continuar":"Pagar "+mxn(tt.total))+'</button>';
+    }else{body='<div class="ok-anim"><div class="circle"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div><h3 style="margin:0 0 6px;font-size:1.25rem">¡Pedido simulado!</h3><p class="desc" style="max-width:none">Te llegaría tu ticket y el estado por WhatsApp.</p><button class="maddbtn" style="margin-top:10px" data-cofin>Entendido</button></div>';}
+    $("coModal").innerHTML='<div class="mb" style="padding-top:22px"><button class="x" data-close style="position:static;float:right;background:var(--paper)">×</button><div style="clear:both"></div>'+body+'</div>';
+  }
+  $("checkoutBtn").addEventListener("click",function(){$("app").classList.remove("cart-open"); coStep=0; renderCheckout(); show("coOv");});
+  $("coOv").addEventListener("click",function(e){if(e.target.id==="coOv"||e.target.closest("[data-close]")){hide("coOv"); return;} if(e.target.closest("[data-conext]")){coStep++; renderCheckout();} if(e.target.closest("[data-cofin]")){hide("coOv"); cart={}; renderCart(); flash("Carrito vaciado (demo)");}});
+
+  function show(id){$(id).classList.add("show");} function hide(id){$(id).classList.remove("show");}
+  document.addEventListener("keydown",function(e){if(e.key==="Escape"){hide("prodOv");hide("coOv");$("app").classList.remove("drawer-open","cart-open");}});
+  var tt2; function flash(m){var el=$("toast"); el.textContent=m; el.classList.add("show"); clearTimeout(tt2); tt2=setTimeout(function(){el.classList.remove("show");},1600);}
+
+  renderCats(); renderGrid(); renderCart();
+
+
+})();
+</script>
+<script>(function(){var t=document.querySelector(".nav__toggle"),n=document.getElementById("nav-menu");if(t&&n){t.addEventListener("click",function(){var o=n.classList.toggle("is-open");t.setAttribute("aria-expanded",o?"true":"false");});}})();</script>
+<!-- Sesión en el header (muestra tu cuenta si iniciaste sesión) + navbar inteligente -->
+<script src="assets/session-nav.js?v=20260630c" defer></script>

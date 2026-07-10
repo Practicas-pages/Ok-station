@@ -707,6 +707,34 @@ h1, h2, h3, h4, h5, h6 {
   gap: var(--space-3);
 }
 
+/* Botón "Tienda" (nuevo) — reutiliza .btn .btn--brand .btn--sm; solo suma el badge */
+.nav__tienda {
+  gap: 6px;
+}
+
+.nav__tienda-badge {
+  font-size: 0.5625rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  line-height: 1;
+  padding: 2px 6px;
+  border-radius: var(--radius-full);
+  background: #FFE000;
+  color: var(--brand-black);
+}
+
+/* En móvil el header oculta WhatsApp (hay botón flotante), así que sí cabe Tienda.
+   Se ahorra ancho ocultando el badge; en pantallas muy chicas queda solo el ícono. */
+@media (max-width: 768px) {
+  .nav__tienda { padding: 9px 12px; }
+  .nav__tienda-badge { display: none; }
+}
+@media (max-width: 380px) {
+  .nav__tienda-label { display: none; }
+  .nav__tienda { padding: 9px 10px; }
+}
+
 .nav__tel {
   font-size: 0.8125rem;
   font-weight: 600;
