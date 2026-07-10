@@ -82,8 +82,10 @@
   <link rel="stylesheet" href="styles.css?v=20260708d">
   <!-- Mascota/chatbot OKi -->
   <link rel="stylesheet" href="assets/oki.css?v=20260710a">
-  <!-- Estilos del configurador de pedido embebido en #fotos -->
-  <link rel="stylesheet" href="assets/order.css?v=20260707d">
+  <!-- Estilos del configurador de pedido embebido en #fotos (bajo el fold):
+       se cargan de forma asíncrona para no bloquear el primer render. -->
+  <link rel="stylesheet" href="assets/order.css?v=20260707d" media="print" onload="this.media='all'">
+  <noscript><link rel="stylesheet" href="assets/order.css?v=20260707d"></noscript>
 
   <!-- ===================== DATOS ESTRUCTURADOS (JSON-LD) ===================== -->
   <script type="application/ld+json">
@@ -531,7 +533,7 @@
         </article>
         <!-- Impresión de planos -->
         <article class="service-card reveal">
-          <img src="assets/img/impresion de planos.webp" alt="Impresión de planos arquitectónicos en gran formato en Ok.station Tijuana" width="800" height="450" loading="lazy" decoding="async" class="service-card__img" data-img-slot="serv-planos">
+          <img src="assets/img/plano.webp" alt="Impresión de planos arquitectónicos en gran formato en Ok.station Tijuana" width="800" height="450" loading="lazy" decoding="async" class="service-card__img" data-img-slot="serv-planos">
           <h3>Impresión de planos</h3>
           <p>Planos arquitectónicos, láminas y pósters en gran formato hasta 24" con plotter de alta nitidez. Cerca de UABC Otay.</p>
           <div class="service-tags"><span class="tag">Arquitectónicos</span><span class="tag">Gran formato</span><span class="tag">Plotter</span></div>
