@@ -37,7 +37,7 @@ function oki_intents(): array
 
         ['need'=>['foto'],
          'kw'=>['pasaporte','visa','infantil','credencial','ovalada','ovalo','titulo','diploma','tramite'],
-         'a'=>"Fotos para trámite 📸 (paquetes; \"urgente\" el mismo día, \"regular\" al día siguiente):\n• 6 infantil: \$85 urgente / \$55 regular\n• 6 pasaporte o credencial: \$85 / \$65\n• 4 pasaporte americano o visa: \$85 / \$65\n• 4 título \$150 · 4 diploma \$120 · 6 credencial óvalo \$120\nNo necesitas cita, llegas directo. La foto de visa es 5×5 cm con fondo blanco."],
+         'a'=>"Fotos para trámite 📸 (paquetes; \"urgente\" el mismo día, \"regular\" al día siguiente):\n• 6 infantil: \$85 urgente / \$55 regular\n• 6 pasaporte o credencial: \$85 / \$65\n• 4 pasaporte americano o visa: \$85 / \$65\n• 4 título \$150 · 4 diploma \$120 · 6 credencial óvalo \$120\nNo necesitas cita, llegas directo; también tomamos fotos a bebés y niños. La foto de visa es 5×5 cm con fondo blanco."],
 
         ['need'=>['foto'],
          'kw'=>['imprimir','impresion','tamano','ampliacion','gran formato','revelar','revelado','papel'],
@@ -66,7 +66,7 @@ function oki_intents(): array
          'kw'=>['pasaporte','tramite','requisito','americano','renovar','sre'],
          'a'=>"Pasaporte 🛂 (gestión de la cita):\n• Pasaporte mexicano: \$200 por persona\n• Pasaporte americano: \$400 por persona\n(El costo oficial del documento lo cobra la SRE aparte.)\nRequisitos del mexicano (primera vez): CURP, acta de nacimiento, comprobante de domicilio, teléfono, INE y un contacto de emergencia. En renovación, el pasaporte anterior en vez del acta.\nAgenda en la sección de Citas de la página (necesitas cuenta). ¿Te ayudo con algo más?"],
 
-        ['kw'=>['visa','visa americana','ds160','ds-160','consulado','cas'],
+        ['kw'=>['visa','visa americana','ds160','ds-160','consulado'],
          'a'=>"Visa americana 🇺🇸\nGestión de la cita: \$800 por persona (se paga por adelantado para confirmar).\nRequisitos base: pasaporte, INE, visa anterior si renuevas, tu situación laboral, países visitados en los últimos 5 años y datos familiares.\nAgenda en la sección de Citas (necesitas cuenta)."],
 
         ['kw'=>['sentri','global entry','globalentry'],
@@ -95,6 +95,10 @@ function oki_intents(): array
         ['kw'=>['cita','agendar','agendo','tramite','tramites','como agendo'],
          'a'=>"Con gusto te ayudo a agendar 🗓️\nGestionamos citas de pasaporte (mexicano y americano), visa, SENTRI, I-94, CURP, acta, INE y licencia. Las citas son de lunes a viernes.\nEntra a la sección de Citas de la página, elige el trámite (ahí ves los requisitos sin cuenta) y para agendar necesitas una cuenta. ¿De qué trámite quieres?"],
 
+        // ── Pago de servicios / recargas (antes de "Pagos" para ganar el empate en consultas de servicios) ──
+        ['kw'=>['recarga','recargas','pago de servicios','luz','agua','cfe','telmex','internet','recibo','gas','izzi','megacable','totalplay','telnor','cespt','agua tijuana','caseta','iave','pase','infonavit','tesoreria','catalogo','avon','betterware','tiempo aire','pagar servicio'],
+         'a'=>"Recargas y pago de servicios ⚡\nPagamos por ti más de 70 servicios, en tienda o por ".OKI_WA_TXT." (no hay opción en línea):\n• Agua (CESPT/Agua Tijuana y más), luz (CFE), gas\n• Teléfono, internet y TV (Telmex, izzi, AT&T, Megacable, Totalplay, Sky…)\n• Gobierno y tesorerías, Infonavit\n• Casetas (IAVE/PASE)\n• Ventas por catálogo (Avon, Betterware, Natura…)\nY recargas de tiempo aire para todas las compañías."],
+
         // ── Pagos / factura ──
         ['kw'=>['pago','pagar','tarjeta','efectivo','transferencia','mercado pago','mercadopago','meses sin intereses','msi','forma de pago','metodo de pago','american express','amex','mastercard','tarjeta de credito','tarjeta de debito','oxxo','spei'],
          'a'=>"Formas de pago 💳\nEn línea con Mercado Pago (tarjeta), o en tienda con efectivo o transferencia. El pago es de contado (no manejamos meses sin intereses).\nPara pagar en línea el mínimo es \$5. Los pedidos se pagan al 100% al confirmar, y las citas de visa y pasaporte también por adelantado."],
@@ -113,11 +117,15 @@ function oki_intents(): array
         ['kw'=>['subir archivo','imprimir en linea','hacer un pedido','como imprimo','mandar archivo','pedido de impresion','imprimir','impresion','archivo','pdf'],
          'a'=>"Para imprimir en línea 🖨️\nEntra a la sección \"Imprime tus fotos\" de la página: subes tu PDF o imágenes, ves el precio estimado al instante, y para enviar el pedido necesitas una cuenta. También puedes mandar el archivo por ".OKI_WA_TXT."."],
 
-        ['kw'=>['recarga','recargas','pago de servicios','luz','agua','cfe','telmex','internet','recibo'],
-         'a'=>"Recargas y pago de servicios ⚡\nEsos los hacemos en tienda o por ".OKI_WA_TXT." (no hay opción en línea por ahora). Manejamos luz (CFE), agua, teléfono, internet y muchos más."],
+        ['kw'=>['cuenta','registrarme','registro','iniciar sesion','crear cuenta','contrasena','password','necesito cuenta','sin cuenta','hay que registrarse'],
+         'a'=>"Tu cuenta 👤\nSin cuenta puedes cotizar, subir archivos y ver los requisitos de cualquier trámite. Para ENVIAR un pedido o AGENDAR y pagar una cita sí necesitas cuenta.\nCréala o inicia sesión en la página de Cuenta (pide nombre, correo, teléfono y contraseña)."],
 
-        ['kw'=>['cuenta','registrarme','registro','iniciar sesion','crear cuenta','contrasena','password'],
-         'a'=>"Tu cuenta 👤\nCon una cuenta puedes enviar pedidos, agendar y pagar citas, y ver tu historial. Créala o inicia sesión en la página de Cuenta. Registrarte pide nombre, correo, teléfono y una contraseña."],
+        // ── Reseñas y redes ──
+        ['kw'=>['reseña','reseñas','resena','resenas','opiniones','opinion','opinan','calificacion','comentarios','que dicen','que tal son','reviews','recomendaciones'],
+         'a'=>"Reseñas ⭐\nTenemos reseñas verificadas de clientes en Google; puedes verlas en la sección \"Reseñas\" de la página. ¡Nos encanta que nos cuentes cómo te fue!"],
+
+        ['kw'=>['facebook','instagram','redes','redes sociales','siguenos','fb','ig'],
+         'a'=>"Síguenos en redes 📱\nFacebook: facebook.com/okdock.station\nInstagram: instagram.com/okdock.station"],
 
         // ── Info del negocio ──
         ['kw'=>['horario','hora','abren','abierto','cierran','cierra','abre','que dias','dias','sabado','domingo'],
@@ -129,8 +137,8 @@ function oki_intents(): array
         ['kw'=>['telefono','numero','contacto','whatsapp','llamar','hablar','comunicar','wasap','wsp'],
          'a'=>"Contáctanos 📞\nLlamadas: 664 104 4896.\nWhatsApp: 664 719 4117 (".OKI_WA_URL.").\nCorreo: station@okdock.mx."],
 
-        ['kw'=>['quienes son','quienes somos','que es okstation','que hacen','a que se dedican','sobre ustedes'],
-         'a'=>"Somos Ok.station 🚀 (una marca de OK Dock), en el Centro Comercial Otay, Tijuana. Te ayudamos con copias, impresiones, fotografías, gran formato, enmicado, engargolado y la gestión de tus trámites y documentos. \"Tú lo imaginas, nosotros lo hacemos.\""],
+        ['kw'=>['quienes son','quienes somos','que es okstation','que hacen','a que se dedican','sobre ustedes','mision','valores','historia'],
+         'a'=>"Somos Ok.station 🚀 (una marca de OK Dock), en el Centro Comercial Otay, Tijuana. Reunimos en un solo lugar copias, impresiones, fotografías, gran formato, PVC, enmicado, engargolado y la gestión de tus trámites y documentos. Nos mueve resolverte rápido, bien y con trato cercano. \"Tú lo imaginas, nosotros lo hacemos.\""],
 
         // ── Saludo / cortesía (al final: cualquier dato les gana el empate) ──
         ['kw'=>['gracias','muchas gracias','thank','excelente','perfecto'],
