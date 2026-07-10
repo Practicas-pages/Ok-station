@@ -76,8 +76,8 @@ function oki_intents(): array
          'a'=>"I-94 / permiso de viaje 🧾\nGestión de la cita: \$200 por persona.\nRequisitos: pasaporte o identificación, visa o documento de viaje, e información de tu ingreso a EUA."],
 
         ['need'=>['acta'],
-         'kw'=>['acta','nacimiento','estado'],
-         'a'=>"Acta de nacimiento 📄\nEl precio depende del estado: va de \$265 a \$400 (Baja California \$345).\nRequisitos: CURP y el nombre completo de los padres. Dinos de qué estado la necesitas y te confirmo el precio exacto."],
+         'kw'=>['acta','nacimiento'],
+         'a'=>"Acta de nacimiento 📄\n¿De qué estado necesitas el acta? Dime el estado (por ejemplo Sonora) y te doy el precio exacto — van de \$265 (Quintana Roo) a \$400 (Yucatán).\nRequisitos: CURP y el nombre completo de los padres."],
 
         ['need'=>['curp'],
          'kw'=>['curp'],
@@ -129,7 +129,7 @@ function oki_intents(): array
 
         // ── Info del negocio ──
         ['kw'=>['horario','hora','abren','abierto','cierran','cierra','abre','que dias','dias','sabado','domingo'],
-         'a'=>"Horario 🕘\nLunes a viernes de 9:00 a 18:00. Los sábados no agendamos citas; si necesitas el horario de tienda del sábado, confírmalo por ".OKI_WA_TXT.". Domingo cerrado."],
+         'a'=>"Horario 🕘\nLunes a viernes de 8:00 a 18:00. Sábados de 9:00 a 16:00. Domingo cerrado.\nLas citas de trámites se agendan de lunes a viernes."],
 
         ['kw'=>['donde','ubicacion','direccion','como llego','como llegar','mapa','estan','ubicados','local'],
          'a'=>"Nos encuentras en 📍 Centro Comercial Otay, Local G-03, Carretera Aeropuerto 1900, Col. Nueva Tijuana, C.P. 22425, Tijuana, B.C.\nEn la sección \"Visítanos\" de la página está el mapa para llegar."],
@@ -149,11 +149,60 @@ function oki_intents(): array
     ];
 }
 
+/** Precio del acta certificada por estado (MXN, IVA incl.). Igual que las tarjetas del sitio.
+    Orden: nombres más específicos primero (para que "baja california sur" gane a "baja california"). */
+function oki_acta_precios(): array
+{
+    return [
+        'baja california sur'=>['Baja California Sur',345], 'baja california'=>['Baja California',345],
+        'quintana roo'=>['Quintana Roo',265], 'san luis potosi'=>['San Luis Potosí',320],
+        'nuevo leon'=>['Nuevo León',275], 'ciudad de mexico'=>['Ciudad de México',300], 'cdmx'=>['Ciudad de México',300],
+        'estado de mexico'=>['Estado de México',275], 'edomex'=>['Estado de México',275],
+        'aguascalientes'=>['Aguascalientes',335], 'campeche'=>['Campeche',275], 'chiapas'=>['Chiapas',345],
+        'chihuahua'=>['Chihuahua',325], 'coahuila'=>['Coahuila',370], 'colima'=>['Colima',305],
+        'durango'=>['Durango',345], 'guanajuato'=>['Guanajuato',305], 'guerrero'=>['Guerrero',335],
+        'hidalgo'=>['Hidalgo',335], 'jalisco'=>['Jalisco',305], 'michoacan'=>['Michoacán',355],
+        'morelos'=>['Morelos',310], 'nayarit'=>['Nayarit',285], 'oaxaca'=>['Oaxaca',325],
+        'puebla'=>['Puebla',340], 'queretaro'=>['Querétaro',335], 'sinaloa'=>['Sinaloa',320],
+        'sonora'=>['Sonora',320], 'tabasco'=>['Tabasco',310], 'tamaulipas'=>['Tamaulipas',310],
+        'tlaxcala'=>['Tlaxcala',355], 'veracruz'=>['Veracruz',385], 'yucatan'=>['Yucatán',400],
+        'zacatecas'=>['Zacatecas',365],
+    ];
+}
+
+/** Flujo interactivo del acta por estado. $t y $prev ya vienen normalizados. Devuelve respuesta o null. */
+function oki_acta_estado(string $t, string $prev): ?string
+{
+    // ¿Contexto de acta? El mensaje lo menciona, o OKi acaba de preguntar por el estado.
+    $ctx = mb_strpos($t,'acta') !== false
+        || mb_strpos($prev,'acta') !== false
+        || mb_strpos($prev,'de que estado') !== false;
+    if (!$ctx) return null;
+
+    // "México" a secas es ambiguo (Ciudad vs Estado): pedir que aclare.
+    $mexEspecifico = mb_strpos($t,'ciudad de mexico')!==false || mb_strpos($t,'cdmx')!==false
+        || mb_strpos($t,'estado de mexico')!==false || mb_strpos($t,'edomex')!==false;
+    if (!$mexEspecifico && preg_match('/\bmexico\b/', $t)) {
+        return "¿La necesitas de Ciudad de México (\$300) o del Estado de México (\$275)? Dime cuál 🙂";
+    }
+
+    foreach (oki_acta_precios() as $key => [$nom, $precio]) {
+        if (mb_strpos($t, $key) !== false) {
+            return "Acta de nacimiento de {$nom} 📄\nCuesta \${$precio}. Requisitos: CURP y el nombre completo de los padres. Te la descargamos e imprimimos, lista para tu trámite.";
+        }
+    }
+    return null;
+}
+
 /** Devuelve la respuesta de OKi, o null si no reconoce el mensaje. */
-function oki_brain_reply(string $text): ?string
+function oki_brain_reply(string $text, string $prev = ''): ?string
 {
     $t = oki_norm($text);
     if ($t === '') return null;
+
+    // Flujo interactivo del acta por estado (pregunta → estado → precio).
+    $acta = oki_acta_estado($t, oki_norm($prev));
+    if ($acta !== null) return $acta;
 
     $best = null; $bestScore = 0;
     foreach (oki_intents() as $intent) {

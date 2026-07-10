@@ -81,13 +81,25 @@ if (isset($b['messages']) && is_array($b['messages'])) {
 if ($text === '') fail('Falta el mensaje.', 400);
 if (mb_strlen($text) > 2000) $text = mb_substr($text, 0, 2000);
 
+/* Último mensaje de OKi (da contexto a flujos como el acta por estado). */
+$prev = '';
+if (isset($b['messages']) && is_array($b['messages'])) {
+    for ($i = count($b['messages']) - 1; $i >= 0; $i--) {
+        $m = $b['messages'][$i];
+        if (is_array($m) && ($m['role'] ?? '') === 'assistant') {
+            $prev = trim((string) ($m['content'] ?? ''));
+            break;
+        }
+    }
+}
+
 /* ── 2) Límite de uso ── */
 $ip = $_SERVER['HTTP_X_FORWARDED_FOR'] ?? $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
 $ip = trim(explode(',', $ip)[0]);
 oki_rate_limit($ip);
 
 /* ── 3) Cerebro por reglas ── */
-$reply = oki_brain_reply($text);
+$reply = oki_brain_reply($text, $prev);
 
 /* ── 4) Regla de oro: si no reconoce, deriva a WhatsApp (no inventa) ── */
 if ($reply === null) {
