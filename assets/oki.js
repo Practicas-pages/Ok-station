@@ -1,0 +1,209 @@
+/* ══════════════════════════════════════════════════════════════════
+   OKi — astronauta asistente de Ok.station.
+   Inyecta la mascota + panel de chat y lo conecta al cerebro:
+   POST /backend/api/oki/chat.php  (Claude, en el servidor).
+   Carga diferida (defer) para no afectar el LCP/TBT. Arranca CERRADO.
+   ══════════════════════════════════════════════════════════════════ */
+(function () {
+  "use strict";
+  var API = "/backend/api/oki/chat.php";
+  var WA  = "https://wa.me/526647194117";
+
+  // Historial de la conversación que se manda al backend.
+  var history = [];
+  var busy = false, greeted = false, thrustT = null, bubbleT = null;
+
+  var SVG_ASTRO =
+    '<svg class="oki__astro" viewBox="0 0 80 96" aria-hidden="true">' +
+    '<line x1="40" y1="13" x2="40" y2="6" stroke="#9fb3d6" stroke-width="2.4"/><circle cx="40" cy="5" r="3.2" fill="#00C6FF" class="oki__led"/>' +
+    '<rect x="25" y="40" width="30" height="30" rx="12" fill="#c3d0ec"/>' +
+    '<rect x="27" y="67" width="9" height="9" rx="3.5" fill="#9fb0d6"/><rect x="44" y="67" width="9" height="9" rx="3.5" fill="#9fb0d6"/>' +
+    '<g class="oki__thrust">' +
+    '<path class="fl fl1" d="M31.5 75 C 27.5 83, 29 90, 31.5 94 C 34 90, 35.5 83, 31.5 75 Z" fill="url(#okiFlame)"/>' +
+    '<path class="fl fl2" d="M48.5 75 C 44.5 83, 46 90, 48.5 94 C 51 90, 52.5 83, 48.5 75 Z" fill="url(#okiFlame)"/>' +
+    '<path class="fl core" d="M40 77 C 37.5 82, 38.5 87, 40 90 C 41.5 87, 42.5 82, 40 77 Z" fill="#ffffff" opacity=".85"/>' +
+    '</g>' +
+    '<g class="oki-leg oki-legL"><rect x="31" y="70" width="9.5" height="17" rx="4.7" fill="#fff" stroke="#e2e8f6" stroke-width="1.6"/><rect x="29" y="84" width="13" height="8" rx="4" fill="#dbe3f4"/></g>' +
+    '<g class="oki-leg oki-legR"><rect x="41.5" y="70" width="9.5" height="17" rx="4.7" fill="#fff" stroke="#e2e8f6" stroke-width="1.6"/><rect x="40" y="84" width="13" height="8" rx="4" fill="#dbe3f4"/></g>' +
+    '<rect x="26" y="42" width="28" height="30" rx="13" fill="#fff" stroke="#e2e8f6" stroke-width="1.8"/>' +
+    '<rect x="33" y="53" width="14" height="10" rx="3" fill="#0b1330"/>' +
+    '<circle cx="37.5" cy="58" r="1.7" fill="#00C6FF" class="oki__led"/><circle cx="42.5" cy="58" r="1.7" fill="#7fe0ff" class="oki__led2"/>' +
+    '<g class="oki-arm oki-armL"><path d="M29 51 q-8 5 -8 13" fill="none" stroke="#fff" stroke-width="7.5" stroke-linecap="round"/><circle cx="21.5" cy="65" r="5.4" fill="#fff" stroke="#e2e8f6" stroke-width="1.4"/></g>' +
+    '<g class="oki-arm oki-armR"><path d="M51 51 q8 5 8 13" fill="none" stroke="#fff" stroke-width="7.5" stroke-linecap="round"/><circle cx="58.5" cy="65" r="5.4" fill="#fff" stroke="#e2e8f6" stroke-width="1.4"/></g>' +
+    '<circle cx="40" cy="30" r="22" fill="#fff" stroke="#e2e8f6" stroke-width="2"/>' +
+    '<ellipse cx="40" cy="31" rx="15.5" ry="14.5" fill="url(#okiVisor)"/>' +
+    '<path d="M27 25 Q40 18 53 25" stroke="rgba(255,255,255,.22)" stroke-width="3" fill="none" stroke-linecap="round"/>' +
+    '<g clip-path="url(#okiVisorClip)"><rect class="oki__shine" x="30" y="14" width="7" height="36" fill="#ffffff" opacity=".55"/></g>' +
+    '<g class="oki__glare"><ellipse cx="33" cy="25" rx="4.2" ry="5.4" fill="#fff" opacity=".6" transform="rotate(-18 33 25)"/><circle cx="47" cy="35" r="2.3" fill="#bfefff" opacity=".85"/></g>' +
+    '</svg>';
+
+  var SVG_DEFS =
+    '<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>' +
+    '<linearGradient id="okiVisor" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0A1024"/><stop offset=".55" stop-color="#0552C8"/><stop offset="1" stop-color="#00C6FF"/></linearGradient>' +
+    '<linearGradient id="okiFlame" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#eafaff"/><stop offset=".35" stop-color="#00C6FF"/><stop offset=".72" stop-color="#066CFF"/><stop offset="1" stop-color="#066CFF" stop-opacity="0"/></linearGradient>' +
+    '<clipPath id="okiVisorClip"><ellipse cx="40" cy="31" rx="15.5" ry="14.5"/></clipPath>' +
+    '</defs></svg>';
+
+  var QUICKS = [
+    "📸 Foto para pasaporte",
+    "🗓️ Agendar una cita",
+    "🖨️ Imprimir un archivo",
+    "📍 Horario y ubicación"
+  ];
+
+  function el(html) { var d = document.createElement("div"); d.innerHTML = html; return d.firstElementChild; }
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
+  function linkify(s) {
+    return esc(s).replace(/(https?:\/\/[^\s)]+)/g, function (u) { return '<a href="' + u + '" target="_blank" rel="noopener">' + u + "</a>"; });
+  }
+
+  var dock, panel, chat, input;
+
+  function build() {
+    if (document.getElementById("oki-dock")) return;
+
+    // CSS (por si el <link> no está en el <head>).
+    if (!document.querySelector('link[href*="oki.css"]')) {
+      var l = document.createElement("link");
+      l.rel = "stylesheet"; l.href = "assets/oki.css";
+      document.head.appendChild(l);
+    }
+    document.body.appendChild(el(SVG_DEFS));
+
+    dock = el(
+      '<div class="oki-dock" id="oki-dock">' +
+      '<div class="oki-bubble" id="oki-bubble">¡Hola! Soy <b>OKi</b> 🚀<br>Pregúntame lo que sea del sitio.</div>' +
+      '<button class="oki" id="oki-btn" type="button" aria-label="Abrir asistente OKi">' +
+      '<span class="oki__aura"></span>' +
+      '<span class="oki__craft">' + SVG_ASTRO + '</span>' +
+      '</button></div>'
+    );
+    document.body.appendChild(dock);
+
+    panel = el(
+      '<div class="oki-panel" id="oki-panel" role="dialog" aria-label="Asistente OKi" aria-hidden="true">' +
+      '<div class="oki-panel__h">' +
+      '<span class="mini" aria-hidden="true">🚀</span>' +
+      '<div><b>OKi · Tu asistente</b><small>Te ayudo con todo el sitio</small></div>' +
+      '<button class="cls" type="button" aria-label="Cerrar">×</button>' +
+      '</div>' +
+      '<div class="oki-chat" id="oki-chat"></div>' +
+      '<div class="oki-quick" id="oki-quick"></div>' +
+      '<form class="oki-input" id="oki-form" autocomplete="off">' +
+      '<input id="oki-text" placeholder="Escríbele a OKi…" aria-label="Mensaje para OKi">' +
+      '<button type="submit" aria-label="Enviar">➤</button>' +
+      '</form></div>'
+    );
+    document.body.appendChild(panel);
+
+    chat = panel.querySelector("#oki-chat");
+    input = panel.querySelector("#oki-text");
+
+    var quick = panel.querySelector("#oki-quick");
+    QUICKS.forEach(function (q) {
+      var b = document.createElement("button");
+      b.type = "button"; b.textContent = q;
+      b.addEventListener("click", function () { send(q.replace(/^[^\s]+\s/, "")); });
+      quick.appendChild(b);
+    });
+
+    document.getElementById("oki-btn").addEventListener("click", toggle);
+    panel.querySelector(".cls").addEventListener("click", close);
+    panel.querySelector("#oki-form").addEventListener("submit", function (e) {
+      e.preventDefault();
+      var v = input.value.trim();
+      if (v) send(v);
+    });
+
+    // Cerrar al hacer clic fuera del panel.
+    document.addEventListener("click", function (e) {
+      if (!panel.classList.contains("on")) return;
+      if (e.target.closest("#oki-panel") || e.target.closest("#oki-dock")) return;
+      close();
+    });
+
+    // Vuela un poquito al hacer scroll (efecto de propulsión).
+    window.addEventListener("scroll", function () {
+      var b = document.getElementById("oki-btn");
+      if (!b) return;
+      b.classList.add("thrust");
+      clearTimeout(thrustT);
+      thrustT = setTimeout(function () { b.classList.remove("thrust"); }, 900);
+    }, { passive: true });
+
+    // Globo de saludo: aparece a los 3.5s, se esconde a los ~11s.
+    bubbleT = setTimeout(function () {
+      var bb = document.getElementById("oki-bubble");
+      if (bb && !panel.classList.contains("on")) {
+        bb.classList.add("on");
+        setTimeout(function () { bb.classList.remove("on"); }, 7500);
+      }
+    }, 3500);
+  }
+
+  function open() {
+    document.getElementById("oki-bubble").classList.remove("on");
+    clearTimeout(bubbleT);
+    panel.classList.add("on");
+    panel.setAttribute("aria-hidden", "false");
+    if (!greeted) {
+      greeted = true;
+      addMsg("¡Hola! Soy OKi 🚀 Te ayudo con impresiones, citas, precios y trámites. ¿Qué necesitas?", "bot");
+    }
+    setTimeout(function () { input.focus(); }, 250);
+  }
+  function close() { panel.classList.remove("on"); panel.setAttribute("aria-hidden", "true"); }
+  function toggle() { panel.classList.contains("on") ? close() : open(); }
+
+  function addMsg(text, who) {
+    var m = document.createElement("div");
+    m.className = "oki-msg " + (who === "me" ? "me" : "bot");
+    m.innerHTML = who === "me" ? esc(text) : linkify(text);
+    chat.appendChild(m);
+    chat.scrollTop = chat.scrollHeight;
+    return m;
+  }
+  function typing(on) {
+    var t = document.getElementById("oki-typing");
+    if (on && !t) {
+      t = document.createElement("div");
+      t.id = "oki-typing"; t.className = "oki-msg bot";
+      t.innerHTML = '<span class="oki-typing"><i></i><i></i><i></i></span>';
+      chat.appendChild(t); chat.scrollTop = chat.scrollHeight;
+    } else if (!on && t) { t.remove(); }
+  }
+
+  function send(text) {
+    if (busy) return;
+    if (!panel.classList.contains("on")) open();
+    busy = true; input.value = "";
+    addMsg(text, "me");
+    history.push({ role: "user", content: text });
+    typing(true);
+
+    fetch(API, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ messages: history })
+    })
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        typing(false);
+        var reply = (data && data.reply) ? data.reply :
+          "Uy, no pude procesar eso. Escríbenos por WhatsApp: 664 719 4117 (" + WA + ").";
+        addMsg(reply, "bot");
+        history.push({ role: "assistant", content: reply });
+      })
+      .catch(function () {
+        typing(false);
+        addMsg("No me pude conectar 😕. Escríbenos por WhatsApp: 664 719 4117 (" + WA + ").", "bot");
+      })
+      .then(function () { busy = false; input.focus(); });
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", build);
+  } else {
+    build();
+  }
+})();
