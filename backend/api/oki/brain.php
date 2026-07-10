@@ -52,7 +52,7 @@ function oki_intents(): array
         ['kw'=>['pvc','tarjeta pvc','gafete','credencial de pvc','membresia','tarjeta de presentacion'],
          'a'=>"Impresión en tarjetas PVC 🪪\n\$40 por tarjeta (tamaño tarjeta de crédito), a una o doble cara.\nCredenciales, gafetes, tarjetas de presentación y membresías; pueden llevar foto, logo, folio y código QR o de barras."],
 
-        ['kw'=>['plano','planos','gran formato','poster','póster','plotter','lamina','arquitectonico'],
+        ['kw'=>['plano','planos','gran formato','poster','póster','plotter','lamina','arquitectonico','lona','lonas','banner','pendon'],
          'a'=>"Gran formato y planos 📐\nGran formato 24×36\": \$380 en foto / \$190 en bond.\nImprimimos planos a escala desde PDF, DWG o imagen, hasta 24\" de ancho con el largo que necesites. Otras medidas se cotizan."],
 
         ['kw'=>['recorte','guillotina','cortar','corte'],
@@ -96,11 +96,18 @@ function oki_intents(): array
          'a'=>"Con gusto te ayudo a agendar 🗓️\nGestionamos citas de pasaporte (mexicano y americano), visa, SENTRI, I-94, CURP, acta, INE y licencia. Las citas son de lunes a viernes.\nEntra a la sección de Citas de la página, elige el trámite (ahí ves los requisitos sin cuenta) y para agendar necesitas una cuenta. ¿De qué trámite quieres?"],
 
         // ── Pagos / factura ──
-        ['kw'=>['pago','pagar','tarjeta','efectivo','transferencia','mercado pago','mercadopago','meses sin intereses','msi','forma de pago','metodo de pago'],
+        ['kw'=>['pago','pagar','tarjeta','efectivo','transferencia','mercado pago','mercadopago','meses sin intereses','msi','forma de pago','metodo de pago','american express','amex','mastercard','tarjeta de credito','tarjeta de debito','oxxo','spei'],
          'a'=>"Formas de pago 💳\nEn línea con Mercado Pago (tarjeta), o en tienda con efectivo o transferencia. El pago es de contado (no manejamos meses sin intereses).\nPara pagar en línea el mínimo es \$5. Los pedidos se pagan al 100% al confirmar, y las citas de visa y pasaporte también por adelantado."],
 
         ['kw'=>['factura','facturar','cfdi','factura electronica'],
          'a'=>"Facturación 🧾\nLa gestionamos por ".OKI_WA_TXT.". Escríbenos por ahí y te ayudamos con tu factura."],
+
+        // ── Tiempos y entrega ──
+        ['kw'=>['tardan','tarda','cuanto tardan','cuanto tarda','para cuando','cuando estara','cuando esta listo','cuanto tiempo','tiempo de entrega','demora','demoran','cuando lo recojo'],
+         'a'=>"Tiempos de entrega ⏱️\nLa mayoría de los trabajos se entregan el mismo día. Los volúmenes grandes o trabajos especiales llevan un tiempo estimado que te decimos al cotizar. Las fotos de trámite \"urgente\" son el mismo día y las \"regular\" al día siguiente."],
+
+        ['kw'=>['envio','envios','domicilio','a domicilio','entregan a domicilio','mandan a','llega a mi casa','paqueteria'],
+         'a'=>"Entrega 🚶\nLos trabajos se recogen en la sucursal (Centro Comercial Otay, Local G-03). Si necesitas un envío, pregúntanos por ".OKI_WA_TXT." y vemos si es posible."],
 
         // ── Cómo usar el sitio ──
         ['kw'=>['subir archivo','imprimir en linea','hacer un pedido','como imprimo','mandar archivo','pedido de impresion','imprimir','impresion','archivo','pdf'],
@@ -129,7 +136,7 @@ function oki_intents(): array
         ['kw'=>['gracias','muchas gracias','thank','excelente','perfecto'],
          'a'=>"¡Con gusto! 🚀 Aquí estoy si necesitas algo más — precios, citas, trámites o impresiones."],
 
-        ['kw'=>['hola','buenas','buenos dias','buenas tardes','buenas noches','hey','que tal','holi','saludos','ola'],
+        ['kw'=>['hola','buenas','buenos dias','buenas tardes','buenas noches','hey','que tal','holi','saludos','ola','ayuda','ayudame','me ayudas','informacion','info','pregunta'],
          'a'=>"¡Hola! 👋 Soy OKi 🚀 Te ayudo con impresiones, fotos, citas, trámites, precios, horarios y ubicación. ¿Qué necesitas?"],
     ];
 }
