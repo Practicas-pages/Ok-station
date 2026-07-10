@@ -58,6 +58,54 @@
   }
 
   var dock, panel, chat, input;
+  var listItems = [];
+
+  // ── Lógica de "Mi lista" (localStorage → WhatsApp) ──
+  function saveList() { try { localStorage.setItem("oki_list", JSON.stringify(listItems)); } catch (e) {} }
+  function loadList() {
+    try { var s = localStorage.getItem("oki_list"); listItems = s ? JSON.parse(s) : []; if (!Array.isArray(listItems)) listItems = []; }
+    catch (e) { listItems = []; }
+    renderList();
+  }
+  function addItem(text) {
+    text = (text || "").trim();
+    if (!text) return;
+    if (text.length > 120) text = text.slice(0, 120);
+    listItems.push(text); saveList(); renderList();
+  }
+  function renderList() {
+    var ul = document.getElementById("oki-list-items");
+    if (!ul) return;
+    ul.innerHTML = "";
+    if (!listItems.length) {
+      var empty = document.createElement("li");
+      empty.className = "oki-list-empty";
+      empty.textContent = "Tu lista está vacía. Agrega lo que necesites 🙂";
+      ul.appendChild(empty);
+    } else {
+      listItems.forEach(function (it, i) {
+        var li = document.createElement("li");
+        li.className = "oki-list-it";
+        var s = document.createElement("span"); s.textContent = it;
+        var x = document.createElement("button"); x.type = "button";
+        x.setAttribute("aria-label", "Quitar"); x.textContent = "×";
+        x.addEventListener("click", function () { listItems.splice(i, 1); saveList(); renderList(); });
+        li.appendChild(s); li.appendChild(x); ul.appendChild(li);
+      });
+    }
+    var send = document.getElementById("oki-list-send");
+    if (send) send.disabled = !listItems.length;
+  }
+  function showList() {
+    panel.setAttribute("data-view", "list"); renderList();
+    setTimeout(function () { var i = document.getElementById("oki-list-input"); if (i) i.focus(); }, 150);
+  }
+  function showChat() { panel.setAttribute("data-view", "chat"); }
+  function sendList() {
+    if (!listItems.length) return;
+    var txt = "Hola, quiero cotizar/pedir esto en Ok.station:\n" + listItems.map(function (x) { return "• " + x; }).join("\n");
+    window.open(WA + "?text=" + encodeURIComponent(txt), "_blank");
+  }
 
   function build() {
     if (document.getElementById("oki-dock")) return;
@@ -81,18 +129,33 @@
     document.body.appendChild(dock);
 
     panel = el(
-      '<div class="oki-panel" id="oki-panel" role="dialog" aria-label="Asistente OKi" aria-hidden="true">' +
+      '<div class="oki-panel" id="oki-panel" data-view="chat" role="dialog" aria-label="Asistente OKi" aria-hidden="true">' +
       '<div class="oki-panel__h">' +
       '<span class="mini" aria-hidden="true">🚀</span>' +
-      '<div><b>OKi · Tu asistente</b><small>Te ayudo con todo el sitio</small></div>' +
+      '<div class="oki-panel__t"><b>OKi · Tu asistente</b><small>Te ayudo con todo el sitio</small></div>' +
+      '<button class="oki-tab" id="oki-tab" type="button" aria-label="Mi lista" title="Mi lista">📝</button>' +
       '<button class="cls" type="button" aria-label="Cerrar">×</button>' +
       '</div>' +
+      // Vista CHAT
+      '<div class="oki-view oki-view--chat">' +
       '<div class="oki-chat" id="oki-chat"></div>' +
       '<div class="oki-quick" id="oki-quick"></div>' +
       '<form class="oki-input" id="oki-form" autocomplete="off">' +
       '<input id="oki-text" placeholder="Escríbele a OKi…" aria-label="Mensaje para OKi">' +
       '<button type="submit" aria-label="Enviar">➤</button>' +
-      '</form></div>'
+      '</form></div>' +
+      // Vista MI LISTA (armar pedido/papelería y mandarlo por WhatsApp)
+      '<div class="oki-view oki-view--list">' +
+      '<div class="oki-list-head">📝 Mi lista <small>Arma lo que necesitas y mándalo por WhatsApp</small></div>' +
+      '<form class="oki-list-add" id="oki-list-form" autocomplete="off">' +
+      '<input id="oki-list-input" placeholder="Ej. 2 resmas de papel carta" aria-label="Agregar a la lista">' +
+      '<button type="submit" aria-label="Agregar">＋</button></form>' +
+      '<ul class="oki-list-items" id="oki-list-items"></ul>' +
+      '<div class="oki-list-actions">' +
+      '<button type="button" id="oki-list-clear" class="oki-list-clear">Vaciar</button>' +
+      '<button type="button" id="oki-list-send" class="oki-list-send">Enviar por WhatsApp</button>' +
+      '</div></div>' +
+      '</div>'
     );
     document.body.appendChild(panel);
 
@@ -106,6 +169,10 @@
       b.addEventListener("click", function () { send(q.replace(/^[^\s]+\s/, "")); });
       quick.appendChild(b);
     });
+    var listChip = document.createElement("button");
+    listChip.type = "button"; listChip.textContent = "📝 Mi lista";
+    listChip.addEventListener("click", showList);
+    quick.appendChild(listChip);
 
     document.getElementById("oki-btn").addEventListener("click", toggle);
     panel.querySelector(".cls").addEventListener("click", close);
@@ -114,6 +181,21 @@
       var v = input.value.trim();
       if (v) send(v);
     });
+
+    // ── Mi lista ──
+    document.getElementById("oki-tab").addEventListener("click", function () {
+      panel.getAttribute("data-view") === "list" ? showChat() : showList();
+    });
+    document.getElementById("oki-list-form").addEventListener("submit", function (e) {
+      e.preventDefault();
+      var li = document.getElementById("oki-list-input");
+      addItem(li.value); li.value = ""; li.focus();
+    });
+    document.getElementById("oki-list-clear").addEventListener("click", function () {
+      if (listItems.length) { listItems = []; saveList(); renderList(); }
+    });
+    document.getElementById("oki-list-send").addEventListener("click", sendList);
+    loadList();
 
     // Cerrar al hacer clic fuera del panel.
     document.addEventListener("click", function (e) {
