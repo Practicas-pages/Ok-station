@@ -33,7 +33,7 @@ function oki_intents(): array
     return [
         // ── Servicios de impresión ──
         ['kw'=>['copia','copias','fotostatica','fotocopia','imprimir documento','impresion de documento','sacar copias'],
-         'a'=>"Copias e impresión de documentos 🖨️\nCarta B/N: \$2 (1–10), \$1.50 (11–60), \$1.30 (61+).\nCarta a color: \$12 / \$9 / \$5 según cantidad.\nOficio B/N desde \$1.50 · a color desde \$10. Doble carta B/N \$5, color \$20.\nPuedes mandar tu archivo por WhatsApp o subirlo en la sección \"Imprime tus fotos\". La mayoría se entrega el mismo día."],
+         'a'=>"Copias e impresión de documentos 🖨️\nCarta B/N: \$2 (1–10), \$1.50 (11–60), \$1.30 (61+).\nCarta a color: \$12 / \$9 / \$5 según cantidad.\nOficio B/N desde \$1.50 · a color desde \$10. Doble carta B/N \$5, color \$20.\nSúbelo en la sección \"Imprime tus fotos\" de la página y ves el precio al instante. La mayoría se entrega el mismo día."],
 
         ['need'=>['foto'],
          'kw'=>['pasaporte','visa','infantil','credencial','ovalada','ovalo','titulo','diploma','tramite'],
@@ -41,7 +41,7 @@ function oki_intents(): array
 
         ['need'=>['foto'],
          'kw'=>['imprimir','impresion','tamano','ampliacion','gran formato','revelar','revelado','papel'],
-         'a'=>"Impresión de fotografías 🖼️\n6×4\" \$10 · 5×7\" \$30 · 8.5×11\" \$75 · 11×17\" \$120.\nGran formato 24×36\": \$380 en foto / \$190 en bond.\nAcabado mate o brillante. Mándalas por WhatsApp o súbelas en \"Imprime tus fotos\"; la mayoría el mismo día."],
+         'a'=>"Impresión de fotografías 🖼️\n6×4\" \$10 · 5×7\" \$30 · 8.5×11\" \$75 · 11×17\" \$120.\nGran formato 24×36\": \$380 en foto / \$190 en bond.\nAcabado mate o brillante. Súbelas en la sección \"Imprime tus fotos\" de la página; la mayoría el mismo día."],
 
         ['kw'=>['enmicar','enmicado','engargolar','engargolado','arillo','mica'],
          'a'=>"Enmicado y engargolado 📚\nEnmicado: credencial \$12 · tarjeta \$15 · carta \$20 · doble carta \$30.\nEngargolado: chico \$38 · mediano \$45 · grande \$60.\nTesis y reportes se cotizan según el grosor. Podemos imprimir y dejártelo listo en el mismo lugar."],
@@ -59,7 +59,7 @@ function oki_intents(): array
          'a'=>"Recorte en guillotina ✂️\n\$2 por hoja, corte recto y preciso. Cortamos hojas, tarjetas, volantes, separadores y folletos, desde unas cuantas hasta alto volumen por millar."],
 
         ['kw'=>['papeleria','toner','tóner','cartucho','oficina','mayoreo','pluma','cuaderno','libreta'],
-         'a'=>"Papelería para oficinas ✏️\nManejamos consumibles (tóner, cartuchos) y artículos de escritorio, con opción de mayoreo para empresas. No tenemos lista fija: mándanos tu lista por ".OKI_WA_TXT." y te cotizamos."],
+         'a'=>"Papelería para oficinas ✏️\nManejamos consumibles (tóner, cartuchos) y artículos de escritorio, con opción de mayoreo. No tenemos lista fija: arma lo que necesitas con el botón 📝 \"Mi lista\" aquí en el chat y lo mandas, o escríbenos por ".OKI_WA_TXT.". Te cotizamos."],
 
         // ── Trámites / citas ──
         ['need'=>['pasaporte'],
@@ -115,7 +115,7 @@ function oki_intents(): array
 
         // ── Cómo usar el sitio ──
         ['kw'=>['subir archivo','imprimir en linea','hacer un pedido','como imprimo','mandar archivo','pedido de impresion','imprimir','impresion','archivo','pdf'],
-         'a'=>"Para imprimir en línea 🖨️\nEntra a la sección \"Imprime tus fotos\" de la página: subes tu PDF o imágenes, ves el precio estimado al instante, y para enviar el pedido necesitas una cuenta. También puedes mandar el archivo por ".OKI_WA_TXT."."],
+         'a'=>"Para imprimir en línea 🖨️\nEntra a la sección \"Imprime tus fotos\" de la página: subes tu PDF o imágenes, ves el precio estimado al instante y envías tu pedido (necesitas una cuenta). ¡Todo desde la página, sin salir de aquí!"],
 
         ['kw'=>['cuenta','registrarme','registro','iniciar sesion','crear cuenta','contrasena','password','necesito cuenta','sin cuenta','hay que registrarse'],
          'a'=>"Tu cuenta 👤\nSin cuenta puedes cotizar, subir archivos y ver los requisitos de cualquier trámite. Para ENVIAR un pedido o AGENDAR y pagar una cita sí necesitas cuenta.\nCréala o inicia sesión en la página de Cuenta (pide nombre, correo, teléfono y contraseña)."],
