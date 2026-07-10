@@ -79,4 +79,14 @@ return [
         'mp_public_key'         => env('MP_PUBLIC_KEY', ''),
         'mp_webhook_secret'     => env('MP_WEBHOOK_SECRET', ''),
     ],
+
+    /* Chatbot OKi (Claude / Anthropic). La llave es SECRETO DE SERVIDOR: solo
+       backend, nunca en el navegador. Si ANTHROPIC_API_KEY queda vacío, OKi
+       responde con su mensaje de respaldo y deriva a WhatsApp (no rompe el sitio).
+       Modelo por defecto: claude-opus-4-8 (máxima inteligencia). Para mucho
+       volumen y menor costo puedes cambiarlo a claude-haiku-4-5 en el .env. */
+    'anthropic' => [
+        'api_key' => env('ANTHROPIC_API_KEY', ''),
+        'model'   => env('ANTHROPIC_MODEL', 'claude-opus-4-8'),
+    ],
 ];
