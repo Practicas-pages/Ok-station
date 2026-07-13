@@ -18,9 +18,9 @@
   --sh-md:0 12px 32px rgba(12,20,50,.09),0 4px 12px rgba(12,20,50,.05);
   --sh-blue:0 14px 40px rgba(6,108,255,.30),0 4px 16px rgba(6,108,255,.18);
 }
-.oki-dock{position:fixed;right:26px;bottom:26px;z-index:110;transform:translate3d(var(--wx,0px),var(--wy,0px),0);transition:transform .85s cubic-bezier(.34,.1,.2,1)}
-/* En la tienda, OKi se hace a un lado cuando se abre el carrito (para no taparlo). */
-.oki-dock.oki-cart-open{opacity:0;transform:translateY(30px);pointer-events:none;transition:opacity .2s ease,transform .2s ease}
+.oki-dock{position:fixed;right:26px;bottom:26px;z-index:110;transform:translate3d(0,0,0);transition:transform .45s cubic-bezier(.34,.1,.2,1),opacity .3s ease}
+/* Al abrir el carrito, OKi se desplaza a la IZQUIERDA (desktop) o se oculta abajo (móvil).
+   El movimiento se aplica por estilo INLINE desde oki.js (más fiable que alternar clase). */
 /* Badge con el número de artículos del carrito, sobre el astronauta (modo tienda). */
 .oki-cart-badge{position:absolute;top:2px;right:2px;min-width:21px;height:21px;padding:0 5px;border-radius:var(--r-full);background:#e11d48;color:#fff;font-size:.72rem;font-weight:800;display:flex;align-items:center;justify-content:center;box-shadow:0 3px 8px rgba(225,29,72,.45);border:2px solid #fff;z-index:6;animation:okiBadgePop .3s cubic-bezier(.2,1.4,.4,1) !important;pointer-events:none}
 @keyframes okiBadgePop{from{transform:scale(.3);opacity:0}to{transform:scale(1);opacity:1}}
@@ -116,3 +116,31 @@
 .oki-list-send{flex:1;border:0;background:var(--grad-blue);color:#fff;border-radius:var(--r-full);padding:8px 14px;font-weight:800;font-size:.82rem;cursor:pointer;box-shadow:var(--sh-blue)}
 .oki-list-send:disabled{opacity:.5;cursor:default;box-shadow:none}
 .oki-list-soon{margin-left:auto;color:var(--muted);font-size:.72rem;font-weight:600;align-self:center;text-align:right}
+
+/* ── Lista de la tienda dentro de OKi: carrito (con cantidades) + recomendaciones + deseados ── */
+.oki-view--store{max-height:60vh;overflow-y:auto;background:var(--soft);padding-bottom:6px}
+.olv-sec{font-size:.65rem;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);font-weight:800;padding:12px 16px 4px}
+.olv-cart{padding:0 12px}
+.olv-it{display:grid;grid-template-columns:34px 1fr auto auto;gap:9px;align-items:center;background:#fff;border:1px solid var(--line);border-radius:12px;padding:7px 9px;margin-bottom:7px}
+.olv-th{width:34px;height:34px;border-radius:8px;display:grid;place-items:center;color:#fff;font-size:1.05rem;flex:0 0 auto}
+.olv-nm{min-width:0}
+.olv-it .olv-nm b,.olv-rec .olv-nm b{font-size:.76rem;display:block;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.olv-it .olv-nm small,.olv-rec .olv-nm small{color:var(--muted);font-size:.66rem}
+.olv-q{display:inline-flex;align-items:center;gap:7px;border:1.5px solid var(--line2);border-radius:8px;padding:2px 6px}
+.olv-q button{border:0;background:var(--blue-l);color:var(--blue);width:20px;height:20px;border-radius:5px;font-weight:800;line-height:1;cursor:pointer}
+.olv-q span{font-size:.76rem;font-weight:700;min-width:12px;text-align:center}
+.olv-x{border:0;background:none;color:var(--muted);font-size:.85rem;cursor:pointer}
+.olv-x:hover{color:#e11d48}
+.olv-empty{color:var(--muted);font-size:.8rem;text-align:center;padding:16px 12px;line-height:1.5}
+.olv-foot{padding:2px 16px 8px}
+.olv-tot{display:flex;justify-content:space-between;font-weight:800;font-size:1rem;padding:6px 0;color:var(--ink)}
+.olv-pay{width:100%;background:var(--blue);color:#fff;border:0;border-radius:10px;padding:11px;font-weight:800;box-shadow:var(--sh-blue);cursor:pointer;font-size:.9rem}
+.olv-recs,.olv-wish{padding:0 12px 4px;display:flex;flex-direction:column;gap:7px}
+.olv-rec{display:grid;grid-template-columns:32px 1fr auto auto;gap:8px;align-items:center;background:#fff;border:1px solid var(--line);border-radius:10px;padding:6px 8px}
+.olv-rec .olv-th{width:32px;height:32px;font-size:1rem}
+.olv-rec small .o{color:#ea580c;font-weight:700}
+.olv-wsh{border:0;background:none;color:#c4cbdd;font-size:1rem;cursor:pointer;line-height:1}
+.olv-wsh.on{color:var(--purple)}
+.olv-add{border:0;background:var(--blue-l);color:var(--blue);width:28px;height:28px;border-radius:8px;font-weight:800;font-size:1rem;cursor:pointer}
+.olv-chat{margin:8px 12px 12px;border:1.5px solid var(--line2);background:#fff;border-radius:10px;padding:9px;font-weight:700;color:var(--ink2);cursor:pointer}
+.olv-chat:hover{border-color:var(--blue);color:var(--blue)}
