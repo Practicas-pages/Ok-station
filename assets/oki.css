@@ -24,6 +24,17 @@
 /* "Peek": tras 30s sin usar OKi, se esconde y solo asoma; al tocarlo o pasar el mouse, regresa. */
 .oki-dock.oki-peek{cursor:pointer}
 .oki-dock.oki-peek .oki-bubble{display:none !important}
+/* Rebote al aparecer desde el "peek". */
+.oki-dock.oki-waking .oki__craft{animation:okiWakePop .72s cubic-bezier(.2,1.5,.4,1) !important}
+@keyframes okiWakePop{0%{transform:scale(.72) translateY(6px) rotate(-7deg)}55%{transform:scale(1.12) rotate(5deg)}100%{transform:scale(1) rotate(0)}}
+/* Escondido: un guiño/aleteo de atención cada tanto para que se note que sigue ahí. */
+.oki-dock.oki-peek .oki__astro{animation:okiPeekWiggle 3.4s ease-in-out infinite !important}
+@keyframes okiPeekWiggle{0%,74%,100%{transform:translateX(0) rotate(0)}82%{transform:translateX(-4px) rotate(-8deg)}90%{transform:translateX(0) rotate(6deg)}}
+/* En reposo, saluda con el brazo derecho de vez en cuando. */
+.oki:not(.thrust):not(:hover) .oki-armR{animation:okiWave 7.5s ease-in-out infinite !important}
+@keyframes okiWave{0%,86%,100%{transform:rotate(0)}90%{transform:rotate(-24deg)}94%{transform:rotate(6deg)}98%{transform:rotate(-15deg)}}
+/* Al pasar el mouse, una ligera inclinación curiosa. */
+.oki:hover .oki__astro{transform:rotate(3deg) translateY(-2px)}
 /* Badge con el número de artículos del carrito, sobre el astronauta (modo tienda). */
 .oki-cart-badge{position:absolute;top:2px;right:2px;min-width:21px;height:21px;padding:0 5px;border-radius:var(--r-full);background:#e11d48;color:#fff;font-size:.72rem;font-weight:800;display:flex;align-items:center;justify-content:center;box-shadow:0 3px 8px rgba(225,29,72,.45);border:2px solid #fff;z-index:6;animation:okiBadgePop .3s cubic-bezier(.2,1.4,.4,1) !important;pointer-events:none}
 @keyframes okiBadgePop{from{transform:scale(.3);opacity:0}to{transform:scale(1);opacity:1}}

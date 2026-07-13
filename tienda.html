@@ -6,7 +6,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap">
 <link rel="stylesheet" href="styles.css">
-<link rel="stylesheet" href="assets/oki.css?v=20260713m">
+<link rel="stylesheet" href="assets/oki.css?v=20260713n">
 <style>
 
 #site{
@@ -285,7 +285,10 @@
 #site .modal{background:#fff; border-radius:18px; max-width:460px; width:100%; max-height:90vh; overflow:auto; box-shadow:0 20px 60px rgba(18,20,28,.3)}
 #site .modal .mh{position:relative; height:170px}
 #site .modal .mh .ph{position:absolute; inset:0; border-radius:18px 18px 0 0; border-width:0 0 2px}
-#site .modal .x{position:absolute; top:12px; right:12px; z-index:3; width:32px; height:32px; border-radius:9px; border:none; background:rgba(255,255,255,.92); font-size:1.1rem}
+#site .modal .x{position:absolute; top:12px; right:12px; z-index:5; width:34px; height:34px; border-radius:50%; border:1px solid var(--line); background:#fff; color:var(--ink,#12141C); font-size:1.15rem; font-weight:700; line-height:1; cursor:pointer; box-shadow:0 4px 12px rgba(18,20,28,.18); display:grid; place-items:center; transition:transform .15s ease, background .15s ease}
+#site .modal .x:hover{transform:scale(1.08); background:#f1f4fb; color:#e11d48}
+/* Bloqueo de scroll de la página mientras hay un banner/modal abierto */
+html.modal-lock, html.modal-lock body{overflow:hidden !important}
 #site .mb{padding:20px 22px 22px}
 #site .mb .cat{font-size:.7rem; color:var(--muted); text-transform:uppercase}
 #site .mb h3{font-size:1.3rem; font-weight:800; margin:4px 0 8px}
@@ -799,7 +802,9 @@
   $("checkoutBtn").addEventListener("click",function(){$("app").classList.remove("cart-open"); coStep=0; renderCheckout(); show("coOv");});
   $("coOv").addEventListener("click",function(e){if(e.target.id==="coOv"||e.target.closest("[data-close]")){hide("coOv"); return;} if(e.target.closest("[data-conext]")){coStep++; renderCheckout();} if(e.target.closest("[data-cofin]")){hide("coOv"); cart={}; renderCart(); flash("Carrito vaciado (demo)");}});
 
-  function show(id){$(id).classList.add("show");} function hide(id){$(id).classList.remove("show");}
+  function anyOvOpen(){return !!document.querySelector(".ov.show");}
+  function show(id){$(id).classList.add("show"); document.documentElement.classList.add("modal-lock");}
+  function hide(id){$(id).classList.remove("show"); if(!anyOvOpen())document.documentElement.classList.remove("modal-lock");}
   document.addEventListener("keydown",function(e){if(e.key==="Escape"){var pv=$("prodOv").classList.contains("show");wishReopen=false;hide("prodOv");hide("coOv");hide("wishOv");$("app").classList.remove("drawer-open","cart-open");if(pv)okiEmit("vista-previa-cerrada");okiEmit("carrito-cerrado");}});
   var tt2; function flash(m){var el=$("toast"); el.textContent=m; el.classList.add("show"); clearTimeout(tt2); tt2=setTimeout(function(){el.classList.remove("show");},1600);}
 
@@ -858,6 +863,6 @@
 <!-- Sesión en el header (muestra tu cuenta si iniciaste sesión) + navbar inteligente -->
 <script src="assets/session-nav.js?v=20260630c" defer></script>
 <!-- OKi, el astronauta ayudante. Conectado a la tienda vía el contrato window.OKtienda (ver OKi-tienda-integracion.md). -->
-<script src="assets/oki.js?v=20260713m" defer></script>
+<script src="assets/oki.js?v=20260713n" defer></script>
 </body>
 </html>

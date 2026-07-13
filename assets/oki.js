@@ -189,7 +189,11 @@
     clearTimeout(okiPeekTimer);
     okiPeekTimer = setTimeout(function () { okiPeeked = true; okiUpdatePosition(); }, OKI_PEEK_MS);
   }
-  function okiWake() { okiPeeked = false; okiUpdatePosition(); okiResetPeekTimer(); }
+  function okiWake() {
+    var was = okiPeeked;
+    okiPeeked = false; okiUpdatePosition(); okiResetPeekTimer();
+    if (was && dock) { dock.classList.add("oki-waking"); setTimeout(function () { dock.classList.remove("oki-waking"); }, 720); }
+  }
 
   // Globo del astronauta con lo recién agregado + una recomendación.
   function okiBubbleAdd(prod) {
