@@ -755,18 +755,36 @@ html.modal-lock, html.modal-lock body{overflow:hidden !important}
     if(activeCat==="ofertas"){if(!p.old)return false;} else if(activeCat!=="all"&&p.cat!==activeCat)return false;
     if(query.length>=2){var q=query.toLowerCase(); if(!(p.name.toLowerCase().indexOf(q)>=0||p.cat.indexOf(q)>=0))return false;} return true;});}
   function catName(id){var c=CATS.filter(function(x){return x.id===id;})[0]; return c?c.name:id;}
-  function renderGrid(){var list=filtered();
-    $("catTitle").textContent=query.length>=2?'Resultados de "'+query+'"':catName(activeCat);
-    $("catCount").textContent=list.length+" producto"+(list.length===1?"":"s");
-    if(!list.length){$("grid").innerHTML='<div class="empty">No encontramos productos.</div>'; return;}
-    $("grid").innerHTML=list.map(function(p){var low=p.stock<=5;
+  var infiniteList=[]; // lista actual filtrada, para el scroll infinito (los productos se repiten)
+  function cardsHTML(list){return list.map(function(p){var low=p.stock<=5;
       return '<div class="prod">'+(p.old?'<span class="deal-badge">−'+Math.round((1-p.price/p.old)*100)+'%</span>':'')+pimg(p)+heartBtn(p.id,'position:absolute;top:10px;right:10px;z-index:4;width:36px;height:36px;padding:0;')+
         '<div class="pinfo"><div class="pnametext"><div class="cat">'+catName(p.cat)+'</div><h3>'+p.name+'</h3><div class="pdesc">'+(p.brand?p.brand+' · ':'')+(p.desc||'')+'</div></div>'+
         '<div class="row"><div><div class="price">'+mxn(p.price)+(p.old?' <s>'+mxn(p.old)+'</s>':'')+'</div><div class="stock'+(low?' low':'')+'">'+(low?"¡Últimas "+p.stock+"!":p.stock+" en stock")+'</div></div><button class="add" data-add="'+p.id+'">+</button></div></div>'+
-        '<button style="position:absolute;inset:0;opacity:0;cursor:pointer" data-open="'+p.id+'" aria-label="Ver"></button></div>';}).join("");
+        '<button style="position:absolute;inset:0;opacity:0;cursor:pointer" data-open="'+p.id+'" aria-label="Ver"></button></div>';}).join("");}
+  function renderGrid(){var list=filtered();
+    $("catTitle").textContent=query.length>=2?'Resultados de "'+query+'"':catName(activeCat);
+    $("catCount").textContent=list.length+" producto"+(list.length===1?"":"s");
+    if(!list.length){infiniteList=[]; $("grid").innerHTML='<div class="empty">No encontramos productos.</div>'; return;}
+    infiniteList=list;                       // reinicia el scroll infinito al cambiar filtro/categoría/búsqueda
+    $("grid").innerHTML=cardsHTML(list);
   }
   $("grid").addEventListener("click",function(e){var w=e.target.closest("[data-wish]"); if(w){e.stopPropagation(); toggleWishlist(+w.dataset.wish); return;} var a=e.target.closest("[data-add]"); if(a){e.stopPropagation(); addToCart(+a.dataset.add,1); return;} var o=e.target.closest("[data-open]"); if(o){openProduct(+o.dataset.open);}});
   var t; $("q").addEventListener("input",function(e){clearTimeout(t); var v=e.target.value; t=setTimeout(function(){query=v.trim(); renderGrid();},160);});
+
+  // Scroll infinito: al acercarse al final del catálogo, se repiten los productos.
+  (function(){
+    var grid=$("grid"); if(!grid || !grid.parentNode || !("IntersectionObserver" in window)) return;
+    var sentinel=document.createElement("div");
+    sentinel.setAttribute("aria-hidden","true");
+    sentinel.style.cssText="height:1px; width:100%;";
+    grid.parentNode.insertBefore(sentinel, grid.nextSibling); // hermano justo debajo del grid (sobrevive a renderGrid)
+    var io=new IntersectionObserver(function(entries){
+      if(entries[0].isIntersecting && infiniteList.length){
+        grid.insertAdjacentHTML("beforeend", cardsHTML(infiniteList)); // añade otra tanda de productos
+      }
+    },{rootMargin:"800px 0px"});
+    io.observe(sentinel);
+  })();
 
   $("hamb").addEventListener("click",function(){$("app").classList.add("drawer-open");});
   $("drawerClose").addEventListener("click",function(){$("app").classList.remove("drawer-open");});
