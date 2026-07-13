@@ -80,6 +80,8 @@
 
   <!-- ===================== HOJA DE ESTILOS ===================== -->
   <link rel="stylesheet" href="styles.css?v=20260708d">
+  <!-- Mascota/chatbot OKi -->
+  <link rel="stylesheet" href="assets/oki.css?v=20260713f">
   <!-- Estilos del configurador de pedido embebido en #fotos -->
   <link rel="stylesheet" href="assets/order.css?v=20260707d">
 
@@ -93,8 +95,12 @@
     "alternateName": "Ok.station — una marca de OK Dock",
     "description": "Centro de copiado, impresión, fotografía y gestión de citas para trámites (pasaporte, visa americana y SENTRI) en Tijuana.",
     "url": "https://okstation.mx/",
-    "telephone": "+52-664-719-4117",
+    "telephone": "+52-664-104-4896",
     "email": "station@okdock.mx",
+    "contactPoint": [
+      { "@type": "ContactPoint", "telephone": "+52-664-104-4896", "contactType": "customer service", "areaServed": "MX", "availableLanguage": "Spanish" },
+      { "@type": "ContactPoint", "telephone": "+52-664-719-4117", "contactType": "sales", "areaServed": "MX", "availableLanguage": "Spanish" }
+    ],
     "image": "https://okstation.mx/assets/img/hero-okstation.webp",
     "priceRange": "$$",
     "currenciesAccepted": "MXN",
@@ -149,6 +155,28 @@
     "name": "Ok.station",
     "url": "https://okstation.mx/",
     "inLanguage": "es-MX"
+  }
+  </script>
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "@id": "https://okstation.mx/#organization",
+    "name": "Ok.station",
+    "alternateName": "Ok.station — una marca de OK Dock",
+    "url": "https://okstation.mx/",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://okstation.mx/assets/img/OKD-Isotipo-Azul-96.png",
+      "width": 96,
+      "height": 96
+    },
+    "image": "https://okstation.mx/assets/img/hero-okstation.webp",
+    "sameAs": [
+      "https://www.facebook.com/okdock.station",
+      "https://www.instagram.com/okdock.station/"
+    ]
   }
   </script>
 
@@ -348,8 +376,8 @@
           <!-- Copias -->
           <article class="service-card reveal">
           <img src="assets/img/s_copias fotostaticas.webp" alt="Copias fotostáticas a color y blanco y negro en Ok.station Tijuana" width="800" height="450" loading="lazy" decoding="async" class="service-card__img">
-            <h3>Copias fotostáticas</h3>
-            <p>A color y en blanco y negro, con la mejor nitidez. Una hoja o cientos, siempre listas al momento.</p>
+            <h3>Copias e impresión de documentos</h3>
+            <p>Tu centro de copiado e imprenta digital en Otay: copias e impresión a color y blanco y negro con la mejor nitidez. Una hoja o cientos, listas al momento.</p>
             <div class="service-tags"><span class="tag">Color</span><span class="tag">Blanco y negro</span><span class="tag">Alto volumen</span></div>
             <a href="copias-e-impresiones-tijuana.html" class="service-link">Ver más <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></a>
           </article>
@@ -978,6 +1006,39 @@
     </div>
   </section>
 
+    <!-- ============= CTA: NUEVA TIENDA EN LÍNEA (debajo de pedidos) ============= -->
+    <style>
+      .okstore-cta{display:grid;grid-template-columns:1.25fr .9fr;gap:24px;align-items:center;position:relative;overflow:hidden;border-radius:24px;padding:clamp(24px,4vw,44px);background:linear-gradient(135deg,#066CFF,#00C6FF);color:#fff;text-decoration:none;box-shadow:0 24px 60px rgba(6,108,255,.28);transition:transform .25s ease,box-shadow .25s ease}
+      .okstore-cta:hover{transform:translateY(-3px);box-shadow:0 30px 74px rgba(6,108,255,.38)}
+      .okstore-cta__tag{display:inline-block;background:#ff7a1a;color:#fff;font-weight:800;font-size:.72rem;letter-spacing:.03em;text-transform:uppercase;padding:6px 13px;border-radius:999px;margin-bottom:14px}
+      .okstore-cta__h{font-size:clamp(1.4rem,3.4vw,2.15rem);font-weight:800;line-height:1.15;margin:0 0 10px;color:#fff}
+      .okstore-cta__h span{opacity:.92}
+      .okstore-cta__p{font-size:clamp(.9rem,1.6vw,1rem);opacity:.95;max-width:48ch;margin:0 0 18px;line-height:1.5;color:#fff}
+      .okstore-cta__btn{display:inline-flex;align-items:center;gap:9px;background:#fff;color:#0552C8;font-weight:800;padding:13px 27px;border-radius:999px;font-size:1rem}
+      .okstore-cta__trust{display:flex;flex-wrap:wrap;gap:8px 18px;margin-top:16px;font-size:.8rem;font-weight:600;opacity:.96}
+      .okstore-cta__art{position:relative;min-height:190px}
+      .okstore-cta .oc-tile{position:absolute;width:clamp(62px,9vw,92px);height:clamp(62px,9vw,92px);border-radius:20px;background:rgba(255,255,255,.17);display:grid;place-items:center;font-size:clamp(26px,4vw,42px);box-shadow:0 12px 32px rgba(0,20,60,.16)}
+      .okstore-cta .oc-1{top:0;right:36%;transform:rotate(-6deg)} .okstore-cta .oc-2{top:14%;right:2%;transform:rotate(5deg)}
+      .okstore-cta .oc-3{bottom:4%;right:40%;transform:rotate(4deg)} .okstore-cta .oc-4{bottom:0;right:5%;transform:rotate(-5deg)}
+      @media(max-width:760px){.okstore-cta{grid-template-columns:1fr;text-align:center}.okstore-cta__p{margin-inline:auto}.okstore-cta__trust{justify-content:center}.okstore-cta__art{display:none}}
+    </style>
+    <section class="section" aria-label="Tienda en línea" style="padding-block:clamp(26px,5vw,54px)">
+      <div class="wrap">
+        <a href="tienda.html" class="okstore-cta">
+          <div class="okstore-cta__body">
+            <span class="okstore-cta__tag">🛍️ Nueva tienda en línea</span>
+            <h2 class="okstore-cta__h">Papelería, tecnología y accesorios<br><span>ahora también en línea</span></h2>
+            <p class="okstore-cta__p">Explora el catálogo, arma tu carrito y recógelo el mismo día en OK.station. Pago seguro con Mercado Pago.</p>
+            <span class="okstore-cta__btn">Entrar a la tienda <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></span>
+            <div class="okstore-cta__trust"><span>✓ Recoge el mismo día</span><span>✓ Pago con Mercado Pago</span><span>✓ Factura disponible</span></div>
+          </div>
+          <div class="okstore-cta__art" aria-hidden="true">
+            <span class="oc-tile oc-1">📓</span><span class="oc-tile oc-2">💻</span><span class="oc-tile oc-3">🖊️</span><span class="oc-tile oc-4">🎧</span>
+          </div>
+        </a>
+      </div>
+    </section>
+
     <!-- ============================ TESTIMONIOS ============================ -->
     <!-- Reseñas dinámicas (CRUD ligado al login). Las 3 tarjetas estáticas
        son fallback sin-JS / contenido para buscadores; reviews.js las reemplaza. -->
@@ -1359,26 +1420,26 @@
       </div>
       <div class="footer-col">
         <h5>Servicios</h5>
-        <a href="#servicios">Copias fotostáticas</a>
-        <a href="#fotos">Impresión de fotografías</a>
-        <a href="#servicios">Fotos para trámites</a>
-        <a href="#servicios">Escaneado de documentos</a>
-        <a href="#servicios">Impresión en PVC</a>
-        <a href="#servicios">Enmicado y engargolado</a>
-        <a href="#servicios">Recorte en guillotina</a>
-        <a href="#servicios">Papelería para oficinas</a>
-        <a href="#servicios">Recargas telefónicas</a>
-        <a href="#servicios">Pago de servicios</a>
+        <a href="copias-e-impresiones-tijuana.html">Copias e impresión</a>
+        <a href="impresion-de-fotografias-tijuana.html">Impresión de fotografías</a>
+        <a href="fotos-para-pasaporte-tijuana.html">Fotos para trámites</a>
+        <a href="escaneado-y-digitalizacion-tijuana.html">Escaneado y digitalización</a>
+        <a href="impresion-tarjetas-pvc-tijuana.html">Impresión en PVC</a>
+        <a href="enmicado-y-engargolado-tijuana.html">Enmicado y engargolado</a>
+        <a href="recorte-guillotina-tijuana.html">Recorte en guillotina</a>
+        <a href="papeleria-para-oficinas-tijuana.html">Papelería para oficinas</a>
+        <a href="impresion-gran-formato-planos-tijuana.html">Gran formato y planos</a>
+        <a href="pedido-de-impresion-en-linea-tijuana.html">Haz tu pedido en línea</a>
       </div>
       <div class="footer-col">
         <h5>Trámites</h5>
-        <a href="#citas">Citas de pasaporte</a>
-        <a href="#citas">Visa americana</a>
-        <a href="#citas">SENTRI / Global Entry</a>
-        <a href="#citas">I-94 / Permiso de viaje</a>
-        <a href="#citas">INE / Credencial</a>
-        <a href="#citas">CURP y actas</a>
-        <a href="#citas">Licencia de conducir</a>
+        <a href="citas-tramites-tijuana.html">Citas de pasaporte</a>
+        <a href="citas-tramites-tijuana.html">Visa americana</a>
+        <a href="citas-tramites-tijuana.html">SENTRI / Global Entry</a>
+        <a href="tramites-y-documentos-oficiales-tijuana.html">Documentos oficiales</a>
+        <a href="requisitos-pasaporte-tijuana.html">Requisitos de pasaporte</a>
+        <a href="quienes-somos.html">Quiénes somos</a>
+        <a href="contactanos.html">Contáctanos</a>
       </div>
       <div class="footer-col">
         <h5>Documentos</h5>
@@ -1437,6 +1498,8 @@
 <!-- Comprobante PDF de cita (compartido con perfil y admin) -->
 <script src="assets/cita-ticket.js?v=20260707d" defer></script>
 <script src="assets/pagos-servicios.js?v=20260626" defer></script>
+<!-- Mascota/chatbot OKi (astronauta) -->
+<script src="assets/oki.js?v=20260713f" defer></script>
 </body>
 
 </html>

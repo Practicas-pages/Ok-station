@@ -40,6 +40,8 @@
   <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap"></noscript>
 
   <link rel="stylesheet" href="styles.css?v=20260630c">
+  <!-- Mascota/chatbot OKi -->
+  <link rel="stylesheet" href="assets/oki.css?v=20260713f">
   <style>
     .breadcrumb { padding: 14px 0 0; }
     .breadcrumb ol { list-style: none; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin: 0; padding: 0; font-size: 0.8125rem; color: var(--text-muted, #6B7280); }
@@ -98,7 +100,10 @@
       { "@type": "Question", "name": "¿Puedo enviar mi documento por correo o WhatsApp para imprimirlo?", "acceptedAnswer": { "@type": "Answer", "text": "Claro. Mándanos el archivo por WhatsApp o correo y te lo dejamos impreso y listo para recoger en sucursal." } },
       { "@type": "Question", "name": "¿Manejan impresión de alto volumen?", "acceptedAnswer": { "@type": "Answer", "text": "Sí, imprimimos por volumen para empresas, escuelas y proyectos. Escríbenos para cotizar según cantidad y tipo de papel." } },
       { "@type": "Question", "name": "¿En qué tamaños imprimen documentos?", "acceptedAnswer": { "@type": "Answer", "text": "Trabajamos tamaños estándar como carta y oficio, además de otros formatos según tu necesidad." } },
-      { "@type": "Question", "name": "¿Entregan en el momento?", "acceptedAnswer": { "@type": "Answer", "text": "La mayoría de las copias e impresiones se entregan al momento. En volúmenes grandes te damos un tiempo estimado al cotizar." } }
+      { "@type": "Question", "name": "¿Entregan en el momento?", "acceptedAnswer": { "@type": "Answer", "text": "La mayoría de las copias e impresiones se entregan al momento. En volúmenes grandes te damos un tiempo estimado al cotizar." } },
+      { "@type": "Question", "name": "¿Imprimen tesis y trabajos escolares?", "acceptedAnswer": { "@type": "Answer", "text": "Sí. Imprimimos tesis, trabajos, apuntes y láminas para estudiantes de UABC, CETYS y prepas de Otay, y te lo combinamos con enmicado y engargolado para que entregues listo." } },
+      { "@type": "Question", "name": "¿Puedo imprimir urgente para el mismo día?", "acceptedAnswer": { "@type": "Answer", "text": "Sí. Somos una imprenta cerca de la Garita de Otay y la mayoría de las impresiones urgentes quedan listas al momento. Mándanos tu archivo por WhatsApp y lo dejamos listo para recoger el mismo día." } },
+      { "@type": "Question", "name": "¿Manejan facturación para empresas?", "acceptedAnswer": { "@type": "Answer", "text": "Sí. Damos servicio de impresión de alto volumen y mayoreo para empresas y oficinas, con precio por cantidad. Escríbenos para cotizar y solicitar tu factura." } }
     ]
   }
   </script>
@@ -142,8 +147,8 @@
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
             Copias e impresión · Tijuana
           </span>
-          <h1 class="hero__title" id="svc-title"><span class="accent">Copias e impresiones</span> en Tijuana</h1>
-          <p class="hero__lead">Copias e impresión de documentos a color y blanco y negro, con la mejor nitidez. Una hoja o cientos, siempre listas al momento en Centro Comercial Otay.</p>
+          <h1 class="hero__title" id="svc-title"><span class="accent">Copias e impresiones</span> en Otay, Tijuana</h1>
+          <p class="hero__lead">Somos tu centro de copiado e imprenta digital en Otay: copias e impresión de documentos a color y blanco y negro con la mejor nitidez. Una hoja o cientos, siempre listas al momento en Centro Comercial Otay, Tijuana.</p>
           <div class="hero__cta">
             <a href="pedido.html" class="btn btn--primary btn--lg">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
@@ -160,6 +165,17 @@
             <li class="hero__chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg> Alto volumen</li>
           </ul>
         </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" aria-labelledby="intro-title">
+    <div class="wrap">
+      <div class="section-head section-head--center reveal"><span class="eyebrow">Centro de copiado e imprenta digital</span><h2 class="text-h2" id="intro-title">Tu imprenta digital en Otay, Tijuana</h2></div>
+      <div class="reveal" style="max-width:780px;margin:0 auto;color:var(--text-secondary,#475569);line-height:1.75;font-size:1.02rem">
+        <p style="margin:0 0 16px">En <strong>Ok.station</strong> somos un <strong>centro de copiado e imprenta digital</strong> en Centro Comercial Otay. Hacemos <strong>fotocopias</strong> e <strong>impresión de documentos</strong> a color y en blanco y negro con alta nitidez, desde una sola hoja hasta grandes tirajes. Imprime directo desde tu <strong>USB, correo o WhatsApp</strong> (PDF, Word, PowerPoint) y recoge tus copias en minutos, sin filas ni complicaciones.</p>
+        <p style="margin:0 0 16px">¿Eres <strong>estudiante de UABC, CETYS</strong> o alguna prepa de la zona? Te imprimimos <strong>tesis, trabajos, apuntes, láminas y presentaciones</strong> a precio accesible, y lo combinamos con <a href="enmicado-y-engargolado-tijuana.html" class="svc-meta">enmicado y engargolado</a> para que entregues todo listo. Para <strong>empresas y oficinas</strong> manejamos <strong>impresión de alto volumen y mayoreo</strong> con precio por cantidad, además de <a href="papeleria-para-oficinas-tijuana.html" class="svc-meta">papelería para oficinas</a>.</p>
+        <p style="margin:0">¿Buscas <strong>impresión urgente</strong> o una <strong>imprenta cerca de ti</strong> en Otay? Nos ubicamos a pasos de la Garita de Otay y la mayoría de tus copias e impresiones están <strong>listas al momento</strong>, el mismo día. Escríbenos por WhatsApp con tu archivo y te lo dejamos impreso y listo para recoger.</p>
       </div>
     </div>
   </section>
@@ -203,6 +219,9 @@
         <div class="faq-item"><button type="button" class="faq-question">¿Manejan impresión de alto volumen?<span class="faq-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></span></button><div class="faq-answer"><div class="faq-answer__inner">Sí, imprimimos por volumen para empresas, escuelas y proyectos. Escríbenos para cotizar según cantidad y tipo de papel.</div></div></div>
         <div class="faq-item"><button type="button" class="faq-question">¿En qué tamaños imprimen documentos?<span class="faq-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></span></button><div class="faq-answer"><div class="faq-answer__inner">Trabajamos tamaños estándar como carta y oficio, además de otros formatos según tu necesidad.</div></div></div>
         <div class="faq-item"><button type="button" class="faq-question">¿Entregan en el momento?<span class="faq-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></span></button><div class="faq-answer"><div class="faq-answer__inner">La mayoría de las copias e impresiones se entregan al momento. En volúmenes grandes te damos un tiempo estimado al cotizar.</div></div></div>
+        <div class="faq-item"><button type="button" class="faq-question">¿Imprimen tesis y trabajos escolares?<span class="faq-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></span></button><div class="faq-answer"><div class="faq-answer__inner">Sí. Imprimimos tesis, trabajos, apuntes y láminas para estudiantes de UABC, CETYS y prepas de Otay, y te lo combinamos con enmicado y engargolado para que entregues listo.</div></div></div>
+        <div class="faq-item"><button type="button" class="faq-question">¿Puedo imprimir urgente para el mismo día?<span class="faq-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></span></button><div class="faq-answer"><div class="faq-answer__inner">Sí. Somos una imprenta cerca de la Garita de Otay y la mayoría de las impresiones urgentes quedan listas al momento. Mándanos tu archivo por WhatsApp y lo dejamos listo para recoger el mismo día.</div></div></div>
+        <div class="faq-item"><button type="button" class="faq-question">¿Manejan facturación para empresas?<span class="faq-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></span></button><div class="faq-answer"><div class="faq-answer__inner">Sí. Damos servicio de impresión de alto volumen y mayoreo para empresas y oficinas, con precio por cantidad. Escríbenos para cotizar y solicitar tu factura.</div></div></div>
       </div>
       <p class="text-lead reveal" style="text-align:center;margin-top:32px">¿Buscas otra cosa? También hacemos <a href="impresion-de-fotografias-tijuana.html" class="svc-meta">impresión de fotografías</a> y <a href="enmicado-y-engargolado-tijuana.html" class="svc-meta">enmicado y engargolado</a>.</p>
     </div>
@@ -263,5 +282,7 @@
 
 <script src="app.js?v=20260630e" defer></script>
 <script src="assets/session-nav.js?v=20260630c" defer></script>
+<!-- Mascota/chatbot OKi (astronauta) -->
+<script src="assets/oki.js?v=20260713f" defer></script>
 </body>
 </html>

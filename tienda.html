@@ -6,6 +6,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap">
 <link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="assets/oki.css?v=20260713f">
 <style>
 
 #site{
@@ -33,6 +34,12 @@
 #site .ph svg{width:clamp(26px,5vw,38px); height:auto}
 #site .ph small{font-size:.62rem; font-weight:700; letter-spacing:.08em; text-transform:uppercase}
 #site .ph.lg svg{width:clamp(40px,7vw,58px)}
+/* Imagen del producto = su emoji sobre el gradiente de su categoría (mientras no haya foto real). */
+#site .pimg{border:0 !important; color:#fff; box-shadow:inset 0 0 40px rgba(255,255,255,.08)}
+#site .pimg .pemoji{font-size:clamp(34px,7vw,48px); line-height:1; filter:drop-shadow(0 3px 6px rgba(10,20,60,.30))}
+#site .mh .pimg{height:100%; border-radius:0}
+#site .mh .pimg .pemoji{font-size:88px}
+#site .fcard .pimg{height:96px}
 #site .headerbar{background:var(--grad); color:#fff; display:flex; align-items:center; gap:16px; padding:7px clamp(14px,4vw,40px); font-size:.78rem; font-weight:600}
 #site .headerbar a{color:#fff; text-decoration:none; opacity:.95}
 #site .headerbar .hb-links{display:flex; gap:16px}
@@ -213,11 +220,12 @@
 #site .grid.is-list{grid-template-columns:1fr; gap:8px}
 #site .grid.is-list .prod{flex-direction:row; align-items:center; gap:14px; padding:10px 44px 10px 12px}
 #site .grid.is-list .prod .ph{width:72px; height:58px; margin:0; flex:none}
+#site .grid.is-list .prod .pemoji{font-size:26px}
 #site .grid.is-list .prod .pinfo{flex-direction:row; align-items:center; gap:14px}
 #site .grid.is-list .prod .cat{display:none}
 #site .grid.is-list .prod h3{flex:1; margin:0}
 #site .grid.is-list .prod .row{margin-top:0; flex:none; gap:12px}
-#site .grid.is-list .prod .wish{top:50%; right:10px; transform:translateY(-50%)}
+#site .grid.is-list .prod .wishbtn{top:50% !important; right:10px !important; transform:translateY(-50%) !important}
 /* Botón cambiar vista */
 #site .catbar-right{display:flex; align-items:center; gap:12px}
 #site .viewtoggle{display:inline-flex; gap:2px; background:var(--paper); border:1px solid var(--line); border-radius:10px; padding:2px}
@@ -228,7 +236,7 @@
 #site .prod .price s{color:var(--muted); font-weight:500; font-size:.76em; margin-left:2px}
 #site .prod .stock{font-size:.64rem; color:var(--green); font-weight:600}
 #site .prod .stock.low{color:#c2410c}
-#site .add{border:none; background:var(--blue); color:#fff; border-radius:9px; padding:7px 10px; font-weight:700; font-size:.78rem; flex:none; position:relative; z-index:6}
+#site .add{border:none; background:var(--blue); color:#fff; border-radius:9px; padding:7px 10px; font-weight:700; font-size:.78rem; flex:none; position:relative; z-index:2}
 #site .empty{grid-column:1/-1; text-align:center; color:var(--muted); padding:50px 20px}
 #site .cart{position:fixed; top:0; right:0; height:100%; width:min(400px,92vw); background:var(--card); display:flex; flex-direction:column; transform:translateX(100%); transition:transform .3s cubic-bezier(.4,0,.2,1); z-index:120; box-shadow:-18px 0 50px rgba(18,20,28,.22)}
 #site #app.cart-open .cart{transform:translateX(0)}
@@ -331,10 +339,6 @@
 #site *{transition:none!important; scroll-behavior:auto!important} }
 
 
-  #site .prod .wish{position:absolute; top:8px; right:8px; z-index:5; width:28px; height:28px; border-radius:50%; border:1px solid var(--line); background:rgba(255,255,255,.92); color:#c4cbdd; font-size:.95rem; line-height:1; display:grid; place-items:center; cursor:pointer; padding:0}
-  #site .prod .wish.on{color:#e0245e; border-color:#f6c6d3}
-  #site .mprice .wish{width:34px; height:34px; border-radius:50%; border:1px solid var(--line); background:#fff; color:#c4cbdd; font-size:1.05rem; line-height:1; display:grid; place-items:center; cursor:pointer; flex:none}
-  #site .mprice .wish.on{color:#e0245e; border-color:#f6c6d3}
 </style>
 
 <div class="header-bar">
@@ -426,13 +430,13 @@
       <div class="sh-copy">
         <span class="eyebrow">Papelería · Tinta y tóner · Cómputo</span>
         <h1>Una tienda local, con respaldo de verdad, <span class="hl">ahora en línea</span></h1>
-        <p>Todo lo que tu oficina, escuela o negocio necesita, con <b>envío a todo México</b>. ¿Estás en Tijuana? Recógelo el mismo día en nuestra tienda de Otay o recíbelo a domicilio.</p>
+        <p>Todo lo que tu oficina, escuela o negocio necesita. Pídelo y págalo en línea, y <b>recógelo en la tienda OK.station</b> cuando esté listo. Te avisamos por WhatsApp.</p>
         <div class="sh-rating"><span class="stars">★★★★★</span><b>X.X</b><span>· +XXX clientes en Tijuana</span></div>
         <div class="price-anchor"><span class="now">$XX</span><span class="was">$XX</span><span class="save">Ahorra hasta XX%</span></div>
         <p class="reframe">Surtir tu papelería del mes desde <b>$X.XX al día</b>. Menos que un café.</p>
         <div class="sh-cta">
           <button class="gostore" data-go-store>Ir a la tienda <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></button>
-          <span class="sh-mini"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Envío a todo México</span>
+          <span class="sh-mini"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Recoge en OK.station</span>
         </div>
       </div>
       <div class="sh-media">
@@ -443,7 +447,7 @@
 
     <!-- 2) BARRA DE CONFIANZA -->
     <div class="wrap"><div class="trustbar">
-      <div class="tb"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="6" width="14" height="11" rx="1"/><path d="M15 9h4l3 3v5h-7z"/><circle cx="6" cy="19" r="1.6"/><circle cx="18" cy="19" r="1.6"/></svg><div><b>Envío a domicilio</b><span>Según tu C.P.</span></div></div>
+      <div class="tb"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 14"/></svg><div><b>Listo el mismo día</b><span>Te avisamos por WhatsApp</span></div></div>
       <div class="tb"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l1-5h16l1 5"/><path d="M4 9v11h16V9"/><path d="M9 20v-6h6v6"/></svg><div><b>Recoge gratis</b><span>Local G-03, Otay</span></div></div>
       <div class="tb"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l8 4v6c0 5-3.5 8-8 10-4.5-2-8-5-8-10V6z"/><path d="M9 12l2 2 4-4"/></svg><div><b>Pago seguro</b><span>Mercado Pago · SSL</span></div></div>
       <div class="tb"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="9"/></svg><div><b>Garantía real</b><span>En cómputo</span></div></div>
@@ -480,10 +484,10 @@
       <div class="sol-copy">
         <span class="eyebrow">Cómo funciona</span>
         <h2>Así de fácil es comprar con nosotros</h2>
-        <p>Sin filas, sin adivinar: eliges, pagas seguro y lo recibes como más te convenga.</p>
+        <p>Sin filas, sin adivinar: eliges, pagas seguro en línea y lo recoges en la tienda.</p>
         <ul class="mech">
           <li><span class="num">1</span><div><b>Pídelo en línea</b><span>Arma tu carrito en minutos, sin filas.</span></div></li>
-          <li><span class="num">2</span><div><b>Elige cómo recibirlo</b><span>Recoge gratis el mismo día o recíbelo en tu domicilio.</span></div></li>
+          <li><span class="num">2</span><div><b>Recoge en la tienda</b><span>Te avisamos por WhatsApp cuando esté listo para recoger en OK.station.</span></div></li>
           <li><span class="num">3</span><div><b>Te atendemos personas</b><span>Asesoría real por WhatsApp y factura al instante.</span></div></li>
         </ul>
         <button class="gostore" data-go-store>Empezar mi pedido</button>
@@ -514,7 +518,7 @@
     <div class="wrap sec"><div class="finalcta">
       <span class="imgtag"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>Imagen de fondo</span>
       <div class="ph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg></div>
-      <div class="c"><h2>Arma tu pedido en 2 minutos</h2><p>Recoge gratis el mismo día o recíbelo en tu domicilio. Pago seguro con Mercado Pago.</p>
+      <div class="c"><h2>Arma tu pedido en 2 minutos</h2><p>Págalo en línea y recógelo en la tienda OK.station cuando esté listo. Pago seguro con Mercado Pago.</p>
       <button class="gostore" data-go-store style="padding:16px 34px;font-size:1.1rem">Ir a la tienda ahora</button></div>
     </div></div>
 
@@ -522,8 +526,8 @@
     <div class="wrap sec" style="padding-top:0">
       <div style="text-align:center;margin-bottom:20px"><span class="eyebrow">¿Dudas?</span><h2>Preguntas frecuentes</h2></div>
       <div class="faq" id="faq">
-        <div class="qa"><button class="q">¿Hacen envíos a domicilio? <svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></button><div class="a"><p>Sí. El costo se calcula según tu código postal, o puedes recoger gratis en nuestra tienda de Centro Comercial Otay, Local G-03.</p></div></div>
-        <div class="qa"><button class="q">¿Qué métodos de pago aceptan? <svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></button><div class="a"><p>Pago 100% seguro con Mercado Pago: tarjetas Visa, MasterCard y Amex, pagos a meses sin intereses, efectivo en OXXO y transferencia bancaria (SPEI).</p></div></div>
+        <div class="qa"><button class="q">¿Hacen envíos a domicilio? <svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></button><div class="a"><p>Por ahora no hacemos envíos ni entregas a domicilio. Todos los pedidos se pagan en línea y se recogen en nuestra tienda de OK.station (Centro Comercial Otay, Local G-03). Te avisamos por WhatsApp cuando esté listo.</p></div></div>
+        <div class="qa"><button class="q">¿Qué métodos de pago aceptan? <svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></button><div class="a"><p>Pago 100% seguro con Mercado Pago: tarjetas Visa, MasterCard y Amex, efectivo en OXXO y transferencia bancaria (SPEI).</p></div></div>
         <div class="qa"><button class="q">¿Puedo recoger en tienda el mismo día? <svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></button><div class="a"><p>Sí, en la mayoría de los productos en existencia. Te avisamos por WhatsApp cuando tu pedido esté listo.</p></div></div>
         <div class="qa"><button class="q">¿Emiten factura? <svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></button><div class="a"><p>Claro. Solicítala al momento de tu compra y te la enviamos a tu correo.</p></div></div>
       </div>
@@ -539,14 +543,15 @@
         <button class="hamb" id="hamb" aria-label="Categorías"><span></span><span></span><span></span></button>
         <div class="search"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
           <input id="q" type="search" placeholder="Busca un producto…" autocomplete="off"></div>
+        <button class="cartpill" id="wishBtn" aria-label="Lista de deseos" title="Lista de deseos" style="margin-right:8px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.8 4.6a5.5 5.5 0 00-7.8 0L12 5.6l-1-1a5.5 5.5 0 00-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 000-7.8z"/></svg><span class="ct" id="wishCount" style="display:none">0</span></button>
         <button class="cartpill" id="cartBtn"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.7 13.4a2 2 0 002 1.6h9.7a2 2 0 002-1.6L23 6H6"/></svg><span class="ct" id="cartCount">0</span><span id="cartTotalTop">$0.00</span></button>
       </div>
       <nav class="popbar" id="popbar"></nav>
       <div class="shell">
         <div class="catalog"><div class="catbar"><span class="ctitle" id="catTitle">Todos los productos</span><div class="catbar-right"><span class="cnt" id="catCount"></span><div class="viewtoggle"><button type="button" data-view="list" class="on" title="Lista" aria-label="Ver como lista"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="8" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="20" y2="12"/><line x1="8" y1="18" x2="20" y2="18"/><line x1="3.5" y1="6" x2="3.51" y2="6"/><line x1="3.5" y1="12" x2="3.51" y2="12"/><line x1="3.5" y1="18" x2="3.51" y2="18"/></svg></button><button type="button" data-view="grid" title="Cuadros" aria-label="Ver como cuadros"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg></button></div></div></div><div class="grid" id="grid"></div></div>
         <aside class="cart" id="cart"><div class="ch">Tu carrito <button class="close" id="cartClose">×</button></div><div class="items" id="items"></div>
-          <div class="sum"><div class="ship"><button class="on" data-ship="retiro"><b>Recoger en tienda</b>Gratis</button><button data-ship="envio"><b>Envío a domicilio</b>$99</button></div>
-            <div class="sline"><span>Subtotal</span><span id="sub">$0.00</span></div><div class="sline"><span>Envío</span><span id="shipCost">—</span></div><div class="sline total"><span>Total</span><span id="total">$0.00</span></div>
+          <div class="sum"><div class="ship"><button class="on" data-ship="retiro" style="width:100%"><b>Recoger en OK.station</b>Gratis · te avisamos por WhatsApp</button></div>
+            <div class="sline"><span>Subtotal</span><span id="sub">$0.00</span></div><div class="sline"><span>Entrega</span><span id="shipCost">Recoge en tienda</span></div><div class="sline total"><span>Total</span><span id="total">$0.00</span></div>
             <button class="checkout" id="checkoutBtn" disabled>Finalizar compra</button><div class="taxnote">Precios con IVA · productos de ejemplo</div></div></aside>
       </div>
       <aside class="drawer" id="drawer"><div class="dh">Categorías <button class="x" id="drawerClose">×</button></div><div class="dlist" id="drawerList"></div></aside>
@@ -556,10 +561,12 @@
 
   <!-- CTA pegajoso móvil -->
   <div class="mcta"><button class="gostore" data-go-store>Ir a la tienda <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></button></div>
+</div>
+
 <div class="ov" id="prodOv"><div class="modal" id="prodModal"></div></div>
+<div class="ov" id="wishOv"><div class="modal" id="wishModal"></div></div>
 <div class="ov" id="coOv"><div class="modal" id="coModal"></div></div>
 <div class="toast" id="toast"></div>
-</div>
 
 <script>
 (function(){
@@ -567,10 +574,12 @@
   var $=function(s){return document.getElementById(s);};
   var PHIMG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>';
   function ph(cls){return '<div class="ph '+(cls||'')+'">'+PHIMG+'<small>Imagen</small></div>';}
+  // Imagen de producto: usa su emoji sobre el gradiente de su categoría (placeholder "real").
+  function pimg(p,cls){return '<div class="ph pimg '+(cls||'')+'" style="background:'+(p.grad||'var(--grad-blue)')+'"><span class="pemoji">'+(p.emoji||'📦')+'</span></div>';}
   var BOLT='<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M13 2L4 14h6l-1 8 9-12h-6l1-8z"/></svg>';
 
   // Cambio de vista
-  function showView(id){ ["tienda","store"].forEach(function(v){$(v).classList.toggle("on",v===id);}); window.scrollTo(0,0); }
+  function showView(id){ ["tienda","store"].forEach(function(v){$(v).classList.toggle("on",v===id);}); window.scrollTo(0,0); okiEmit(id==="store"?"en-tienda":"en-landing"); }
   document.addEventListener("click",function(e){
     if(e.target.closest("[data-open-tienda]")){e.preventDefault(); showView("tienda");}
     if(e.target.closest("[data-go-store]")){e.preventDefault(); showView("store");}
@@ -619,13 +628,32 @@
     {id:12,cat:"computo",name:"Audífonos con micrófono",price:349,stock:15,emoji:"🎧",desc:"Diadema con micrófono.",specs:["Con micrófono","Volumen","3.5 mm"]}
   ];
   P.forEach(function(p){p.grad=GRADC[p.cat]||"var(--grad-blue)";});
-  var cart={}, wishlist={}, activeCat="all", query="", shipMode="retiro", coStep=0;
+  var cart={}, activeCat="all", query="", shipMode="retiro", coStep=0;
+
+  // ── Lista de deseos (wishlist) ─────────────────────────────
+  var wishlist=(function(){try{return JSON.parse(localStorage.getItem("okstation_wishlist")||"[]");}catch(e){return [];}})();
+  function saveWishlist(){try{localStorage.setItem("okstation_wishlist",JSON.stringify(wishlist));}catch(e){}}
+  function inWishlist(id){return wishlist.indexOf(id)>=0;}
+  function updateWishBadge(){var el=$("wishCount"); if(el){el.textContent=wishlist.length; el.style.display=wishlist.length?"":"none";}}
+  function toggleWishlist(id){id=+id; var i=wishlist.indexOf(id); var added=i<0;
+    if(added){wishlist.push(id);}else{wishlist.splice(i,1);}
+    saveWishlist(); updateWishBadge(); renderGrid();
+    if($("wishOv").classList.contains("show")) renderWishlist();
+    var p=prod(id); flash(added?"❤ "+(p?p.name:"Producto")+" en tus deseados":"Quitado de deseados");
+    okiEmit("deseados");
+  }
+  var HEART='<svg width="18" height="18" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.8 4.6a5.5 5.5 0 00-7.8 0L12 5.6l-1-1a5.5 5.5 0 00-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 000-7.8z"/></svg>';
+  function heartBtn(id,extra){var on=inWishlist(id);
+    return '<button class="wishbtn'+(on?' on':'')+'" data-wish="'+id+'" aria-label="Guardar en deseados" title="'+(on?'Quitar de deseados':'Guardar en deseados')+'" style="'+(extra||'')+'display:grid;place-items:center;cursor:pointer;border-radius:50%;border:1px solid var(--line);background:#fff;color:'+(on?'#e11d48':'var(--muted)')+';fill:'+(on?'#e11d48':'none')+';stroke:currentColor">'+HEART+'</button>';}
+
+  // Puente para OKi (el astronauta lee esto; no rompe la tienda si OKi no está)
+  function okiEmit(t){try{window.dispatchEvent(new CustomEvent("oktienda:"+t));}catch(e){}}
 
   // Landing: categorías + productos
   var LANDCATS=[["consumibles","Tinta y tóner"],["papeleria","Papelería"],["computo","Cómputo"],["accesorios","Accesorios"],["ofertas","Ofertas del día"]];
   $("landCats").innerHTML=LANDCATS.map(function(c){return '<button class="ctile" data-cat="'+c[0]+'" data-go-store>'+ph()+'<b>'+c[1]+'</b><span>Ver productos →</span></button>';}).join("");
   $("landFeat").innerHTML=[1,10,11,4,9,3].map(function(id){var p=P.filter(function(x){return x.id===id;})[0]; var low=p.stock<=6;
-    return '<div class="fcard" data-open-feat="'+p.id+'">'+(p.old?'<span class="off">−'+Math.round((1-p.price/p.old)*100)+'%</span>':'')+ph()+'<h4>'+p.name+'</h4><div class="fp">'+mxn(p.price)+(p.old?' <s>'+mxn(p.old)+'</s>':'')+'</div>'+(low?'<div class="scarce">🔥 Solo quedan '+p.stock+'</div>':'')+'<button class="fadd" data-go-store data-cat="'+p.cat+'">Ver en tienda</button></div>';}).join("");
+    return '<div class="fcard" data-open-feat="'+p.id+'">'+(p.old?'<span class="off">−'+Math.round((1-p.price/p.old)*100)+'%</span>':'')+pimg(p)+'<h4>'+p.name+'</h4><div class="fp">'+mxn(p.price)+(p.old?' <s>'+mxn(p.old)+'</s>':'')+'</div>'+(low?'<div class="scarce">🔥 Solo quedan '+p.stock+'</div>':'')+'<button class="fadd" data-go-store data-cat="'+p.cat+'">Ver en tienda</button></div>';}).join("");
   $("landFeat").addEventListener("click",function(e){var c=e.target.closest("[data-open-feat]"); if(c && !e.target.closest(".fadd")){showView("store"); selectCat(prod(+c.dataset.openFeat).cat);}});
 
   // Tienda interactiva
@@ -649,7 +677,7 @@
     $("catCount").textContent=list.length+" producto"+(list.length===1?"":"s");
     if(!list.length){$("grid").innerHTML='<div class="empty">No encontramos productos.</div>'; return;}
     $("grid").innerHTML=list.map(function(p){var low=p.stock<=5;
-      return '<div class="prod">'+'<button class="wish'+(wishlist[p.id]?' on':'')+'" data-wish="'+p.id+'" title="Deseados" aria-label="Guardar en deseados">❤</button>'+(p.old?'<span class="deal-badge">−'+Math.round((1-p.price/p.old)*100)+'%</span>':'')+ph()+
+      return '<div class="prod">'+(p.old?'<span class="deal-badge">−'+Math.round((1-p.price/p.old)*100)+'%</span>':'')+pimg(p)+heartBtn(p.id,'position:absolute;top:10px;right:10px;z-index:4;width:36px;height:36px;padding:0;')+
         '<div class="pinfo"><div class="cat">'+catName(p.cat)+'</div><h3>'+p.name+'</h3>'+
         '<div class="row"><div><div class="price">'+mxn(p.price)+(p.old?' <s>'+mxn(p.old)+'</s>':'')+'</div><div class="stock'+(low?' low':'')+'">'+(low?"¡Últimas "+p.stock+"!":p.stock+" en stock")+'</div></div><button class="add" data-add="'+p.id+'">+</button></div></div>'+
         '<button style="position:absolute;inset:0;opacity:0;cursor:pointer" data-open="'+p.id+'" aria-label="Ver"></button></div>';}).join("");
@@ -659,36 +687,34 @@
 
   $("hamb").addEventListener("click",function(){$("app").classList.add("drawer-open");});
   $("drawerClose").addEventListener("click",function(){$("app").classList.remove("drawer-open");});
-  $("cartBtn").addEventListener("click",function(){$("app").classList.add("cart-open"); avisar("carrito-abierto");});
-  $("cartClose").addEventListener("click",function(){$("app").classList.remove("cart-open"); avisar("carrito-cerrado");});
-  $("scrim").addEventListener("click",function(){$("app").classList.remove("drawer-open","cart-open"); avisar("carrito-cerrado");});
+  $("cartBtn").addEventListener("click",function(){$("app").classList.add("cart-open"); okiEmit("carrito-abierto");});
+  $("cartClose").addEventListener("click",function(){$("app").classList.remove("cart-open"); okiEmit("carrito-cerrado");});
+  $("scrim").addEventListener("click",function(){$("app").classList.remove("drawer-open","cart-open"); okiEmit("carrito-cerrado");});
 
   function prod(id){return P.filter(function(p){return p.id===id;})[0];}
   function addToCart(id,q){var p=prod(id); if(!p)return; var c=cart[id]||{p:p,qty:0}; c.qty=Math.min(p.stock,c.qty+q); cart[id]=c; renderCart(); flash(p.name+" agregado");}
   function changeQty(id,d){var c=cart[id]; if(!c)return; c.qty+=d; if(c.qty<=0)delete cart[id]; else c.qty=Math.min(c.p.stock,c.qty); renderCart();}
   function removeItem(id){delete cart[id]; renderCart();}
-  function toggleWishlist(id){ if(wishlist[id]) delete wishlist[id]; else wishlist[id]=true; renderGrid(); avisar("deseados"); flash(wishlist[id]?"❤ Guardado en deseados":"Quitado de deseados"); }
-  function avisar(tipo){ try{ window.dispatchEvent(new CustomEvent("oktienda:"+tipo)); }catch(e){} }
-  function totals(){var sub=0,n=0; for(var k in cart){sub+=cart[k].p.price*cart[k].qty; n+=cart[k].qty;} var ship=(n>0&&shipMode==="envio")?99:0; return {sub:sub,ship:ship,total:sub+ship,n:n};}
+  function totals(){var sub=0,n=0; for(var k in cart){sub+=cart[k].p.price*cart[k].qty; n+=cart[k].qty;} var ship=0; /* solo recoger en tienda: sin costo de envío */ return {sub:sub,ship:ship,total:sub+ship,n:n};}
   function renderCart(){var keys=Object.keys(cart);
     if(!keys.length){$("items").innerHTML='<div class="cart-empty">Tu carrito está vacío.</div>';}
     else{$("items").innerHTML=keys.map(function(k){var c=cart[k],p=c.p;
       return '<div class="ci"><div class="t"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg></div><div><div class="nm">'+p.name+'</div><div class="pu">'+mxn(p.price)+' c/u</div><div class="qty"><button data-dec="'+p.id+'">−</button><span>'+c.qty+'</span><button data-inc="'+p.id+'">+</button></div></div><div><div class="lt">'+mxn(p.price*c.qty)+'</div><button class="rm" data-rm="'+p.id+'">Quitar</button></div></div>';}).join("");}
-    var tt=totals(); $("sub").textContent=mxn(tt.sub); $("shipCost").textContent=tt.ship?mxn(tt.ship):"—"; $("total").textContent=mxn(tt.total); $("cartTotalTop").textContent=mxn(tt.total); $("cartCount").textContent=tt.n; $("checkoutBtn").disabled=tt.n===0; avisar("carrito");
+    var tt=totals(); $("sub").textContent=mxn(tt.sub); $("shipCost").textContent="Gratis"; $("total").textContent=mxn(tt.total); $("cartTotalTop").textContent=mxn(tt.total); $("cartCount").textContent=tt.n; $("checkoutBtn").disabled=tt.n===0; okiEmit("carrito");
   }
   $("items").addEventListener("click",function(e){var i=e.target.closest("[data-inc]"),d=e.target.closest("[data-dec]"),r=e.target.closest("[data-rm]"); if(i)changeQty(+i.dataset.inc,1); if(d)changeQty(+d.dataset.dec,-1); if(r)removeItem(+r.dataset.rm);});
   [].forEach.call(document.querySelectorAll(".ship button"),function(b){b.addEventListener("click",function(){shipMode=b.dataset.ship; [].forEach.call(document.querySelectorAll(".ship button"),function(x){x.classList.toggle("on",x===b);}); renderCart();});});
 
   function openProduct(id){var p=prod(id); if(!p)return; var low=p.stock<=5;
-    $("prodModal").innerHTML='<div class="mh">'+ph()+'<button class="x" data-close>×</button></div><div class="mb"><div class="cat">'+catName(p.cat)+'</div><h3>'+p.name+'</h3><p class="desc">'+p.desc+'</p><ul class="specs">'+p.specs.map(function(s){return '<li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>'+s+'</li>';}).join("")+'</ul><div class="mprice"><span class="p">'+mxn(p.price)+(p.old?' <s style="color:var(--muted);font-size:.55em;font-weight:600">'+mxn(p.old)+'</s>':'')+'</span><span class="st" style="color:'+(low?"#c2410c":"#0E9F6E")+'">'+(low?"¡Últimas "+p.stock+"!":p.stock+" disponibles")+'</span><button class="wish'+(wishlist[p.id]?' on':'')+'" data-wish="'+p.id+'" title="Deseados">❤</button></div><button class="maddbtn" data-madd="'+p.id+'">Agregar al carrito · '+mxn(p.price)+'</button></div>';
+    $("prodModal").innerHTML='<div class="mh">'+pimg(p)+heartBtn(p.id,'position:absolute;top:14px;right:56px;z-index:4;width:40px;height:40px;padding:0;')+'<button class="x" data-close>×</button></div><div class="mb"><div class="cat">'+catName(p.cat)+'</div><h3>'+p.name+'</h3><p class="desc">'+p.desc+'</p><ul class="specs">'+p.specs.map(function(s){return '<li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>'+s+'</li>';}).join("")+'</ul><div class="mprice"><span class="p">'+mxn(p.price)+(p.old?' <s style="color:var(--muted);font-size:.55em;font-weight:600">'+mxn(p.old)+'</s>':'')+'</span><span class="st" style="color:'+(low?"#c2410c":"#0E9F6E")+'">'+(low?"¡Últimas "+p.stock+"!":p.stock+" disponibles")+'</span></div><button class="maddbtn" data-madd="'+p.id+'">Agregar al carrito · '+mxn(p.price)+'</button></div>';
     show("prodOv");
   }
   $("prodOv").addEventListener("click",function(e){if(e.target.id==="prodOv"||e.target.closest("[data-close]")){hide("prodOv"); return;} var w=e.target.closest("[data-wish]"); if(w){toggleWishlist(+w.dataset.wish); openProduct(+w.dataset.wish); return;} var a=e.target.closest("[data-madd]"); if(a){addToCart(+a.dataset.madd,1); hide("prodOv");}});
 
   function renderCheckout(){var tt=totals(),body;
     if(coStep<2){body='<div class="steps"><div class="s'+(coStep>=0?' on':'')+'"></div><div class="s'+(coStep>=1?' on':'')+'"></div><div class="s"></div></div>';
-      if(coStep===0){body+='<h3 style="margin:0 0 12px;font-size:1.2rem">Tus datos</h3><div class="field"><label>Nombre</label><input placeholder="Ej. María González"></div><div class="field"><label>WhatsApp</label><input placeholder="(664) 000 0000"></div>'+(shipMode==="envio"?'<div class="field"><label>Dirección</label><input placeholder="Calle, número, colonia, C.P."></div>':'<p class="desc" style="font-size:.86rem">Recoges en <b>Centro Comercial Otay, Local G-03</b>.</p>');}
-      else{body+='<h3 style="margin:0 0 4px;font-size:1.2rem">Pago</h3><p class="desc" style="font-size:.86rem">Paga seguro con Mercado Pago.</p><div class="paybadges"><span>Mercado Pago</span><span>12 MSI</span><span>OXXO</span><span>SPEI</span><span>Visa · Master · Amex</span></div><div class="sline" style="margin-top:14px"><span>Subtotal</span><span>'+mxn(tt.sub)+'</span></div><div class="sline"><span>Envío</span><span>'+(tt.ship?mxn(tt.ship):"Gratis")+'</span></div><div class="sline total"><span>Total</span><span>'+mxn(tt.total)+'</span></div>';}
+      if(coStep===0){body+='<h3 style="margin:0 0 12px;font-size:1.2rem">Tus datos</h3><div class="field"><label>Nombre</label><input placeholder="Ej. María González"></div><div class="field"><label>WhatsApp</label><input placeholder="(664) 000 0000"></div>'+'<p class="desc" style="font-size:.86rem">Recoges en <b>OK.station · Centro Comercial Otay, Local G-03</b>. Te avisamos por WhatsApp cuando esté listo. No hacemos envíos.</p>';}
+      else{body+='<h3 style="margin:0 0 4px;font-size:1.2rem">Pago</h3><p class="desc" style="font-size:.86rem">Paga seguro con Mercado Pago.</p><div class="paybadges"><span>Mercado Pago</span><span>OXXO</span><span>SPEI</span><span>Visa · Master · Amex</span></div><div class="sline" style="margin-top:14px"><span>Subtotal</span><span>'+mxn(tt.sub)+'</span></div><div class="sline"><span>Entrega</span><span>Gratis · recoge en tienda</span></div><div class="sline total"><span>Total</span><span>'+mxn(tt.total)+'</span></div>';}
       body+='<button class="maddbtn" style="margin-top:16px" data-conext>'+(coStep===0?"Continuar":"Pagar "+mxn(tt.total))+'</button>';
     }else{body='<div class="ok-anim"><div class="circle"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div><h3 style="margin:0 0 6px;font-size:1.25rem">¡Pedido simulado!</h3><p class="desc" style="max-width:none">Te llegaría tu ticket y el estado por WhatsApp.</p><button class="maddbtn" style="margin-top:10px" data-cofin>Entendido</button></div>';}
     $("coModal").innerHTML='<div class="mb" style="padding-top:22px"><button class="x" data-close style="position:static;float:right;background:var(--paper)">×</button><div style="clear:both"></div>'+body+'</div>';
@@ -697,25 +723,61 @@
   $("coOv").addEventListener("click",function(e){if(e.target.id==="coOv"||e.target.closest("[data-close]")){hide("coOv"); return;} if(e.target.closest("[data-conext]")){coStep++; renderCheckout();} if(e.target.closest("[data-cofin]")){hide("coOv"); cart={}; renderCart(); flash("Carrito vaciado (demo)");}});
 
   function show(id){$(id).classList.add("show");} function hide(id){$(id).classList.remove("show");}
-  document.addEventListener("keydown",function(e){if(e.key==="Escape"){hide("prodOv");hide("coOv");$("app").classList.remove("drawer-open","cart-open");}});
+  document.addEventListener("keydown",function(e){if(e.key==="Escape"){hide("prodOv");hide("coOv");hide("wishOv");$("app").classList.remove("drawer-open","cart-open");}});
   var tt2; function flash(m){var el=$("toast"); el.textContent=m; el.classList.add("show"); clearTimeout(tt2); tt2=setTimeout(function(){el.classList.remove("show");},1600);}
 
-  renderCats(); renderGrid(); renderCart();
+  // ── Vista de deseos (overlay) ──────────────────────────────
+  function renderWishlist(){var items=wishlist.map(prod).filter(Boolean);
+    var body='<button class="x" data-close style="position:absolute;top:14px;right:14px;z-index:5">×</button><div class="mb" style="padding-top:26px"><h3 style="margin:0 0 4px;font-size:1.25rem">💙 Tus deseados</h3><p class="desc" style="font-size:.86rem;max-width:none">Guarda lo que te gusta y págalo cuando quieras. Todo se recoge en la tienda OK.station (no hacemos envíos).</p>';
+    if(!items.length){body+='<div style="padding:26px 0;text-align:center;color:var(--muted)">Aún no tienes productos en deseados.<br>Toca el ❤ en cualquier producto para guardarlo aquí.</div>';}
+    else{body+='<div style="display:flex;flex-direction:column;gap:10px;margin-top:12px">'+items.map(function(p){
+      return '<div style="display:flex;gap:12px;align-items:center;border:1px solid var(--line);border-radius:14px;padding:10px 12px">'
+        +'<div style="flex:0 0 auto;font-size:1.6rem">'+(p.emoji||"📦")+'</div>'
+        +'<div style="flex:1 1 auto;min-width:0"><div style="font-weight:700;font-size:.95rem">'+p.name+'</div><div style="color:var(--muted);font-size:.85rem">'+mxn(p.price)+'</div></div>'
+        +'<button class="maddbtn" data-madd="'+p.id+'" style="flex:0 0 auto;padding:9px 14px;font-size:.85rem;width:auto">Agregar</button>'
+        +heartBtn(p.id,'flex:0 0 auto;width:38px;height:38px;padding:0;')
+        +'</div>';}).join("")+'</div>';}
+    body+='</div>';
+    $("wishModal").innerHTML=body;
+  }
+  $("wishBtn").addEventListener("click",function(){renderWishlist(); show("wishOv");});
+  $("wishOv").addEventListener("click",function(e){
+    if(e.target.id==="wishOv"||e.target.closest("[data-close]")){hide("wishOv"); return;}
+    var w=e.target.closest("[data-wish]"); if(w){toggleWishlist(+w.dataset.wish); return;}
+    var a=e.target.closest("[data-madd]"); if(a){addToCart(+a.dataset.madd,1);}
+  });
 
-  /* Contrato para OKi (el astronauta lo LEE; no edita este archivo). Ver OKi-tienda-integracion.md */
-  window.OKtienda = { productos:function(){return P;}, carrito:function(){return cart;}, deseados:function(){return wishlist;}, agregar:function(id){addToCart(id,1);}, quitar:function(id){removeItem(id);}, toggleDeseado:function(id){toggleWishlist(id);}, irAProducto:function(id){openProduct(id);} };
-  avisar("en-tienda");
+  // ── Puente window.OKtienda: OKi lee/actúa sobre la tienda ──
+  window.OKtienda={
+    productos:function(){return P.map(function(p){return {id:p.id,name:p.name,price:p.price,old:p.old||null,cat:p.cat,stock:p.stock,emoji:p.emoji,grad:p.grad};});},
+    carrito:function(){var out=[]; for(var k in cart){out.push({id:cart[k].p.id,name:cart[k].p.name,price:cart[k].p.price,qty:cart[k].qty});} return out;},
+    deseados:function(){return wishlist.map(prod).filter(Boolean).map(function(p){return {id:p.id,name:p.name,price:p.price,emoji:p.emoji};});},
+    total:function(){return totals().total;},
+    agregar:function(id){addToCart(+id,1);},
+    cambiar:function(id,d){changeQty(+id,+d||0);},
+    quitar:function(id){removeItem(+id);},
+    toggleDeseado:function(id){toggleWishlist(+id);},
+    verProducto:function(id){openProduct(+id);},
+    abrirDeseados:function(){renderWishlist(); show("wishOv");},
+    abrirCarrito:function(){$("app").classList.add("cart-open"); okiEmit("carrito-abierto");},
+    entrarTienda:function(){showView("store");},
+    entrega:"recoger_en_tienda"  /* sin envíos ni entregas a domicilio */
+  };
+
+  updateWishBadge();
+  renderCats(); renderGrid(); renderCart();
 
   // Vista lista/cuadros (predeterminado: LISTA)
   function setView(m){ var g=$("grid"); if(g) g.classList.toggle("is-list", m==="list"); [].forEach.call(document.querySelectorAll(".viewtoggle button"),function(b){ b.classList.toggle("on", b.dataset.view===m); }); }
   [].forEach.call(document.querySelectorAll(".viewtoggle button"),function(b){ b.addEventListener("click",function(){ setView(b.dataset.view); }); });
   setView("list");
-
-
+  okiEmit("en-tienda");
 })();
 </script>
 <script>(function(){var t=document.querySelector(".nav__toggle"),n=document.getElementById("nav-menu");if(t&&n){t.addEventListener("click",function(){var o=n.classList.toggle("is-open");t.setAttribute("aria-expanded",o?"true":"false");});}})();</script>
 <!-- Sesión en el header (muestra tu cuenta si iniciaste sesión) + navbar inteligente -->
 <script src="assets/session-nav.js?v=20260630c" defer></script>
+<!-- OKi, el astronauta ayudante. Conectado a la tienda vía el contrato window.OKtienda (ver OKi-tienda-integracion.md). -->
+<script src="assets/oki.js?v=20260713f" defer></script>
 </body>
 </html>

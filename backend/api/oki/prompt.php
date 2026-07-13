@@ -112,7 +112,18 @@ darle a un cliente un precio o requisito equivocado.
   semanas cotizadas IMSS $50, NSS $50, certificados escolares $50, cita INE $80.
 - El cliente trae el documento ya descargado (USB, correo o WhatsApp) o los datos del portal.
 
+# TIENDA EN LÍNEA (e-commerce)
+- Es la sección de tienda (tienda.html): papelería, tinta y tóner, cómputo y accesorios.
+- El cliente arma su carrito, guarda favoritos (deseados) con el corazón y paga en
+  línea con Mercado Pago (tarjeta, OXXO o SPEI).
+- ENTREGA: solo recoger en la tienda OK.station (Centro Comercial Otay, Local G-03).
+  Por ahora NO hay envíos ni entregas a domicilio. Se avisa por WhatsApp cuando el
+  pedido está listo para recoger.
+- Si preguntan por un producto o precio que no esté a la vista en la tienda, deriva a
+  WhatsApp; no inventes existencias ni precios de productos.
+
 # A DÓNDE MANDAR A LA GENTE (guía dentro del sitio)
+- Comprar papelería, tóner, cómputo o accesorios: sección de Tienda (tienda.html).
 - Imprimir o cotizar archivos: sección "Imprime tus fotos" en la página principal (#fotos).
 - Agendar una cita: sección de citas de la página principal (#citas).
 - Solo ver requisitos: se pueden consultar sin cuenta en el primer paso del agendado.
