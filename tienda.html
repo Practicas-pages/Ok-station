@@ -6,7 +6,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap">
 <link rel="stylesheet" href="styles.css">
-<link rel="stylesheet" href="assets/oki.css?v=20260713h">
+<link rel="stylesheet" href="assets/oki.css?v=20260713k">
 <style>
 
 #site{
@@ -735,7 +735,7 @@
       '</div>';
     show("prodOv"); okiEmit("vista-previa");
   }
-  $("prodOv").addEventListener("click",function(e){if(e.target.id==="prodOv"||e.target.closest("[data-close]")){hide("prodOv"); return;} var w=e.target.closest("[data-wish]"); if(w){toggleWishlist(+w.dataset.wish); openProduct(+w.dataset.wish); return;} var a=e.target.closest("[data-madd]"); if(a){addToCart(+a.dataset.madd,1); hide("prodOv");}});
+  $("prodOv").addEventListener("click",function(e){if(e.target.id==="prodOv"||e.target.closest("[data-close]")){hide("prodOv"); okiEmit("vista-previa-cerrada"); return;} var w=e.target.closest("[data-wish]"); if(w){toggleWishlist(+w.dataset.wish); openProduct(+w.dataset.wish); return;} var a=e.target.closest("[data-madd]"); if(a){addToCart(+a.dataset.madd,1); hide("prodOv"); okiEmit("vista-previa-cerrada");}});
 
   function renderCheckout(){var tt=totals(),body;
     if(coStep<2){body='<div class="steps"><div class="s'+(coStep>=0?' on':'')+'"></div><div class="s'+(coStep>=1?' on':'')+'"></div><div class="s"></div></div>';
@@ -749,7 +749,7 @@
   $("coOv").addEventListener("click",function(e){if(e.target.id==="coOv"||e.target.closest("[data-close]")){hide("coOv"); return;} if(e.target.closest("[data-conext]")){coStep++; renderCheckout();} if(e.target.closest("[data-cofin]")){hide("coOv"); cart={}; renderCart(); flash("Carrito vaciado (demo)");}});
 
   function show(id){$(id).classList.add("show");} function hide(id){$(id).classList.remove("show");}
-  document.addEventListener("keydown",function(e){if(e.key==="Escape"){hide("prodOv");hide("coOv");hide("wishOv");$("app").classList.remove("drawer-open","cart-open");}});
+  document.addEventListener("keydown",function(e){if(e.key==="Escape"){var pv=$("prodOv").classList.contains("show");hide("prodOv");hide("coOv");hide("wishOv");$("app").classList.remove("drawer-open","cart-open");if(pv)okiEmit("vista-previa-cerrada");okiEmit("carrito-cerrado");}});
   var tt2; function flash(m){var el=$("toast"); el.textContent=m; el.classList.add("show"); clearTimeout(tt2); tt2=setTimeout(function(){el.classList.remove("show");},1600);}
 
   // ── Vista de deseos (overlay) ──────────────────────────────
@@ -804,6 +804,6 @@
 <!-- Sesión en el header (muestra tu cuenta si iniciaste sesión) + navbar inteligente -->
 <script src="assets/session-nav.js?v=20260630c" defer></script>
 <!-- OKi, el astronauta ayudante. Conectado a la tienda vía el contrato window.OKtienda (ver OKi-tienda-integracion.md). -->
-<script src="assets/oki.js?v=20260713h" defer></script>
+<script src="assets/oki.js?v=20260713k" defer></script>
 </body>
 </html>
