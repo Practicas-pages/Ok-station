@@ -707,21 +707,34 @@ h1, h2, h3, h4, h5, h6 {
   gap: var(--space-3);
 }
 
-/* Botón "Tienda" (nuevo) — reutiliza .btn .btn--brand .btn--sm; solo suma el badge */
+/* Botón "Tienda" (nuevo) — gradiente animado como el banner de la tienda */
 .nav__tienda {
-  gap: 6px;
+  gap: 7px;
+  border: 0 !important;
+  color: #fff !important;
+  background: linear-gradient(115deg, #0552C8 0%, #066CFF 34%, #00A6FF 66%, #00C6FF 100%) !important;
+  background-size: 200% 200% !important;
+  animation: navTiendaFlow 8s ease infinite !important;
+  box-shadow: 0 6px 18px rgba(6, 108, 255, .32) !important;
+  transition: transform .18s ease, box-shadow .18s ease !important;
 }
+.nav__tienda:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 26px rgba(6, 108, 255, .42) !important;
+}
+@keyframes navTiendaFlow { 0%, 100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
 
 .nav__tienda-badge {
   font-size: 0.5625rem;
   font-weight: 800;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
   line-height: 1;
-  padding: 2px 6px;
+  padding: 3px 7px;
   border-radius: var(--radius-full);
-  background: #FFE000;
-  color: var(--brand-black);
+  background: linear-gradient(135deg, #FF7C19, #FF9A3D);
+  color: #fff;
+  box-shadow: 0 3px 8px rgba(255, 124, 25, .4);
 }
 
 /* En móvil el header oculta WhatsApp (hay botón flotante), así que sí cabe Tienda.

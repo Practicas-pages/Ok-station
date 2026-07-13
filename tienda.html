@@ -218,14 +218,14 @@
 #site .prod .pinfo{display:flex; flex-direction:column; flex:1; min-width:0}
 /* Vista de LISTA */
 #site .grid.is-list{grid-template-columns:1fr; gap:8px}
-#site .grid.is-list .prod{flex-direction:row; align-items:center; gap:14px; padding:10px 44px 10px 12px}
+#site .grid.is-list .prod{flex-direction:row; align-items:center; gap:14px; padding:10px 62px 10px 12px}
 #site .grid.is-list .prod .ph{width:72px; height:58px; margin:0; flex:none}
 #site .grid.is-list .prod .pemoji{font-size:26px}
 #site .grid.is-list .prod .pinfo{flex-direction:row; align-items:center; gap:14px}
 #site .grid.is-list .prod .cat{display:none}
 #site .grid.is-list .prod h3{flex:1; margin:0}
-#site .grid.is-list .prod .row{margin-top:0; flex:none; gap:12px}
-#site .grid.is-list .prod .wishbtn{top:50% !important; right:10px !important; transform:translateY(-50%) !important}
+#site .grid.is-list .prod .row{margin-top:0; flex:none; gap:14px; margin-right:6px}
+#site .grid.is-list .prod .wishbtn{top:50% !important; right:16px !important; transform:translateY(-50%) !important}
 /* Botón cambiar vista */
 #site .catbar-right{display:flex; align-items:center; gap:12px}
 #site .viewtoggle{display:inline-flex; gap:2px; background:var(--paper); border:1px solid var(--line); border-radius:10px; padding:2px}
@@ -735,7 +735,7 @@
       '</div>';
     show("prodOv"); okiEmit("vista-previa");
   }
-  $("prodOv").addEventListener("click",function(e){if(e.target.id==="prodOv"||e.target.closest("[data-close]")){hide("prodOv"); okiEmit("vista-previa-cerrada"); return;} var w=e.target.closest("[data-wish]"); if(w){toggleWishlist(+w.dataset.wish); openProduct(+w.dataset.wish); return;} var a=e.target.closest("[data-madd]"); if(a){addToCart(+a.dataset.madd,1); hide("prodOv"); okiEmit("vista-previa-cerrada");}});
+  $("prodOv").addEventListener("click",function(e){if(e.target.id==="prodOv"||e.target.closest("[data-close]")){hide("prodOv"); okiEmit("vista-previa-cerrada"); maybeReopenWish(); return;} var w=e.target.closest("[data-wish]"); if(w){toggleWishlist(+w.dataset.wish); openProduct(+w.dataset.wish); return;} var a=e.target.closest("[data-madd]"); if(a){addToCart(+a.dataset.madd,1); hide("prodOv"); okiEmit("vista-previa-cerrada");}});
 
   function renderCheckout(){var tt=totals(),body;
     if(coStep<2){body='<div class="steps"><div class="s'+(coStep>=0?' on':'')+'"></div><div class="s'+(coStep>=1?' on':'')+'"></div><div class="s"></div></div>';
@@ -749,7 +749,7 @@
   $("coOv").addEventListener("click",function(e){if(e.target.id==="coOv"||e.target.closest("[data-close]")){hide("coOv"); return;} if(e.target.closest("[data-conext]")){coStep++; renderCheckout();} if(e.target.closest("[data-cofin]")){hide("coOv"); cart={}; renderCart(); flash("Carrito vaciado (demo)");}});
 
   function show(id){$(id).classList.add("show");} function hide(id){$(id).classList.remove("show");}
-  document.addEventListener("keydown",function(e){if(e.key==="Escape"){var pv=$("prodOv").classList.contains("show");hide("prodOv");hide("coOv");hide("wishOv");$("app").classList.remove("drawer-open","cart-open");if(pv)okiEmit("vista-previa-cerrada");okiEmit("carrito-cerrado");}});
+  document.addEventListener("keydown",function(e){if(e.key==="Escape"){var pv=$("prodOv").classList.contains("show");wishReopen=false;hide("prodOv");hide("coOv");hide("wishOv");$("app").classList.remove("drawer-open","cart-open");if(pv)okiEmit("vista-previa-cerrada");okiEmit("carrito-cerrado");}});
   var tt2; function flash(m){var el=$("toast"); el.textContent=m; el.classList.add("show"); clearTimeout(tt2); tt2=setTimeout(function(){el.classList.remove("show");},1600);}
 
   // ── Vista de deseos (overlay) ──────────────────────────────
@@ -758,17 +758,20 @@
     if(!items.length){body+='<div style="padding:26px 0;text-align:center;color:var(--muted)">Aún no tienes productos en deseados.<br>Toca el ❤ en cualquier producto para guardarlo aquí.</div>';}
     else{body+='<div style="display:flex;flex-direction:column;gap:10px;margin-top:12px">'+items.map(function(p){
       return '<div style="display:flex;gap:12px;align-items:center;border:1px solid var(--line);border-radius:14px;padding:10px 12px">'
-        +'<div style="flex:0 0 auto;font-size:1.6rem">'+(p.emoji||"📦")+'</div>'
-        +'<div style="flex:1 1 auto;min-width:0"><div style="font-weight:700;font-size:.95rem">'+p.name+'</div><div style="color:var(--muted);font-size:.85rem">'+mxn(p.price)+'</div></div>'
+        +'<div data-open="'+p.id+'" title="Ver producto" class="pimg" style="flex:0 0 auto;width:46px;height:46px;border-radius:12px;cursor:pointer;background:'+(p.grad||"var(--grad-blue)")+'"><span class="pemoji" style="font-size:26px">'+(p.emoji||"📦")+'</span></div>'
+        +'<div data-open="'+p.id+'" style="flex:1 1 auto;min-width:0;cursor:pointer"><div style="font-weight:700;font-size:.95rem">'+p.name+'</div><div style="color:var(--muted);font-size:.85rem">'+mxn(p.price)+'</div></div>'
         +'<button class="maddbtn" data-madd="'+p.id+'" style="flex:0 0 auto;padding:9px 14px;font-size:.85rem;width:auto">Agregar</button>'
         +heartBtn(p.id,'flex:0 0 auto;width:38px;height:38px;padding:0;')
         +'</div>';}).join("")+'</div>';}
     body+='</div>';
     $("wishModal").innerHTML=body;
   }
-  $("wishBtn").addEventListener("click",function(){okiEmit("ver-deseados");});
+  var wishReopen=false; // volver al banner de deseados al cerrar la vista previa
+  function maybeReopenWish(){ if(wishReopen){ wishReopen=false; renderWishlist(); show("wishOv"); } }
+  $("wishBtn").addEventListener("click",function(){renderWishlist(); show("wishOv");});
   $("wishOv").addEventListener("click",function(e){
     if(e.target.id==="wishOv"||e.target.closest("[data-close]")){hide("wishOv"); return;}
+    var o=e.target.closest("[data-open]"); if(o){wishReopen=true; hide("wishOv"); openProduct(+o.dataset.open); return;}
     var w=e.target.closest("[data-wish]"); if(w){toggleWishlist(+w.dataset.wish); return;}
     var a=e.target.closest("[data-madd]"); if(a){addToCart(+a.dataset.madd,1);}
   });
