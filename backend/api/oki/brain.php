@@ -111,7 +111,11 @@ function oki_intents(): array
          'a'=>"Tiempos de entrega ⏱️\nLa mayoría de los trabajos se entregan el mismo día. Los volúmenes grandes o trabajos especiales llevan un tiempo estimado que te decimos al cotizar. Las fotos de trámite \"urgente\" son el mismo día y las \"regular\" al día siguiente."],
 
         ['kw'=>['envio','envios','domicilio','a domicilio','entregan a domicilio','mandan a','llega a mi casa','paqueteria'],
-         'a'=>"Entrega 🚶\nLos trabajos se recogen en la sucursal (Centro Comercial Otay, Local G-03). Si necesitas un envío, pregúntanos por ".OKI_WA_TXT." y vemos si es posible."],
+         'a'=>"Entrega 🚶\nTodo se recoge en la tienda OK.station (Centro Comercial Otay, Local G-03). En la tienda en línea por ahora NO hacemos envíos: te avisamos por WhatsApp cuando tu pedido esté listo para recoger.\nSi es un trabajo de impresión y necesitas un envío especial, pregúntanos por ".OKI_WA_TXT." y vemos si es posible."],
+
+        // ── Tienda en línea (e-commerce) ──
+        ['kw'=>['tienda','tienda en linea','comprar en linea','comprar','e-commerce','ecommerce','carrito','carrito de compras','agregar al carrito','anadir al carrito','productos','catalogo de productos','venden','a la venta','ofertas','deseados','lista de deseos','favoritos'],
+         'a'=>"Tienda en línea 🛒\nTenemos papelería, tinta y tóner, cómputo y accesorios. Armas tu carrito, guardas favoritos con el ❤ y pagas seguro con Mercado Pago (tarjeta, OXXO o SPEI).\nTodo se recoge en la tienda OK.station (Centro Comercial Otay, Local G-03): por ahora no hacemos envíos, y te avisamos por WhatsApp cuando tu pedido esté listo.\nSi quieres, dime \"llévame a la tienda\" y te llevo. 🚀"],
 
         // ── Cómo usar el sitio ──
         ['kw'=>['subir archivo','imprimir en linea','hacer un pedido','como imprimo','mandar archivo','pedido de impresion','imprimir','impresion','archivo','pdf'],
@@ -212,6 +216,10 @@ function oki_navigate(string $t): ?array
         || mb_strpos($t,'pasaporte')!==false || mb_strpos($t,'visa')!==false || mb_strpos($t,'sentri')!==false
         || mb_strpos($t,'tramite')!==false)
         return ['reply'=>"¡Claro! Te llevo a agendar tu cita 🚀 (para agendar necesitas cuenta).", 'go'=>"/#citas"];
+
+    if (mb_strpos($t,'tienda')!==false || mb_strpos($t,'comprar')!==false || mb_strpos($t,'carrito')!==false
+        || mb_strpos($t,'catalogo')!==false || mb_strpos($t,'productos')!==false || mb_strpos($t,'deseados')!==false)
+        return ['reply'=>"¡Va! Te llevo a la tienda en línea 🛒", 'go'=>"/tienda.html"];
 
     if (mb_strpos($t,'imprimir')!==false || mb_strpos($t,'imprime')!==false || mb_strpos($t,'subir')!==false
         || mb_strpos($t,'archivo')!==false || mb_strpos($t,'foto')!==false || mb_strpos($t,'copia')!==false

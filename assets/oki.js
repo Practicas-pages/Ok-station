@@ -51,6 +51,52 @@
     "📍 Horario y ubicación"
   ];
 
+  // En la tienda (e-commerce) OKi ofrece atajos propios del carrito/deseados.
+  var QUICKS_STORE = [
+    "🛒 ¿Qué llevo en el carrito?",
+    "❤ Mis deseados",
+    "🚚 ¿Hacen envíos?",
+    "💳 ¿Cómo pago?"
+  ];
+
+  // ── Modo tienda: OKi lee/actúa sobre window.OKtienda si existe (contrato de la tienda) ──
+  function storeReady() { return !!(window.OKtienda && typeof window.OKtienda.carrito === "function"); }
+  function okiNorm(s) {
+    return String(s || "").toLowerCase()
+      .replace(/[áàä]/g, "a").replace(/[éèë]/g, "e").replace(/[íìï]/g, "i")
+      .replace(/[óòö]/g, "o").replace(/[úùü]/g, "u").replace(/ñ/g, "n")
+      .replace(/\s+/g, " ").trim();
+  }
+  function okiMxn(n) { return "$" + (Math.round(n * 100) / 100).toFixed(2); }
+
+  /* El estado EN VIVO del carrito/deseados solo lo conoce la tienda (no el servidor),
+     así que estas preguntas se responden aquí mismo. Devuelve texto o null. */
+  function storeLocalReply(text) {
+    if (!storeReady()) return null;
+    var t = okiNorm(text), S = window.OKtienda;
+
+    // Carrito: qué llevo / cuánto voy / mi total…
+    if (/\bcarrito\b|\bcarro\b|que llevo|que tengo|mi compra|cuanto llevo|cuanto va|cuanto voy|mi total|que voy a pagar/.test(t)) {
+      var c = [];
+      try { c = S.carrito() || []; } catch (e) {}
+      if (!c.length) return "Tu carrito está vacío 🛒 Agrega productos y te digo el total al instante. ¿Quieres que te lleve al catálogo?";
+      var total = 0, lines = c.map(function (it) { total += it.price * it.qty; return "• " + it.qty + "× " + it.name + " — " + okiMxn(it.price * it.qty); });
+      return "Esto llevas en tu carrito 🛒\n" + lines.join("\n") + "\nTotal: " + okiMxn(total) + "\nToca el carrito 🛒 arriba para finalizar. Se recoge en la tienda OK.station y pagas en línea con Mercado Pago.";
+    }
+
+    // Deseados / favoritos
+    if (/deseado|favorito|lista de deseos|wishlist/.test(t)) {
+      var w = [];
+      try { w = S.deseados() || []; } catch (e) {}
+      try { S.abrirDeseados(); } catch (e) {}
+      if (!w.length) return "Aún no tienes deseados ❤ Toca el corazón en cualquier producto para guardarlo y comprarlo cuando quieras.";
+      var wl = w.map(function (p) { return "• " + p.name + " — " + okiMxn(p.price); });
+      return "Tus deseados ❤\n" + wl.join("\n") + "\nTe abrí tu lista. ¿Agrego alguno al carrito?";
+    }
+
+    return null; // el resto lo contesta el cerebro del servidor (precios, envíos, cómo pago…)
+  }
+
   function el(html) { var d = document.createElement("div"); d.innerHTML = html; return d.firstElementChild; }
   function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
   function linkify(s) {
@@ -121,6 +167,19 @@
     );
     document.body.appendChild(dock);
 
+    // En la tienda: saludo contextual + apartarse cuando se abre el carrito.
+    if (storeReady()) {
+      var bb0 = document.getElementById("oki-bubble");
+      if (bb0) bb0.innerHTML = '¿Buscas algo en la <b>tienda</b>? 🛒<br>Te ayudo con tu carrito o a encontrarlo.';
+      window.addEventListener("oktienda:carrito-abierto", function () {
+        dock.classList.add("oki-cart-open");
+        if (panel && panel.classList.contains("on")) close();
+      });
+      window.addEventListener("oktienda:carrito-cerrado", function () {
+        dock.classList.remove("oki-cart-open");
+      });
+    }
+
     panel = el(
       '<div class="oki-panel" id="oki-panel" data-view="chat" role="dialog" aria-label="Asistente OKi" aria-hidden="true">' +
       '<div class="oki-panel__h">' +
@@ -156,7 +215,7 @@
     input = panel.querySelector("#oki-text");
 
     var quick = panel.querySelector("#oki-quick");
-    QUICKS.forEach(function (q) {
+    (storeReady() ? QUICKS_STORE : QUICKS).forEach(function (q) {
       var b = document.createElement("button");
       b.type = "button"; b.textContent = q;
       b.addEventListener("click", function () { send(q.replace(/^[^\s]+\s/, "")); });
@@ -222,7 +281,9 @@
     panel.setAttribute("aria-hidden", "false");
     if (!greeted) {
       greeted = true;
-      addMsg("¡Hola! Soy OKi 🚀 Te ayudo con impresiones, citas, precios y trámites. ¿Qué necesitas?", "bot");
+      addMsg(storeReady()
+        ? "¡Hola! Soy OKi 🚀 Estás en la tienda: puedo decirte qué llevas en el carrito, mostrarte tus deseados o resolver dudas de pago y entrega. ¿Qué necesitas?"
+        : "¡Hola! Soy OKi 🚀 Te ayudo con impresiones, citas, precios y trámites. ¿Qué necesitas?", "bot");
     }
     setTimeout(function () { input.focus(); }, 250);
   }
@@ -250,9 +311,21 @@
   function send(text) {
     if (busy) return;
     if (!panel.classList.contains("on")) open();
-    busy = true; input.value = "";
+    input.value = "";
     addMsg(text, "me");
     history.push({ role: "user", content: text });
+
+    // Modo tienda: el estado en vivo del carrito/deseados se responde aquí
+    // (el cerebro del servidor no conoce lo que TÚ llevas).
+    var local = storeLocalReply(text);
+    if (local) {
+      addMsg(local, "bot");
+      history.push({ role: "assistant", content: local });
+      setTimeout(function () { input.focus(); }, 60);
+      return;
+    }
+
+    busy = true;
     typing(true);
 
     fetch(API, {

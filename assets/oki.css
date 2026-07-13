@@ -19,6 +19,8 @@
   --sh-blue:0 14px 40px rgba(6,108,255,.30),0 4px 16px rgba(6,108,255,.18);
 }
 .oki-dock{position:fixed;right:26px;bottom:26px;z-index:110;transform:translate3d(var(--wx,0px),var(--wy,0px),0);transition:transform .85s cubic-bezier(.34,.1,.2,1)}
+/* En la tienda, OKi se hace a un lado cuando se abre el carrito (para no taparlo). */
+.oki-dock.oki-cart-open{opacity:0;transform:translateY(30px);pointer-events:none;transition:opacity .2s ease,transform .2s ease}
 .oki{position:relative;display:block;width:76px;height:88px;border:0;background:transparent;cursor:pointer;overflow:visible}
 .oki:active .oki__craft{transform:rotate(var(--ctilt,0deg)) scale(.92)}
 .oki__aura{position:absolute;inset:-14px;border-radius:50%;background:radial-gradient(circle,rgba(6,108,255,.24),transparent 62%);filter:blur(3px);animation:okiAuraPulse 3.4s ease-in-out infinite !important;pointer-events:none}
