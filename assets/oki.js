@@ -181,10 +181,10 @@
       var peek = okiPeeked && !(panel && panel.classList.contains("on"));
       dock.classList.toggle("oki-peek", peek);   // (oculta el globo antes de medir)
       if (peek) {
-        // Se esconde en la PARED IZQUIERDA de la página; asoma ~46px (su cabecita), cómodo de tocar.
-        var tx = -window.innerWidth + 72;
+        // Se recuesta en la PARED IZQUIERDA pero SIN esconderse tanto: asoma casi todo el astronauta.
+        var tx = -window.innerWidth + 92;
         dock.style.transform = "translate3d(" + tx + "px,0,0)";
-        dock.style.opacity = ".97";
+        dock.style.opacity = "1";
         dock.style.pointerEvents = "";
       } else {
         dock.style.transform = ""; dock.style.opacity = ""; dock.style.pointerEvents = "";
@@ -216,14 +216,17 @@
 
   // Cada cambio del carrito: actualiza el badge y, si algo se agregó, lo muestra.
   function okiOnCartChange() {
-    var now = okiCartMap(), addedId = null;
-    for (var id in now) { if (now[id] > (okiSnap[id] || 0)) addedId = +id; }
+    var now = okiCartMap(), addedId = null, nowN = 0, oldN = 0;
+    for (var id in now) { nowN += now[id]; if (now[id] > (okiSnap[id] || 0)) addedId = +id; }
+    for (var id2 in okiSnap) oldN += okiSnap[id2];
+    var grew = nowN > oldN;   // el carrito creció (aunque sea re-agregar un ítem ya presente)
     okiSnap = now;
     okiUpdateBadge();
     if (okiListActive()) renderStoreList();            // la lista de OKi se actualiza sola
-    if (addedId == null) return;
+    if (!grew) return;                                  // no aumentó → no es "agregado"
     if (okiSelfAdd) { okiSelfAdd = false; return; }     // OKi ya lo confirmó él mismo
-    var p = okiFindProd(addedId); if (!p) return;
+    var p = okiFindProd(addedId) || okiFindProd(Object.keys(now)[Object.keys(now).length - 1]);
+    if (!p) return;
     var abierto = panel && panel.classList.contains("on");
     if (!abierto) {
       // Al AGREGAR, la lista se abre sola y se queda abierta (hasta cerrar/vista previa/salir).
