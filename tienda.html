@@ -6,7 +6,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap">
 <link rel="stylesheet" href="styles.css">
-<link rel="stylesheet" href="assets/oki.css?v=20260713b">
+<link rel="stylesheet" href="assets/oki.css?v=20260713f">
 <style>
 
 #site{
@@ -562,7 +562,7 @@
   var BOLT='<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M13 2L4 14h6l-1 8 9-12h-6l1-8z"/></svg>';
 
   // Cambio de vista
-  function showView(id){ ["tienda","store"].forEach(function(v){$(v).classList.toggle("on",v===id);}); window.scrollTo(0,0); }
+  function showView(id){ ["tienda","store"].forEach(function(v){$(v).classList.toggle("on",v===id);}); window.scrollTo(0,0); okiEmit(id==="store"?"en-tienda":"en-landing"); }
   document.addEventListener("click",function(e){
     if(e.target.closest("[data-open-tienda]")){e.preventDefault(); showView("tienda");}
     if(e.target.closest("[data-go-store]")){e.preventDefault(); showView("store");}
@@ -732,11 +732,12 @@
 
   // ── Puente window.OKtienda: OKi lee/actúa sobre la tienda ──
   window.OKtienda={
-    productos:function(){return P.map(function(p){return {id:p.id,name:p.name,price:p.price,old:p.old||null,cat:p.cat,stock:p.stock,emoji:p.emoji};});},
+    productos:function(){return P.map(function(p){return {id:p.id,name:p.name,price:p.price,old:p.old||null,cat:p.cat,stock:p.stock,emoji:p.emoji,grad:p.grad};});},
     carrito:function(){var out=[]; for(var k in cart){out.push({id:cart[k].p.id,name:cart[k].p.name,price:cart[k].p.price,qty:cart[k].qty});} return out;},
     deseados:function(){return wishlist.map(prod).filter(Boolean).map(function(p){return {id:p.id,name:p.name,price:p.price,emoji:p.emoji};});},
     total:function(){return totals().total;},
     agregar:function(id){addToCart(+id,1);},
+    cambiar:function(id,d){changeQty(+id,+d||0);},
     quitar:function(id){removeItem(+id);},
     toggleDeseado:function(id){toggleWishlist(+id);},
     verProducto:function(id){openProduct(+id);},
@@ -755,6 +756,6 @@
 <!-- Sesión en el header (muestra tu cuenta si iniciaste sesión) + navbar inteligente -->
 <script src="assets/session-nav.js?v=20260630c" defer></script>
 <!-- OKi, el astronauta ayudante. Conectado a la tienda vía el contrato window.OKtienda (ver OKi-tienda-integracion.md). -->
-<script src="assets/oki.js?v=20260713b" defer></script>
+<script src="assets/oki.js?v=20260713f" defer></script>
 </body>
 </html>
