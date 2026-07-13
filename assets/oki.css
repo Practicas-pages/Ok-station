@@ -21,6 +21,9 @@
 .oki-dock{position:fixed;right:26px;bottom:26px;z-index:110;transform:translate3d(0,0,0);transition:transform .45s cubic-bezier(.34,.1,.2,1),opacity .3s ease}
 /* Al abrir el carrito, OKi se desplaza a la IZQUIERDA (desktop) o se oculta abajo (móvil).
    El movimiento se aplica por estilo INLINE desde oki.js (más fiable que alternar clase). */
+/* "Peek": tras 30s sin usar OKi, se esconde y solo asoma; al tocarlo o pasar el mouse, regresa. */
+.oki-dock.oki-peek{cursor:pointer}
+.oki-dock.oki-peek .oki-bubble{display:none !important}
 /* Badge con el número de artículos del carrito, sobre el astronauta (modo tienda). */
 .oki-cart-badge{position:absolute;top:2px;right:2px;min-width:21px;height:21px;padding:0 5px;border-radius:var(--r-full);background:#e11d48;color:#fff;font-size:.72rem;font-weight:800;display:flex;align-items:center;justify-content:center;box-shadow:0 3px 8px rgba(225,29,72,.45);border:2px solid #fff;z-index:6;animation:okiBadgePop .3s cubic-bezier(.2,1.4,.4,1) !important;pointer-events:none}
 @keyframes okiBadgePop{from{transform:scale(.3);opacity:0}to{transform:scale(1);opacity:1}}

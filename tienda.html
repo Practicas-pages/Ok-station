@@ -6,7 +6,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap">
 <link rel="stylesheet" href="styles.css">
-<link rel="stylesheet" href="assets/oki.css?v=20260713k">
+<link rel="stylesheet" href="assets/oki.css?v=20260713m">
 <style>
 
 #site{
@@ -217,13 +217,16 @@
 #site .prod .row{margin-top:auto; display:flex; align-items:center; justify-content:space-between; gap:6px}
 #site .prod .pinfo{display:flex; flex-direction:column; flex:1; min-width:0}
 /* Vista de LISTA */
-#site .grid.is-list{grid-template-columns:1fr; gap:8px}
-#site .grid.is-list .prod{flex-direction:row; align-items:center; gap:14px; padding:10px 62px 10px 12px}
-#site .grid.is-list .prod .ph{width:72px; height:58px; margin:0; flex:none}
-#site .grid.is-list .prod .pemoji{font-size:26px}
-#site .grid.is-list .prod .pinfo{flex-direction:row; align-items:center; gap:14px}
-#site .grid.is-list .prod .cat{display:none}
-#site .grid.is-list .prod h3{flex:1; margin:0}
+#site .pdesc{display:none}
+#site .grid.is-list{grid-template-columns:1fr; gap:9px; max-width:1040px; margin-inline:auto}
+#site .grid.is-list .prod{flex-direction:row; align-items:center; gap:16px; padding:12px 66px 12px 14px}
+#site .grid.is-list .prod .ph{width:76px; height:62px; margin:0; flex:none}
+#site .grid.is-list .prod .pemoji{font-size:28px}
+#site .grid.is-list .prod .pinfo{flex-direction:row; align-items:center; gap:18px}
+#site .grid.is-list .prod .pnametext{flex:1; min-width:0; display:flex; flex-direction:column; gap:1px}
+#site .grid.is-list .prod .cat{display:block; font-size:.66rem; margin:0}
+#site .grid.is-list .prod h3{margin:1px 0 0; font-size:.95rem}
+#site .grid.is-list .prod .pdesc{display:block; font-size:.78rem; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-top:2px}
 #site .grid.is-list .prod .row{margin-top:0; flex:none; gap:14px; margin-right:6px}
 #site .grid.is-list .prod .wishbtn{top:50% !important; right:16px !important; transform:translateY(-50%) !important}
 /* Botón cambiar vista */
@@ -692,7 +695,7 @@
     if(!list.length){$("grid").innerHTML='<div class="empty">No encontramos productos.</div>'; return;}
     $("grid").innerHTML=list.map(function(p){var low=p.stock<=5;
       return '<div class="prod">'+(p.old?'<span class="deal-badge">−'+Math.round((1-p.price/p.old)*100)+'%</span>':'')+pimg(p)+heartBtn(p.id,'position:absolute;top:10px;right:10px;z-index:4;width:36px;height:36px;padding:0;')+
-        '<div class="pinfo"><div class="cat">'+catName(p.cat)+'</div><h3>'+p.name+'</h3>'+
+        '<div class="pinfo"><div class="pnametext"><div class="cat">'+catName(p.cat)+'</div><h3>'+p.name+'</h3><div class="pdesc">'+(p.brand?p.brand+' · ':'')+(p.desc||'')+'</div></div>'+
         '<div class="row"><div><div class="price">'+mxn(p.price)+(p.old?' <s>'+mxn(p.old)+'</s>':'')+'</div><div class="stock'+(low?' low':'')+'">'+(low?"¡Últimas "+p.stock+"!":p.stock+" en stock")+'</div></div><button class="add" data-add="'+p.id+'">+</button></div></div>'+
         '<button style="position:absolute;inset:0;opacity:0;cursor:pointer" data-open="'+p.id+'" aria-label="Ver"></button></div>';}).join("");
   }
@@ -807,6 +810,6 @@
 <!-- Sesión en el header (muestra tu cuenta si iniciaste sesión) + navbar inteligente -->
 <script src="assets/session-nav.js?v=20260630c" defer></script>
 <!-- OKi, el astronauta ayudante. Conectado a la tienda vía el contrato window.OKtienda (ver OKi-tienda-integracion.md). -->
-<script src="assets/oki.js?v=20260713k" defer></script>
+<script src="assets/oki.js?v=20260713m" defer></script>
 </body>
 </html>
