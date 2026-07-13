@@ -252,7 +252,7 @@
       var total = 0, lines = c.map(function (it) { total += it.price * it.qty; return "• " + it.qty + "× " + it.name + " — " + okiMxn(it.price * it.qty); });
       var rec = okiRecommend();
       var extra = rec ? "\n💡 Se te podría antojar: " + rec.name + " (" + okiMxn(rec.price) + "). Dime \"agrégalo\"." : "";
-      return "Esto llevas en tu carrito 🛒\n" + lines.join("\n") + "\nTotal: " + okiMxn(total) + extra + "\nToca el carrito 🛒 arriba para finalizar. Se recoge en OK.station y pagas en línea.";
+      return "Esto llevas en tu carrito 🛒\n" + lines.join("\n") + "\nTotal: " + okiMxn(total) + extra + "\nToca el carrito 🛒 arriba para finalizar. Recoge en OK.station o pide envío a domicilio; pagas en línea.";
     }
 
     // Deseados / favoritos

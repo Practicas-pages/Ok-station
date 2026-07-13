@@ -6,7 +6,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap">
 <link rel="stylesheet" href="styles.css">
-<link rel="stylesheet" href="assets/oki.css?v=20260713p">
+<link rel="stylesheet" href="assets/oki.css?v=20260713q">
 <style>
 
 #site{
@@ -604,7 +604,7 @@ html.modal-lock, html.modal-lock body{overflow:hidden !important}
       <div class="shell">
         <div class="catalog"><div class="catbar"><span class="ctitle" id="catTitle">Todos los productos</span><div class="catbar-right"><span class="cnt" id="catCount"></span><div class="viewtoggle"><button type="button" data-view="list" class="on" title="Lista" aria-label="Ver como lista"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="8" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="20" y2="12"/><line x1="8" y1="18" x2="20" y2="18"/><line x1="3.5" y1="6" x2="3.51" y2="6"/><line x1="3.5" y1="12" x2="3.51" y2="12"/><line x1="3.5" y1="18" x2="3.51" y2="18"/></svg></button><button type="button" data-view="grid" title="Cuadros" aria-label="Ver como cuadros"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg></button></div></div></div><div class="grid" id="grid"></div></div>
         <aside class="cart" id="cart"><div class="ch">Tu carrito <button class="close" id="cartClose">×</button></div><div class="items" id="items"></div>
-          <div class="sum"><div class="ship"><button class="on" data-ship="retiro" style="width:100%"><b>Recoger en OK.station</b>Gratis · te avisamos por WhatsApp</button></div>
+          <div class="sum"><div class="ship"><button class="on" data-ship="retiro"><b>Recoger en OK.station</b>Gratis</button><button data-ship="envio"><b>Envío a domicilio</b>$99</button></div>
             <div class="sline"><span>Subtotal</span><span id="sub">$0.00</span></div><div class="sline"><span>Entrega</span><span id="shipCost">Recoge en tienda</span></div><div class="sline total"><span>Total</span><span id="total">$0.00</span></div>
             <button class="checkout" id="checkoutBtn" disabled>Finalizar compra</button><div class="taxnote">Precios con IVA · productos de ejemplo</div></div></aside>
       </div>
@@ -755,12 +755,12 @@ html.modal-lock, html.modal-lock body{overflow:hidden !important}
   function addToCart(id,q){var p=prod(id); if(!p)return; var c=cart[id]||{p:p,qty:0}; c.qty=Math.min(p.stock,c.qty+q); cart[id]=c; renderCart(); flash(p.name+" agregado");}
   function changeQty(id,d){var c=cart[id]; if(!c)return; c.qty+=d; if(c.qty<=0)delete cart[id]; else c.qty=Math.min(c.p.stock,c.qty); renderCart();}
   function removeItem(id){delete cart[id]; renderCart();}
-  function totals(){var sub=0,n=0; for(var k in cart){sub+=cart[k].p.price*cart[k].qty; n+=cart[k].qty;} var ship=0; /* solo recoger en tienda: sin costo de envío */ return {sub:sub,ship:ship,total:sub+ship,n:n};}
+  function totals(){var sub=0,n=0; for(var k in cart){sub+=cart[k].p.price*cart[k].qty; n+=cart[k].qty;} var ship=(n>0&&shipMode==="envio")?99:0; return {sub:sub,ship:ship,total:sub+ship,n:n};}
   function renderCart(){var keys=Object.keys(cart);
     if(!keys.length){$("items").innerHTML='<div class="cart-empty">Tu carrito está vacío.</div>';}
     else{$("items").innerHTML=keys.map(function(k){var c=cart[k],p=c.p;
       return '<div class="ci"><div class="t"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg></div><div><div class="nm">'+p.name+'</div><div class="pu">'+mxn(p.price)+' c/u</div><div class="qty"><button data-dec="'+p.id+'">−</button><span>'+c.qty+'</span><button data-inc="'+p.id+'">+</button></div></div><div><div class="lt">'+mxn(p.price*c.qty)+'</div><button class="rm" data-rm="'+p.id+'">Quitar</button></div></div>';}).join("");}
-    var tt=totals(); $("sub").textContent=mxn(tt.sub); $("shipCost").textContent="Gratis"; $("total").textContent=mxn(tt.total); $("cartTotalTop").textContent=mxn(tt.total); $("cartCount").textContent=tt.n; $("checkoutBtn").disabled=tt.n===0; saveCart(); okiEmit("carrito");
+    var tt=totals(); $("sub").textContent=mxn(tt.sub); $("shipCost").textContent=tt.ship?mxn(tt.ship):"Gratis"; $("total").textContent=mxn(tt.total); $("cartTotalTop").textContent=mxn(tt.total); $("cartCount").textContent=tt.n; $("checkoutBtn").disabled=tt.n===0; saveCart(); okiEmit("carrito");
   }
   $("items").addEventListener("click",function(e){var i=e.target.closest("[data-inc]"),d=e.target.closest("[data-dec]"),r=e.target.closest("[data-rm]"); if(i)changeQty(+i.dataset.inc,1); if(d)changeQty(+d.dataset.dec,-1); if(r)removeItem(+r.dataset.rm);});
   [].forEach.call(document.querySelectorAll(".ship button"),function(b){b.addEventListener("click",function(){shipMode=b.dataset.ship; [].forEach.call(document.querySelectorAll(".ship button"),function(x){x.classList.toggle("on",x===b);}); renderCart();});});
@@ -786,7 +786,7 @@ html.modal-lock, html.modal-lock body{overflow:hidden !important}
   function renderCheckout(){var tt=totals(),body;
     if(coStep<2){body='<div class="steps"><div class="s'+(coStep>=0?' on':'')+'"></div><div class="s'+(coStep>=1?' on':'')+'"></div><div class="s"></div></div>';
       if(coStep===0){body+='<h3 style="margin:0 0 12px;font-size:1.2rem">Tus datos</h3><div class="field"><label>Nombre</label><input placeholder="Ej. María González"></div><div class="field"><label>WhatsApp</label><input placeholder="(664) 000 0000"></div>'+'<p class="desc" style="font-size:.86rem">Elige recoger gratis en <b>OK.station · Otay</b> o envío a domicilio a todo México. Te avisamos por WhatsApp cuando esté listo.</p>';}
-      else{body+='<h3 style="margin:0 0 4px;font-size:1.2rem">Pago</h3><p class="desc" style="font-size:.86rem">Paga seguro con Mercado Pago.</p><div class="paybadges"><span>Mercado Pago</span><span>OXXO</span><span>SPEI</span><span>Visa · Master · Amex</span></div><div class="sline" style="margin-top:14px"><span>Subtotal</span><span>'+mxn(tt.sub)+'</span></div><div class="sline"><span>Entrega</span><span>Recoge gratis o envío según C.P.</span></div><div class="sline total"><span>Total</span><span>'+mxn(tt.total)+'</span></div>';}
+      else{body+='<h3 style="margin:0 0 4px;font-size:1.2rem">Pago</h3><p class="desc" style="font-size:.86rem">Paga seguro con Mercado Pago.</p><div class="paybadges"><span>Mercado Pago</span><span>OXXO</span><span>SPEI</span><span>Visa · Master · Amex</span></div><div class="sline" style="margin-top:14px"><span>Subtotal</span><span>'+mxn(tt.sub)+'</span></div><div class="sline"><span>Entrega</span><span>'+(shipMode==="envio"?"Envío "+mxn(tt.ship):"Recoger en tienda · Gratis")+'</span></div><div class="sline total"><span>Total</span><span>'+mxn(tt.total)+'</span></div>';}
       body+='<button class="maddbtn" style="margin-top:16px" data-conext>'+(coStep===0?"Continuar":"Pagar "+mxn(tt.total))+'</button>';
     }else{body='<div class="ok-anim"><div class="circle"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div><h3 style="margin:0 0 6px;font-size:1.25rem">¡Pedido simulado!</h3><p class="desc" style="max-width:none">Te llegaría tu ticket y el estado por WhatsApp.</p><button class="maddbtn" style="margin-top:10px" data-cofin>Entendido</button></div>';}
     $("coModal").innerHTML='<div class="mb" style="padding-top:22px"><button class="x" data-close style="position:static;float:right;background:var(--paper)">×</button><div style="clear:both"></div>'+body+'</div>';
@@ -855,6 +855,6 @@ html.modal-lock, html.modal-lock body{overflow:hidden !important}
 <!-- Sesión en el header (muestra tu cuenta si iniciaste sesión) + navbar inteligente -->
 <script src="assets/session-nav.js?v=20260630c" defer></script>
 <!-- OKi, el astronauta ayudante. Conectado a la tienda vía el contrato window.OKtienda (ver OKi-tienda-integracion.md). -->
-<script src="assets/oki.js?v=20260713p" defer></script>
+<script src="assets/oki.js?v=20260713q" defer></script>
 </body>
 </html>

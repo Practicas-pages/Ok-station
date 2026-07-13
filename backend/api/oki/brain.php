@@ -111,11 +111,11 @@ function oki_intents(): array
          'a'=>"Tiempos de entrega ⏱️\nLa mayoría de los trabajos se entregan el mismo día. Los volúmenes grandes o trabajos especiales llevan un tiempo estimado que te decimos al cotizar. Las fotos de trámite \"urgente\" son el mismo día y las \"regular\" al día siguiente."],
 
         ['kw'=>['envio','envios','domicilio','a domicilio','entregan a domicilio','mandan a','llega a mi casa','paqueteria'],
-         'a'=>"Entrega 🚶\nTodo se recoge en la tienda OK.station (Centro Comercial Otay, Local G-03). En la tienda en línea por ahora NO hacemos envíos: te avisamos por WhatsApp cuando tu pedido esté listo para recoger.\nSi es un trabajo de impresión y necesitas un envío especial, pregúntanos por ".OKI_WA_TXT." y vemos si es posible."],
+         'a'=>"Entrega 🚚\nEn la tienda en línea puedes elegir: recoger GRATIS en la sucursal (Centro Comercial Otay, Local G-03) o envío a domicilio. El costo del envío se calcula según tu código postal, y te avisamos por WhatsApp cuando esté listo.\nLos trabajos de impresión se recogen en la sucursal; si necesitas un envío especial, pregúntanos por ".OKI_WA_TXT."."],
 
         // ── Tienda en línea (e-commerce) ──
         ['kw'=>['tienda','tienda en linea','comprar en linea','comprar','e-commerce','ecommerce','carrito','carrito de compras','agregar al carrito','anadir al carrito','productos','catalogo de productos','venden','a la venta','ofertas','deseados','lista de deseos','favoritos'],
-         'a'=>"Tienda en línea 🛒\nTenemos papelería, tinta y tóner, cómputo y accesorios. Armas tu carrito, guardas favoritos con el ❤ y pagas seguro con Mercado Pago (tarjeta, OXXO o SPEI).\nTodo se recoge en la tienda OK.station (Centro Comercial Otay, Local G-03): por ahora no hacemos envíos, y te avisamos por WhatsApp cuando tu pedido esté listo.\nSi quieres, dime \"llévame a la tienda\" y te llevo. 🚀"],
+         'a'=>"Tienda en línea 🛒\nTenemos papelería, tinta y tóner, cómputo y accesorios. Armas tu carrito, guardas favoritos con el ❤ y pagas seguro con Mercado Pago (tarjeta, OXXO o SPEI).\nRecoge GRATIS en la tienda OK.station (Centro Comercial Otay, Local G-03) o pide envío a domicilio (costo según tu C.P.); te avisamos por WhatsApp cuando esté listo.\nSi quieres, dime \"llévame a la tienda\" y te llevo. 🚀"],
 
         // ── Cómo usar el sitio ──
         ['kw'=>['subir archivo','imprimir en linea','hacer un pedido','como imprimo','mandar archivo','pedido de impresion','imprimir','impresion','archivo','pdf'],
