@@ -54,8 +54,8 @@
   // En la tienda (e-commerce) OKi ofrece atajos propios del carrito/deseados.
   var QUICKS_STORE = [
     "🛒 ¿Qué llevo en el carrito?",
+    "✨ ¿Qué me recomiendas?",
     "❤ Mis deseados",
-    "🚚 ¿Hacen envíos?",
     "💳 ¿Cómo pago?"
   ];
 
@@ -67,21 +67,99 @@
       .replace(/[óòö]/g, "o").replace(/[úùü]/g, "u").replace(/ñ/g, "n")
       .replace(/\s+/g, " ").trim();
   }
-  function okiMxn(n) { return "$" + (Math.round(n * 100) / 100).toFixed(2); }
+  function okiMxn(n) { return "$" + (Number(n) || 0).toLocaleString("es-MX", { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+
+  // Estado que OKi vigila del carrito (para mostrar lo que se agrega y recomendar).
+  var okiSnap = {};       // {id: qty} del carrito, para detectar lo recién agregado
+  var okiLastRec = null;  // último producto recomendado (para "sí, agrégalo")
+  var okiSelfAdd = false; // OKi mismo agregó (para no duplicar el aviso)
+
+  function okiProducts() { try { return window.OKtienda.productos() || []; } catch (e) { return []; } }
+  function okiCart()     { try { return window.OKtienda.carrito() || []; } catch (e) { return []; } }
+  function okiCartMap()  { var m = {}; okiCart().forEach(function (it) { m[it.id] = it.qty; }); return m; }
+  function okiCartCount(){ var n = 0; okiCart().forEach(function (it) { n += it.qty; }); return n; }
+  function okiTotal()    { try { return window.OKtienda.total() || 0; } catch (e) { return 0; } }
+  function okiFindProd(id) { var a = okiProducts().filter(function (p) { return p.id == id; }); return a[0] || null; }
+
+  // Recomienda un producto que NO esté en el carrito (prioriza ofertas y la categoría que ya lleva).
+  function okiRecommend() {
+    var prods = okiProducts(), cart = okiCartMap();
+    if (!prods.length) return null;
+    var cats = {};
+    Object.keys(cart).forEach(function (id) { var p = okiFindProd(id); if (p) cats[p.cat] = 1; });
+    var cand = prods.filter(function (p) { return !cart[p.id] && (p.stock == null || p.stock > 0); });
+    if (!cand.length) return null;
+    cand.sort(function (a, b) {
+      var sa = (a.old ? 2 : 0) + (cats[a.cat] ? 1 : 0), sb = (b.old ? 2 : 0) + (cats[b.cat] ? 1 : 0);
+      return sb - sa;
+    });
+    okiLastRec = cand[0];
+    return cand[0];
+  }
+
+  // Busca un producto por nombre (para "agrega el mouse").
+  function okiMatchProd(q) {
+    q = okiNorm(q); if (!q) return null;
+    var prods = okiProducts();
+    var m = prods.filter(function (p) { var n = okiNorm(p.name); return n.indexOf(q) >= 0 || q.indexOf(n) >= 0; })[0];
+    if (m) return m;
+    var w = q.split(" ").filter(function (x) { return x.length >= 3; });
+    return prods.filter(function (p) { var n = okiNorm(p.name); return w.some(function (x) { return n.indexOf(x) >= 0; }); })[0] || null;
+  }
+
+  function okiUpdateBadge() {
+    var b = document.getElementById("oki-cart-badge");
+    if (!b) return;
+    var n = okiCartCount();
+    b.textContent = n; b.style.display = n ? "" : "none";
+  }
+
+  // Globo del astronauta con lo recién agregado + una recomendación.
+  function okiBubbleAdd(prod) {
+    var bb = document.getElementById("oki-bubble");
+    if (!bb) return;
+    var rec = okiRecommend();
+    var html = "🛒 Agregaste <b>" + esc(prod.name) + "</b><br>Llevas " + okiCartCount() + " · " + okiMxn(okiTotal());
+    if (rec) html += "<br>💡 También: <b>" + esc(rec.name) + "</b> " + okiMxn(rec.price);
+    bb.innerHTML = html;
+    bb.classList.add("on");
+    clearTimeout(bubbleT);
+    bubbleT = setTimeout(function () { bb.classList.remove("on"); }, 6500);
+  }
+
+  // Cada cambio del carrito: actualiza el badge y, si algo se agregó, lo muestra.
+  function okiOnCartChange() {
+    var now = okiCartMap(), addedId = null;
+    for (var id in now) { if (now[id] > (okiSnap[id] || 0)) addedId = +id; }
+    okiSnap = now;
+    okiUpdateBadge();
+    if (addedId == null) return;
+    if (okiSelfAdd) { okiSelfAdd = false; return; } // OKi ya lo confirmó en el chat
+    var p = okiFindProd(addedId); if (!p) return;
+    if (panel && panel.classList.contains("on")) {
+      var rec = okiRecommend();
+      var msg = "🛒 Agregué " + p.name + " a tu carrito. Llevas " + okiCartCount() + " (" + okiMxn(okiTotal()) + ").";
+      if (rec) msg += "\n💡 Te recomiendo: " + rec.name + " (" + okiMxn(rec.price) + "). Dime \"agrégalo\" y lo pongo.";
+      addMsg(msg, "bot");
+    } else {
+      okiBubbleAdd(p);
+    }
+  }
 
   /* El estado EN VIVO del carrito/deseados solo lo conoce la tienda (no el servidor),
-     así que estas preguntas se responden aquí mismo. Devuelve texto o null. */
+     así que estas preguntas y acciones se resuelven aquí mismo. Devuelve texto o null. */
   function storeLocalReply(text) {
     if (!storeReady()) return null;
     var t = okiNorm(text), S = window.OKtienda;
 
     // Carrito: qué llevo / cuánto voy / mi total…
     if (/\bcarrito\b|\bcarro\b|que llevo|que tengo|mi compra|cuanto llevo|cuanto va|cuanto voy|mi total|que voy a pagar/.test(t)) {
-      var c = [];
-      try { c = S.carrito() || []; } catch (e) {}
+      var c = okiCart();
       if (!c.length) return "Tu carrito está vacío 🛒 Agrega productos y te digo el total al instante. ¿Quieres que te lleve al catálogo?";
       var total = 0, lines = c.map(function (it) { total += it.price * it.qty; return "• " + it.qty + "× " + it.name + " — " + okiMxn(it.price * it.qty); });
-      return "Esto llevas en tu carrito 🛒\n" + lines.join("\n") + "\nTotal: " + okiMxn(total) + "\nToca el carrito 🛒 arriba para finalizar. Se recoge en la tienda OK.station y pagas en línea con Mercado Pago.";
+      var rec = okiRecommend();
+      var extra = rec ? "\n💡 Se te podría antojar: " + rec.name + " (" + okiMxn(rec.price) + "). Dime \"agrégalo\"." : "";
+      return "Esto llevas en tu carrito 🛒\n" + lines.join("\n") + "\nTotal: " + okiMxn(total) + extra + "\nToca el carrito 🛒 arriba para finalizar. Se recoge en OK.station y pagas en línea.";
     }
 
     // Deseados / favoritos
@@ -92,6 +170,36 @@
       if (!w.length) return "Aún no tienes deseados ❤ Toca el corazón en cualquier producto para guardarlo y comprarlo cuando quieras.";
       var wl = w.map(function (p) { return "• " + p.name + " — " + okiMxn(p.price); });
       return "Tus deseados ❤\n" + wl.join("\n") + "\nTe abrí tu lista. ¿Agrego alguno al carrito?";
+    }
+
+    // Recomendación / consejo
+    if (/recomienda|recomiendas|recomendacion|sugiere|sugerencia|que compro|que me llevo|que mas llevo|aconseja|un consejo/.test(t)) {
+      var r = okiRecommend();
+      if (!r) return "Ya llevas de todo 😄 ¿Te muestro el carrito o quieres ver otra categoría?";
+      return "Te recomiendo " + (r.emoji ? r.emoji + " " : "") + r.name + " — " + okiMxn(r.price) + (r.old ? " (¡en oferta! 🔥)" : "") + "\nDime \"agrégalo\" y lo pongo en tu carrito. 🛒";
+    }
+
+    // Agregar por nombre ("agrega el mouse") o confirmar la recomendación ("sí, agrégalo")
+    var mAdd = t.match(/(?:agrega|agregar|anade|anadir|pon(?:me|lo)?|quiero|llevo|dame|sumale|mete)\s+(.+)/);
+    var confirma = okiLastRec && /^(si|sip|simon|dale|va|vale|agregalo|ponlo|ese|esa|obvio|claro|ok|okey|de una)\b/.test(t);
+    if (mAdd || confirma) {
+      var target = mAdd && mAdd[1] ? okiMatchProd(mAdd[1]) : null;
+      if (!target && confirma) target = okiLastRec;
+      if (!target) return "¿Cuál producto agrego? Dime el nombre (por ejemplo \"agrega el mouse\") y lo busco 🙂";
+      if (target.stock != null && target.stock <= 0) return target.name + " está agotado por ahora 😕. ¿Te recomiendo otra cosa?";
+      okiSelfAdd = true;
+      try { S.agregar(target.id); } catch (e) { okiSelfAdd = false; }
+      var rec2 = okiRecommend();
+      var tip = rec2 ? "\n💡 ¿Le sumas " + rec2.name + " (" + okiMxn(rec2.price) + ")? Dime \"agrégalo\"." : "";
+      return "¡Listo! Agregué " + target.name + " (" + okiMxn(target.price) + ") a tu carrito 🛒\nLlevas " + okiCartCount() + " · " + okiMxn(okiTotal()) + tip;
+    }
+
+    // Quitar del carrito ("quita el mouse")
+    var mDel = t.match(/(?:quita|quitar|elimina|borra|saca|remueve)\s+(.+)/);
+    if (mDel && mDel[1]) {
+      var del = okiMatchProd(mDel[1]);
+      if (del && okiCartMap()[del.id]) { try { S.quitar(del.id); } catch (e) {} return "Quité " + del.name + " del carrito. Llevas " + okiCartCount() + " · " + okiMxn(okiTotal()) + "."; }
+      return "No encontré ese producto en tu carrito 🤔. Dime \"¿qué llevo?\" y te muestro la lista.";
     }
 
     return null; // el resto lo contesta el cerebro del servidor (precios, envíos, cómo pago…)
@@ -163,14 +271,19 @@
       '<button class="oki" id="oki-btn" type="button" aria-label="Abrir asistente OKi">' +
       '<span class="oki__aura"></span>' +
       '<span class="oki__craft">' + SVG_ASTRO + '</span>' +
+      '<span class="oki-cart-badge" id="oki-cart-badge" aria-hidden="true" style="display:none">0</span>' +
       '</button></div>'
     );
     document.body.appendChild(dock);
 
-    // En la tienda: saludo contextual + apartarse cuando se abre el carrito.
+    // En la tienda: saludo contextual, seguimiento del carrito y apartarse al abrirlo.
     if (storeReady()) {
       var bb0 = document.getElementById("oki-bubble");
-      if (bb0) bb0.innerHTML = '¿Buscas algo en la <b>tienda</b>? 🛒<br>Te ayudo con tu carrito o a encontrarlo.';
+      if (bb0) bb0.innerHTML = '¿Buscas algo en la <b>tienda</b>? 🛒<br>Yo te llevo el carrito y te doy recomendaciones.';
+      okiSnap = okiCartMap();          // punto de partida para detectar lo que se agrega
+      okiUpdateBadge();
+      window.addEventListener("oktienda:carrito", okiOnCartChange);
+      window.addEventListener("oktienda:deseados", okiUpdateBadge);
       window.addEventListener("oktienda:carrito-abierto", function () {
         dock.classList.add("oki-cart-open");
         if (panel && panel.classList.contains("on")) close();
@@ -282,8 +395,13 @@
     if (!greeted) {
       greeted = true;
       addMsg(storeReady()
-        ? "¡Hola! Soy OKi 🚀 Estás en la tienda: puedo decirte qué llevas en el carrito, mostrarte tus deseados o resolver dudas de pago y entrega. ¿Qué necesitas?"
+        ? "¡Hola! Soy OKi 🚀 Soy tu asistente en la tienda: te llevo el carrito, te doy recomendaciones y consejos, y respondo dudas de pago o entrega. ¿Qué buscas?"
         : "¡Hola! Soy OKi 🚀 Te ayudo con impresiones, citas, precios y trámites. ¿Qué necesitas?", "bot");
+      // Si ya llevas productos, OKi te muestra tu lista al abrir.
+      if (storeReady() && okiCartCount() > 0) {
+        var reply = storeLocalReply("que llevo en el carrito");
+        if (reply) addMsg(reply, "bot");
+      }
     }
     setTimeout(function () { input.focus(); }, 250);
   }
