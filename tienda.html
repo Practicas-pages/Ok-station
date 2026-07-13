@@ -6,7 +6,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap">
 <link rel="stylesheet" href="styles.css">
-<link rel="stylesheet" href="assets/oki.css?v=20260713a">
+<link rel="stylesheet" href="assets/oki.css?v=20260713b">
 <style>
 
 #site{
@@ -34,6 +34,12 @@
 #site .ph svg{width:clamp(26px,5vw,38px); height:auto}
 #site .ph small{font-size:.62rem; font-weight:700; letter-spacing:.08em; text-transform:uppercase}
 #site .ph.lg svg{width:clamp(40px,7vw,58px)}
+/* Imagen del producto = su emoji sobre el gradiente de su categoría (mientras no haya foto real). */
+#site .pimg{border:0 !important; color:#fff; box-shadow:inset 0 0 40px rgba(255,255,255,.08)}
+#site .pimg .pemoji{font-size:clamp(34px,7vw,48px); line-height:1; filter:drop-shadow(0 3px 6px rgba(10,20,60,.30))}
+#site .mh .pimg{height:100%; border-radius:0}
+#site .mh .pimg .pemoji{font-size:88px}
+#site .fcard .pimg{height:96px}
 #site .headerbar{background:var(--grad); color:#fff; display:flex; align-items:center; gap:16px; padding:7px clamp(14px,4vw,40px); font-size:.78rem; font-weight:600}
 #site .headerbar a{color:#fff; text-decoration:none; opacity:.95}
 #site .headerbar .hb-links{display:flex; gap:16px}
@@ -551,6 +557,8 @@
   var $=function(s){return document.getElementById(s);};
   var PHIMG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>';
   function ph(cls){return '<div class="ph '+(cls||'')+'">'+PHIMG+'<small>Imagen</small></div>';}
+  // Imagen de producto: usa su emoji sobre el gradiente de su categoría (placeholder "real").
+  function pimg(p,cls){return '<div class="ph pimg '+(cls||'')+'" style="background:'+(p.grad||'var(--grad-blue)')+'"><span class="pemoji">'+(p.emoji||'📦')+'</span></div>';}
   var BOLT='<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M13 2L4 14h6l-1 8 9-12h-6l1-8z"/></svg>';
 
   // Cambio de vista
@@ -628,7 +636,7 @@
   var LANDCATS=[["consumibles","Tinta y tóner"],["papeleria","Papelería"],["computo","Cómputo"],["accesorios","Accesorios"],["ofertas","Ofertas del día"]];
   $("landCats").innerHTML=LANDCATS.map(function(c){return '<button class="ctile" data-cat="'+c[0]+'" data-go-store>'+ph()+'<b>'+c[1]+'</b><span>Ver productos →</span></button>';}).join("");
   $("landFeat").innerHTML=[1,10,11,4,9,3].map(function(id){var p=P.filter(function(x){return x.id===id;})[0]; var low=p.stock<=6;
-    return '<div class="fcard" data-open-feat="'+p.id+'">'+(p.old?'<span class="off">−'+Math.round((1-p.price/p.old)*100)+'%</span>':'')+ph()+'<h4>'+p.name+'</h4><div class="fp">'+mxn(p.price)+(p.old?' <s>'+mxn(p.old)+'</s>':'')+'</div>'+(low?'<div class="scarce">🔥 Solo quedan '+p.stock+'</div>':'')+'<button class="fadd" data-go-store data-cat="'+p.cat+'">Ver en tienda</button></div>';}).join("");
+    return '<div class="fcard" data-open-feat="'+p.id+'">'+(p.old?'<span class="off">−'+Math.round((1-p.price/p.old)*100)+'%</span>':'')+pimg(p)+'<h4>'+p.name+'</h4><div class="fp">'+mxn(p.price)+(p.old?' <s>'+mxn(p.old)+'</s>':'')+'</div>'+(low?'<div class="scarce">🔥 Solo quedan '+p.stock+'</div>':'')+'<button class="fadd" data-go-store data-cat="'+p.cat+'">Ver en tienda</button></div>';}).join("");
   $("landFeat").addEventListener("click",function(e){var c=e.target.closest("[data-open-feat]"); if(c && !e.target.closest(".fadd")){showView("store"); selectCat(prod(+c.dataset.openFeat).cat);}});
 
   // Tienda interactiva
@@ -652,7 +660,7 @@
     $("catCount").textContent=list.length+" producto"+(list.length===1?"":"s");
     if(!list.length){$("grid").innerHTML='<div class="empty">No encontramos productos.</div>'; return;}
     $("grid").innerHTML=list.map(function(p){var low=p.stock<=5;
-      return '<div class="prod">'+(p.old?'<span class="deal-badge">−'+Math.round((1-p.price/p.old)*100)+'%</span>':'')+ph()+heartBtn(p.id,'position:absolute;top:10px;right:10px;z-index:4;width:36px;height:36px;padding:0;')+
+      return '<div class="prod">'+(p.old?'<span class="deal-badge">−'+Math.round((1-p.price/p.old)*100)+'%</span>':'')+pimg(p)+heartBtn(p.id,'position:absolute;top:10px;right:10px;z-index:4;width:36px;height:36px;padding:0;')+
         '<div class="cat">'+catName(p.cat)+'</div><h3>'+p.name+'</h3>'+
         '<div class="row"><div><div class="price">'+mxn(p.price)+(p.old?' <s>'+mxn(p.old)+'</s>':'')+'</div><div class="stock'+(low?' low':'')+'">'+(low?"¡Últimas "+p.stock+"!":p.stock+" en stock")+'</div></div><button class="add" data-add="'+p.id+'">+</button></div>'+
         '<button style="position:absolute;inset:0;opacity:0;cursor:pointer" data-open="'+p.id+'" aria-label="Ver"></button></div>';}).join("");
@@ -681,7 +689,7 @@
   [].forEach.call(document.querySelectorAll(".ship button"),function(b){b.addEventListener("click",function(){shipMode=b.dataset.ship; [].forEach.call(document.querySelectorAll(".ship button"),function(x){x.classList.toggle("on",x===b);}); renderCart();});});
 
   function openProduct(id){var p=prod(id); if(!p)return; var low=p.stock<=5;
-    $("prodModal").innerHTML='<div class="mh">'+ph()+heartBtn(p.id,'position:absolute;top:14px;right:56px;z-index:4;width:40px;height:40px;padding:0;')+'<button class="x" data-close>×</button></div><div class="mb"><div class="cat">'+catName(p.cat)+'</div><h3>'+p.name+'</h3><p class="desc">'+p.desc+'</p><ul class="specs">'+p.specs.map(function(s){return '<li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>'+s+'</li>';}).join("")+'</ul><div class="mprice"><span class="p">'+mxn(p.price)+(p.old?' <s style="color:var(--muted);font-size:.55em;font-weight:600">'+mxn(p.old)+'</s>':'')+'</span><span class="st" style="color:'+(low?"#c2410c":"#0E9F6E")+'">'+(low?"¡Últimas "+p.stock+"!":p.stock+" disponibles")+'</span></div><button class="maddbtn" data-madd="'+p.id+'">Agregar al carrito · '+mxn(p.price)+'</button></div>';
+    $("prodModal").innerHTML='<div class="mh">'+pimg(p)+heartBtn(p.id,'position:absolute;top:14px;right:56px;z-index:4;width:40px;height:40px;padding:0;')+'<button class="x" data-close>×</button></div><div class="mb"><div class="cat">'+catName(p.cat)+'</div><h3>'+p.name+'</h3><p class="desc">'+p.desc+'</p><ul class="specs">'+p.specs.map(function(s){return '<li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>'+s+'</li>';}).join("")+'</ul><div class="mprice"><span class="p">'+mxn(p.price)+(p.old?' <s style="color:var(--muted);font-size:.55em;font-weight:600">'+mxn(p.old)+'</s>':'')+'</span><span class="st" style="color:'+(low?"#c2410c":"#0E9F6E")+'">'+(low?"¡Últimas "+p.stock+"!":p.stock+" disponibles")+'</span></div><button class="maddbtn" data-madd="'+p.id+'">Agregar al carrito · '+mxn(p.price)+'</button></div>';
     show("prodOv");
   }
   $("prodOv").addEventListener("click",function(e){if(e.target.id==="prodOv"||e.target.closest("[data-close]")){hide("prodOv"); return;} var w=e.target.closest("[data-wish]"); if(w){toggleWishlist(+w.dataset.wish); openProduct(+w.dataset.wish); return;} var a=e.target.closest("[data-madd]"); if(a){addToCart(+a.dataset.madd,1); hide("prodOv");}});
@@ -724,7 +732,7 @@
 
   // ── Puente window.OKtienda: OKi lee/actúa sobre la tienda ──
   window.OKtienda={
-    productos:function(){return P.map(function(p){return {id:p.id,name:p.name,price:p.price,cat:p.cat,stock:p.stock,emoji:p.emoji};});},
+    productos:function(){return P.map(function(p){return {id:p.id,name:p.name,price:p.price,old:p.old||null,cat:p.cat,stock:p.stock,emoji:p.emoji};});},
     carrito:function(){var out=[]; for(var k in cart){out.push({id:cart[k].p.id,name:cart[k].p.name,price:cart[k].p.price,qty:cart[k].qty});} return out;},
     deseados:function(){return wishlist.map(prod).filter(Boolean).map(function(p){return {id:p.id,name:p.name,price:p.price,emoji:p.emoji};});},
     total:function(){return totals().total;},
@@ -747,6 +755,6 @@
 <!-- Sesión en el header (muestra tu cuenta si iniciaste sesión) + navbar inteligente -->
 <script src="assets/session-nav.js?v=20260630c" defer></script>
 <!-- OKi, el astronauta ayudante. Conectado a la tienda vía el contrato window.OKtienda (ver OKi-tienda-integracion.md). -->
-<script src="assets/oki.js?v=20260713a" defer></script>
+<script src="assets/oki.js?v=20260713b" defer></script>
 </body>
 </html>
