@@ -73,6 +73,7 @@
   var okiSnap = {};       // {id: qty} del carrito, para detectar lo recién agregado
   var okiLastRec = null;  // último producto recomendado (para "sí, agrégalo")
   var okiSelfAdd = false; // OKi mismo agregó (para no duplicar el aviso)
+  var okiReopenAfterPreview = false; // volver a la lista al cerrar una vista previa abierta desde ella
 
   function okiProducts() { try { return window.OKtienda.productos() || []; } catch (e) { return []; } }
   function okiCart()     { try { return window.OKtienda.carrito() || []; } catch (e) { return []; } }
@@ -98,17 +99,17 @@
   function okiInWish(id) { var w = []; try { w = window.OKtienda.deseados() || []; } catch (e) {} return w.some(function (d) { return d.id == id; }); }
 
   // ── Vista LISTA en la tienda: carrito (con cantidades) + recomendaciones + deseados ──
-  function okiOlvThumb(p) { var f = okiFindProd(p.id) || p; return '<span class="olv-th" style="background:' + (f.grad || 'var(--blue)') + '">' + (f.emoji || '📦') + '</span>'; }
+  function okiOlvThumb(p) { var f = okiFindProd(p.id) || p; return '<span class="olv-th" data-oki-open="' + p.id + '" title="Ver producto" style="background:' + (f.grad || 'var(--blue)') + ';cursor:pointer">' + (f.emoji || '📦') + '</span>'; }
   function okiOlvItem(it) {
     return '<div class="olv-it">' + okiOlvThumb(it) +
-      '<div class="olv-nm"><b>' + esc(it.name) + '</b><small>' + okiMxn(it.price) + ' c/u</small></div>' +
+      '<div class="olv-nm" data-oki-open="' + it.id + '" style="cursor:pointer"><b>' + esc(it.name) + '</b><small>' + okiMxn(it.price) + ' c/u</small></div>' +
       '<span class="olv-q"><button data-oki-dec="' + it.id + '" aria-label="Quitar uno">−</button><span>' + it.qty + '</span><button data-oki-inc="' + it.id + '" aria-label="Agregar uno">+</button></span>' +
       '<button class="olv-x" data-oki-rm="' + it.id + '" aria-label="Quitar del carrito">✕</button></div>';
   }
   function okiOlvRec(p) {
     var f = okiFindProd(p.id) || p, onW = okiInWish(p.id);
     return '<div class="olv-rec">' + okiOlvThumb(p) +
-      '<div class="olv-nm"><b>' + esc(p.name) + '</b><small>' + okiMxn(p.price) + (f.old ? ' · <span class="o">oferta</span>' : '') + '</small></div>' +
+      '<div class="olv-nm" data-oki-open="' + p.id + '" style="cursor:pointer"><b>' + esc(p.name) + '</b><small>' + okiMxn(p.price) + (f.old ? ' · <span class="o">oferta</span>' : '') + '</small></div>' +
       '<button class="olv-wsh' + (onW ? ' on' : '') + '" data-oki-wish="' + p.id + '" aria-label="Guardar en deseados">♥</button>' +
       '<button class="olv-add" data-oki-add="' + p.id + '" aria-label="Agregar al carrito">＋</button></div>';
   }
@@ -341,18 +342,27 @@
       okiUpdateBadge();
       window.addEventListener("oktienda:carrito", okiOnCartChange);
       window.addEventListener("oktienda:deseados", function () { okiUpdateBadge(); if (okiListActive()) renderStoreList(); });
-      window.addEventListener("oktienda:carrito-abierto", function () {
-        var mobile = window.innerWidth <= 640;
-        dock.style.transform = mobile ? "translate3d(0,140px,0)" : "translate3d(-430px,0,0)";
-        dock.style.opacity = mobile ? "0" : "";
-        dock.style.pointerEvents = mobile ? "none" : "";
-        if (panel && panel.classList.contains("on")) close();
-      });
-      window.addEventListener("oktienda:carrito-cerrado", function () {
-        dock.style.transform = "";
-        dock.style.opacity = "";
-        dock.style.pointerEvents = "";
-      });
+      // OKi se aparta a la izquierda cuando el carrito está abierto y REGRESA al
+      // cerrarse. Se observa la clase real .cart-open de #app (no solo eventos), para
+      // que NUNCA se quede colgado aunque el carrito se cierre por checkout/Escape/scrim.
+      var okiAppEl = document.getElementById("app");
+      function okiApplyDodge() {
+        var open = !!(okiAppEl && okiAppEl.classList.contains("cart-open"));
+        if (open) {
+          var mobile = window.innerWidth <= 640;
+          dock.style.transform = mobile ? "translate3d(0,140px,0)" : "translate3d(-430px,0,0)";
+          dock.style.opacity = mobile ? "0" : "";
+          dock.style.pointerEvents = mobile ? "none" : "";
+          if (panel && panel.classList.contains("on")) close();
+        } else {
+          dock.style.transform = ""; dock.style.opacity = ""; dock.style.pointerEvents = "";
+        }
+      }
+      if (okiAppEl && window.MutationObserver) {
+        new MutationObserver(okiApplyDodge).observe(okiAppEl, { attributes: true, attributeFilter: ["class"] });
+      }
+      window.addEventListener("oktienda:carrito-abierto", okiApplyDodge);
+      window.addEventListener("oktienda:carrito-cerrado", okiApplyDodge);
       // Al ENTRAR al catálogo: OKi prepara la lista. Si ya tienes productos guardados,
       // te la abre; si está vacía, solo ofrece ayuda con un globo (sin abrirse sola).
       window.addEventListener("oktienda:en-tienda", function () {
@@ -374,6 +384,15 @@
       // La lista se cierra al SALIR del e-commerce o al abrir la VISTA PREVIA de un producto.
       window.addEventListener("oktienda:en-landing", function () { close(); });
       window.addEventListener("oktienda:vista-previa", function () { close(); });
+      // Si la vista previa se abrió DESDE la lista de OKi, al cerrarla se vuelve a la lista.
+      // Se difiere para que el mismo clic (que burbujea al document) no la vuelva a cerrar.
+      window.addEventListener("oktienda:vista-previa-cerrada", function () {
+        if (!okiReopenAfterPreview) return;
+        okiReopenAfterPreview = false;
+        setTimeout(function () {
+          if (storeReady() && panel) { panel.setAttribute("data-view", "list"); renderStoreList(); open(); }
+        }, 60);
+      });
       // El botón ❤ de la tienda abre la lista de OKi enfocando los deseados.
       window.addEventListener("oktienda:ver-deseados", okiShowDeseados);
     }
@@ -457,6 +476,7 @@
         else if ((x = e.target.closest("[data-oki-rm]")))  { try { S.quitar(+x.dataset.okiRm); } catch (er) {} }
         else if ((x = e.target.closest("[data-oki-add]"))) { okiSelfAdd = true; try { S.agregar(+x.dataset.okiAdd); } catch (er) { okiSelfAdd = false; } }
         else if ((x = e.target.closest("[data-oki-wish]"))){ try { S.toggleDeseado(+x.dataset.okiWish); } catch (er) {} renderStoreList(); }
+        else if ((x = e.target.closest("[data-oki-open]"))) { okiReopenAfterPreview = true; try { S.verProducto(+x.dataset.okiOpen); } catch (er) { okiReopenAfterPreview = false; } }
         else if (e.target.closest("[data-oki-pay]")) { try { S.abrirCarrito(); } catch (er) {} }
         else if (e.target.closest("#oki-olv-chat")) { showChat(); }
       });
