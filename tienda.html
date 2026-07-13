@@ -208,6 +208,22 @@
 #site .prod h3{font-size:.84rem; font-weight:700; margin:0 0 3px; line-height:1.25}
 #site .prod .cat{font-size:.66rem; color:var(--muted); text-transform:uppercase; margin-bottom:7px}
 #site .prod .row{margin-top:auto; display:flex; align-items:center; justify-content:space-between; gap:6px}
+#site .prod .pinfo{display:flex; flex-direction:column; flex:1; min-width:0}
+/* Vista de LISTA */
+#site .grid.is-list{grid-template-columns:1fr; gap:8px}
+#site .grid.is-list .prod{flex-direction:row; align-items:center; gap:14px; padding:10px 44px 10px 12px}
+#site .grid.is-list .prod .ph{width:72px; height:58px; margin:0; flex:none}
+#site .grid.is-list .prod .pinfo{flex-direction:row; align-items:center; gap:14px}
+#site .grid.is-list .prod .cat{display:none}
+#site .grid.is-list .prod h3{flex:1; margin:0}
+#site .grid.is-list .prod .row{margin-top:0; flex:none; gap:12px}
+#site .grid.is-list .prod .wish{top:50%; right:10px; transform:translateY(-50%)}
+/* Botón cambiar vista */
+#site .catbar-right{display:flex; align-items:center; gap:12px}
+#site .viewtoggle{display:inline-flex; gap:2px; background:var(--paper); border:1px solid var(--line); border-radius:10px; padding:2px}
+#site .viewtoggle button{border:none; background:none; width:32px; height:28px; border-radius:8px; display:grid; place-items:center; color:var(--muted); cursor:pointer}
+#site .viewtoggle button.on{background:#fff; color:var(--blue); box-shadow:var(--sh)}
+#site .viewtoggle svg{width:16px; height:16px}
 #site .prod .price{font-weight:800; font-variant-numeric:tabular-nums; font-size:.92rem}
 #site .prod .price s{color:var(--muted); font-weight:500; font-size:.76em; margin-left:2px}
 #site .prod .stock{font-size:.64rem; color:var(--green); font-weight:600}
@@ -527,7 +543,7 @@
       </div>
       <nav class="popbar" id="popbar"></nav>
       <div class="shell">
-        <div class="catalog"><div class="catbar"><span class="ctitle" id="catTitle">Todos los productos</span><span class="cnt" id="catCount"></span></div><div class="grid" id="grid"></div></div>
+        <div class="catalog"><div class="catbar"><span class="ctitle" id="catTitle">Todos los productos</span><div class="catbar-right"><span class="cnt" id="catCount"></span><div class="viewtoggle"><button type="button" data-view="list" class="on" title="Lista" aria-label="Ver como lista"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="8" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="20" y2="12"/><line x1="8" y1="18" x2="20" y2="18"/><line x1="3.5" y1="6" x2="3.51" y2="6"/><line x1="3.5" y1="12" x2="3.51" y2="12"/><line x1="3.5" y1="18" x2="3.51" y2="18"/></svg></button><button type="button" data-view="grid" title="Cuadros" aria-label="Ver como cuadros"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg></button></div></div></div><div class="grid" id="grid"></div></div>
         <aside class="cart" id="cart"><div class="ch">Tu carrito <button class="close" id="cartClose">×</button></div><div class="items" id="items"></div>
           <div class="sum"><div class="ship"><button class="on" data-ship="retiro"><b>Recoger en tienda</b>Gratis</button><button data-ship="envio"><b>Envío a domicilio</b>$99</button></div>
             <div class="sline"><span>Subtotal</span><span id="sub">$0.00</span></div><div class="sline"><span>Envío</span><span id="shipCost">—</span></div><div class="sline total"><span>Total</span><span id="total">$0.00</span></div>
@@ -635,8 +651,8 @@
     if(!list.length){$("grid").innerHTML='<div class="empty">No encontramos productos.</div>'; return;}
     $("grid").innerHTML=list.map(function(p){var low=p.stock<=5;
       return '<div class="prod">'+'<button class="wish'+(wishlist[p.id]?' on':'')+'" data-wish="'+p.id+'" title="Deseados" aria-label="Guardar en deseados">❤</button>'+(p.old?'<span class="deal-badge">−'+Math.round((1-p.price/p.old)*100)+'%</span>':'')+ph()+
-        '<div class="cat">'+catName(p.cat)+'</div><h3>'+p.name+'</h3>'+
-        '<div class="row"><div><div class="price">'+mxn(p.price)+(p.old?' <s>'+mxn(p.old)+'</s>':'')+'</div><div class="stock'+(low?' low':'')+'">'+(low?"¡Últimas "+p.stock+"!":p.stock+" en stock")+'</div></div><button class="add" data-add="'+p.id+'">+</button></div>'+
+        '<div class="pinfo"><div class="cat">'+catName(p.cat)+'</div><h3>'+p.name+'</h3>'+
+        '<div class="row"><div><div class="price">'+mxn(p.price)+(p.old?' <s>'+mxn(p.old)+'</s>':'')+'</div><div class="stock'+(low?' low':'')+'">'+(low?"¡Últimas "+p.stock+"!":p.stock+" en stock")+'</div></div><button class="add" data-add="'+p.id+'">+</button></div></div>'+
         '<button style="position:absolute;inset:0;opacity:0;cursor:pointer" data-open="'+p.id+'" aria-label="Ver"></button></div>';}).join("");
   }
   $("grid").addEventListener("click",function(e){var w=e.target.closest("[data-wish]"); if(w){e.stopPropagation(); toggleWishlist(+w.dataset.wish); return;} var a=e.target.closest("[data-add]"); if(a){e.stopPropagation(); addToCart(+a.dataset.add,1); return;} var o=e.target.closest("[data-open]"); if(o){openProduct(+o.dataset.open);}});
@@ -690,6 +706,11 @@
   /* Contrato para OKi (el astronauta lo LEE; no edita este archivo). Ver OKi-tienda-integracion.md */
   window.OKtienda = { productos:function(){return P;}, carrito:function(){return cart;}, deseados:function(){return wishlist;}, agregar:function(id){addToCart(id,1);}, quitar:function(id){removeItem(id);}, toggleDeseado:function(id){toggleWishlist(id);}, irAProducto:function(id){openProduct(id);} };
   avisar("en-tienda");
+
+  // Vista lista/cuadros (predeterminado: LISTA)
+  function setView(m){ var g=$("grid"); if(g) g.classList.toggle("is-list", m==="list"); [].forEach.call(document.querySelectorAll(".viewtoggle button"),function(b){ b.classList.toggle("on", b.dataset.view===m); }); }
+  [].forEach.call(document.querySelectorAll(".viewtoggle button"),function(b){ b.addEventListener("click",function(){ setView(b.dataset.view); }); });
+  setView("list");
 
 
 })();
