@@ -168,7 +168,7 @@
   // ── Posición del astronauta: apartarse del carrito, "peek" (asomar) o normal ──
   // Peek = tras 30s sin usar OKi (panel cerrado), se esconde y solo asoma; al tocarlo o
   // pasar el mouse, regresa. Así no estorba banners/botones y sigue a la mano.
-  var okiPeeked = false, okiPeekTimer = null, OKI_PEEK_MS = 30000;
+  var okiPeeked = false, okiPeekTimer = null, OKI_PEEK_MS = 12000;
   function okiCartOpen() { var a = document.getElementById("app"); return !!(a && a.classList.contains("cart-open")); }
   function okiUpdatePosition() {
     if (!dock) return;
@@ -179,10 +179,16 @@
       dock.style.opacity = mobile ? "0" : ""; dock.style.pointerEvents = mobile ? "none" : "";
     } else {                                     // normal o peek (según inactividad)
       var peek = okiPeeked && !(panel && panel.classList.contains("on"));
-      dock.classList.toggle("oki-peek", peek);
-      dock.style.transform = peek ? "translate3d(58%,0,0)" : "";  // solo asoma el casco
-      dock.style.opacity = peek ? ".55" : "";
-      dock.style.pointerEvents = "";
+      dock.classList.toggle("oki-peek", peek);   // (oculta el globo antes de medir)
+      if (peek) {
+        // Se esconde en la PARED IZQUIERDA de la página; asoma ~46px (su cabecita), cómodo de tocar.
+        var tx = -window.innerWidth + 72;
+        dock.style.transform = "translate3d(" + tx + "px,0,0)";
+        dock.style.opacity = ".97";
+        dock.style.pointerEvents = "";
+      } else {
+        dock.style.transform = ""; dock.style.opacity = ""; dock.style.pointerEvents = "";
+      }
     }
   }
   function okiResetPeekTimer() {
@@ -483,7 +489,8 @@
     });
     // Al pasar el mouse por encima, regresa (por si estorbaba) y reinicia el conteo.
     dock.addEventListener("mouseenter", function () { if (okiPeeked) okiWake(); else okiResetPeekTimer(); });
-    okiResetPeekTimer(); // arranca el conteo de inactividad (30s → asoma)
+    window.addEventListener("resize", function () { if (okiPeeked || okiCartOpen()) okiUpdatePosition(); }, { passive: true });
+    okiResetPeekTimer(); // arranca el conteo de inactividad (12s → se esconde en la pared izquierda)
     panel.querySelector(".cls").addEventListener("click", close);
     panel.querySelector("#oki-form").addEventListener("submit", function (e) {
       e.preventDefault();

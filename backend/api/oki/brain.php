@@ -198,44 +198,90 @@ function oki_acta_estado(string $t, string $prev): ?string
     return null;
 }
 
+/** ¿El mensaje pide NAVEGAR (ir/mostrar/llévame)? (no una pregunta). $t ya normalizado. */
+function oki_nav_intent(string $t): bool
+{
+    // 1) Verbos/frases EXPLÍCITOS de navegación: siempre cuentan (aunque haya "cuánto/precio").
+    if (preg_match('/\b(llevame|llevanos|llevar|llevas|vamonos|vayamos|mandame|dirigeme|redirigeme|abreme|muestrame|ensename|pasame|comparteme)\b/', $t)) return true;
+    foreach (['vamos a', 'ir a', 'voy a ir', 've a', 'vete a', 'entra a', 'entrar a', 'como llego', 'como llegar',
+              'como entro', 'como accedo', 'dame el link', 'dame la liga', 'la liga de', 'el link de', 'el enlace de',
+              'pasame el link', 'pasame la liga', 'donde hago', 'donde puedo hacer', 'donde saco', 'donde tramito',
+              'donde imprimo', 'donde queda', 'donde esta', 'donde encuentro', 'donde consigo', 'ando buscando',
+              'estoy buscando'] as $p) {
+        if (mb_strpos($t, $p) !== false) return true;
+    }
+    // 2) Si es claramente una PREGUNTA de precio/horario, NO se navega (lo contesta el cerebro).
+    if (preg_match('/\b(cuanto|cuanta|cuantos|precio|precios|cuesta|cuestan|vale|valen|sale|cobran|costo|costos|tarifa|tarifas|a que hora|que horario|que dias)\b/', $t)) return false;
+    // 3) Intención SUAVE: "quiero/necesito/busco/ocupo… algo". La compuerta de destino evita falsos positivos.
+    if (preg_match('/\b(quiero|quisiera|necesito|deseo|busco|ando buscando|ocupo|me gustaria|voy a|puedo)\b/', $t)) return true;
+    // 4) "ver/conocer" + artículo/posesivo ("ver la tienda", "ver mis pedidos").
+    if (preg_match('/\b(ver|conocer|muestra)\b/', $t) && preg_match('/\b(la|el|los|las|mi|mis|tu|su)\b/', $t)) return true;
+    return false;
+}
+
+/** Destinos a los que OKi puede llevar, del MÁS específico al más general (gana el primero que coincide). */
+function oki_nav_destinos(): array
+{
+    return [
+        ['go'=>'/requisitos-pasaporte-tijuana.html', 'reply'=>"Te llevo a los requisitos del pasaporte 📋",
+         'kw'=>['requisito','requisitos','requisitos pasaporte','que necesito para el pasaporte','que piden para el pasaporte','que se necesita para el pasaporte','documentos para pasaporte','papeles para pasaporte']],
+        ['go'=>'/fotos-para-pasaporte-tijuana.html', 'reply'=>"Te llevo a las fotos para trámite 📸",
+         'kw'=>['foto de tramite','fotos de tramite','foto para tramite','fotos para tramite','foto para pasaporte','fotos para pasaporte','foto tamano pasaporte','foto para visa','fotos para visa','foto infantil','fotos infantiles','tamano infantil','foto tamano infantil','foto para credencial','foto para titulo','foto ovalada','fondo blanco','foto fondo blanco','foto para documentos','foto para green card']],
+        ['go'=>'/impresion-de-fotografias-tijuana.html', 'reply'=>"Te llevo a impresión de fotografías 🖼️",
+         'kw'=>['imprimir foto','imprimir fotos','impresion de fotos','impresion de fotografias','revelar','revelado','revelar fotos','ampliacion','ampliaciones','ampliar foto','ampliar imagen','imprimir imagen','imprimir imagenes','fotos del celular','fotos de mi celular','papel fotografico','foto brillante','foto mate','10x15','13x18','retrato','imprimir selfie']],
+        ['go'=>'/impresion-tarjetas-pvc-tijuana.html', 'reply'=>"Te llevo a impresión en tarjetas PVC 🪪",
+         'kw'=>['pvc','tarjeta pvc','tarjetas pvc','tarjeta de pvc','tarjeta plastica','tarjeta rigida','credencial pvc','hacer credencial','imprimir credencial','credencial escolar','credencial de empleado','gafete','gafetes','membresia','membresias','carnet pvc','impresion en pvc']],
+        ['go'=>'/impresion-gran-formato-planos-tijuana.html', 'reply'=>"Te llevo a gran formato y planos 📐",
+         'kw'=>['gran formato','plotter','plotear','plano','planos','plano arquitectonico','planos arquitectonicos','imprimir plano','imprimir planos','poster','posters','lona','lonas','imprimir lona','banner','banners','pancarta','pendon','pendones','manta','vinil','vinilo','viniles','rotulo','rotulos','impresion en grande','formato grande','roll up']],
+        ['go'=>'/enmicado-y-engargolado-tijuana.html', 'reply'=>"Te llevo a enmicado y engargolado 📚",
+         'kw'=>['enmicado','enmicar','mica','micas','plastificar','laminar','laminado','engargolar','engargolado','engargolados','arillo','arillos','arillado','espiral','encuadernar','encuadernacion','empastar','empastado','pasta dura','engargolar tesis','engargolado de tesis']],
+        ['go'=>'/escaneado-y-digitalizacion-tijuana.html', 'reply'=>"Te llevo a escaneo y digitalización 🗂️",
+         'kw'=>['escaneo','escanear','escaner','scanner','scan','digitalizar','digitalizacion','pasar a pdf','pasar a digital','convertir a pdf','escanear documento','escanear a pdf','escaneo a pdf','escaneo a jpg','escanear ine','escanear identificacion']],
+        ['go'=>'/recorte-guillotina-tijuana.html', 'reply'=>"Te llevo a recorte en guillotina ✂️",
+         'kw'=>['guillotina','cortar hojas','cortar papel','corte de papel','recorte','recortar','servicio de corte','corte a la medida','corte recto','refilar','refilado','emparejar hojas','cortar tarjetas','cortar volantes','cortar folletos','corte en guillotina']],
+        ['go'=>'/copias-e-impresiones-tijuana.html', 'reply'=>"Te llevo a copias e impresiones 🖨️",
+         'kw'=>['copia','copias','sacar copias','fotocopia','fotocopias','fotocopiar','fotostatica','fotostaticas','copias fotostaticas','xerox','juego de copias','copias a color','copias en blanco y negro']],
+        ['go'=>'/tramites-y-documentos-oficiales-tijuana.html', 'reply'=>"Te llevo a trámites y documentos oficiales 🗎",
+         'kw'=>['curp','sacar curp','tramitar curp','imprimir curp','rfc','sacar rfc','constancia fiscal','constancia de situacion fiscal','situacion fiscal','cedula fiscal','imss','semanas cotizadas','vigencia de derechos','nss','numero de seguro social','seguro social','certificado','certificados','certificado de bachillerato','antecedentes no penales','carta de no antecedentes','acta de nacimiento','documento oficial','documentos oficiales']],
+        ['go'=>'/papeleria-para-oficinas-tijuana.html', 'reply'=>"Te llevo a papelería para oficinas ✏️",
+         'kw'=>['papeleria para oficina','papeleria de oficina','papeleria por mayoreo','articulos de oficina','material de oficina','materiales de oficina','insumos de oficina','surtir oficina','surtir mi oficina','mayoreo','medio mayoreo','por mayoreo']],
+        ['go'=>'/#testimonios', 'reply'=>"Te llevo a las reseñas ⭐",
+         'kw'=>['resena','resenas','opiniones','opinion','testimonios','testimonio','comentarios','reviews','review','calificaciones','calificacion','valoraciones','que dicen de ustedes','que opinan','experiencias de clientes','reputacion','resenas de google','opiniones de google']],
+        ['go'=>'/quienes-somos.html', 'reply'=>"Te llevo a Quiénes somos 🚀",
+         'kw'=>['quienes somos','quienes son','sobre nosotros','acerca de','acerca de ustedes','sobre la empresa','sobre ustedes','la empresa','conocer la empresa','historia','su historia','mision','vision','valores','trayectoria','quien es okstation','que es okstation','a que se dedican','quien los fundo','fundadores']],
+        ['go'=>'/perfil.html', 'reply'=>"Te llevo a tu perfil (tus pedidos, citas y pagos) 👤",
+         'kw'=>['mi perfil','mis pedidos','mis ordenes','mis citas','mi historial','historial de pedidos','historial de citas','mis compras','pagar','pagar pedido','pagar mi pedido','pagar cita','pagar mi cita','pagar orden','hacer un pago','realizar pago','quiero pagar','necesito pagar','donde pago','pago pendiente','pagos pendientes','saldo','adeudo','abonar','liquidar','estatus de mi pedido','seguimiento de pedido','rastrear pedido','ver mis pedidos','ver mis citas','mis facturas','mis recibos','mi ticket']],
+        ['go'=>'/cuenta.html', 'reply'=>"Te llevo a tu cuenta 👤",
+         'kw'=>['cuenta','crear cuenta','abrir cuenta','hacer cuenta','nueva cuenta','darme de alta','registrarme','registrar','registro','registrarse','iniciar sesion','inicio de sesion','login','logearme','loguearme','ingresar','acceder','sign in','sign up','olvide mi contrasena','recuperar contrasena','cambiar contrasena','restablecer contrasena']],
+        ['go'=>'/#visitanos', 'reply'=>"Te llevo al mapa para llegar 📍",
+         'kw'=>['ubicacion','ubicados','localizados','direccion','domicilio','donde estan','donde queda la tienda','donde se encuentra','donde estan ubicados','como llegar','como llego','como se llega','ruta','mapa','google maps','sucursal','sucursales','tienda fisica','visitanos','visitar','estacionamiento']],
+        ['go'=>'/contactanos.html', 'reply'=>"Te llevo a Contáctanos 📞",
+         'kw'=>['contacto','contactar','contactarlos','contactanos','ponerme en contacto','comunicarme','hablar con alguien','hablar con una persona','atencion a clientes','atencion al cliente','servicio al cliente','telefono','numero de telefono','su numero','llamar','marcar','correo electronico','formulario de contacto','como los contacto']],
+        ['go'=>'/#citas', 'reply'=>"¡Claro! Te llevo a agendar tu cita 🗓️ (para agendar necesitas cuenta).",
+         'kw'=>['cita','citas','agendar','agendar cita','sacar cita','apartar cita','reservar cita','hacer cita','programar cita','turno','pasaporte','pasaportes','sacar pasaporte','renovar pasaporte','visa','visa americana','sacar visa','renovar visa','consulado','ds160','sentri','global entry','i94','ine','credencial de elector','credencial para votar','licencia','licencia de conducir','licencia de manejo','sacar licencia','acta','acta de matrimonio','tramitar pasaporte','tramitar visa','reagendar cita','consultar cita']],
+        ['go'=>'/tienda.html', 'reply'=>"¡Va! Te llevo a la tienda en línea 🛒",
+         'kw'=>['tienda','tiendita','tienda en linea','comprar','compra','producto','productos','catalogo','carrito','carrito de compras','oferta','ofertas','descuento','promocion','deseados','lista de deseos','favoritos','toner','cartucho','tinta','tinta de impresora','papel bond','cuaderno','pluma','plumas','memoria usb','usb','mouse','teclado','laptop','computadora','audifonos','regulador','papeleria']],
+        ['go'=>'/#fotos', 'reply'=>"¡Va! Te llevo a subir tus archivos e imprimir 🖨️",
+         'kw'=>['imprimir','imprimo','impresion','impresiones','imprimir en linea','impresion en linea','imprimir pdf','imprimir word','imprimir archivo','subir archivo','subir archivos','subir para imprimir','mandar a imprimir','imprimir documento','imprimir documentos','imprime tus fotos','pedido de impresion']],
+        ['go'=>'/#servicios', 'reply'=>"Te llevo a nuestros servicios 🧰",
+         'kw'=>['servicios','servicio','que servicios','que servicios ofrecen','que ofrecen','que hacen','que hacen ustedes','todos los servicios','lista de servicios','que puedo hacer aqui','en que me pueden ayudar','gama de servicios']],
+    ];
+}
+
 /** Navegación directa: "llévame a...". Devuelve ['reply'=>, 'go'=>url] o null. $t ya normalizado. */
 function oki_navigate(string $t): ?array
 {
-    $nav = preg_match('/\b(llevame|llevar|llevas|vamos a|quiero ir|mandame|dirigeme|ir a|abreme|dame el link)\b/', $t)
-        || mb_strpos($t, 'donde hago') !== false
-        || mb_strpos($t, 'donde puedo hacer') !== false;
-    if (!$nav) return null;
-
-    if (mb_strpos($t,'requisito')!==false)
-        return ['reply'=>"Te llevo a los requisitos del pasaporte 📋", 'go'=>"/requisitos-pasaporte-tijuana.html"];
-
-    if (mb_strpos($t,'pagar')!==false || mb_strpos($t,'pago')!==false)
-        return ['reply'=>"Te llevo a tu perfil para pagar tus pedidos o citas 💳", 'go'=>"/perfil.html"];
-
-    if (mb_strpos($t,'cita')!==false || mb_strpos($t,'agendar')!==false || mb_strpos($t,'agendo')!==false
-        || mb_strpos($t,'pasaporte')!==false || mb_strpos($t,'visa')!==false || mb_strpos($t,'sentri')!==false
-        || mb_strpos($t,'tramite')!==false)
-        return ['reply'=>"¡Claro! Te llevo a agendar tu cita 🚀 (para agendar necesitas cuenta).", 'go'=>"/#citas"];
-
-    if (mb_strpos($t,'tienda')!==false || mb_strpos($t,'comprar')!==false || mb_strpos($t,'carrito')!==false
-        || mb_strpos($t,'catalogo')!==false || mb_strpos($t,'productos')!==false || mb_strpos($t,'deseados')!==false)
-        return ['reply'=>"¡Va! Te llevo a la tienda en línea 🛒", 'go'=>"/tienda.html"];
-
-    if (mb_strpos($t,'imprimir')!==false || mb_strpos($t,'imprime')!==false || mb_strpos($t,'subir')!==false
-        || mb_strpos($t,'archivo')!==false || mb_strpos($t,'foto')!==false || mb_strpos($t,'copia')!==false
-        || mb_strpos($t,'pedido')!==false)
-        return ['reply'=>"¡Va! Te llevo a subir tus archivos e imprimir 🖨️", 'go'=>"/#fotos"];
-
-    if (mb_strpos($t,'ubica')!==false || mb_strpos($t,'como llego')!==false || mb_strpos($t,'como llegar')!==false
-        || mb_strpos($t,'mapa')!==false || mb_strpos($t,'visitanos')!==false || mb_strpos($t,'direccion')!==false)
-        return ['reply'=>"Te llevo al mapa para llegar 📍", 'go'=>"/#visitanos"];
-
-    if (mb_strpos($t,'cuenta')!==false || mb_strpos($t,'registr')!==false || mb_strpos($t,'sesion')!==false || mb_strpos($t,'login')!==false)
-        return ['reply'=>"Te llevo a tu cuenta 👤", 'go'=>"/cuenta.html"];
-
-    if (mb_strpos($t,'contact')!==false)
-        return ['reply'=>"Te llevo a Contáctanos 📞", 'go'=>"/contactanos.html"];
-
+    if (!oki_nav_intent($t)) return null;
+    // Texto con "límites de palabra": quita signos y rodea de espacios para comparar frases completas
+    // (evita falsos positivos como 'acta' dentro de 'contacta' o 'ine' dentro de 'imprime').
+    $padded = ' ' . preg_replace('/\s+/', ' ', preg_replace('/[^a-z0-9 ]+/', ' ', $t)) . ' ';
+    foreach (oki_nav_destinos() as $d) {
+        foreach ($d['kw'] as $kw) {
+            if (mb_strpos($padded, ' ' . $kw . ' ') !== false) {
+                return ['reply' => $d['reply'], 'go' => $d['go']];
+            }
+        }
+    }
     return null; // hay verbo de navegación pero no reconozco el destino → deja que el cerebro conteste
 }
 
