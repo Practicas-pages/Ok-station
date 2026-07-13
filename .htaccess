@@ -12,6 +12,16 @@ Options +FollowSymLinks
 # --------------------------------------------------------------
 RewriteEngine On
 
+# --------------------------------------------------------------
+# 0. PASAR EL HEADER "Authorization" A PHP
+#    Apache lo elimina por defecto → el JWT (Bearer) no llegaba y el
+#    login "funcionaba" pero cada petición autenticada daba 401 (XAMPP).
+#    require_auth() lee HTTP_AUTHORIZATION / REDIRECT_HTTP_AUTHORIZATION.
+# --------------------------------------------------------------
+CGIPassAuth On
+RewriteCond %{HTTP:Authorization} .
+RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+
 # Usa el dominio canónico (ajusta si usas www)
 # RewriteCond %{HTTP_HOST} ^www\.okstation\.mx$ [NC]
 # RewriteRule ^ https://okstation.mx%{REQUEST_URI} [R=301,L]
