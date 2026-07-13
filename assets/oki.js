@@ -129,7 +129,21 @@
     if (recs.length) { recSec.hidden = false; recBox.innerHTML = recs.map(okiOlvRec).join(""); } else { recSec.hidden = true; recBox.innerHTML = ""; }
     var wish = []; try { wish = window.OKtienda.deseados() || []; } catch (e) {}
     var wSec = document.getElementById("oki-olv-wish-sec"), wBox = document.getElementById("oki-olv-wish");
-    if (wish.length) { wSec.hidden = false; wBox.innerHTML = wish.map(okiOlvRec).join(""); } else { wSec.hidden = true; wBox.innerHTML = ""; }
+    wSec.hidden = false; // la sección de deseos siempre se muestra (con estado vacío)
+    wBox.innerHTML = wish.length ? wish.map(okiOlvRec).join("")
+      : '<div class="olv-empty" style="padding:8px 0 4px">Toca el ❤ en un producto para guardarlo aquí.</div>';
+  }
+  // Abrir la lista de OKi enfocando la sección de DESEADOS (lo usa el botón ❤ de la tienda).
+  function okiShowDeseados() {
+    if (!storeReady() || !panel) return;
+    panel.setAttribute("data-view", "list");
+    renderStoreList();
+    if (!panel.classList.contains("on")) open();
+    setTimeout(function () {
+      var sec = document.getElementById("oki-olv-wish-sec"), box = document.getElementById("oki-olv-wish");
+      if (sec) sec.scrollIntoView({ block: "start", behavior: "smooth" });
+      if (box) { box.classList.add("olv-flash"); setTimeout(function () { box.classList.remove("olv-flash"); }, 1300); }
+    }, 160);
   }
   function okiListActive() { return panel && panel.getAttribute("data-view") === "list" && storeReady(); }
 
@@ -208,10 +222,10 @@
     if (/deseado|favorito|lista de deseos|wishlist/.test(t)) {
       var w = [];
       try { w = S.deseados() || []; } catch (e) {}
-      try { S.abrirDeseados(); } catch (e) {}
+      setTimeout(okiShowDeseados, 300); // los muestra en la lista, enfocando la sección
       if (!w.length) return "Aún no tienes deseados ❤ Toca el corazón en cualquier producto para guardarlo y comprarlo cuando quieras.";
       var wl = w.map(function (p) { return "• " + p.name + " — " + okiMxn(p.price); });
-      return "Tus deseados ❤\n" + wl.join("\n") + "\nTe abrí tu lista. ¿Agrego alguno al carrito?";
+      return "Tus deseados ❤\n" + wl.join("\n") + "\nTe los muestro en tu lista 👇";
     }
 
     // Recomendación / consejo
@@ -360,6 +374,8 @@
       // La lista se cierra al SALIR del e-commerce o al abrir la VISTA PREVIA de un producto.
       window.addEventListener("oktienda:en-landing", function () { close(); });
       window.addEventListener("oktienda:vista-previa", function () { close(); });
+      // El botón ❤ de la tienda abre la lista de OKi enfocando los deseados.
+      window.addEventListener("oktienda:ver-deseados", okiShowDeseados);
     }
 
     panel = el(
@@ -459,12 +475,13 @@
       loadList();
     }
 
-    // Cerrar al hacer clic fuera del panel. En la tienda NO se cierra así: la lista
-    // se queda abierta mientras compras (solo la cierra la ×, la vista previa, salir o el carrito).
+    // Cerrar al hacer clic fuera del panel. En la tienda TAMBIÉN cierra la lista,
+    // EXCEPTO al agregar/marcar deseado (para que la lista refleje el cambio) o al
+    // tocar el botón ❤ (que justamente la abre en los deseados).
     document.addEventListener("click", function (e) {
-      if (storeReady()) return;
       if (!panel.classList.contains("on")) return;
       if (e.target.closest("#oki-panel") || e.target.closest("#oki-dock")) return;
+      if (storeReady() && e.target.closest("[data-add],[data-wish],[data-madd],#wishBtn")) return;
       close();
     });
 
