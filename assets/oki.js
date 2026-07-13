@@ -165,6 +165,36 @@
     b.textContent = n; b.style.display = n ? "" : "none";
   }
 
+  // ── Posición del astronauta: apartarse del carrito, "peek" (asomar) o normal ──
+  // Peek = tras 30s sin usar OKi (panel cerrado), se esconde y solo asoma; al tocarlo o
+  // pasar el mouse, regresa. Así no estorba banners/botones y sigue a la mano.
+  var okiPeeked = false, okiPeekTimer = null, OKI_PEEK_MS = 30000;
+  function okiCartOpen() { var a = document.getElementById("app"); return !!(a && a.classList.contains("cart-open")); }
+  function okiUpdatePosition() {
+    if (!dock) return;
+    var mobile = window.innerWidth <= 640;
+    if (okiCartOpen()) {                         // carrito abierto → apartarse
+      dock.classList.remove("oki-peek");
+      dock.style.transform = mobile ? "translate3d(0,140px,0)" : "translate3d(-430px,0,0)";
+      dock.style.opacity = mobile ? "0" : ""; dock.style.pointerEvents = mobile ? "none" : "";
+    } else {                                     // normal o peek (según inactividad)
+      var peek = okiPeeked && !(panel && panel.classList.contains("on"));
+      dock.classList.toggle("oki-peek", peek);
+      dock.style.transform = peek ? "translate3d(58%,0,0)" : "";  // solo asoma el casco
+      dock.style.opacity = peek ? ".55" : "";
+      dock.style.pointerEvents = "";
+    }
+  }
+  function okiResetPeekTimer() {
+    clearTimeout(okiPeekTimer);
+    okiPeekTimer = setTimeout(function () { okiPeeked = true; okiUpdatePosition(); }, OKI_PEEK_MS);
+  }
+  function okiWake() {
+    var was = okiPeeked;
+    okiPeeked = false; okiUpdatePosition(); okiResetPeekTimer();
+    if (was && dock) { dock.classList.add("oki-waking"); setTimeout(function () { dock.classList.remove("oki-waking"); }, 720); }
+  }
+
   // Globo del astronauta con lo recién agregado + una recomendación.
   function okiBubbleAdd(prod) {
     var bb = document.getElementById("oki-bubble");
@@ -347,16 +377,8 @@
       // que NUNCA se quede colgado aunque el carrito se cierre por checkout/Escape/scrim.
       var okiAppEl = document.getElementById("app");
       function okiApplyDodge() {
-        var open = !!(okiAppEl && okiAppEl.classList.contains("cart-open"));
-        if (open) {
-          var mobile = window.innerWidth <= 640;
-          dock.style.transform = mobile ? "translate3d(0,140px,0)" : "translate3d(-430px,0,0)";
-          dock.style.opacity = mobile ? "0" : "";
-          dock.style.pointerEvents = mobile ? "none" : "";
-          if (panel && panel.classList.contains("on")) close();
-        } else {
-          dock.style.transform = ""; dock.style.opacity = ""; dock.style.pointerEvents = "";
-        }
+        if (okiAppEl && okiAppEl.classList.contains("cart-open") && panel && panel.classList.contains("on")) close();
+        okiUpdatePosition();
       }
       if (okiAppEl && window.MutationObserver) {
         new MutationObserver(okiApplyDodge).observe(okiAppEl, { attributes: true, attributeFilter: ["class"] });
@@ -454,7 +476,14 @@
     listChip.addEventListener("click", showList);
     quick.appendChild(listChip);
 
-    document.getElementById("oki-btn").addEventListener("click", toggle);
+    // Clic en el astronauta: si está escondido (peek) primero APARECE; si no, abre/cierra.
+    document.getElementById("oki-btn").addEventListener("click", function () {
+      if (okiPeeked) { okiWake(); return; }
+      toggle();
+    });
+    // Al pasar el mouse por encima, regresa (por si estorbaba) y reinicia el conteo.
+    dock.addEventListener("mouseenter", function () { if (okiPeeked) okiWake(); else okiResetPeekTimer(); });
+    okiResetPeekTimer(); // arranca el conteo de inactividad (30s → asoma)
     panel.querySelector(".cls").addEventListener("click", close);
     panel.querySelector("#oki-form").addEventListener("submit", function (e) {
       e.preventDefault();
@@ -530,6 +559,7 @@
   function open() {
     document.getElementById("oki-bubble").classList.remove("on");
     clearTimeout(bubbleT);
+    okiPeeked = false; okiUpdatePosition(); okiResetPeekTimer(); // usar OKi = despertar
     panel.classList.add("on");
     panel.setAttribute("aria-hidden", "false");
     if (!greeted) {
@@ -545,7 +575,7 @@
     }
     setTimeout(function () { input.focus(); }, 250);
   }
-  function close() { panel.classList.remove("on"); panel.setAttribute("aria-hidden", "true"); }
+  function close() { panel.classList.remove("on"); panel.setAttribute("aria-hidden", "true"); okiResetPeekTimer(); }
   function toggle() { panel.classList.contains("on") ? close() : open(); }
 
   function addMsg(text, who) {
