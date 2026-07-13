@@ -470,6 +470,9 @@
     if (storeReady()) {
       // ── Lista de la tienda: acciones sobre el carrito/deseados vía el contrato ──
       panel.querySelector(".oki-view--store").addEventListener("click", function (e) {
+        // El clic está DENTRO del panel: no debe llegar al "clic-fuera" del document
+        // (al re-renderizar la lista el botón se desconecta y closest() fallaría → cerraría).
+        e.stopPropagation();
         var S = window.OKtienda, x;
         if ((x = e.target.closest("[data-oki-inc]"))) { okiSelfAdd = true; try { S.cambiar(+x.dataset.okiInc, 1); } catch (er) { okiSelfAdd = false; } }
         else if ((x = e.target.closest("[data-oki-dec]"))) { try { S.cambiar(+x.dataset.okiDec, -1); } catch (er) {} }
