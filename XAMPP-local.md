@@ -47,34 +47,40 @@ Para apagar, botón **Stop** en cada uno.
 
 ---
 
-## 3. Base de datos (solo si necesitas login / citas / pedidos / admin)
+## 3. Base de datos — YA QUEDÓ LISTA (13-jul-2026)
 
-La parte pública (home, tienda, OKi, precios) **funciona sin base de datos**.
-Pero login, agendar citas, pedidos y el panel de admin **sí** la necesitan.
-
-El backend (`backend/.env`) espera:
+La base `okstationv2` **ya se reconstruyó** en la MariaDB de XAMPP con las 28
+migraciones del proyecto. El backend (`backend/.env`) usa:
 
 ```
 DATABASE_HOST=127.0.0.1
 DATABASE_PORT=3306
 DATABASE_NAME=okstationv2
 DATABASE_USER=root
-DATABASE_PASSWORD=(la que tengas en tu .env)
+DATABASE_PASSWORD=   (vacío — el root de XAMPP no trae contraseña; coincide con el .env)
 ```
 
-**Ojo:** el MySQL de XAMPP trae el usuario `root` **sin contraseña** por defecto.
-Tienes dos caminos:
+Como el `.env` ya tenía la contraseña **vacía**, coincide con el root de XAMPP y
+**no hubo que cambiar nada**.
 
-- **A)** Dejar el `.env` con `DATABASE_PASSWORD=` (vacío) y usar el root sin
-  contraseña de XAMPP. (Lo más rápido en local.)
-- **B)** Ponerle a MySQL de XAMPP la misma contraseña que tiene tu `.env`.
+### Cómo se hizo (por si hay que repetirlo o para un compañero)
 
-Y en cualquier caso hay que **crear la base `okstationv2`** en el MySQL de XAMPP
-e importar/migrar las tablas (antes vivían en el MySQL de Laragon, que es otro
-motor distinto). Esto se hace desde **phpMyAdmin** (http://localhost/phpmyadmin)
-o corriendo las migraciones del proyecto.
+```bat
+:: 1) crear la base (MySQL de XAMPP encendido)
+C:\xampp\mysql\bin\mysql.exe -u root -e "CREATE DATABASE IF NOT EXISTS okstationv2 CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;"
 
-> Si quieres, pídeme que te ayude a dejar la base lista en XAMPP y lo hacemos paso a paso.
+:: 2) correr las migraciones (desde la carpeta del proyecto)
+C:\xampp\php\php.exe backend\database\migrate.php
+```
+
+El runner es **idempotente**: si lo corres otra vez, no repite nada.
+
+> **Nota:** los datos de prueba viejos vivían en la MySQL de Laragon (MySQL 8.4).
+> Al desinstalar Laragon se perdió ese motor y MariaDB 10.4 no puede leer esos
+> archivos, así que la base quedó **con el esquema y los seeds, pero sin los datos
+> de prueba anteriores** (eran solo locales). La base ya tiene roles, settings y
+> precios; **aún no hay usuarios** → crea tu cuenta desde la página (cuenta.html)
+> para probar login/citas/pedidos. phpMyAdmin sigue en http://localhost/phpmyadmin.
 
 ---
 
