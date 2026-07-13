@@ -348,6 +348,43 @@
 #site *{transition:none!important; scroll-behavior:auto!important} }
 
 
+
+  /* ══ HERO SLIDER full-width estilo Compustar ══ */
+#site .hero-slider{position:relative; width:100%; min-height:clamp(440px,60vh,620px); overflow:hidden; background:#0a1120}
+#site .hs-slide{position:absolute; inset:0; opacity:0; visibility:hidden; transition:opacity .8s ease; display:flex; align-items:center}
+#site .hs-slide.on{opacity:1; visibility:visible}
+#site .hs-bg{position:absolute; inset:0; z-index:0}
+#site .hs-fill{position:absolute; inset:0; z-index:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:12px; color:#9aa7bd; text-align:center; padding-left:min(46%,600px)}
+#site .hs-fill svg{width:clamp(52px,8vw,92px); height:auto; opacity:.55}
+#site .hs-fill .lbl{font-size:clamp(.66rem,1.6vw,.8rem); font-weight:800; letter-spacing:.1em; text-transform:uppercase}
+#site .hs-shade{position:absolute; inset:0; z-index:1; background:linear-gradient(90deg,rgba(7,13,28,.96) 0%,rgba(7,13,28,.82) 36%,rgba(7,13,28,.4) 62%,rgba(7,13,28,.12) 100%)}
+#site .hs-tag{position:absolute; top:14px; right:14px; z-index:2; display:flex; align-items:center; gap:6px; background:rgba(255,255,255,.85); color:#5b6474; font-size:.58rem; font-weight:800; letter-spacing:.07em; text-transform:uppercase; padding:5px 10px; border-radius:8px}
+#site .hs-content{position:relative; z-index:2; width:100%}
+#site .hs-inner{max-width:600px; color:#fff; padding:clamp(28px,5vw,56px) 0}
+#site .hero-slider .eyebrow{color:#7cc0ff}
+#site .hero-slider .sh-copy h1{color:#fff; margin:12px 0 12px; font-size:clamp(2rem,5vw,3.2rem)}
+#site .hero-slider .sh-copy p{color:rgba(255,255,255,.9); max-width:46ch}
+#site .hero-slider .sh-rating span{color:rgba(255,255,255,.85)}
+#site .hero-slider .price-anchor .now{color:#fff}
+#site .hero-slider .price-anchor .was{color:rgba(255,255,255,.6)}
+#site .hero-slider .reframe{color:rgba(255,255,255,.85)} #site .hero-slider .reframe b{color:#fff}
+#site .hs-slide .hs-inner > *{opacity:0; transform:translateY(16px)}
+#site .hs-slide.on .hs-inner > *{animation:hsIn .6s cubic-bezier(.2,.7,.3,1) forwards}
+#site .hs-slide.on .hs-inner > *:nth-child(1){animation-delay:0.05s}
+#site .hs-slide.on .hs-inner > *:nth-child(2){animation-delay:0.13s}
+#site .hs-slide.on .hs-inner > *:nth-child(3){animation-delay:0.21s}
+#site .hs-slide.on .hs-inner > *:nth-child(4){animation-delay:0.29s}
+#site .hs-slide.on .hs-inner > *:nth-child(5){animation-delay:0.37s}
+#site .hs-slide.on .hs-inner > *:nth-child(6){animation-delay:0.45s}
+#site .hs-slide.on .hs-inner > *:nth-child(7){animation-delay:0.53s}
+@keyframes hsIn{to{opacity:1; transform:none}}
+#site .hs-arrow{position:absolute; top:50%; transform:translateY(-50%); z-index:5; width:44px; height:44px; border-radius:99px; border:none; background:rgba(255,255,255,.16); color:#fff; display:grid; place-items:center; backdrop-filter:blur(4px); cursor:pointer}
+#site .hs-arrow:hover{background:rgba(255,255,255,.3)} #site .hs-prev{left:14px} #site .hs-next{right:14px}
+#site .hs-dots{position:absolute; bottom:18px; left:50%; transform:translateX(-50%); z-index:5; display:flex; gap:8px}
+#site .hs-dots button{width:9px; height:9px; padding:0; border:none; border-radius:99px; background:rgba(255,255,255,.4); transition:.25s; cursor:pointer}
+#site .hs-dots button.on{background:#fff; width:26px}
+#site .hs-counter{position:absolute; bottom:16px; right:18px; z-index:5; color:rgba(255,255,255,.9); font-weight:800; font-size:.9rem; font-variant-numeric:tabular-nums}
+@media(max-width:760px){ #site .hs-fill{padding-left:0} #site .hs-shade{background:linear-gradient(180deg,rgba(7,13,28,.72),rgba(7,13,28,.9))} #site .hs-inner{max-width:none} #site .hs-arrow{width:36px;height:36px} }
 </style>
 
 <div class="header-bar">
@@ -434,25 +471,36 @@
       <button class="gostore" data-go-store>Ir a la tienda <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></button>
     </div>
 
-    <!-- 1) HERO -->
-    <div class="wrap store-hero"><div class="sh-grid">
-      <div class="sh-copy">
-        <span class="eyebrow">Papelería · Tinta y tóner · Cómputo</span>
+    <!-- 1) HERO — carrusel full-width estilo Compustar -->
+    <section class="hero-slider" id="heroSlider">
+      <div class="hs-slide on"><div class="hs-bg" style="background:linear-gradient(135deg,#e9eef6,#dbe4f0)"><span class="hs-tag"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>Imagen de fondo</span><div class="hs-fill"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg><span class="lbl">Tienda OK.station</span></div></div><div class="hs-shade"></div><div class="hs-content"><div class="wrap"><div class="hs-inner sh-copy"><span class="eyebrow">Papelería · Tinta y tóner · Cómputo</span>
         <h1>Una tienda local, con respaldo de verdad, <span class="hl">ahora en línea</span></h1>
         <p>Todo lo que tu oficina, escuela o negocio necesita. Pídelo y págalo en línea, y <b>recógelo en la tienda OK.station</b> cuando esté listo. Te avisamos por WhatsApp.</p>
         <div class="sh-rating"><span class="stars">★★★★★</span><b>X.X</b><span>· +XXX clientes en Tijuana</span></div>
         <div class="price-anchor"><span class="now">$XX</span><span class="was">$XX</span><span class="save">Ahorra hasta XX%</span></div>
         <p class="reframe">Surtir tu papelería del mes desde <b>$X.XX al día</b>. Menos que un café.</p>
-        <div class="sh-cta">
-          <button class="gostore" data-go-store>Ir a la tienda <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></button>
-          <span class="sh-mini"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Recoge en OK.station</span>
-        </div>
-      </div>
-      <div class="sh-media">
-        <div class="sh-carousel" id="heroCarousel"></div>
-        <div class="float"><span class="ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>Listo el mismo día en Otay</div>
-      </div>
-    </div></div>
+        <div class="sh-cta"><button class="gostore" data-go-store>Ir a la tienda <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></button><span class="sh-mini"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Recoge en OK.station</span></div></div></div></div></div>
+      <div class="hs-slide"><div class="hs-bg" style="background:linear-gradient(135deg,#e6f4f1,#d6ece5)"><span class="hs-tag"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>Imagen de fondo</span><div class="hs-fill"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8" rx="1"/></svg><span class="lbl">Tinta y tóner</span></div></div><div class="hs-shade"></div><div class="hs-content"><div class="wrap"><div class="hs-inner sh-copy"><span class="eyebrow">Tinta y tóner</span>
+        <h1>Tinta y tóner <span class="hl">al mejor precio</span></h1>
+        <p>Cartuchos y tóner originales para que nunca pares de imprimir — recógelos el mismo día en Otay.</p>
+        <div class="sh-cta"><button class="gostore" data-go-store data-cat="consumibles">Ver tinta y tóner <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></button></div></div></div></div></div>
+      <div class="hs-slide"><div class="hs-bg" style="background:linear-gradient(135deg,#eaf1fb,#dbe8fa)"><span class="hs-tag"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>Imagen de fondo</span><div class="hs-fill"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8"/><path d="M12 17v4"/></svg><span class="lbl">Equipo de cómputo</span></div></div><div class="hs-shade"></div><div class="hs-content"><div class="wrap"><div class="hs-inner sh-copy"><span class="eyebrow">Cómputo</span>
+        <h1>Equipo de cómputo <span class="hl">con garantía real</span></h1>
+        <p>Reguladores, accesorios y más — con alguien que te responde en persona, no un chat anónimo.</p>
+        <div class="sh-cta"><button class="gostore" data-go-store data-cat="computo">Ver cómputo <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></button></div></div></div></div></div>
+      <div class="hs-slide"><div class="hs-bg" style="background:linear-gradient(135deg,#fdf1e6,#f7e6d3)"><span class="hs-tag"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>Imagen de fondo</span><div class="hs-fill"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg><span class="lbl">Ofertas de la semana</span></div></div><div class="hs-shade"></div><div class="hs-content"><div class="wrap"><div class="hs-inner sh-copy"><span class="eyebrow">Ofertas del día</span>
+        <h1>Ofertas del día, <span class="hl">todos los días</span></h1>
+        <p>Descuentos en productos seleccionados. Aprovecha antes de que se agoten.</p>
+        <div class="sh-cta"><button class="gostore" data-go-store data-cat="ofertas">Ver ofertas <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></button></div></div></div></div></div>
+      <div class="hs-slide"><div class="hs-bg" style="background:linear-gradient(135deg,#efeaf8,#e6dcf4)"><span class="hs-tag"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>Imagen de fondo</span><div class="hs-fill"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l1-5h16l1 5"/><path d="M4 9v11h16V9"/><path d="M9 20v-6h6v6"/></svg><span class="lbl">Recoger en Otay</span></div></div><div class="hs-shade"></div><div class="hs-content"><div class="wrap"><div class="hs-inner sh-copy"><span class="eyebrow">Recoger en tienda</span>
+        <h1>Recíbelo <span class="hl">el mismo día</span></h1>
+        <p>Pídelo en línea y recógelo gratis en nuestra tienda de Centro Comercial Otay, Tijuana. Te avisamos por WhatsApp.</p>
+        <div class="sh-cta"><button class="gostore" data-go-store>Ir a la tienda <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></button></div></div></div></div></div>
+      <button class="hs-arrow hs-prev" aria-label="Anterior"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>
+      <button class="hs-arrow hs-next" aria-label="Siguiente"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></button>
+      <div class="hs-dots"></div>
+      <div class="hs-counter">1 / 5</div>
+    </section>
 
     <!-- 2) BARRA DE CONFIANZA -->
     <div class="wrap"><div class="trustbar">
