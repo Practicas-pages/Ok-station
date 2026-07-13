@@ -174,15 +174,18 @@
     if (okiSelfAdd) { okiSelfAdd = false; return; }     // OKi ya lo confirmó él mismo
     var p = okiFindProd(addedId); if (!p) return;
     var abierto = panel && panel.classList.contains("on");
-    if (abierto && panel.getAttribute("data-view") === "chat") {
+    if (!abierto) {
+      // Al AGREGAR, la lista se abre sola y se queda abierta (hasta cerrar/vista previa/salir).
+      panel.setAttribute("data-view", "list");
+      renderStoreList();
+      open();
+    } else if (panel.getAttribute("data-view") === "chat") {
       var rec = okiRecommend();
       var msg = "🛒 Agregué " + p.name + " a tu carrito. Llevas " + okiCartCount() + " (" + okiMxn(okiTotal()) + ").";
       if (rec) msg += "\n💡 Te recomiendo: " + rec.name + " (" + okiMxn(rec.price) + "). Dime \"agrégalo\" y lo pongo.";
       addMsg(msg, "bot");
-    } else if (!abierto) {
-      okiBubbleAdd(p);                                  // panel cerrado → globo del astronauta
     }
-    // panel abierto en vista lista: ya se ve el cambio en la lista, no molestamos.
+    // panel abierto en vista lista: ya se ve el cambio en la lista.
   }
 
   /* El estado EN VIVO del carrito/deseados solo lo conoce la tienda (no el servidor),
@@ -336,12 +339,15 @@
         dock.style.opacity = "";
         dock.style.pointerEvents = "";
       });
-      // Al ENTRAR al catálogo: OKi inicia la lista y ofrece ayuda (sin abrirse solo).
+      // Al ENTRAR al catálogo: OKi prepara la lista. Si ya tienes productos guardados,
+      // te la abre; si está vacía, solo ofrece ayuda con un globo (sin abrirse sola).
       window.addEventListener("oktienda:en-tienda", function () {
         if (!panel) return;
         panel.setAttribute("data-view", "list");
         renderStoreList();
-        if (!panel.classList.contains("on")) {
+        if (okiCartCount() > 0) {
+          open();
+        } else if (!panel.classList.contains("on")) {
           var bb = document.getElementById("oki-bubble");
           if (bb) {
             bb.innerHTML = '🛒 Te armo tu <b>lista de compras</b> aquí.<br>Tócame cuando quieras.';
@@ -351,6 +357,9 @@
           }
         }
       });
+      // La lista se cierra al SALIR del e-commerce o al abrir la VISTA PREVIA de un producto.
+      window.addEventListener("oktienda:en-landing", function () { close(); });
+      window.addEventListener("oktienda:vista-previa", function () { close(); });
     }
 
     panel = el(
@@ -450,8 +459,10 @@
       loadList();
     }
 
-    // Cerrar al hacer clic fuera del panel.
+    // Cerrar al hacer clic fuera del panel. En la tienda NO se cierra así: la lista
+    // se queda abierta mientras compras (solo la cierra la ×, la vista previa, salir o el carrito).
     document.addEventListener("click", function (e) {
+      if (storeReady()) return;
       if (!panel.classList.contains("on")) return;
       if (e.target.closest("#oki-panel") || e.target.closest("#oki-dock")) return;
       close();
