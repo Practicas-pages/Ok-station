@@ -116,3 +116,14 @@ final class OrderItem extends Model { protected static $table = 'order_items'; }
 
 final class Appointment extends Model { protected static $table = 'appointments'; }
 final class AppointmentFile extends Model { protected static $table = 'appointment_files'; }
+
+final class ShopOrder extends Model {
+    protected static $table = 'shop_orders';
+    /** Relación shop_orders 1—M shop_order_items (snapshot del producto). */
+    public static function items(int $shopOrderId): array {
+        $st = db()->prepare('SELECT * FROM shop_order_items WHERE shop_order_id = ? ORDER BY id');
+        $st->execute([$shopOrderId]);
+        return $st->fetchAll();
+    }
+}
+final class ShopOrderItem extends Model { protected static $table = 'shop_order_items'; }

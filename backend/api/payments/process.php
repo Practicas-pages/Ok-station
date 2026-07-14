@@ -36,6 +36,7 @@ RateLimit::guard($ip, $rlKey);
 
 $orderId      = (int) ($b['order_id'] ?? 0);
 $apptId       = (int) ($b['appointment_id'] ?? 0);
+$shopId       = (int) ($b['shop_order_id'] ?? 0);
 $reference    = trim((string) ($b['reference'] ?? ''));
 $token        = preg_replace('/[^a-zA-Z0-9]/', '', (string) ($b['token'] ?? ''));
 $pmId         = preg_replace('/[^a-zA-Z0-9_\-]/', '', (string) ($b['payment_method_id'] ?? ''));
@@ -67,6 +68,13 @@ if ($apptId > 0) {
     if (!empty($entity['needs_quote']) && empty($entity['quoted_at'])) {
         fail('Este pedido está en cotización. Te avisaremos por correo cuando tengas el precio final.', 409);
     }
+    $amount = round((float) $entity['total'], 2);
+} elseif ($shopId > 0) {
+    $kind = 'shop'; $noun = 'compra';
+    $entity = ShopOrder::find($shopId);
+    if (!$entity) fail('Pedido de tienda no encontrado.', 404);
+    if ((int) $entity['user_id'] !== (int) $user['id']) fail('No autorizado.', 403);
+    if (($entity['status'] ?? '') === 'cancelado') fail('Este pedido está cancelado y no se puede pagar.', 409);
     $amount = round((float) $entity['total'], 2);
 } else {
     fail('No se especificó qué pagar.');

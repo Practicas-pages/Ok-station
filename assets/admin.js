@@ -204,6 +204,19 @@
       if (DEMO) { var o = MOCK.orders.find(function (x) { return String(x.id) === String(id); }); if (o) o.payment_status = status; return Promise.resolve({ ok: true, payment_status: status }); }
       return apiPost("/admin/order-payment.php", { id: id, status: status || "pagado" });
     },
+    /* ── Pedidos de la TIENDA (e-commerce) ── */
+    shopOrders: function (status, payment, q) {
+      var p = [];
+      if (status) p.push("status=" + encodeURIComponent(status));
+      if (payment) p.push("payment=" + encodeURIComponent(payment));
+      if (q) p.push("q=" + encodeURIComponent(q));
+      return apiGet("/admin/shop-orders.php" + (p.length ? "?" + p.join("&") : "")).then(function (j) {
+        if (typeof j.can_see_money !== "undefined") shopCanSeeMoney = !!j.can_see_money;
+        return j.orders || [];
+      });
+    },
+    setShopStatus: function (id, status) { return apiPost("/admin/shop-order-status.php", { id: id, status: status }); },
+    setShopPaid: function (id, status) { return apiPost("/admin/shop-order-payment.php", { id: id, status: status || "pagado" }); },
     orderDetail: function (id) {
       if (DEMO) { var o = (MOCK.orders || []).find(function (x) { return String(x.id || x.code) === String(id); }); return Promise.resolve(o ? { ok: true, order: o } : { ok: false }); }
       return apiGet("/orders/get.php?id=" + encodeURIComponent(id));
@@ -1014,6 +1027,60 @@
       bindClientLinks(t);
     });
   }
+  /* ── Pedidos de la TIENDA (e-commerce) ── */
+  var SHOP_STATUS = { recibido: "Recibido", en_preparacion: "En preparación", listo: "Listo", entregado: "Entregado", cancelado: "Cancelado" };
+  var shopCanSeeMoney = true, shopStatus = "", shopPayment = "", shopSearch = "";
+  function renderShopTable() {
+    var q = (shopSearch || "").trim();
+    DataSource.shopOrders(shopStatus || "", shopPayment || "", q).then(function (list) {
+      var t = $("#shop-table"); if (!t) return;
+      var money = shopCanSeeMoney;
+      if (!list.length) {
+        var msg = q ? 'No se encontraron compras para “' + esc(q) + '”.' : "No hay compras para este filtro.";
+        t.innerHTML = '<thead><tr><th>Folio</th><th>Cliente</th><th>Productos</th>' + (money ? '<th>Total</th>' : '') +
+          '<th>Estado</th><th>Pago</th><th>Entrega</th><th>Fecha</th></tr></thead>' +
+          '<tbody><tr><td colspan="' + (money ? 8 : 7) + '" style="text-align:center;color:var(--text-muted);padding:24px">' + msg + '</td></tr></tbody>';
+        return;
+      }
+      var head = '<thead><tr><th>Folio</th><th>Cliente</th><th>Productos</th>' + (money ? '<th>Total</th>' : '') +
+        '<th>Estado</th><th>Pago</th><th>Entrega</th><th>Fecha</th></tr></thead>';
+      var body = list.map(function (o) {
+        var statusSel = '<select class="shop-status-select" data-id="' + (o.id || o.code) + '">' + Object.keys(SHOP_STATUS).map(function (k) {
+          return '<option value="' + k + '"' + (k === o.status ? " selected" : "") + '>' + SHOP_STATUS[k] + '</option>';
+        }).join("") + '</select>';
+        var payCell = payBadge(o.payment_status) +
+          ((o.payment_status !== "pagado")
+            ? ' <button class="admin-btn-sm shop-paid" data-id="' + (o.id || o.code) + '">Marcar pagado</button>' : '');
+        var entrega = (o.ship_mode === "envio") ? "Envío a domicilio" : "Recoge en tienda";
+        return '<tr><td class="mono">' + esc(o.code) + '</td><td>' + clientCell(o.user_id, o.client) + '</td>' +
+          '<td>' + esc(o.items) + '</td>' + (money ? '<td class="mono">' + mxn(o.total) + '</td>' : '') +
+          '<td>' + statusSel + '</td><td>' + payCell + '</td><td>' + esc(entrega) + '</td><td>' + esc(o.date) + '</td></tr>';
+      }).join("");
+      t.innerHTML = head + '<tbody>' + body + '</tbody>';
+      bindClientLinks(t);
+      $$(".shop-status-select", t).forEach(function (sel) {
+        var prev = sel.value;
+        sel.addEventListener("change", function () {
+          var nv = sel.value;
+          DataSource.setShopStatus(sel.dataset.id, nv).then(function (res) {
+            if (!res || res.ok === false) { sel.value = prev; window.alert((res && res.error) || "No se pudo cambiar el estado."); return; }
+            prev = nv;
+          });
+        });
+      });
+      $$(".shop-paid", t).forEach(function (b) {
+        b.addEventListener("click", function () {
+          if (!window.confirm("¿Marcar esta compra como PAGADA? Se enviará el correo de confirmación al cliente.")) return;
+          b.disabled = true;
+          DataSource.setShopPaid(b.dataset.id, "pagado").then(function (res) {
+            if (res && res.payment_status === "pagado") { renderShopTable(); }
+            else { b.disabled = false; window.alert((res && res.error) || "No se pudo marcar como pagado."); }
+          });
+        });
+      });
+    });
+  }
+
   var userSearch = "";
   /* Rol "principal" a partir de la lista de roles (string CSV o arreglo). */
   function primaryRole(roles) {
@@ -1372,7 +1439,7 @@
   /* ============================================================
      NAVEGACIÓN ENTRE VISTAS
      ============================================================ */
-  var TITLES = { dashboard: "Dashboard", pedidos: "Pedidos", citas: "Citas", usuarios: "Usuarios", resenas: "Reseñas", reportes: "Reportes", precios: "Precios" };
+  var TITLES = { dashboard: "Dashboard", pedidos: "Pedidos", tienda: "Tienda", citas: "Citas", usuarios: "Usuarios", resenas: "Reseñas", reportes: "Reportes", precios: "Precios" };
   var rendered = {};
   function showView(view) {
     /* Blindaje: el empleado puro no entra a Usuarios ni Reportes aunque fuerce la URL/nav. */
@@ -1384,6 +1451,7 @@
     $("#admin-title").textContent = TITLES[view] || "Panel";
     if (!rendered[view]) {
       if (view === "pedidos") renderOrdersTable();
+      if (view === "tienda") renderShopTable();
       if (view === "citas") renderAppointments("");
       if (view === "usuarios") renderUsers();
       if (view === "resenas") renderReviews();
@@ -1528,6 +1596,29 @@
     if (orderSearchEl) orderSearchEl.addEventListener("input", function () {
       orderSearch = orderSearchEl.value;
       renderOrdersTable();
+    });
+
+    /* Filtros de la TIENDA */
+    $$("#shop-filters .chip").forEach(function (c) {
+      c.addEventListener("click", function () {
+        $$("#shop-filters .chip").forEach(function (x) { x.classList.remove("is-selected"); });
+        c.classList.add("is-selected");
+        shopStatus = c.dataset.status || "";
+        renderShopTable();
+      });
+    });
+    $$("#shop-pay-filters .chip").forEach(function (c) {
+      c.addEventListener("click", function () {
+        $$("#shop-pay-filters .chip").forEach(function (x) { x.classList.remove("is-selected"); });
+        c.classList.add("is-selected");
+        shopPayment = c.dataset.payment || "";
+        renderShopTable();
+      });
+    });
+    var shopSearchEl = $("#shop-search");
+    if (shopSearchEl) shopSearchEl.addEventListener("input", function () {
+      shopSearch = shopSearchEl.value;
+      renderShopTable();
     });
 
     var apptStatus = "", apptDate = "";
