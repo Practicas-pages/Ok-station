@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Tienda en línea — OK.station</title>
@@ -298,11 +299,10 @@
    en scroll/resize, porque la navbar es sticky y su borde cambia). */
 #site{--shop-top:0px}
 #site .cart,#site .drawer{top:var(--shop-top); height:calc(100% - var(--shop-top))}
-/* Con una barra abierta se bloquea el scroll de la página: la barra queda
-   totalmente fija y el scroll ocurre solo dentro de ella. Se reserva el hueco
-   de la barra de scroll para que no haya saltito al bloquear. */
+/* Las barras (carrito / categorías) son fijas y empujan el contenido; el
+   catálogo sigue haciendo scroll normal mientras están abiertas. Se reserva
+   el hueco de la barra de scroll para que no haya saltito al abrir un modal. */
 html{scrollbar-gutter:stable}
-html.shop-locked,html.shop-locked body{overflow:hidden !important}
 #site .ov{position:fixed; inset:0; background:rgba(18,20,28,.5); display:none; align-items:center; justify-content:center; padding:18px; z-index:70}
 #site .ov.show{display:flex}
 #site .modal{background:#fff; border-radius:18px; max-width:460px; width:100%; max-height:90vh; overflow:auto; box-shadow:0 20px 60px rgba(18,20,28,.3)}
@@ -766,6 +766,7 @@ html.modal-lock, html.modal-lock body{overflow:hidden !important}
     var busy=false;
     function fill(){
       if(busy || !infiniteList.length || grid.offsetParent===null) return; // ocupado, sin lista o grid oculto
+      if(!grid.classList.contains("is-list")) return; // vista cuadros: scroll finito, los productos NO se repiten
       busy=true;
       var guard=0;                                   // máx 6 tandas por llamada (evita bucles)
       while(guard++ < 6 && grid.getBoundingClientRect().bottom < window.innerHeight + 800){
@@ -778,9 +779,9 @@ html.modal-lock, html.modal-lock body{overflow:hidden !important}
     window.__fillMore=fill;                           // hook para pruebas
   })();
 
-  $("hamb").addEventListener("click",function(){$("app").classList.add("drawer-open");});
+  $("hamb").addEventListener("click",function(){$("app").classList.toggle("drawer-open");});
   $("drawerClose").addEventListener("click",function(){$("app").classList.remove("drawer-open");});
-  $("cartBtn").addEventListener("click",function(){$("app").classList.add("cart-open"); okiEmit("carrito-abierto");});
+  $("cartBtn").addEventListener("click",function(){var open=$("app").classList.toggle("cart-open"); okiEmit(open?"carrito-abierto":"carrito-cerrado");});
   $("cartClose").addEventListener("click",function(){$("app").classList.remove("cart-open"); okiEmit("carrito-cerrado");});
   $("scrim").addEventListener("click",function(){$("app").classList.remove("drawer-open","cart-open"); okiEmit("carrito-cerrado");});
 
@@ -878,7 +879,7 @@ html.modal-lock, html.modal-lock body{overflow:hidden !important}
   renderCats(); renderGrid(); renderCart();
 
   // Vista lista/cuadros (predeterminado: LISTA)
-  function setView(m){ var g=$("grid"); if(g) g.classList.toggle("is-list", m==="list"); [].forEach.call(document.querySelectorAll(".viewtoggle button"),function(b){ b.classList.toggle("on", b.dataset.view===m); }); }
+  function setView(m){ var g=$("grid"); if(g) g.classList.toggle("is-list", m==="list"); [].forEach.call(document.querySelectorAll(".viewtoggle button"),function(b){ b.classList.toggle("on", b.dataset.view===m); }); renderGrid(); if(window.__fillMore) window.__fillMore(); }
   [].forEach.call(document.querySelectorAll(".viewtoggle button"),function(b){ b.addEventListener("click",function(){ setView(b.dataset.view); }); });
   setView("list");
   okiEmit("en-tienda");
@@ -899,18 +900,6 @@ html.modal-lock, html.modal-lock body{overflow:hidden !important}
   apply();
   window.addEventListener("scroll", onScrollResize, {passive:true});
   window.addEventListener("resize", onScrollResize);
-
-  // Bloquear el scroll de la página mientras el carrito o las categorías estén
-  // abiertos, para que la barra quede fija y el scroll sea solo interno.
-  var app=document.getElementById("app");
-  if(app){
-    var lock=function(){
-      var open=app.classList.contains("cart-open")||app.classList.contains("drawer-open");
-      document.documentElement.classList.toggle("shop-locked", open);
-    };
-    new MutationObserver(lock).observe(app,{attributes:true, attributeFilter:["class"]});
-    lock();
-  }
 })();</script>
 <!-- Sesión en el header (muestra tu cuenta si iniciaste sesión) + navbar inteligente -->
 <script src="assets/session-nav.js?v=20260630c" defer></script>
