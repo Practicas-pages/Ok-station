@@ -1057,18 +1057,35 @@ html.modal-lock, html.modal-lock body{overflow:hidden !important}
 <script>(function(){var t=document.querySelector(".nav__toggle"),n=document.getElementById("nav-menu");if(t&&n){t.addEventListener("click",function(){var o=n.classList.toggle("is-open");t.setAttribute("aria-expanded",o?"true":"false");});}})();</script>
 <!-- Mantiene --shop-top = borde inferior de la navbar, para que el carrito y las categorías arranquen debajo de ella (y no encima) -->
 <script>(function(){
-  var header=document.querySelector(".site-header");
-  if(!header) return;
-  var raf=0;
-  function apply(){
-    raf=0;
-    var b=Math.max(0, Math.round(header.getBoundingClientRect().bottom));
-    document.getElementById("site").style.setProperty("--shop-top", b+"px");
+  var site=document.getElementById("site"); if(!site) return;
+  /* --shop-top = borde inferior de la navbar del catálogo (dos barras: .topbar
+     sticky + .popbar-row que baja con el scroll). Las barras (carrito/categorías)
+     arrancan ahí, justo DEBAJO de la navbar. */
+  function measure(){
+    var top=document.querySelector("#site .topbar"), pop=document.querySelector("#site .popbar-row");
+    var b=0;
+    if(top) b=top.getBoundingClientRect().bottom;
+    if(pop) b=Math.max(b, pop.getBoundingClientRect().bottom);
+    if(b>0) site.style.setProperty("--shop-top", Math.round(b)+"px");
   }
-  function onScrollResize(){ if(!raf) raf=requestAnimationFrame(apply); }
-  apply();
-  window.addEventListener("scroll", onScrollResize, {passive:true});
-  window.addEventListener("resize", onScrollResize);
+  var raf=0;
+  function schedule(){ if(!raf) raf=requestAnimationFrame(function(){ raf=0; measure(); }); }
+  measure();
+  window.addEventListener("scroll", schedule, {passive:true});
+  window.addEventListener("resize", schedule);
+  /* El catálogo (con su navbar) arranca OCULTO; se muestra después. Estos
+     disparadores recalculan --shop-top en cuanto la navbar aparece o se abre una
+     barra, sin depender de un scroll posterior: */
+  if(window.ResizeObserver){
+    var ro=new ResizeObserver(schedule);
+    var t=document.querySelector("#site .topbar"), p=document.querySelector("#site .popbar-row");
+    if(t) ro.observe(t); if(p) ro.observe(p);
+  }
+  var app=document.getElementById("app");
+  if(app && window.MutationObserver){ new MutationObserver(schedule).observe(app, {attributes:true, attributeFilter:["class"]}); }
+  /* Red de seguridad: tras cualquier clic (abrir barra, cambiar de vista) remide
+     cuando la maquetación ya se asentó. */
+  document.addEventListener("click", function(){ setTimeout(measure, 60); }, {passive:true});
 })();</script>
 <!-- Sesión en el header (muestra tu cuenta si iniciaste sesión) + navbar inteligente -->
 <script src="assets/session-nav.js?v=20260630c" defer></script>
