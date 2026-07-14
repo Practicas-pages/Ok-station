@@ -158,6 +158,9 @@
 .olv-add{border:0;background:var(--blue-l);color:var(--blue);width:28px;height:28px;border-radius:8px;font-weight:800;font-size:1rem;cursor:pointer}
 .olv-chat{margin:8px 12px 12px;border:1.5px solid var(--line2);background:#fff;border-radius:10px;padding:9px;font-weight:700;color:var(--ink2);cursor:pointer}
 .olv-chat:hover{border-color:var(--blue);color:var(--blue)}
+/* CTA "Entrar a la tienda" (solo fuera del e-commerce) */
+.olv-store{margin:10px 12px 4px;width:calc(100% - 24px);background:var(--grad-blue);color:#fff;border:0;border-radius:10px;padding:11px;font-weight:800;box-shadow:var(--sh-blue);cursor:pointer;font-size:.9rem}
+.olv-store:hover{filter:brightness(1.05)}
 /* Resaltado breve al enfocar la sección de deseados (botón ❤). */
 .olv-flash > .olv-rec, .olv-flash > .olv-empty{animation:olvFlash 1.3s ease !important}
 @keyframes olvFlash{0%,100%{box-shadow:0 0 0 0 rgba(156,29,255,0)}25%{box-shadow:0 0 0 3px rgba(156,29,255,.35)}}

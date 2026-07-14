@@ -69,17 +69,63 @@
   }
   function okiMxn(n) { return "$" + (Number(n) || 0).toLocaleString("es-MX", { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
 
+  // ── Catálogo compartido + "lista de compras" en CUALQUIER página ──
+  // Dentro de la tienda OKi usa window.OKtienda (carrito EN VIVO). Fuera de la tienda
+  // usa un adaptador respaldado por assets/catalogo.js (window.OK_PRODUCTS) + el carrito
+  // guardado en localStorage. Así OKi muestra tu lista de compras en todo el sitio.
+  function okiCatalog() { return (window.OK_PRODUCTS && window.OK_PRODUCTS.length) ? window.OK_PRODUCTS : []; }
+  function okiHasStore() { return storeReady() || okiCatalog().length > 0; } // ¿hay lista de compras disponible?
+  function okiCatById(id) { id = +id; var a = okiCatalog().filter(function (p) { return p.id === id; }); return a[0] || null; }
+  function okiLsCart() { try { return JSON.parse(localStorage.getItem("okstation_cart") || "{}") || {}; } catch (e) { return {}; } }
+  function okiLsCartSave(o) { try { localStorage.setItem("okstation_cart", JSON.stringify(o)); } catch (e) {} }
+  function okiLsWish() { try { var w = JSON.parse(localStorage.getItem("okstation_wishlist") || "[]"); return Array.isArray(w) ? w : []; } catch (e) { return []; } }
+  function okiLsWishSave(a) { try { localStorage.setItem("okstation_wishlist", JSON.stringify(a)); } catch (e) {} }
+  function okiGoTienda() { location.href = "tienda.html"; }
+
+  // Adaptador de localStorage (fuera de la tienda): mismo "contrato" que window.OKtienda.
+  var okiShim = null;
+  function okiMakeShim() {
+    function cartArr() {
+      var s = okiLsCart(), out = [];
+      for (var id in s) { var p = okiCatById(id); if (p && s[id] > 0) out.push({ id: p.id, name: p.name, price: p.price, qty: Math.min(p.stock || 99, s[id]), emoji: p.emoji, old: p.old, cat: p.cat }); }
+      return out;
+    }
+    function changed() { okiSelfAdd = false; okiUpdateBadge(); if (okiListActive()) renderStoreList(); }
+    return {
+      _offstore: true,
+      productos: function () { return okiCatalog(); },
+      carrito: cartArr,
+      deseados: function () { return okiLsWish().map(okiCatById).filter(Boolean); },
+      total: function () { var t = 0; cartArr().forEach(function (it) { t += it.price * it.qty; }); return t; },
+      agregar: function (id) { var s = okiLsCart(); s[id] = (s[id] || 0) + 1; okiLsCartSave(s); changed(); },
+      cambiar: function (id, d) { var s = okiLsCart(); s[id] = (s[id] || 0) + d; if (s[id] <= 0) delete s[id]; okiLsCartSave(s); changed(); },
+      quitar: function (id) { var s = okiLsCart(); delete s[id]; okiLsCartSave(s); changed(); },
+      toggleDeseado: function (id) { id = +id; var w = okiLsWish(), i = w.indexOf(id); if (i >= 0) w.splice(i, 1); else w.push(id); okiLsWishSave(w); changed(); },
+      verProducto: function () { okiGoTienda(); },   // fuera de la tienda no hay vista previa → lleva a la tienda
+      abrirCarrito: function () { okiGoTienda(); },
+      abrirDeseados: function () { okiGoTienda(); },
+      entrarTienda: function () { okiGoTienda(); }
+    };
+  }
+  // Devuelve el "contrato": la tienda en vivo si existe; si no, el adaptador de localStorage.
+  function okiStore() {
+    if (storeReady()) return window.OKtienda;
+    if (!okiCatalog().length) return null;
+    if (!okiShim) okiShim = okiMakeShim();
+    return okiShim;
+  }
+
   // Estado que OKi vigila del carrito (para mostrar lo que se agrega y recomendar).
   var okiSnap = {};       // {id: qty} del carrito, para detectar lo recién agregado
   var okiLastRec = null;  // último producto recomendado (para "sí, agrégalo")
   var okiSelfAdd = false; // OKi mismo agregó (para no duplicar el aviso)
   var okiReopenAfterPreview = false; // volver a la lista al cerrar una vista previa abierta desde ella
 
-  function okiProducts() { try { return window.OKtienda.productos() || []; } catch (e) { return []; } }
-  function okiCart()     { try { return window.OKtienda.carrito() || []; } catch (e) { return []; } }
+  function okiProducts() { var S = okiStore(); try { return S ? (S.productos() || []) : []; } catch (e) { return []; } }
+  function okiCart()     { var S = okiStore(); try { return S ? (S.carrito() || []) : []; } catch (e) { return []; } }
   function okiCartMap()  { var m = {}; okiCart().forEach(function (it) { m[it.id] = it.qty; }); return m; }
   function okiCartCount(){ var n = 0; okiCart().forEach(function (it) { n += it.qty; }); return n; }
-  function okiTotal()    { try { return window.OKtienda.total() || 0; } catch (e) { return 0; } }
+  function okiTotal()    { var S = okiStore(); try { return S ? (S.total() || 0) : 0; } catch (e) { return 0; } }
   function okiFindProd(id) { var a = okiProducts().filter(function (p) { return p.id == id; }); return a[0] || null; }
 
   // Lista de recomendados que NO estén en el carrito (prioriza ofertas y la categoría que ya lleva).
@@ -96,7 +142,7 @@
     return cand.slice(0, n || 3);
   }
   function okiRecommend() { var r = okiRecommendList(1)[0] || null; okiLastRec = r; return r; }
-  function okiInWish(id) { var w = []; try { w = window.OKtienda.deseados() || []; } catch (e) {} return w.some(function (d) { return d.id == id; }); }
+  function okiInWish(id) { var S = okiStore(), w = []; try { w = S ? (S.deseados() || []) : []; } catch (e) {} return w.some(function (d) { return d.id == id; }); }
 
   // ── Vista LISTA en la tienda: carrito (con cantidades) + recomendaciones + deseados ──
   function okiOlvThumb(p) { var f = okiFindProd(p.id) || p; return '<span class="olv-th" data-oki-open="' + p.id + '" title="Ver producto" style="background:' + (f.grad || 'var(--blue)') + ';cursor:pointer">' + (f.emoji || '📦') + '</span>'; }
@@ -116,19 +162,21 @@
   function renderStoreList() {
     var cartBox = document.getElementById("oki-olv-cart"), foot = document.getElementById("oki-olv-foot");
     if (!cartBox) return;
-    var c = okiCart();
+    var c = okiCart(), off = !storeReady();
     if (c.length) {
       cartBox.innerHTML = c.map(okiOlvItem).join("");
       foot.innerHTML = '<div class="olv-tot"><span>Total</span><b>' + okiMxn(okiTotal()) + '</b></div>' +
-        '<button class="olv-pay" data-oki-pay="1">Ir a pagar →</button>';
+        '<button class="olv-pay" data-oki-pay="1">' + (off ? 'Ir a la tienda a pagar →' : 'Ir a pagar →') + '</button>';
     } else {
-      cartBox.innerHTML = '<div class="olv-empty">Aún no eliges productos 🛒<br>Toca <b>＋</b> en el catálogo y aquí te los muestro.</div>';
+      cartBox.innerHTML = off
+        ? '<div class="olv-empty">Aún no tienes productos 🛒<br>Entra a la tienda y arma tu pedido; aquí te lo guardo.</div>'
+        : '<div class="olv-empty">Aún no eliges productos 🛒<br>Toca <b>＋</b> en el catálogo y aquí te los muestro.</div>';
       foot.innerHTML = "";
     }
     var recs = okiRecommendList(3);
     var recSec = document.getElementById("oki-olv-rec-sec"), recBox = document.getElementById("oki-olv-recs");
     if (recs.length) { recSec.hidden = false; recBox.innerHTML = recs.map(okiOlvRec).join(""); } else { recSec.hidden = true; recBox.innerHTML = ""; }
-    var wish = []; try { wish = window.OKtienda.deseados() || []; } catch (e) {}
+    var wish = []; try { var Sw = okiStore(); wish = Sw ? (Sw.deseados() || []) : []; } catch (e) {}
     var wSec = document.getElementById("oki-olv-wish-sec"), wBox = document.getElementById("oki-olv-wish");
     wSec.hidden = false; // la sección de deseos siempre se muestra (con estado vacío)
     wBox.innerHTML = wish.length ? wish.map(okiOlvRec).join("")
@@ -136,7 +184,7 @@
   }
   // Abrir la lista de OKi enfocando la sección de DESEADOS (lo usa el botón ❤ de la tienda).
   function okiShowDeseados() {
-    if (!storeReady() || !panel) return;
+    if (!okiHasStore() || !panel) return;
     panel.setAttribute("data-view", "list");
     renderStoreList();
     if (!panel.classList.contains("on")) open();
@@ -146,7 +194,7 @@
       if (box) { box.classList.add("olv-flash"); setTimeout(function () { box.classList.remove("olv-flash"); }, 1300); }
     }, 160);
   }
-  function okiListActive() { return panel && panel.getAttribute("data-view") === "list" && storeReady(); }
+  function okiListActive() { return panel && panel.getAttribute("data-view") === "list" && okiHasStore(); }
 
   // Busca un producto por nombre (para "agrega el mouse").
   function okiMatchProd(q) {
@@ -186,7 +234,7 @@
         // solo asoma su cabecita. No viaja a la izquierda.
         var w = mobile ? 62 : 76;               // ancho del astronauta (.oki)
         var gap = mobile ? 16 : 26;             // .oki-dock { right }
-        var visible = mobile ? 22 : 26;         // cuánto asoma (solo su cabecita)
+        var visible = mobile ? 48 : 50;         // cuánto asoma (casi todo; solo se recuesta un poco)
         var tx = gap + (w - visible);           // empuja a la derecha, fuera de la pantalla
         dock.style.transform = "translate3d(" + tx + "px,0,0)";
         dock.style.opacity = "1";
@@ -250,8 +298,9 @@
   /* El estado EN VIVO del carrito/deseados solo lo conoce la tienda (no el servidor),
      así que estas preguntas y acciones se resuelven aquí mismo. Devuelve texto o null. */
   function storeLocalReply(text) {
-    if (!storeReady()) return null;
-    var t = okiNorm(text), S = window.OKtienda;
+    var S = okiStore();
+    if (!S) return null;   // sin catálogo (no debería pasar: catalogo.js carga en todo el sitio)
+    var t = okiNorm(text);
 
     // Carrito: qué llevo / cuánto voy / mi total…
     if (/\bcarrito\b|\bcarro\b|que llevo|que tengo|mi compra|cuanto llevo|cuanto va|cuanto voy|mi total|que voy a pagar/.test(t)) {
@@ -260,7 +309,8 @@
       var total = 0, lines = c.map(function (it) { total += it.price * it.qty; return "• " + it.qty + "× " + it.name + " — " + okiMxn(it.price * it.qty); });
       var rec = okiRecommend();
       var extra = rec ? "\n💡 Se te podría antojar: " + rec.name + " (" + okiMxn(rec.price) + "). Dime \"agrégalo\"." : "";
-      return "Esto llevas en tu carrito 🛒\n" + lines.join("\n") + "\nTotal: " + okiMxn(total) + extra + "\nToca el carrito 🛒 arriba para finalizar. Recoge en OK.station o pide envío a domicilio; pagas en línea.";
+      var fin = storeReady() ? "\nToca el carrito 🛒 arriba para finalizar." : "\nDime \"entrar a la tienda\" y te llevo a finalizar tu compra.";
+      return "Esto llevas en tu carrito 🛒\n" + lines.join("\n") + "\nTotal: " + okiMxn(total) + extra + fin + " Recoge en OK.station o pide envío a domicilio; pagas en línea.";
     }
 
     // Deseados / favoritos
@@ -313,46 +363,10 @@
   }
 
   var dock, panel, chat, input;
-  var listItems = [];
 
-  // ── Lógica de "Mi lista" (localStorage → WhatsApp) ──
-  function saveList() { try { localStorage.setItem("oki_list", JSON.stringify(listItems)); } catch (e) {} }
-  function loadList() {
-    try { var s = localStorage.getItem("oki_list"); listItems = s ? JSON.parse(s) : []; if (!Array.isArray(listItems)) listItems = []; }
-    catch (e) { listItems = []; }
-    renderList();
-  }
-  function addItem(text) {
-    text = (text || "").trim();
-    if (!text) return;
-    if (text.length > 120) text = text.slice(0, 120);
-    listItems.push(text); saveList(); renderList();
-  }
-  function renderList() {
-    var ul = document.getElementById("oki-list-items");
-    if (!ul) return;
-    ul.innerHTML = "";
-    if (!listItems.length) {
-      var empty = document.createElement("li");
-      empty.className = "oki-list-empty";
-      empty.textContent = "Tu lista está vacía. Agrega lo que necesites 🙂";
-      ul.appendChild(empty);
-    } else {
-      listItems.forEach(function (it, i) {
-        var li = document.createElement("li");
-        li.className = "oki-list-it";
-        var s = document.createElement("span"); s.textContent = it;
-        var x = document.createElement("button"); x.type = "button";
-        x.setAttribute("aria-label", "Quitar"); x.textContent = "×";
-        x.addEventListener("click", function () { listItems.splice(i, 1); saveList(); renderList(); });
-        li.appendChild(s); li.appendChild(x); ul.appendChild(li);
-      });
-    }
-  }
   function showList() {
     panel.setAttribute("data-view", "list");
-    if (storeReady()) { renderStoreList(); }
-    else { renderList(); setTimeout(function () { var i = document.getElementById("oki-list-input"); if (i) i.focus(); }, 150); }
+    if (okiHasStore()) renderStoreList();
   }
   function showChat() { panel.setAttribute("data-view", "chat"); }
 
@@ -438,7 +452,7 @@
       '<div class="oki-panel__h">' +
       '<span class="mini" aria-hidden="true">🚀</span>' +
       '<div class="oki-panel__t"><b>OKi · Tu asistente</b><small>Te ayudo con todo el sitio</small></div>' +
-      '<button class="oki-tab" id="oki-tab" type="button" aria-label="Mi lista" title="Mi lista">📝</button>' +
+      '<button class="oki-tab" id="oki-tab" type="button" aria-label="Tu lista de compras" title="Tu lista de compras">🛒</button>' +
       '<button class="cls" type="button" aria-label="Cerrar">×</button>' +
       '</div>' +
       // Vista CHAT
@@ -449,8 +463,9 @@
       '<input id="oki-text" placeholder="Escríbele a OKi…" aria-label="Mensaje para OKi">' +
       '<button type="submit" aria-label="Enviar">➤</button>' +
       '</form></div>' +
-      // Vista LISTA: en la tienda = carrito + recomendaciones + deseados; fuera = "Mi lista" de texto
-      (storeReady()
+      // Vista LISTA = tu lista de compras (carrito + recomendaciones + deseados).
+      // Es la MISMA lista funcional en todo el sitio (dentro y fuera de la tienda).
+      (okiHasStore()
         ? '<div class="oki-view oki-view--list oki-view--store">' +
           '<div class="olv-sec">🛒 Tu lista de compras</div>' +
           '<div class="olv-cart" id="oki-olv-cart"></div>' +
@@ -459,18 +474,12 @@
           '<div class="olv-recs" id="oki-olv-recs"></div>' +
           '<div class="olv-sec" id="oki-olv-wish-sec" hidden>❤ Lista de deseos</div>' +
           '<div class="olv-wish" id="oki-olv-wish"></div>' +
+          (storeReady() ? '' : '<button class="olv-store" id="oki-olv-store" type="button">🛒 Entrar a la tienda</button>') +
           '<button class="olv-chat" id="oki-olv-chat" type="button">💬 Chatear con OKi</button>' +
           '</div>'
-        : '<div class="oki-view oki-view--list">' +
-          '<div class="oki-list-head">📝 Mi lista <small>Guarda lo que necesitas para tu pedido</small></div>' +
-          '<form class="oki-list-add" id="oki-list-form" autocomplete="off">' +
-          '<input id="oki-list-input" placeholder="Ej. 2 resmas de papel carta" aria-label="Agregar a la lista">' +
-          '<button type="submit" aria-label="Agregar">＋</button></form>' +
-          '<ul class="oki-list-items" id="oki-list-items"></ul>' +
-          '<div class="oki-list-actions">' +
-          '<button type="button" id="oki-list-clear" class="oki-list-clear">Vaciar</button>' +
-          '<span class="oki-list-soon">🛒 Pronto podrás pedir en línea</span>' +
-          '</div></div>') +
+        : '<div class="oki-view oki-view--list">' +   // respaldo si catalogo.js no cargó
+          '<div class="olv-empty" style="padding:22px 6px">No pude cargar el catálogo 😕<br>Escríbenos por WhatsApp: 664 719 4117.</div>' +
+          '</div>') +
       '</div>'
     );
     document.body.appendChild(panel);
@@ -486,7 +495,7 @@
       quick.appendChild(b);
     });
     var listChip = document.createElement("button");
-    listChip.type = "button"; listChip.textContent = "📝 Mi lista";
+    listChip.type = "button"; listChip.textContent = "🛒 Tu lista";
     listChip.addEventListener("click", showList);
     quick.appendChild(listChip);
 
@@ -511,13 +520,16 @@
       panel.getAttribute("data-view") === "list" ? showChat() : showList();
     });
 
-    if (storeReady()) {
-      // ── Lista de la tienda: acciones sobre el carrito/deseados vía el contrato ──
+    if (okiHasStore()) {
+      // ── Tu lista de compras: acciones sobre el carrito/deseados vía el contrato ──
+      // Dentro de la tienda actúa sobre el carrito EN VIVO; fuera, sobre el guardado
+      // (localStorage) para que al entrar a la tienda ya lo tengas armado.
       panel.querySelector(".oki-view--store").addEventListener("click", function (e) {
         // El clic está DENTRO del panel: no debe llegar al "clic-fuera" del document
         // (al re-renderizar la lista el botón se desconecta y closest() fallaría → cerraría).
         e.stopPropagation();
-        var S = window.OKtienda, x;
+        var S = okiStore(), x;
+        if (!S) return;
         if ((x = e.target.closest("[data-oki-inc]"))) { okiSelfAdd = true; try { S.cambiar(+x.dataset.okiInc, 1); } catch (er) { okiSelfAdd = false; } }
         else if ((x = e.target.closest("[data-oki-dec]"))) { try { S.cambiar(+x.dataset.okiDec, -1); } catch (er) {} }
         else if ((x = e.target.closest("[data-oki-rm]")))  { try { S.quitar(+x.dataset.okiRm); } catch (er) {} }
@@ -525,21 +537,12 @@
         else if ((x = e.target.closest("[data-oki-wish]"))){ try { S.toggleDeseado(+x.dataset.okiWish); } catch (er) {} renderStoreList(); }
         else if ((x = e.target.closest("[data-oki-open]"))) { okiReopenAfterPreview = true; try { S.verProducto(+x.dataset.okiOpen); } catch (er) { okiReopenAfterPreview = false; } }
         else if (e.target.closest("[data-oki-pay]")) { try { S.abrirCarrito(); } catch (er) {} }
+        else if (e.target.closest("#oki-olv-store")) { try { S.entrarTienda(); } catch (er) { okiGoTienda(); } }
         else if (e.target.closest("#oki-olv-chat")) { showChat(); }
       });
-      panel.setAttribute("data-view", "list"); // en la tienda, la LISTA es la vista principal
+      if (storeReady()) panel.setAttribute("data-view", "list"); // en la tienda la LISTA predomina; fuera predomina el CHAT
       renderStoreList();
-    } else {
-      // ── "Mi lista" de texto (fuera de la tienda) ──
-      document.getElementById("oki-list-form").addEventListener("submit", function (e) {
-        e.preventDefault();
-        var li = document.getElementById("oki-list-input");
-        addItem(li.value); li.value = ""; li.focus();
-      });
-      document.getElementById("oki-list-clear").addEventListener("click", function () {
-        if (listItems.length) { listItems = []; saveList(); renderList(); }
-      });
-      loadList();
+      okiUpdateBadge();  // el globito del carrito refleja lo guardado en cualquier página
     }
 
     // Cerrar al hacer clic fuera del panel. En la tienda TAMBIÉN cierra la lista,
