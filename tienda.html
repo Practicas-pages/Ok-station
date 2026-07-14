@@ -818,16 +818,49 @@ html.modal-lock, html.modal-lock body{overflow:hidden !important}
   }
   $("prodOv").addEventListener("click",function(e){if(e.target.id==="prodOv"||e.target.closest("[data-close]")){hide("prodOv"); okiEmit("vista-previa-cerrada"); maybeReopenWish(); return;} var w=e.target.closest("[data-wish]"); if(w){toggleWishlist(+w.dataset.wish); openProduct(+w.dataset.wish); return;} var a=e.target.closest("[data-madd]"); if(a){addToCart(+a.dataset.madd,1); hide("prodOv"); okiEmit("vista-previa-cerrada");}});
 
-  function renderCheckout(){var tt=totals(),body;
-    if(coStep<2){body='<div class="steps"><div class="s'+(coStep>=0?' on':'')+'"></div><div class="s'+(coStep>=1?' on':'')+'"></div><div class="s"></div></div>';
-      if(coStep===0){body+='<h3 style="margin:0 0 12px;font-size:1.2rem">Tus datos</h3><div class="field"><label>Nombre</label><input placeholder="Ej. María González"></div><div class="field"><label>WhatsApp</label><input placeholder="(664) 000 0000"></div>'+'<p class="desc" style="font-size:.86rem">Elige recoger gratis en <b>OK.station · Otay</b> o envío a domicilio a todo México. Te avisamos por WhatsApp cuando esté listo.</p>';}
-      else{body+='<h3 style="margin:0 0 4px;font-size:1.2rem">Pago</h3><p class="desc" style="font-size:.86rem">Paga seguro con Mercado Pago.</p><div class="paybadges"><span>Mercado Pago</span><span>OXXO</span><span>SPEI</span><span>Visa · Master · Amex</span></div><div class="sline" style="margin-top:14px"><span>Subtotal</span><span>'+mxn(tt.sub)+'</span></div><div class="sline"><span>Entrega</span><span>'+(shipMode==="envio"?"Envío "+mxn(tt.ship):"Recoger en tienda · Gratis")+'</span></div><div class="sline total"><span>Total</span><span>'+mxn(tt.total)+'</span></div>';}
-      body+='<button class="maddbtn" style="margin-top:16px" data-conext>'+(coStep===0?"Continuar":"Pagar "+mxn(tt.total))+'</button>';
-    }else{body='<div class="ok-anim"><div class="circle"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div><h3 style="margin:0 0 6px;font-size:1.25rem">¡Pedido simulado!</h3><p class="desc" style="max-width:none">Te llegaría tu ticket y el estado por WhatsApp.</p><button class="maddbtn" style="margin-top:10px" data-cofin>Entendido</button></div>';}
-    $("coModal").innerHTML='<div class="mb" style="padding-top:22px"><button class="x" data-close style="position:static;float:right;background:var(--paper)">×</button><div style="clear:both"></div>'+body+'</div>';
+  function shopToken(){return localStorage.getItem("okstation.token")||"";}
+  function renderCheckout(){var tt=totals(),head='<div class="mb" style="padding-top:22px"><button class="x" data-close style="position:static;float:right;background:var(--paper)">×</button><div style="clear:both"></div>';
+    /* Comprar REQUIERE cuenta (para pagar en línea y darle seguimiento al pedido). */
+    if(!shopToken()){
+      $("coModal").innerHTML=head+'<h3 style="margin:0 0 8px;font-size:1.2rem">Inicia sesión para comprar</h3>'+
+        '<p class="desc" style="max-width:none;font-size:.9rem">Necesitas una cuenta para completar tu compra, pagar en línea de forma segura y darle seguimiento a tu pedido.</p>'+
+        '<button class="maddbtn" style="margin-top:16px" data-cologin>Iniciar sesión o crear cuenta</button></div>';
+      return;
+    }
+    var envio=shipMode==="envio";
+    var body='<h3 style="margin:0 0 12px;font-size:1.2rem">Finaliza tu compra</h3>'+
+      '<div class="field"><label>WhatsApp para avisarte</label><input id="coPhone" inputmode="tel" placeholder="(664) 000 0000"></div>'+
+      (envio?'<div class="field"><label>Dirección de envío</label><input id="coAddr" placeholder="Calle y número, colonia, C.P., ciudad"></div>':'')+
+      '<div class="sline" style="margin-top:14px"><span>Subtotal</span><span>'+mxn(tt.sub)+'</span></div>'+
+      '<div class="sline"><span>Entrega</span><span>'+(envio?"Envío "+mxn(tt.ship):"Recoger en OK.station · Gratis")+'</span></div>'+
+      '<div class="sline total"><span>Total</span><span>'+mxn(tt.total)+'</span></div>'+
+      '<button class="maddbtn" style="margin-top:16px" data-copay>Pagar '+mxn(tt.total)+'</button>'+
+      '<p class="desc" style="font-size:.8rem;text-align:center;margin-top:8px">Pago seguro con Mercado Pago 🔒</p>';
+    $("coModal").innerHTML=head+body+'</div>';
   }
-  $("checkoutBtn").addEventListener("click",function(){$("app").classList.remove("cart-open"); coStep=0; renderCheckout(); show("coOv");});
-  $("coOv").addEventListener("click",function(e){if(e.target.id==="coOv"||e.target.closest("[data-close]")){hide("coOv"); return;} if(e.target.closest("[data-conext]")){coStep++; renderCheckout();} if(e.target.closest("[data-cofin]")){hide("coOv"); cart={}; renderCart(); flash("Carrito vaciado (demo)");}});
+  function submitShop(){
+    var tok=shopToken(); if(!tok){renderCheckout();return;}
+    var phone=($("coPhone")&&$("coPhone").value||"").trim();
+    if(phone.replace(/\D/g,"").length<10){flash("Ingresa un WhatsApp válido (10 dígitos)");return;}
+    var envio=shipMode==="envio", addr=($("coAddr")&&$("coAddr").value||"").trim();
+    if(envio&&addr.length<10){flash("Ingresa la dirección de envío completa");return;}
+    var items=Object.keys(cart).map(function(k){return {id:+cart[k].p.id,qty:cart[k].qty};});
+    if(!items.length){flash("Tu carrito está vacío");return;}
+    var btn=document.querySelector("[data-copay]"); if(btn){btn.disabled=true;btn.textContent="Procesando…";}
+    fetch("/backend/api/shop/create.php",{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+tok},
+      body:JSON.stringify({items:items,ship_mode:shipMode,ship_address:addr,contact_phone:phone})})
+      .then(function(r){return r.json();})
+      .then(function(j){
+        if(j&&j.ok&&j.order){ saveCart&&(cart={}); try{localStorage.removeItem("okstation_cart");}catch(e){} location.href="pago.html?shop="+j.order.id; }
+        else{ flash((j&&j.error)||"No se pudo crear el pedido"); if(btn){btn.disabled=false;btn.textContent="Pagar "+mxn(totals().total);} }
+      }).catch(function(){ flash("Error de conexión, intenta de nuevo"); if(btn){btn.disabled=false;btn.textContent="Pagar "+mxn(totals().total);} });
+  }
+  $("checkoutBtn").addEventListener("click",function(){$("app").classList.remove("cart-open"); renderCheckout(); show("coOv");});
+  $("coOv").addEventListener("click",function(e){
+    if(e.target.id==="coOv"||e.target.closest("[data-close]")){hide("coOv"); return;}
+    if(e.target.closest("[data-cologin]")){location.href="cuenta.html?next=tienda.html"; return;}
+    if(e.target.closest("[data-copay]")){submitShop(); return;}
+  });
 
   function anyOvOpen(){return !!document.querySelector(".ov.show");}
   function show(id){$(id).classList.add("show"); document.documentElement.classList.add("modal-lock");}

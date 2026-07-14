@@ -189,12 +189,15 @@
 
     if (!token()) { location.href = "cuenta.html"; return; }
 
-    /* La página cobra un PEDIDO (?order=) o el PAGO de una CITA (?appt=). */
-    var orderId = qs("order"), apptId = qs("appt");
+    /* La página cobra un PEDIDO (?order=), el PAGO de una CITA (?appt=) o una COMPRA
+       de la tienda (?shop=). */
+    var orderId = qs("order"), apptId = qs("appt"), shopId = qs("shop");
     var isAppt   = !!apptId;
-    var entityId = isAppt ? apptId : orderId;
-    var backHref = isAppt ? "perfil.html#citas" : "perfil.html#pedidos";
-    var noun     = isAppt ? "cita" : "pedido";
+    var isShop   = !!shopId;
+    var entityId = isShop ? shopId : (isAppt ? apptId : orderId);
+    var backHref = isShop ? "perfil.html#tienda" : (isAppt ? "perfil.html#citas" : "perfil.html#pedidos");
+    var noun     = isShop ? "compra" : (isAppt ? "cita" : "pedido");
+    var nounPlural = isShop ? "compras" : (isAppt ? "citas" : "pedidos");
 
     var summary = $("pago-summary");
     var actions = $("pago-actions");
@@ -209,13 +212,13 @@
     /* Encabezado y enlaces según la entidad. */
     $("pago-intro").textContent = "Revisa el resumen y completa el pago de tu " + noun + ".";
     var backEl = $("pago-back"); if (backEl) backEl.setAttribute("href", backHref);
-    var backLabel = $("pago-back-label"); if (backLabel) backLabel.textContent = isAppt ? "Volver a mis citas" : "Volver a mis pedidos";
+    var backLabel = $("pago-back-label"); if (backLabel) backLabel.textContent = "Volver a mis " + nounPlural;
     var pendBack = $("pago-pending-back"); if (pendBack) pendBack.setAttribute("href", backHref);
 
     if (!entityId) { summary.innerHTML = ""; alertBox("Falta el identificador del " + noun + "."); return; }
 
     function entityBody(extra) {
-      var o = isAppt ? { appointment_id: +apptId } : { order_id: +orderId };
+      var o = isShop ? { shop_order_id: +shopId } : (isAppt ? { appointment_id: +apptId } : { order_id: +orderId });
       if (extra) for (var k in extra) o[k] = extra[k];
       return o;
     }
@@ -267,7 +270,7 @@
       summary.innerHTML = '<div class="order-pay order-pay--paid"><div class="order-pay__head"><span class="order-pay__title">Este ' + esc(noun) + ' ya está pagado</span><span class="opay opay--pagado">Pagado</span></div></div>';
       actions.hidden = false;
       $("pago-mp").hidden = true; $("pago-sandbox").hidden = true;
-      note.innerHTML = '<a href="' + esc(backHref) + '">' + (isAppt ? "Volver a mis citas" : "Volver a mis pedidos") + '</a>';
+      note.innerHTML = '<a href="' + esc(backHref) + '">Volver a mis ' + esc(nounPlural) + '</a>';
     }
 
     /* Estado de éxito (pago autorizado). */
@@ -276,7 +279,7 @@
       actions.hidden = true;
       $("pago-pending").hidden = true;
       var done = $("pago-done"); done.hidden = false;
-      $("pago-done-msg").textContent = isAppt ? "Tu pago fue autorizado. Te llevamos a tus citas…" : "Tu pago fue autorizado. Te llevamos a tus pedidos…";
+      $("pago-done-msg").textContent = "Tu pago fue autorizado. Te llevamos a tus " + nounPlural + "…";
       setTimeout(function () { location.href = backHref; }, 1600);
     }
     /* Ajusta el estado "en proceso" (título + mensaje) sin mostrar el botón hasta el final. */
@@ -295,9 +298,9 @@
        autorizado"; el correo confirma de todas formas y el trabajador puede marcarlo
        como pagado desde el panel. */
     function verifyPayment() {
-      var noun = isAppt ? "citas" : "pedidos";
+      var noun = nounPlural;
       setPending("Pago en proceso", "Estamos validando tu pago. En cuanto se apruebe te avisamos por correo y lo verás en tus " + noun + ". Puedes cerrar esta ventana.");
-      var statusQS = isAppt ? ("appointment_id=" + encodeURIComponent(apptId)) : ("order_id=" + encodeURIComponent(orderId));
+      var statusQS = isShop ? ("shop_order_id=" + encodeURIComponent(shopId)) : (isAppt ? ("appointment_id=" + encodeURIComponent(apptId)) : ("order_id=" + encodeURIComponent(orderId)));
       var tries = 0;
       (function poll() {
         tries++;

@@ -19,6 +19,7 @@ $user = current_user();
 $b    = body();
 $orderId = (int) ($b['order_id'] ?? 0);
 $apptId  = (int) ($b['appointment_id'] ?? 0);
+$shopId  = (int) ($b['shop_order_id'] ?? 0);
 /* mode: 'api' (por defecto) = Checkout API (tarjeta en el sitio); 'pro' = Checkout
    Pro (redirección a Mercado Pago). Solo afecta al proveedor mercadopago. */
 $mode = (($b['mode'] ?? 'api') === 'pro') ? 'pro' : 'api';
@@ -60,6 +61,18 @@ if ($apptId > 0) {
     }
     if (round((float) $entity['total'], 2) <= 0) {
         fail('Este pedido aún no tiene un total para cobrar. Te confirmaremos el monto al revisar tus archivos.', 409);
+    }
+} elseif ($shopId > 0) {
+    $kind   = 'shop';
+    $entity = ShopOrder::find($shopId);
+    $id     = $shopId;
+    $noun   = 'compra';
+    $auditTable = 'shop_orders';
+    if (!$entity) fail('Pedido de tienda no encontrado.', 404);
+    if ((int) $entity['user_id'] !== (int) $user['id']) fail('No autorizado.', 403);
+    if (($entity['status'] ?? '') === 'cancelado') fail('Este pedido está cancelado y no se puede pagar.', 409);
+    if (round((float) $entity['total'], 2) <= 0) {
+        fail('Este pedido no tiene un total para cobrar.', 409);
     }
 } else {
     fail('No se especificó qué pagar.');

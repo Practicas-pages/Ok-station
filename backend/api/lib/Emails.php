@@ -292,21 +292,97 @@ final class Emails
      */
     public static function pagoConfirmadoHtml(array $p): string
     {
-        $isAppt = (($p['kind'] ?? 'order') === 'appointment');
-        $noun   = $isAppt ? 'tu cita' : 'tu pedido';
+        $kind   = (string) ($p['kind'] ?? 'order');
+        $isAppt = ($kind === 'appointment');
+        $isShop = ($kind === 'shop');
+        $noun   = $isAppt ? 'tu cita' : ($isShop ? 'tu compra' : 'tu pedido');
         $name   = (string) ($p['name'] ?? '');
         $amt    = '$' . number_format((float) ($p['amount'] ?? 0), 2) . ' MXN';
+        $sub    = $isAppt ? 'Tu cita queda <b>pagada</b> y confirmada.'
+                          : ($isShop ? 'Ya preparamos <b>tu pedido de la tienda</b>; te avisamos cuando esté listo.'
+                                     : 'Ya nos ponemos con <b>tu pedido</b>.');
 
         $inner =
             '<h1 style="margin:0 0 6px;font-size:20px;color:#12141c">¡Pago confirmado' . ($name !== '' ? ', ' . self::e($name) : '') . '!</h1>'
             . '<p style="margin:0 0 16px;font-size:15px;line-height:1.6;color:#4a5068">'
-            . 'Recibimos el pago de ' . $noun . ' en Ok.station. '
-            . ($isAppt ? 'Tu cita queda <b>pagada</b> y confirmada.' : 'Ya nos ponemos con <b>tu pedido</b>.') . '</p>'
+            . 'Recibimos el pago de ' . $noun . ' en Ok.station. ' . $sub . '</p>'
             . self::ticketCard((string) ($p['code'] ?? ''), self::row('Pago recibido', $amt))
             . '<p style="margin:14px 0 0;font-size:13px;line-height:1.6;color:#6b7280">'
             . 'Cualquier duda, escríbenos por WhatsApp al (664) 719-4117 o responde este correo.</p>';
 
         return self::layout('Pago confirmado ' . (string) ($p['code'] ?? '') . ' · Ok.station', $inner);
+    }
+
+    /** Etiqueta legible de un estado de pedido de TIENDA. */
+    public static function shopStatusLabel(string $s): string
+    {
+        $L = [
+            'recibido'       => 'Recibido',
+            'en_preparacion' => 'En preparación',
+            'listo'          => 'Listo',
+            'entregado'      => 'Entregado',
+            'cancelado'      => 'Cancelado',
+        ];
+        return $L[$s] ?? ucfirst(str_replace('_', ' ', $s));
+    }
+
+    /** Correo "recibimos tu compra". $p: name, code, items[], subtotal, tax, ship, total, shipMode. */
+    public static function tiendaPedidoHtml(array $p): string
+    {
+        $itemsHtml = '';
+        foreach (($p['items'] ?? []) as $it) {
+            $itemsHtml .= self::row(
+                self::e((string) ($it['name'] ?? 'Producto')) . ' × ' . (int) ($it['qty'] ?? 1),
+                '$' . number_format((float) ($it['line'] ?? 0), 2) . ' MXN'
+            );
+        }
+        $envio = ((string) ($p['shipMode'] ?? 'retiro') === 'envio');
+        $rows =
+            $itemsHtml .
+            self::row('Subtotal', '$' . number_format((float) ($p['subtotal'] ?? 0), 2) . ' MXN') .
+            self::row('IVA', '$' . number_format((float) ($p['tax'] ?? 0), 2) . ' MXN') .
+            self::row('Envío', $envio ? '$' . number_format((float) ($p['ship'] ?? 0), 2) . ' MXN' : 'Gratis (recoges)') .
+            '<tr><td style="padding:9px 0 2px;font-size:15px;font-weight:bold;color:#12141c">Total</td>'
+            . '<td align="right" style="padding:9px 0 2px;font-size:16px;font-weight:bold;color:#066CFF">$'
+            . number_format((float) ($p['total'] ?? 0), 2) . ' MXN</td></tr>';
+
+        $entrega = $envio
+            ? 'Te enviamos tu pedido a domicilio en cuanto se confirme el pago.'
+            : 'Recoge tu pedido en OK.station · Centro Comercial Otay, Local G-03.';
+
+        $inner =
+            '<h1 style="margin:0 0 6px;font-size:20px;color:#12141c">¡Gracias por tu compra, ' . self::e((string) ($p['name'] ?? '')) . '!</h1>'
+            . '<p style="margin:0 0 18px;font-size:15px;line-height:1.6;color:#4a5068">'
+            . 'Recibimos tu pedido de la tienda en línea. ' . self::e($entrega) . ' Este es tu ticket:</p>'
+            . self::ticketCard((string) ($p['code'] ?? ''), $rows)
+            . '<p style="margin:14px 0 0;font-size:13px;line-height:1.6;color:#6b7280">'
+            . '¿Dudas? Escríbenos por WhatsApp al (664) 719-4117 o responde este correo.</p>';
+
+        return self::layout('Recibimos tu compra ' . (string) ($p['code'] ?? '') . ' en Ok.station', $inner);
+    }
+
+    /** Correo de cambio de estado de un pedido de TIENDA. $p: name, code, status. */
+    public static function tiendaEstadoHtml(array $p): string
+    {
+        $status = (string) ($p['status'] ?? '');
+        $label  = self::shopStatusLabel($status);
+        $msgMap = [
+            'recibido'       => 'Recibimos tu pedido y ya lo estamos preparando.',
+            'en_preparacion' => 'Estamos preparando tu pedido con todo listo.',
+            'listo'          => 'Tu pedido está listo para recoger en OK.station · Centro Comercial Otay, Local G-03.',
+            'entregado'      => '¡Gracias! Tu pedido fue entregado. Esperamos verte pronto.',
+            'cancelado'      => 'Tu pedido fue cancelado. Si crees que es un error, escríbenos por WhatsApp.',
+        ];
+        $msg = $msgMap[$status] ?? ('Tu pedido ahora está: ' . $label . '.');
+
+        $inner =
+            '<h1 style="margin:0 0 6px;font-size:20px;color:#12141c">¡Hola ' . self::e((string) ($p['name'] ?? '')) . '!</h1>'
+            . '<p style="margin:0 0 16px;font-size:15px;line-height:1.6;color:#4a5068">' . self::e($msg) . '</p>'
+            . self::ticketCard((string) ($p['code'] ?? ''), self::row('Estado', self::e($label)))
+            . '<p style="margin:14px 0 0;font-size:13px;line-height:1.6;color:#6b7280">'
+            . '¿Dudas? Escríbenos por WhatsApp al (664) 719-4117 o responde este correo.</p>';
+
+        return self::layout('Tu compra ' . (string) ($p['code'] ?? '') . ' — ' . $label, $inner);
     }
 
     /** Correo con el COMPROBANTE PDF adjunto (pedido o cita). $kind = 'pedido'|'cita'. */

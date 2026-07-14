@@ -40,6 +40,10 @@ if (!$entity) {
     $kind   = 'appointment';
 }
 if (!$entity) {
+    $entity = ShopOrder::findBy('payment_reference', $ref);   // pedido de la tienda
+    $kind   = 'shop';
+}
+if (!$entity) {
     // 200 para que el proveedor no reintente indefinidamente una referencia inexistente.
     respond(['ok' => true, 'ignored' => 'reference_not_found']);
 }

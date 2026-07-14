@@ -12,6 +12,27 @@ only_method('GET');
 $user    = current_user();
 $orderId = (int) ($_GET['order_id'] ?? 0);
 $apptId  = (int) ($_GET['appointment_id'] ?? 0);
+$shopId  = (int) ($_GET['shop_order_id'] ?? 0);
+
+if ($shopId > 0) {
+    $row = ShopOrder::find($shopId);
+    if (!$row) fail('Pedido de tienda no encontrado.', 404);
+    $isOwner = ((int) ($row['user_id'] ?? 0) === (int) $user['id']);
+    if (!$isOwner && !user_has_permission((int) $user['id'], 'shop.view')) fail('No autorizado.', 403);
+    respond([
+        'ok'                     => true,
+        'kind'                   => 'shop',
+        'shop_order_id'          => (int) $row['id'],
+        'code'                   => $row['code'],
+        'payment_status'         => $row['payment_status'] ?? 'pendiente',
+        'payment_provider'       => $row['payment_provider'] ?? null,
+        'payment_reference'      => $row['payment_reference'] ?? null,
+        'payment_amount'         => $row['payment_amount'] ?? null,
+        'payment_date'           => $row['payment_date'] ?? null,
+        'payment_transaction_id' => $row['payment_transaction_id'] ?? null,
+        'total'                  => $row['total'] ?? null,
+    ]);
+}
 
 if ($apptId > 0) {
     $row = Appointment::find($apptId);
