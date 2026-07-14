@@ -97,7 +97,7 @@
       carrito: cartArr,
       deseados: function () { return okiLsWish().map(okiCatById).filter(Boolean); },
       total: function () { var t = 0; cartArr().forEach(function (it) { t += it.price * it.qty; }); return t; },
-      agregar: function (id) { var s = okiLsCart(); s[id] = (s[id] || 0) + 1; okiLsCartSave(s); changed(); },
+      agregar: function (id) { var s = okiLsCart(); s[id] = (s[id] || 0) + 1; okiLsCartSave(s); var w = okiLsWish(), wi = w.indexOf(+id); if (wi >= 0) { w.splice(wi, 1); okiLsWishSave(w); } changed(); },
       cambiar: function (id, d) { var s = okiLsCart(); s[id] = (s[id] || 0) + d; if (s[id] <= 0) delete s[id]; okiLsCartSave(s); changed(); },
       quitar: function (id) { var s = okiLsCart(); delete s[id]; okiLsCartSave(s); changed(); },
       toggleDeseado: function (id) { id = +id; var w = okiLsWish(), i = w.indexOf(id); if (i >= 0) w.splice(i, 1); else w.push(id); okiLsWishSave(w); changed(); },
