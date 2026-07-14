@@ -29,6 +29,84 @@ final class Gemini
         return $m !== '' ? $m : 'gemini-flash-lite-latest';
     }
 
+    /* ── Presupuesto de uso (protege el tier GRATUITO de Gemini) ──────────────
+       Topes conservadores, por DEBAJO de los límites del tier gratis. Si se
+       alcanzan, OKi cae a su respaldo de reglas/WhatsApp (nunca falla). Ajusta
+       estas constantes si tu cuota es distinta. */
+    const MAX_PER_MIN    = 10;     // llamadas GLOBALES por minuto (bajo el RPM gratis)
+    const MAX_PER_DAY    = 800;    // llamadas GLOBALES por día (bajo el RPD gratis, con margen)
+    const MAX_PER_IP_DAY = 25;     // por usuario/IP al día (que uno solo no agote la cuota)
+    const CACHE_TTL      = 43200;  // 12 h de caché para preguntas repetidas
+
+    /** Carpeta de estado (contadores y caché). Best-effort. */
+    private static function stateDir(): string
+    {
+        global $CONFIG;
+        $d = ($CONFIG['storage_path'] ?? (__DIR__ . '/../../storage')) . '/oki_gemini';
+        if (!is_dir($d)) @mkdir($d, 0770, true);
+        return $d;
+    }
+
+    /**
+     * ¿Podemos gastar UNA llamada a Gemini ahora? Reserva el cupo si sí.
+     * Combina 3 topes: global/min, global/día y por IP/día. Si no hay dónde
+     * contar (storage no escribible), NO bloquea (deja pasar).
+     */
+    public static function withinBudget(string $ip): bool
+    {
+        $dir = self::stateDir();
+        if (!is_dir($dir) || !is_writable($dir)) return true;
+        $file = $dir . '/budget.json';
+        $now  = time();
+        $today = date('Y-m-d', $now);
+
+        $fh = @fopen($file, 'c+');
+        if (!$fh) return true;
+        flock($fh, LOCK_EX);
+        $raw = stream_get_contents($fh);
+        $d = ['day' => $today, 'day_count' => 0, 'min' => [], 'ip' => []];
+        if ($raw !== '' && ($j = json_decode($raw, true)) && is_array($j)) $d = $j + $d;
+
+        if (($d['day'] ?? '') !== $today) { $d['day'] = $today; $d['day_count'] = 0; $d['ip'] = []; }
+        $d['min'] = array_values(array_filter((array) ($d['min'] ?? []), fn($t) => $t > $now - 60));
+
+        $iphash  = hash('sha256', $ip);
+        $ipCount = (int) (($d['ip'][$iphash] ?? 0));
+        $allow = count($d['min']) < self::MAX_PER_MIN
+              && (int) ($d['day_count'] ?? 0) < self::MAX_PER_DAY
+              && $ipCount < self::MAX_PER_IP_DAY;
+
+        if ($allow) {
+            $d['min'][] = $now;
+            $d['day_count'] = (int) ($d['day_count'] ?? 0) + 1;
+            $d['ip'][$iphash] = $ipCount + 1;
+        }
+        ftruncate($fh, 0); rewind($fh); fwrite($fh, json_encode($d));
+        flock($fh, LOCK_UN); fclose($fh);
+        return $allow;
+    }
+
+    /** Respuesta cacheada para una pregunta (o null). NO consume presupuesto. */
+    public static function cacheGet(string $key): ?string
+    {
+        $f = self::stateDir() . '/cache/' . hash('sha256', $key) . '.json';
+        if (!is_file($f)) return null;
+        $j = json_decode((string) @file_get_contents($f), true);
+        if (!is_array($j) || (int) ($j['exp'] ?? 0) < time()) { @unlink($f); return null; }
+        $t = (string) ($j['t'] ?? '');
+        return $t !== '' ? $t : null;
+    }
+
+    /** Guarda una respuesta en caché (para preguntas repetidas). Best-effort. */
+    public static function cacheSet(string $key, string $val): void
+    {
+        $dir = self::stateDir() . '/cache';
+        if (!is_dir($dir)) @mkdir($dir, 0770, true);
+        if (!is_dir($dir) || !is_writable($dir)) return;
+        @file_put_contents($dir . '/' . hash('sha256', $key) . '.json',
+            json_encode(['t' => $val, 'exp' => time() + self::CACHE_TTL]));
+    }
+
     /**
      * Genera una respuesta de OKi con Gemini.
      * @param string $userText        último mensaje del usuario

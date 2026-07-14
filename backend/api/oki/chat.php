@@ -116,12 +116,29 @@ if ($reply === null) {
     require_once __DIR__ . '/prompt.php';
 }
 if ($reply === null && Gemini::available()) {
-    $history = (isset($b['messages']) && is_array($b['messages'])) ? $b['messages'] : [['role' => 'user', 'content' => $text]];
-    $sys = function_exists('oki_system_prompt') ? oki_system_prompt() : 'Eres OKi, el asistente astronauta de Ok.station (Tijuana). Responde breve, en español de México. Si no sabes algo con certeza, deriva a WhatsApp 664 719 4117.';
-    $ai = Gemini::reply($text, $history, $sys);
-    if ($ai !== null && trim($ai) !== '') {
-        respond(['ok' => true, 'reply' => $ai, 'source' => 'gemini']);
+    /* Estrategia de AHORRO de cuota (tier gratis):
+       a) CACHÉ: preguntas frecuentes idénticas se responden sin gastar API. Solo
+          para preguntas "sueltas" (sin conversación previa), para no servir una
+          respuesta fuera de contexto en un chat de varios turnos.
+       b) PRESUPUESTO: topes global/min, global/día y por IP/día. Si se alcanzan,
+          NO se llama a Gemini y OKi cae a su respaldo de WhatsApp de abajo. */
+    $cacheable = ($prev === '');                 // sin turno previo de OKi = pregunta suelta
+    $qkey = 'v1|' . oki_norm($text);
+
+    if ($cacheable && ($hit = Gemini::cacheGet($qkey)) !== null) {
+        respond(['ok' => true, 'reply' => $hit, 'source' => 'gemini-cache']);
     }
+
+    if (Gemini::withinBudget($ip)) {
+        $history = (isset($b['messages']) && is_array($b['messages'])) ? $b['messages'] : [['role' => 'user', 'content' => $text]];
+        $sys = function_exists('oki_system_prompt') ? oki_system_prompt() : 'Eres OKi, el asistente astronauta de Ok.station (Tijuana). Responde breve, en español de México. Si no sabes algo con certeza, deriva a WhatsApp 664 719 4117.';
+        $ai = Gemini::reply($text, $history, $sys);
+        if ($ai !== null && trim($ai) !== '') {
+            if ($cacheable) Gemini::cacheSet($qkey, $ai);
+            respond(['ok' => true, 'reply' => $ai, 'source' => 'gemini']);
+        }
+    }
+    /* Sin cuota o Gemini no respondió → cae al respaldo de WhatsApp de abajo. */
 }
 
 /* ── 6) Regla de oro: si nada reconoce, deriva a WhatsApp (no inventa) ── */
