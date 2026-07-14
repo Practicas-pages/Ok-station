@@ -25,8 +25,8 @@ final class Gemini
     private static function model(): string
     {
         global $CONFIG;
-        $m = trim((string) ($CONFIG['gemini']['model'] ?? 'gemini-2.0-flash'));
-        return $m !== '' ? $m : 'gemini-2.0-flash';
+        $m = trim((string) ($CONFIG['gemini']['model'] ?? 'gemini-flash-lite-latest'));
+        return $m !== '' ? $m : 'gemini-flash-lite-latest';
     }
 
     /**
