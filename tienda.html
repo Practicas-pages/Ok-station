@@ -693,7 +693,7 @@ html.modal-lock, html.modal-lock body{overflow:hidden !important}
         <aside class="cart" id="cart"><div class="ch">Tu carrito <button class="close" id="cartClose">×</button></div><div class="items" id="items"></div>
           <div class="sum"><div class="ship"><button class="on" data-ship="retiro"><b>Recoger en OK.station</b>Gratis</button><button data-ship="envio"><b>Envío a domicilio</b>$99</button></div>
             <div class="sline"><span>Subtotal</span><span id="sub">$0.00</span></div><div class="sline"><span>Entrega</span><span id="shipCost">Recoge en tienda</span></div><div class="sline total"><span>Total</span><span id="total">$0.00</span></div>
-            <button class="checkout" id="checkoutBtn" disabled>Finalizar compra</button><div class="taxnote">Precios con IVA · productos de ejemplo</div></div></aside>
+            <button class="checkout" id="checkoutBtn" disabled>Finalizar compra</button><div class="taxnote" id="taxnote">Precios con IVA incluido</div></div></aside>
       </div>
       <aside class="drawer" id="drawer"><div class="dh">Categorías <button class="x" id="drawerClose">×</button></div><div class="dlist" id="drawerList"></div></aside>
       <div class="scrim" id="scrim"></div>
@@ -762,6 +762,17 @@ html.modal-lock, html.modal-lock body{overflow:hidden !important}
   var P=(window.OK_PRODUCTS||[]).slice();
   P.forEach(function(p){p.grad=GRADC[p.cat]||"var(--grad-blue)";});
   var cart={}, activeCat="all", query="", shipMode="retiro", coStep=0;
+
+  /* ── Geolocalización del cliente para el IVA (BC 8% / nacional 16%) ──
+     La página pregunta al servidor en qué estado está el cliente (por IP/CDN, o
+     simulado con ?sim_state= en local). El IVA DEFINITIVO se confirma con el
+     domicilio/estado en el checkout. */
+  var MX_ESTADOS=["Aguascalientes","Baja California","Baja California Sur","Campeche","Chiapas","Chihuahua","Ciudad de México","Coahuila","Colima","Durango","Estado de México","Guanajuato","Guerrero","Hidalgo","Jalisco","Michoacán","Morelos","Nayarit","Nuevo León","Oaxaca","Puebla","Querétaro","Quintana Roo","San Luis Potosí","Sinaloa","Sonora","Tabasco","Tamaulipas","Tlaxcala","Veracruz","Yucatán","Zacatecas"];
+  var okGeo={state:"Baja California",is_bc:true,iva_rate:0.08,iva_pct:8,source:"default"};
+  function ivaForEstado(nombre){ var n=(nombre||"").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,""); return (n.indexOf("baja california")>=0 && n.indexOf("sur")<0) ? 0.08 : 0.16; }
+  function updateTaxNote(){ var el=$("taxnote"); if(!el)return; el.innerHTML="📍 "+esc(okGeo.state)+" · IVA "+Math.round((okGeo.iva_rate||0.08)*100)+"% incluido"; }
+  (function loadGeo(){ try{ var sim=new URLSearchParams(location.search).get("sim_state"); fetch("/backend/api/shop/geo.php"+(sim?("?sim_state="+encodeURIComponent(sim)):"")).then(function(r){return r.json();}).then(function(g){ if(g&&g.ok){ okGeo=g; updateTaxNote(); } }).catch(function(){}); }catch(e){} })();
+  function esc(s){var d=document.createElement("div");d.textContent=s==null?"":s;return d.innerHTML;}
 
   // ── Lista de deseos (wishlist) ─────────────────────────────
   var wishlist=(function(){try{return JSON.parse(localStorage.getItem("okstation_wishlist")||"[]");}catch(e){return [];}})();
@@ -895,15 +906,40 @@ html.modal-lock, html.modal-lock body{overflow:hidden !important}
       return;
     }
     var envio=shipMode==="envio";
+    /* Estado de entrega: solo para ENVÍO decide el IVA. Al RECOGER en Tijuana = BC 8%. */
+    var estadoDef=envio?(okGeo.state||"Baja California"):"Baja California";
+    var stateSel=envio
+      ? '<div class="field"><label>Estado de entrega</label><select id="coState">'+MX_ESTADOS.map(function(s){return '<option'+(s.toLowerCase()===estadoDef.toLowerCase()?' selected':'')+'>'+esc(s)+'</option>';}).join("")+'</select></div>'
+      : '<p class="desc" style="font-size:.82rem;margin:2px 0 8px">Recoges en OK.station (Tijuana, Baja California) · IVA 8%.</p>';
     var body='<h3 style="margin:0 0 12px;font-size:1.2rem">Finaliza tu compra</h3>'+
       '<div class="field"><label>WhatsApp para avisarte</label><input id="coPhone" inputmode="tel" placeholder="(664) 000 0000"></div>'+
       (envio?'<div class="field"><label>Dirección de envío</label><input id="coAddr" placeholder="Calle y número, colonia, C.P., ciudad"></div>':'')+
-      '<div class="sline" style="margin-top:14px"><span>Subtotal</span><span>'+mxn(tt.sub)+'</span></div>'+
-      '<div class="sline"><span>Entrega</span><span>'+(envio?"Envío "+mxn(tt.ship):"Recoger en OK.station · Gratis")+'</span></div>'+
-      '<div class="sline total"><span>Total</span><span>'+mxn(tt.total)+'</span></div>'+
-      '<button class="maddbtn" style="margin-top:16px" data-copay>Pagar '+mxn(tt.total)+'</button>'+
+      stateSel+
+      '<div id="coSummary"></div>'+
+      '<button class="maddbtn" style="margin-top:16px" data-copay>Pagar</button>'+
       '<p class="desc" style="font-size:.8rem;text-align:center;margin-top:8px">Pago seguro con Mercado Pago 🔒</p>';
     $("coModal").innerHTML=head+body+'</div>';
+    var ss=$("coState"); if(ss) ss.addEventListener("change",paintCheckout);
+    paintCheckout();
+  }
+  /* IVA aplicable en el checkout: retiro→BC 8%; envío→según el estado elegido. */
+  function checkoutRate(){ if(shipMode!=="envio") return 0.08; var ss=$("coState"); return ss?ivaForEstado(ss.value):(okGeo.iva_rate||0.08); }
+  function checkoutTotals(){
+    var tt=totals(), r=checkoutRate();
+    var base=tt.sub/1.08;            // el catálogo trae IVA 8% incluido → sacamos la base
+    var subIva=base*(1+r);           // y le aplicamos el IVA del estado
+    return {base:base, iva:subIva-base, rate:r, ship:tt.ship, total:subIva+tt.ship};
+  }
+  function paintCheckout(){
+    var ct=checkoutTotals(), box=$("coSummary"); if(!box)return;
+    var natl=ct.rate>0.081;
+    box.innerHTML=
+      '<div class="sline" style="margin-top:14px"><span>Subtotal</span><span>'+mxn(ct.base)+'</span></div>'+
+      '<div class="sline"><span>IVA ('+Math.round(ct.rate*100)+'%)</span><span>'+mxn(ct.iva)+'</span></div>'+
+      '<div class="sline"><span>Entrega</span><span>'+(ct.ship?"Envío "+mxn(ct.ship):"Recoger · Gratis")+'</span></div>'+
+      '<div class="sline total"><span>Total</span><span>'+mxn(ct.total)+'</span></div>'+
+      (natl?'<p class="desc" style="font-size:.78rem;color:#c2410c;margin-top:6px">📍 Envío fuera de Baja California: el IVA se ajusta al 16%.</p>':'');
+    var btn=document.querySelector("[data-copay]"); if(btn) btn.textContent="Pagar "+mxn(ct.total);
   }
   function submitShop(){
     var tok=shopToken(); if(!tok){renderCheckout();return;}
@@ -911,16 +947,17 @@ html.modal-lock, html.modal-lock body{overflow:hidden !important}
     if(phone.replace(/\D/g,"").length<10){flash("Ingresa un WhatsApp válido (10 dígitos)");return;}
     var envio=shipMode==="envio", addr=($("coAddr")&&$("coAddr").value||"").trim();
     if(envio&&addr.length<10){flash("Ingresa la dirección de envío completa");return;}
+    var estado=envio?(($("coState")&&$("coState").value)||okGeo.state||"Baja California"):"Baja California";
     var items=Object.keys(cart).map(function(k){return {id:+cart[k].p.id,qty:cart[k].qty};});
     if(!items.length){flash("Tu carrito está vacío");return;}
     var btn=document.querySelector("[data-copay]"); if(btn){btn.disabled=true;btn.textContent="Procesando…";}
     fetch("/backend/api/shop/create.php",{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+tok},
-      body:JSON.stringify({items:items,ship_mode:shipMode,ship_address:addr,contact_phone:phone})})
+      body:JSON.stringify({items:items,ship_mode:shipMode,ship_address:addr,contact_phone:phone,state:estado})})
       .then(function(r){return r.json();})
       .then(function(j){
         if(j&&j.ok&&j.order){ saveCart&&(cart={}); try{localStorage.removeItem("okstation_cart");}catch(e){} location.href="pago.html?shop="+j.order.id; }
-        else{ flash((j&&j.error)||"No se pudo crear el pedido"); if(btn){btn.disabled=false;btn.textContent="Pagar "+mxn(totals().total);} }
-      }).catch(function(){ flash("Error de conexión, intenta de nuevo"); if(btn){btn.disabled=false;btn.textContent="Pagar "+mxn(totals().total);} });
+        else{ flash((j&&j.error)||"No se pudo crear el pedido"); if(btn){btn.disabled=false;paintCheckout();} }
+      }).catch(function(){ flash("Error de conexión, intenta de nuevo"); if(btn){btn.disabled=false;paintCheckout();} });
   }
   $("checkoutBtn").addEventListener("click",function(){$("app").classList.remove("cart-open"); renderCheckout(); show("coOv");});
   $("coOv").addEventListener("click",function(e){

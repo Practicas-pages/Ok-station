@@ -8,6 +8,7 @@ require __DIR__ . '/../_bootstrap.php';
 require __DIR__ . '/../lib/authz.php';
 require __DIR__ . '/../lib/Pricing.php';
 require __DIR__ . '/../lib/ShopCatalog.php';
+require __DIR__ . '/../lib/Geo.php';
 only_method('POST');
 
 $user  = current_user();
@@ -15,6 +16,7 @@ $b     = body();
 $items = $b['items'] ?? [];
 $shipMode = (($b['ship_mode'] ?? 'retiro') === 'envio') ? 'envio' : 'retiro';
 $shipAddress = trim((string) ($b['ship_address'] ?? ''));
+$state = trim((string) ($b['state'] ?? ''));
 $comments = trim((string) ($b['comments'] ?? ''));
 $phone = trim((string) ($b['contact_phone'] ?? ''));
 $phone = preg_replace('/[^\d+()\-\s]/', '', $phone);
@@ -26,15 +28,24 @@ if (strlen(preg_replace('/\D/', '', $phone)) < 10) fail('Ingresa un teléfono v�
 if ($shipMode === 'envio' && mb_strlen($shipAddress) < 10) fail('Ingresa la dirección de envío completa.');
 if (mb_strlen($shipAddress) > 400) fail('La dirección es demasiado larga.');
 
+/* IVA por GEOLOCALIZACIÓN (autoritativo en el servidor):
+   - RECOGER en tienda = Tijuana (Baja California) → 8%.
+   - ENVÍO = según el ESTADO de entrega (BC 8% / resto del país 16%).
+   Los precios del catálogo traen IVA 8% incluido; se les saca la base y se les
+   re-aplica el IVA que corresponde al destino. */
+$ivaRate  = ($shipMode === 'envio' && $state !== '') ? Geo::ivaForState($state) : 0.08;
+$catRate  = 0.08;   // el catálogo está a IVA 8% incluido
+
 /* Resolver cada ítem contra el catálogo del SERVIDOR (precio autoritativo). */
 $resolved = [];
-$totalIncl = 0.0;   // precios IVA incluido
+$totalIncl = 0.0;   // total con el IVA del destino ya aplicado
 foreach ($items as $it) {
     $pid = (int) ($it['id'] ?? 0);
     $qty = max(1, min(999, (int) ($it['qty'] ?? 1)));
     $p = ShopCatalog::find($pid);
     if (!$p) continue;   // id inexistente → se ignora (no se confía en el cliente)
-    $unit = round((float) $p['price'], 2);
+    $base = round(((float) $p['price']) / (1 + $catRate), 4);   // precio SIN IVA (base)
+    $unit = round($base * (1 + $ivaRate), 2);                    // re-aplica el IVA del destino
     $line = round($unit * $qty, 2);
     $totalIncl += $line;
     $resolved[] = ['id' => $pid, 'sku' => $p['sku'], 'name' => $p['name'], 'unit' => $unit, 'qty' => $qty, 'line' => $line];
@@ -42,21 +53,22 @@ foreach ($items as $it) {
 if (!$resolved) fail('No pudimos identificar los productos de tu carrito.', 422);
 
 $shipCost = ($shipMode === 'envio') ? round((float) ShopCatalog::SHIP_COST, 2) : 0.0;
-$taxRate  = Pricing::taxRate();
 $totalIncl = round($totalIncl, 2);
-$subtotal  = $taxRate > 0 ? round($totalIncl / (1 + $taxRate), 2) : $totalIncl;   // base sin IVA
-$tax       = round($totalIncl - $subtotal, 2);                                    // IVA desglosado
-$total     = round($totalIncl + $shipCost, 2);                                    // IVA incluido + envío
+$subtotal  = round($totalIncl / (1 + $ivaRate), 2);   // base sin IVA
+$tax       = round($totalIncl - $subtotal, 2);        // IVA desglosado (a la tasa del destino)
+$total     = round($totalIncl + $shipCost, 2);        // IVA incluido + envío
+$ivaState  = ($shipMode === 'envio' && $state !== '') ? $state : 'Baja California';
 
 $pdo = db();
 $pdo->beginTransaction();
 try {
-    $pdo->prepare('INSERT INTO shop_orders (user_id, code, ship_mode, ship_cost, ship_address, subtotal, tax, total, contact_phone, comments)
-                   VALUES (?,?,?,?,?,?,?,?,?,?)')
+    $pdo->prepare('INSERT INTO shop_orders (user_id, code, ship_mode, ship_cost, ship_address, ship_state, subtotal, tax, iva_rate, total, contact_phone, comments)
+                   VALUES (?,?,?,?,?,?,?,?,?,?,?,?)')
         ->execute([
             (int) $user['id'], 'TMP', $shipMode, $shipCost,
             $shipMode === 'envio' ? $shipAddress : null,
-            $subtotal, $tax, $total, $phone,
+            $ivaState,
+            $subtotal, $tax, $ivaRate, $total, $phone,
             $comments !== '' ? $comments : null,
         ]);
     $shopId = (int) $pdo->lastInsertId();
