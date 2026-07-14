@@ -445,6 +445,13 @@
       });
       // El botón ❤ de la tienda abre la lista de OKi enfocando los deseados.
       window.addEventListener("oktienda:ver-deseados", okiShowDeseados);
+      // Al agregar al carrito desde el banner de deseados: OKi muestra tu lista.
+      window.addEventListener("oktienda:ver-lista", function () {
+        if (!panel) return;
+        panel.setAttribute("data-view", "list");
+        renderStoreList();
+        if (!panel.classList.contains("on")) open();
+      });
     }
 
     panel = el(

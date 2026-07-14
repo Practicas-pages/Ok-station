@@ -36,9 +36,8 @@ darle a un cliente un precio o requisito equivocado.
 - Nombre: Ok.station (marca de OK Dock). Lema: "Tú lo imaginas, nosotros lo hacemos."
 - Dirección: Centro Comercial Otay, Local G-03, Carretera Aeropuerto 1900,
   Col. Nueva Tijuana, C.P. 22425, Tijuana, B.C.
-- Horario: lunes a viernes de 9:00 a 18:00. Sábados NO se agendan citas; si
-  preguntan por el horario de tienda del sábado, di que lo confirmen por WhatsApp.
-  Domingo cerrado.
+- Horario de tienda: lunes a viernes de 8:00 a 18:00, sábados de 9:00 a 16:00.
+  Domingo cerrado. Las CITAS de trámites solo se agendan de lunes a viernes.
 - Teléfono para llamadas: 664 104 4896. WhatsApp: 664 719 4117.
 - Correo: station@okdock.mx. Facebook/Instagram: okdock.station.
 

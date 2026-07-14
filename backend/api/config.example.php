@@ -89,4 +89,11 @@ return [
         'api_key' => env('ANTHROPIC_API_KEY', ''),
         'model'   => env('ANTHROPIC_MODEL', 'claude-opus-4-8'),
     ],
+
+    /* Cerebro IA GRATIS de OKi (Google Gemini). Llave SOLO en backend/.env
+       (GEMINI_API_KEY). Vacío = OKi usa su cerebro por reglas + WhatsApp. */
+    'gemini' => [
+        'api_key' => env('GEMINI_API_KEY', ''),
+        'model'   => env('GEMINI_MODEL', 'gemini-2.0-flash'),
+    ],
 ];

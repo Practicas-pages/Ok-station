@@ -6,7 +6,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap">
 <link rel="stylesheet" href="styles.css">
-<link rel="stylesheet" href="assets/oki.css?v=20260714b">
+<link rel="stylesheet" href="assets/oki.css?v=20260714c">
 <style>
 
 #site{
@@ -892,7 +892,9 @@ html.modal-lock, html.modal-lock body{overflow:hidden !important}
     if(e.target.id==="wishOv"||e.target.closest("[data-close]")){hide("wishOv"); return;}
     var o=e.target.closest("[data-open]"); if(o){wishReopen=true; hide("wishOv"); openProduct(+o.dataset.open); return;}
     var w=e.target.closest("[data-wish]"); if(w){toggleWishlist(+w.dataset.wish); return;}
-    var a=e.target.closest("[data-madd]"); if(a){addToCart(+a.dataset.madd,1);}
+    /* Agregar al carrito desde deseados: cierra el banner y OKi muestra tu lista
+       (el evento 'carrito' que emite addToCart hace que OKi abra/actualice su lista). */
+    var a=e.target.closest("[data-madd]"); if(a){addToCart(+a.dataset.madd,1); hide("wishOv"); okiEmit("ver-lista");}
   });
 
   // ── Puente window.OKtienda: OKi lee/actúa sobre la tienda ──
@@ -953,6 +955,6 @@ html.modal-lock, html.modal-lock body{overflow:hidden !important}
 <!-- Sesión en el header (muestra tu cuenta si iniciaste sesión) + navbar inteligente -->
 <script src="assets/session-nav.js?v=20260630c" defer></script>
 <!-- OKi, el astronauta ayudante. Conectado a la tienda vía el contrato window.OKtienda (ver OKi-tienda-integracion.md). -->
-<script src="assets/oki.js?v=20260714b" defer></script>
+<script src="assets/oki.js?v=20260714c" defer></script>
 </body>
 </html>

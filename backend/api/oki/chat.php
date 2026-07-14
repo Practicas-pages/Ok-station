@@ -107,7 +107,24 @@ if ($nav !== null) {
 /* ── 4) Cerebro por reglas ── */
 $reply = oki_brain_reply($text, $prev);
 
-/* ── 4) Regla de oro: si no reconoce, deriva a WhatsApp (no inventa) ── */
+/* ── 5) Respaldo con IA GRATIS (Gemini) — solo si las reglas no reconocieron ──
+   Mantiene la navegación y los datos del negocio en reglas (rápido y determinista);
+   Gemini solo atiende el "resto", así el consumo cabe en el tier gratuito. Si la
+   llave no está o la API falla, cae al respaldo de WhatsApp de abajo. */
+if ($reply === null) {
+    require_once __DIR__ . '/../lib/Gemini.php';
+    require_once __DIR__ . '/prompt.php';
+}
+if ($reply === null && Gemini::available()) {
+    $history = (isset($b['messages']) && is_array($b['messages'])) ? $b['messages'] : [['role' => 'user', 'content' => $text]];
+    $sys = function_exists('oki_system_prompt') ? oki_system_prompt() : 'Eres OKi, el asistente astronauta de Ok.station (Tijuana). Responde breve, en español de México. Si no sabes algo con certeza, deriva a WhatsApp 664 719 4117.';
+    $ai = Gemini::reply($text, $history, $sys);
+    if ($ai !== null && trim($ai) !== '') {
+        respond(['ok' => true, 'reply' => $ai, 'source' => 'gemini']);
+    }
+}
+
+/* ── 6) Regla de oro: si nada reconoce, deriva a WhatsApp (no inventa) ── */
 if ($reply === null) {
     respond([
         'ok'       => true,
