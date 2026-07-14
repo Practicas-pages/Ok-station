@@ -359,7 +359,18 @@
   function el(html) { var d = document.createElement("div"); d.innerHTML = html; return d.firstElementChild; }
   function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
   function linkify(s) {
-    return esc(s).replace(/(https?:\/\/[^\s)]+)/g, function (u) { return '<a href="' + u + '" target="_blank" rel="noopener">' + u + "</a>"; });
+    var html = esc(s);
+    // Enlaces Markdown [texto](url) → <a> real (evita que el auto-enlazador los rompa).
+    html = html.replace(/\[([^\]]+)\]\(((?:https?:\/\/|\/)[^\s)]+)\)/g, function (_m, txt, url) {
+      return '<a href="' + url + '" target="_blank" rel="noopener">' + txt + '</a>';
+    });
+    // Negritas **texto** y *texto* → <strong> (Gemini a veces las usa).
+    html = html.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>').replace(/(^|\s)\*([^*\s][^*]*?)\*(?=\s|$|[.,;:!?])/g, '$1<em>$2</em>');
+    // URLs sueltas restantes → <a> (excluye ] ) para NO tragarse Markdown).
+    html = html.replace(/(^|[\s(])(https?:\/\/[^\s)\]<]+)/g, function (_m, pre, url) {
+      return pre + '<a href="' + url + '" target="_blank" rel="noopener">' + url + '</a>';
+    });
+    return html;
   }
 
   var dock, panel, chat, input;
