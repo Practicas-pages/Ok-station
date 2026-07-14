@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap">
 <link rel="stylesheet" href="styles.css">
-<link rel="stylesheet" href="assets/oki.css?v=20260714a">
+<link rel="stylesheet" href="assets/oki.css?v=20260714b">
 <style>
 
 #site{
@@ -786,7 +786,9 @@ html.modal-lock, html.modal-lock body{overflow:hidden !important}
   $("scrim").addEventListener("click",function(){$("app").classList.remove("drawer-open","cart-open"); okiEmit("carrito-cerrado");});
 
   function prod(id){return P.filter(function(p){return p.id===id;})[0];}
-  function addToCart(id,q){var p=prod(id); if(!p)return; var c=cart[id]||{p:p,qty:0}; c.qty=Math.min(p.stock,c.qty+q); cart[id]=c; renderCart(); flash(p.name+" agregado");}
+  function addToCart(id,q){var p=prod(id); if(!p)return; var c=cart[id]||{p:p,qty:0}; c.qty=Math.min(p.stock,c.qty+q); cart[id]=c; renderCart(); flash(p.name+" agregado");
+    // Si estaba en deseados, se "gradúa" al carrito y SALE de deseados.
+    var wi=wishlist.indexOf(+id); if(wi>=0){wishlist.splice(wi,1); saveWishlist(); updateWishBadge(); renderGrid(); if($("wishOv").classList.contains("show")) renderWishlist(); okiEmit("deseados");}}
   function changeQty(id,d){var c=cart[id]; if(!c)return; c.qty+=d; if(c.qty<=0)delete cart[id]; else c.qty=Math.min(c.p.stock,c.qty); renderCart();}
   function removeItem(id){delete cart[id]; renderCart();}
   function totals(){var sub=0,n=0; for(var k in cart){sub+=cart[k].p.price*cart[k].qty; n+=cart[k].qty;} var ship=(n>0&&shipMode==="envio")?99:0; return {sub:sub,ship:ship,total:sub+ship,n:n};}
@@ -904,6 +906,6 @@ html.modal-lock, html.modal-lock body{overflow:hidden !important}
 <!-- Sesión en el header (muestra tu cuenta si iniciaste sesión) + navbar inteligente -->
 <script src="assets/session-nav.js?v=20260630c" defer></script>
 <!-- OKi, el astronauta ayudante. Conectado a la tienda vía el contrato window.OKtienda (ver OKi-tienda-integracion.md). -->
-<script src="assets/oki.js?v=20260714a" defer></script>
+<script src="assets/oki.js?v=20260714b" defer></script>
 </body>
 </html>
