@@ -773,17 +773,20 @@ html.modal-lock, html.modal-lock body{overflow:hidden !important}
 
   // Scroll infinito: al acercarse al final del catálogo, se repiten los productos.
   (function(){
-    var grid=$("grid"); if(!grid || !grid.parentNode || !("IntersectionObserver" in window)) return;
-    var sentinel=document.createElement("div");
-    sentinel.setAttribute("aria-hidden","true");
-    sentinel.style.cssText="height:1px; width:100%;";
-    grid.parentNode.insertBefore(sentinel, grid.nextSibling); // hermano justo debajo del grid (sobrevive a renderGrid)
-    var io=new IntersectionObserver(function(entries){
-      if(entries[0].isIntersecting && infiniteList.length){
-        grid.insertAdjacentHTML("beforeend", cardsHTML(infiniteList)); // añade otra tanda de productos
+    var grid=$("grid"); if(!grid) return;
+    var busy=false;
+    function fill(){
+      if(busy || !infiniteList.length || grid.offsetParent===null) return; // ocupado, sin lista o grid oculto
+      busy=true;
+      var guard=0;                                   // máx 6 tandas por llamada (evita bucles)
+      while(guard++ < 6 && grid.getBoundingClientRect().bottom < window.innerHeight + 800){
+        grid.insertAdjacentHTML("beforeend", cardsHTML(infiniteList)); // repite los productos
       }
-    },{rootMargin:"800px 0px"});
-    io.observe(sentinel);
+      busy=false;
+    }
+    window.addEventListener("scroll", fill, {passive:true});
+    window.addEventListener("resize", fill);
+    window.__fillMore=fill;                           // hook para pruebas
   })();
 
   $("hamb").addEventListener("click",function(){$("app").classList.add("drawer-open");});
