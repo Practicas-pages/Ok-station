@@ -12,7 +12,7 @@
 |---|---|---|
 | 0 | Investigación (API Exel, campos, arquitectura del runner) | ✅ Hecho |
 | 1 | Catálogo: tablas `products` + `product_images` | ✅ Hecho |
-| 2 | Runner de Exel (catálogo → filtrar papelería → UPSERT masivo) | ⬜ Pendiente |
+| 2 | Runner de Exel (catálogo → filtrar papelería → UPSERT masivo) | 🟨 Hecho y probado en local (falta API key para datos reales) |
 | 3 | Enriquecer con Icecat + carrito con validación en vivo | ⬜ Pendiente |
 | 4 | Conectar la tienda (endpoints + frontend + checkout) | ⬜ Pendiente |
 | 5 | Deploy (server, credenciales, agendar runner) | ⬜ Pendiente |
@@ -38,19 +38,26 @@
 - Llave de actualización: `UNIQUE (supplier, supplier_ref)` — `supplier_ref` = la "referencia"/No. Parte de Exel.
 - Verificada en local (Laragon). Diseño multi-proveedor (`exel`/`syscom`/`local`) para reusar el runner a futuro.
 
-## Fase 2 — Runner de Exel ⬜ PENDIENTE (siguiente)
+## Fase 2 — Runner de Exel 🟨 HECHO Y PROBADO EN LOCAL
 
-Script CLI (estilo `migrate.php`: PHP puro, PDO, sin dependencias). Qué hace, en orden:
+Archivo: **`backend/tools/exel-sync.php`** (CLI, PHP puro, PDO, sin dependencias). Qué hace, en orden:
 
 1. **Descarga** el catálogo de Exel (`GET productos`), leyendo la API key desde `backend/.env` (`EXEL_API_KEY`).
-2. **Filtra** solo las categorías/subcategorías de papelería (mapeo de categorías).
-3. **UPSERT masivo** a `products` por `supplier_ref` — una sola sentencia
+   Para pruebas sin llave: `--file=feed.json` (acepta JSON `{datos:[]}`, arreglo o JSONL).
+2. **Filtra** solo papelería por `categoria_nombre` (lista blanca: Oficina y Escolar, Papel,
+   Consumibles, Impresión y Multifuncionales, Digitalización de Documentos).
+3. **UPSERT masivo** a `products` por `supplier_ref`, en chunks de 500 con una sola sentencia
    `INSERT ... ON DUPLICATE KEY UPDATE` (miles de filas en segundos, no fila por fila).
-4. Calcula `price = ROUND(cost × 1.30, 2)` y guarda `prev_cost` (para la regla del 3%).
-5. **Oculta** (`is_active = 0`) los productos sin stock en el almacén 4.
+4. Calcula `price = ROUND(cost × margen, 2)` reusando `ShopCatalog::margin()`, y guarda `prev_cost`
+   (el costo viejo) para la regla del 3%.
+5. **Visibilidad:** publica los que tienen stock, oculta (`is_active=0`) los agotados y los
+   descontinuados (los que ya no vienen en el feed).
 
-- Archivo propuesto: `backend/tools/exel-sync.php`
-- Depende de: `EXEL_API_KEY` en `.env`.
+Uso: `php backend/tools/exel-sync.php [--dry-run] [--file=feed.json] [--limit=N]`
+
+Probado en local con feeds de muestra: filtro, upsert, cálculo de precio, `prev_cost`, detección
+del 3%, y visibilidad (ocultar/reactivar/descontinuar) — todo verificado.
+**Falta solo:** la `EXEL_API_KEY` real para correrlo contra los ~9,416 productos de Exel.
 
 ## Fase 3 — Icecat + carrito ⬜ PENDIENTE
 
