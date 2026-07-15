@@ -508,20 +508,22 @@ h1, h2, h3, h4, h5, h6 {
   border-color: var(--border-medium);
 }
 
-/* WhatsApp */
+/* WhatsApp — verde de marca VIVO (degradado) con sombra de texto para legibilidad
+   del blanco encima (el degradado + text-shadow lo hacen legible sin apagar el verde). */
 .btn--wa {
-  /* Verde WhatsApp más oscuro SOLO en el botón (texto blanco): #25D366 daba ~2:1
-     (falla AA); #0B8043 da ~5:1. El token --color-wa (íconos sobre blanco) no se toca. */
-  background: #0B8043;
+  background: linear-gradient(135deg, #25D366 0%, #0FB84F 100%);
   color: #fff;
-  box-shadow: var(--shadow-wa);
+  text-shadow: 0 1px 2px rgba(4, 40, 20, 0.35);
+  box-shadow: 0 8px 22px rgba(37,211,102,0.42);
 }
 
 .btn--wa:hover {
-  background: #09703B;
-  transform: translateY(-2px);
-  box-shadow: 0 12px 36px rgba(37,211,102,0.50);
+  background: linear-gradient(135deg, #2FE472 0%, #16C95E 100%);
+  transform: translateY(-3px) scale(1.03);
+  box-shadow: 0 18px 46px rgba(37,211,102,0.55);
 }
+
+.btn--wa:active { transform: translateY(-1px) scale(1.0); }
 
 /* Oscuro */
 .btn--dark {

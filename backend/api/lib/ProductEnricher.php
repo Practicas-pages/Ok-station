@@ -60,15 +60,28 @@ final class ProductEnricher
             $args[] = $productId;
             $pdo->prepare('UPDATE products SET ' . implode(', ', $sets) . ' WHERE id = ?')->execute($args);
 
-            // Imágenes: reemplaza SOLO las de Icecat (no toca las de Exel), máx 5.
+            // Imágenes: reemplaza SOLO las de Icecat (no toca las de Exel).
             $pdo->prepare("DELETE FROM product_images WHERE product_id = ? AND source = 'icecat'")->execute([$productId]);
+            // Cap TOTAL de 5 por producto: cuenta las que ya hay (p. ej. de Exel) y solo
+            // llena los huecos restantes. Ej: 2 de Exel + 4 de Icecat -> se guardan 5 (2+3).
+            $er = $pdo->prepare('SELECT COUNT(*) AS c, COALESCE(MAX(is_primary),0) AS hp FROM product_images WHERE product_id = ?');
+            $er->execute([$productId]);
+            $ex = $er->fetch(PDO::FETCH_ASSOC);
+            $already    = (int) ($ex['c'] ?? 0);
+            $hasPrimary = ((int) ($ex['hp'] ?? 0)) === 1;   // ¿ya hay una principal (Exel)?
+            $slots      = max(0, 5 - $already);
+
             $ins = $pdo->prepare(
                 'INSERT INTO product_images (product_id, url, source, sort_order, is_primary)
                  VALUES (?, ?, \'icecat\', ?, ?)'
             );
             $i = 0;
             foreach ($data['images'] as $img) {
-                $ins->execute([$productId, $img['url'], $i, $img['is_primary'] ? 1 : 0]);
+                if ($i >= $slots) break;                    // respeta el tope total de 5
+                // Solo una imagen de Icecat puede ser principal, y solo si Exel no puso ya una.
+                $primary = (!$hasPrimary && !empty($img['is_primary'])) ? 1 : 0;
+                if ($primary) $hasPrimary = true;
+                $ins->execute([$productId, $img['url'], $already + $i, $primary]);
                 $i++;
             }
 
