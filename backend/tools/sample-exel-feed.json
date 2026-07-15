@@ -1,0 +1,5 @@
+[
+  {"referencia":"3MCACCAC016","id":"1001","sku":"WR209MB","codigo_barras":"051131980921","nombre":"Cinta adhesiva 3M Scotch transparente","descripcion_extendida":"","marca_nombre":"3M","categoria_nombre":"Oficina y Escolar","subcategoria_nombre":"Cintas y Pegamentos","precio":45.50,"moneda":"MXN","stock":12},
+  {"referencia":"3MPADHAB001","id":"1002","sku":"6065","codigo_barras":"051141239927","nombre":"Notas adhesivas Post-it 3M","descripcion_extendida":"","marca_nombre":"3M","categoria_nombre":"Oficina y Escolar","subcategoria_nombre":"Hojas Notas y Formatos","precio":38.00,"moneda":"MXN","stock":137},
+  {"referencia":"DEMO-ICECAT-01","id":"9999","sku":"DEMO1","codigo_barras":"8712581669904","nombre":"(Demo) Producto con ficha rica de Icecat","descripcion_extendida":"","marca_nombre":"Philips","categoria_nombre":"Oficina y Escolar","subcategoria_nombre":"Demostracion","precio":100.00,"moneda":"MXN","stock":5}
+]
