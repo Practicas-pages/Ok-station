@@ -31,24 +31,30 @@ if (mb_strlen($shipAddress) > 400) fail('La dirección es demasiado larga.');
 /* IVA por GEOLOCALIZACIÓN (autoritativo en el servidor):
    - RECOGER en tienda = Tijuana (Baja California) → 8%.
    - ENVÍO = según el ESTADO de entrega (BC 8% / resto del país 16%).
-   Los precios del catálogo traen IVA 8% incluido; se les saca la base y se les
-   re-aplica el IVA que corresponde al destino. */
-$ivaRate  = ($shipMode === 'envio' && $state !== '') ? Geo::ivaForState($state) : 0.08;
-$catRate  = 0.08;   // el catálogo está a IVA 8% incluido
+   ShopCatalog::resolve() devuelve la base SIN IVA; aquí se le aplica el IVA del destino. */
+$ivaRate = ($shipMode === 'envio' && $state !== '') ? Geo::ivaForState($state) : 0.08;
 
-/* Resolver cada ítem contra el catálogo del SERVIDOR (precio autoritativo). */
-$resolved = [];
+/* Resolver cada ítem contra el catálogo del SERVIDOR (precio autoritativo).
+   resolve() usa el catálogo REAL (products) y, si el id no está, el demo hardcodeado. */
+$resolved  = [];
+$sinStock  = [];    // productos del catálogo real que ya no alcanzan → "se nos acabó"
 $totalIncl = 0.0;   // total con el IVA del destino ya aplicado
 foreach ($items as $it) {
     $pid = (int) ($it['id'] ?? 0);
     $qty = max(1, min(999, (int) ($it['qty'] ?? 1)));
-    $p = ShopCatalog::find($pid);
+    $p = ShopCatalog::resolve($pid);
     if (!$p) continue;   // id inexistente → se ignora (no se confía en el cliente)
-    $base = round(((float) $p['price']) / (1 + $catRate), 4);   // precio SIN IVA (base)
-    $unit = round($base * (1 + $ivaRate), 2);                    // re-aplica el IVA del destino
+    // Validación de stock (solo catálogo real; el demo no lleva inventario).
+    // NOTA: valida contra el stock del último sync; la revalidación EN VIVO contra Exel
+    // (POST productos por almacenes) se añadirá cuando esté la API key.
+    if ($p['stock'] !== null && $p['stock'] < $qty) { $sinStock[] = $p['name']; continue; }
+    $unit = round($p['base'] * (1 + $ivaRate), 2);   // base sin IVA → IVA del destino
     $line = round($unit * $qty, 2);
     $totalIncl += $line;
     $resolved[] = ['id' => $pid, 'sku' => $p['sku'], 'name' => $p['name'], 'unit' => $unit, 'qty' => $qty, 'line' => $line];
+}
+if ($sinStock) {
+    fail('Ya no hay suficiente inventario de: ' . implode(', ', $sinStock) . '. Actualiza tu carrito y vuelve a intentar.', 409, ['out_of_stock' => $sinStock]);
 }
 if (!$resolved) fail('No pudimos identificar los productos de tu carrito.', 422);
 

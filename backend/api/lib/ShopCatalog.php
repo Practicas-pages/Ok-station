@@ -64,6 +64,43 @@ final class ShopCatalog
         return round(self::baseFor($cost) * (1 + $ivaRate), 2);
     }
 
+    /**
+     * Resuelve un producto para el CARRITO priorizando el catálogo REAL (tabla
+     * `products`, que llena el runner de Exel) y cayendo al catálogo de demostración
+     * (PRODUCTS) si el id no está en la BD. Así la tienda sigue funcionando aunque el
+     * catálogo real todavía esté vacío (sin la API key de Exel).
+     * @return array{id:int,sku:string,name:string,base:float,stock:?int}|null
+     *   base  = precio SIN IVA (costo × margen).  stock = null → demo sin inventario.
+     */
+    public static function resolve(int $id): ?array
+    {
+        // 1) Catálogo real (products). `price` ya es costo × margen (sin IVA).
+        try {
+            $st = db()->prepare('SELECT id, sku, name, price, stock FROM products WHERE id = ? AND is_active = 1 LIMIT 1');
+            $st->execute([$id]);
+            if ($r = $st->fetch()) {
+                return [
+                    'id'    => (int) $r['id'],
+                    'sku'   => (string) $r['sku'],
+                    'name'  => (string) $r['name'],
+                    'base'  => round((float) $r['price'], 2),
+                    'stock' => (int) $r['stock'],
+                ];
+            }
+        } catch (Throwable $e) { /* si `products` aún no existe, se usa el demo */ }
+
+        // 2) Catálogo de demostración (hardcodeado). base = costo × margen.
+        $p = self::find($id);
+        if (!$p) return null;
+        return [
+            'id'    => $id,
+            'sku'   => (string) $p['sku'],
+            'name'  => (string) $p['name'],
+            'base'  => self::baseFor((float) $p['cost']),
+            'stock' => null,   // el demo no controla inventario (siempre disponible)
+        ];
+    }
+
     /** Desglose de precio de un producto (para el panel/auditoría del margen). */
     public static function pricingFor(int $id): ?array
     {

@@ -13,8 +13,8 @@
 | 0 | Investigación (API Exel, campos, arquitectura del runner) | ✅ Hecho |
 | 1 | Catálogo: tablas `products` + `product_images` | ✅ Hecho |
 | 2 | Runner de Exel (catálogo → filtrar papelería → UPSERT masivo) | 🟨 Hecho y probado en local (falta API key para datos reales) |
-| 3 | Enriquecer con Icecat + carrito con validación en vivo | ⬜ Pendiente |
-| 4 | Conectar la tienda (endpoints + frontend + checkout) | 🟨 Endpoints de catálogo hechos; falta frontend + checkout |
+| 3 | Enriquecer con Icecat + carrito con validación | 🟨 Icecat hecho (Oscar); validación de stock en checkout hecha; falta re-check EN VIVO con API |
+| 4 | Conectar la tienda (endpoints + frontend + checkout) | 🟨 Endpoints, frontend (Oscar) y checkout listos; falta correr con datos reales |
 | 5 | Deploy (server, credenciales, agendar runner) | ⬜ Pendiente |
 
 ## Decisiones confirmadas (2026-07-15)
@@ -59,17 +59,20 @@ Probado en local con feeds de muestra: filtro, upsert, cálculo de precio, `prev
 del 3%, y visibilidad (ocultar/reactivar/descontinuar) — todo verificado.
 **Falta solo:** la `EXEL_API_KEY` real para correrlo contra los ~9,416 productos de Exel.
 
-## Fase 3 — Icecat + carrito ⬜ PENDIENTE
+## Fase 3 — Icecat + carrito 🟨 EN PROGRESO
 
-**Runner de Icecat** (segunda pasada, sobre los productos nuevos):
-- Busca el producto en Icecat; si está, baja **especificaciones** (`specs_json`) y **fotos** (máx 5 → `product_images`).
-- Si Icecat no lo tiene → usa las imágenes de Exel (`GET imagenes`) como respaldo.
-- Depende de: `ICECAT_API_KEY` en `.env`.
+**Runner de Icecat (hecho por Oscar):** `backend/api/lib/Icecat.php` (cliente),
+`ProductEnricher.php`, runner `backend/tools/icecat-enrich.php`, y **enriquecimiento perezoso**
+en `shop/product.php` (la 1a vista baja ficha+fotos de Icecat y las cachea en `specs_json`/`product_images`).
+Respaldo a imágenes de Exel si Icecat no tiene. Depende de `ICECAT_USERNAME`/`ICECAT_API_TOKEN`
+(gratis con `openicecat-live`).
 
-**Carrito con validación en vivo:**
-- Al agregar al carrito, revalidar contra Exel: ¿sigue con stock en almacén 4? ¿mismo precio?
-- Sin stock → avisar "Sorry, este se nos acabó" y sugerir alternativa.
-- Costo subió > 3% → avisar el cambio y actualizar precio.
+**Validación de stock en el checkout (hecha):** `shop/create.php` resuelve cada ítem con
+`ShopCatalog::resolve()` (catálogo real primero, demo de respaldo) y **bloquea el pedido** si un
+producto del catálogo real ya no tiene stock suficiente (409 + "se nos acabó").
+
+**Falta:** revalidación EN VIVO contra Exel al agregar al carrito (¿sigue con stock en almacén 4?
+¿mismo precio? regla del 3%) — necesita la API key de Exel (`POST productos por almacenes`).
 
 ## Fase 4 — Conectar la tienda 🟨 EN PROGRESO
 
@@ -79,11 +82,15 @@ precio con IVA 8% incluido (convención de `ShopCatalog`), sin exponer costo ni 
 - `GET shop/product.php?id=|sku=` — detalle (descripción, specs, imágenes). Los ocultos dan 404.
 - `GET shop/categories.php` — árbol de categorías/subcategorías con conteos (para el menú).
 
-**Pendiente (requiere coordinar con quien edita `tienda.html`):**
-- Ligar `tienda.html` / `assets/catalogo.js` a estos endpoints (hoy usa un array hardcodeado).
-- **Checkout:** que `shop/create.php` resuelva precio/stock desde la tabla `products`
-  (hoy usa el catálogo hardcodeado de `ShopCatalog`) y revalide stock al pagar.
-  El IVA por geo ya existe en `shop/geo.php`.
+**Frontend (hecho por Oscar):** `tienda.html` / `assets/catalogo.js` ligados a los endpoints,
+buscador con autocompletado, vista previa enriquecida en vivo con Icecat.
+
+**Checkout (hecho):** `shop/create.php` ahora resuelve precio/stock con `ShopCatalog::resolve()`
+(catálogo real `products` primero; demo hardcodeado de respaldo, así no se rompe si el catálogo
+está vacío). Valida stock y bloquea el pedido si ya no alcanza. El IVA por geo sigue en `shop/geo.php`.
+
+**Falta:** correrlo con el catálogo REAL (depende de la API key de Exel) y, opcionalmente, la
+revalidación en vivo al agregar al carrito (Fase 3).
 
 ## Fase 5 — Deploy ⬜ PENDIENTE
 
