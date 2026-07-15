@@ -96,7 +96,8 @@
 /* Foco de botones: cyan sobre superficies CLARAS; BLANCO sobre el degradado de la
    topbar/popbar (el cyan sería invisible sobre el tramo cian del gradiente). */
 #site .gostore:focus-visible,#site .add:focus-visible,#site .checkout:focus-visible,#site .maddbtn:focus-visible,#site .fadd:focus-visible,#site .btn-w:focus-visible,#site .navtienda:focus-visible{outline:3px solid var(--cyan,#00C6FF); outline-offset:3px}
-#site .tb-cuenta:focus-visible,#site .tb-fav:focus-visible,#site .tb-cart:focus-visible,#site .tb-wa:focus-visible,#site .volver-sitio:focus-visible,#site .pop:focus-visible{outline:3px solid #fff; outline-offset:2px}
+#site .tb-cuenta:focus-visible,#site .tb-fav:focus-visible,#site .tb-cart:focus-visible,#site .tb-wa:focus-visible,#site .pop:focus-visible{outline:3px solid #0a1a3a; outline-offset:2px}
+#site .volver-sitio:focus-visible{outline:3px solid #fff; outline-offset:2px}
 #site .view{display:none}
 #site .view.on{display:block}
 #site .wrap{max-width:1180px; margin:0 auto; padding:0 clamp(14px,4vw,40px)}
@@ -299,13 +300,17 @@ html.store-view .header-bar, html.store-view .site-header{display:none}
 #site .tb-logo{flex:none; display:flex; align-items:center; color:#fff; font-weight:800; font-size:1.18rem; letter-spacing:-.02em; text-decoration:none; white-space:nowrap}
 #site .tb-logo img{height:26px; width:auto; display:block; filter:brightness(0) invert(1)}
 #site .tb-actions{flex:none; display:flex; align-items:center; gap:10px}
-#site .tb-cuenta,#site .tb-fav,#site .tb-cart{flex:none; display:flex; align-items:center; gap:7px; padding:7px 14px; border-radius:99px; border:1.5px solid rgba(255,255,255,.72); background:rgba(9,14,34,.42); backdrop-filter:blur(8px); color:#fff; font-weight:600; font-size:.85rem; white-space:nowrap; text-decoration:none; cursor:pointer; position:relative; transition:transform .2s cubic-bezier(.34,1.56,.64,1), background .15s, border-color .15s, box-shadow .18s}
-#site .tb-cuenta:hover,#site .tb-fav:hover,#site .tb-cart:hover{background:rgba(9,14,34,.72); border-color:#fff; box-shadow:0 0 0 2px rgba(255,255,255,.5),0 10px 22px rgba(8,12,30,.42); transform:translateY(-2px) scale(1.04)}
-#site .tb-cuenta svg,#site .tb-fav svg,#site .tb-cart svg{width:17px; height:17px; flex:none}
-#site .tb-cart{font-weight:700; padding:6px 14px; background:rgba(9,14,34,.56)}
-#site .tb-wa{flex:none; display:grid; place-items:center; width:40px; height:40px; border-radius:99px; background:rgba(9,14,34,.42); border:1.5px solid rgba(255,255,255,.72); backdrop-filter:blur(8px); transition:transform .2s cubic-bezier(.34,1.56,.64,1), background .15s, border-color .15s, box-shadow .18s}
-#site .tb-wa svg{width:21px; height:21px; color:#3BEA74; transition:transform .2s}
-#site .tb-wa:hover{background:rgba(9,14,34,.72); border-color:#fff; box-shadow:0 0 0 2px rgba(255,255,255,.5),0 10px 22px rgba(8,12,30,.42); transform:translateY(-2px) scale(1.06)}
+/* Píldoras BLANCAS como el header del home (.btn--light): fondo blanco, texto tinta,
+   ícono azul de marca, misma animación de elevación al hover. */
+#site .tb-cuenta,#site .tb-fav,#site .tb-cart{flex:none; display:flex; align-items:center; gap:7px; padding:8px 15px; border-radius:99px; border:1.5px solid var(--line); background:#fff; color:#12141C; font-weight:600; font-size:.85rem; white-space:nowrap; text-decoration:none; cursor:pointer; position:relative; box-shadow:0 4px 14px rgba(8,12,30,.16); transition:transform .18s cubic-bezier(.34,1.56,.64,1), box-shadow .18s, border-color .15s}
+#site .tb-cuenta:hover,#site .tb-fav:hover,#site .tb-cart:hover{border-color:#d5deee; box-shadow:0 12px 28px rgba(8,12,30,.24); transform:translateY(-2px)}
+#site .tb-cuenta svg,#site .tb-fav svg,#site .tb-cart svg{width:17px; height:17px; flex:none; color:var(--blue)}
+#site .tb-cart{font-weight:700; padding:8px 15px}
+/* WhatsApp verde de marca (.btn--wa del home) */
+#site .tb-wa{flex:none; display:grid; place-items:center; width:40px; height:40px; border-radius:99px; background:linear-gradient(135deg,#25D366,#0FB84F); border:none; box-shadow:0 6px 16px rgba(37,211,102,.42); transition:transform .18s cubic-bezier(.34,1.56,.64,1), box-shadow .18s}
+#site .tb-wa svg{width:21px; height:21px; color:#fff; transition:transform .2s}
+#site .tb-wa:hover{box-shadow:0 12px 30px rgba(37,211,102,.55); transform:translateY(-2px) scale(1.06)}
+#site .tb-wa:hover svg{transform:scale(1.1)}
 /* Menú desplegable de cuenta en la tienda (mismo que el home; lo arma session-nav.js) */
 #site .tb-acctmenu{position:absolute; top:calc(100% + 10px); left:0; min-width:232px; background:#fff; border:1px solid var(--line,#e3e8f1); border-radius:14px; box-shadow:0 20px 54px rgba(12,20,50,.30); padding:6px; z-index:80}
 #site .tb-acctmenu[hidden]{display:none}
@@ -476,6 +481,23 @@ html.q-lock, html.q-lock body{overflow:hidden}
 /* Ficha: muestra las primeras y colapsa el resto */
 #site .specs.specs-collapsed li:nth-child(n+9){display:none}
 #site .specsmore{margin:2px 0 16px}
+#site .desc.clamp3{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+/* ── Vista previa de 3 banners: medio (siempre) + descripción (izq) + ficha (der) ── */
+#site #prodOv.show{gap:14px; align-items:center}
+#site .pvside{flex:0 0 300px; width:300px; max-height:88vh; overflow:auto; background:#fff; border-radius:18px; box-shadow:0 20px 60px rgba(18,20,28,.3); position:relative; animation:pvIn .22s ease}
+#site .pvside[hidden]{display:none}
+@keyframes pvIn{from{opacity:0; transform:translateY(10px)}to{opacity:1; transform:none}}
+#site .pvside .pvhead{position:sticky; top:0; z-index:2; background:#fff; padding:15px 16px 12px; border-bottom:1px solid var(--line); font-weight:800; font-size:1.02rem; display:flex; align-items:center; justify-content:space-between; gap:10px}
+#site .pvside .pvhead .x{position:static; width:32px; height:32px; flex:none}
+#site .pvside .pvbody{padding:14px 16px 18px}
+#site .pvside .pvdesc-full{color:#33404f; font-size:.92rem; line-height:1.55; margin:0 0 14px}
+#site .pvside .specs.specs-kv{margin:0}
+/* Responsivo: en pantallas que no dan para 3 columnas, se APILAN (los tres siguen visibles) */
+@media(max-width:1160px){
+  #site #prodOv.show{flex-direction:column; overflow-y:auto; padding:16px 12px; gap:12px}
+  #site .pvside{flex:0 0 auto; width:min(520px,94vw); max-width:min(520px,94vw); max-height:none}
+  #site #prodModal{max-height:none}
+}
 #site .mprice{display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:14px; flex-wrap:wrap}
 #site .mprice .p{font-size:1.5rem; font-weight:800; font-variant-numeric:tabular-nums}
 #site .mprice .p s{color:var(--muted); font-size:.6em; font-weight:600; margin-left:4px}
@@ -807,7 +829,7 @@ html.q-lock, html.q-lock body{overflow:hidden}
   <div class="mcta"><button class="gostore" data-go-store>Comprar ahora <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></button></div>
 
   <!-- Overlays DENTRO de #site para que les apliquen los estilos #site .ov/.modal (si no, salen sin estilo al fondo) -->
-  <div class="ov" id="prodOv"><div class="modal" id="prodModal"></div></div>
+  <div class="ov" id="prodOv"><aside class="pvside pvside--left" id="pvDesc" hidden><div class="pvhead"><span>Descripción</span><button class="x" data-pvclose="pvDesc" aria-label="Cerrar">×</button></div><div class="pvbody"></div></aside><div class="modal" id="prodModal"></div><aside class="pvside pvside--right" id="pvSpecs" hidden><div class="pvhead"><span>Ficha técnica</span><button class="x" data-pvclose="pvSpecs" aria-label="Cerrar">×</button></div><div class="pvbody"></div></aside></div>
   <div class="ov" id="wishOv"><div class="modal" id="wishModal"></div></div>
   <div class="ov" id="coOv"><div class="modal" id="coModal"></div></div>
   <div class="toast" id="toast"></div>
@@ -1021,20 +1043,31 @@ html.q-lock, html.q-lock body{overflow:hidden}
     return '<div class="pvgal"><img class="pvmain" id="pvMain" src="'+main+'" alt="" loading="eager" onerror="this.style.visibility=\'hidden\'">'+thumbs+'</div>';
   }
   function enrichPreview(dbId){
-    var box=$("prodModal"); if(!box)return; box.classList.add("pv-loading");
+    var mid=$("prodModal"); if(!mid)return; mid.classList.add("pv-loading");
     fetch("/backend/api/shop/product.php?id="+encodeURIComponent(dbId)).then(function(r){return r.json();}).then(function(j){
-      box.classList.remove("pv-loading");
+      mid.classList.remove("pv-loading");
       if(!j||!j.ok||!j.product)return; var d=j.product;
-      if(d.images&&d.images.length){ var mh=box.querySelector(".mh"); if(mh){ var heart=mh.querySelector("[data-wish]"); var x=mh.querySelector("[data-close]"); mh.classList.add("mh-photo"); mh.innerHTML=pvGallery(d.images)+(heart?heart.outerHTML:"")+(x?x.outerHTML:'<button class="x" data-close>×</button>'); } }
-      if(d.description){ var t=pvStripTags(d.description); var desc=box.querySelector(".desc"); if(desc&&t){ desc.textContent=t;
-        if(t.length>210 && !desc.parentNode.querySelector(".descmore")){ desc.classList.add("clamp"); var db=document.createElement("button"); db.className="descmore"; db.type="button"; db.setAttribute("data-descmore",""); db.textContent="Ver más"; desc.parentNode.insertBefore(db, desc.nextSibling); } } }
-      if(d.specs&&d.specs.length){ var ul=box.querySelector(".specs"); if(ul){ ul.classList.add("specs-kv");
-        ul.innerHTML=d.specs.map(function(s){var n=(s&&s.name)||"",v=(s&&s.value)||""; if(!n&&!v)return ""; return '<li><span class="sk">'+okEsc(n)+'</span><span class="sv">'+okEsc(v)+'</span></li>';}).join("");
-        if(d.specs.length>8 && !ul.parentNode.querySelector(".specsmore")){ ul.classList.add("specs-collapsed"); var sb=document.createElement("button"); sb.className="specsmore"; sb.type="button"; sb.setAttribute("data-specsmore",""); sb.textContent="Ver ficha completa ("+d.specs.length+")"; ul.parentNode.insertBefore(sb, ul.nextSibling); } } }
-    }).catch(function(){ box.classList.remove("pv-loading"); });
+      // imágenes reales (galería)
+      if(d.images&&d.images.length){ var mh=mid.querySelector(".mh"); if(mh){ var heart=mh.querySelector("[data-wish]"); var x=mh.querySelector("[data-close]"); mh.classList.add("mh-photo"); mh.innerHTML=pvGallery(d.images)+(heart?heart.outerHTML:"")+(x?x.outerHTML:'<button class="x" data-close>×</button>'); } }
+      // descripción: recorte en el MEDIO + completa en el panel IZQUIERDO
+      if(d.description){ var full=pvStripTags(d.description);
+        var desc=mid.querySelector(".desc"); if(desc){ desc.textContent=full; desc.classList.add("clamp3"); }
+        var md=mid.querySelector(".pvmore-desc"); if(md) md.hidden=false;
+        var lb=$("pvDesc").querySelector(".pvbody"); if(lb) lb.innerHTML='<p class="pvdesc-full">'+okEsc(full)+'</p>'+
+          '<div class="mfaq"><b>¿Incluye factura?</b><span>Sí, solicítala al pagar y te llega a tu correo.</span></div>'+
+          '<div class="mfaq"><b>¿Cómo lo recibo?</b><span>Recógelo gratis en OK.station (Otay) o recíbelo a domicilio en todo México.</span></div>';
+      }
+      // ficha: primeras en el MEDIO + completa en el panel DERECHO
+      if(d.specs&&d.specs.length){ var rows=d.specs.map(function(s){var n=(s&&s.name)||"",v=(s&&s.value)||""; return (n||v)?'<li><span class="sk">'+okEsc(n)+'</span><span class="sv">'+okEsc(v)+'</span></li>':"";});
+        var ul=mid.querySelector(".specs"); if(ul){ ul.classList.add("specs-kv"); ul.innerHTML=rows.slice(0,5).join(""); }
+        if(d.specs.length>5){ var ms=mid.querySelector(".pvmore-specs"); if(ms){ ms.hidden=false; var b=ms.querySelector(".specsmore"); if(b) b.textContent="Ver ficha técnica completa ("+d.specs.length+") →"; } }
+        var rb=$("pvSpecs").querySelector(".pvbody"); if(rb) rb.innerHTML='<ul class="specs specs-kv">'+rows.join("")+'</ul>';
+      }
+    }).catch(function(){ mid.classList.remove("pv-loading"); });
   }
   function openProduct(id){var p=prod(id); if(!p)return; var low=p.stock<=5;
     var save=p.old?Math.round(p.old-p.price):0;
+    $("pvDesc").hidden=true; $("pvSpecs").hidden=true;   // reinicia los paneles laterales
     $("prodModal").innerHTML='<div class="mh">'+pimg(p)+(p.old?'<span class="deal-badge">−'+Math.round((1-p.price/p.old)*100)+'%</span>':'')+heartBtn(p.id,'position:absolute;top:14px;right:56px;z-index:4;width:40px;height:40px;padding:0;')+'<button class="x" data-close>×</button></div>'+
       '<div class="mb">'+
       '<div class="mmeta">'+(p.brand?'<b>'+p.brand+'</b> · ':'')+(p.sku?'SKU '+p.sku+' · ':'')+catName(p.cat)+'</div>'+
@@ -1042,18 +1075,19 @@ html.q-lock, html.q-lock body{overflow:hidden}
       '<div class="mprice"><span class="p">'+mxn(p.price)+(p.old?' <s>'+mxn(p.old)+'</s>':'')+'</span>'+(save?'<span class="msave">Ahorras '+mxn(save)+'</span>':'')+'</div>'+
       '<div class="mstock" style="color:'+(low?"#c2410c":"#0E9F6E")+'">'+(low?"🔥 ¡Últimas "+p.stock+"!":p.stock+" disponibles")+' · Recoge en Otay o a domicilio</div>'+
       '<p class="desc">'+p.desc+'</p>'+
+      '<div class="pvmore-desc" hidden><button class="descmore" type="button" data-descmore>Ver descripción completa →</button></div>'+
       '<ul class="specs">'+p.specs.map(function(s){return '<li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>'+s+'</li>';}).join("")+'</ul>'+
-      '<div class="mfaq"><b>¿Incluye factura?</b><span>Sí, solicítala al pagar y te llega a tu correo.</span></div>'+
-      '<div class="mfaq"><b>¿Cómo lo recibo?</b><span>Recógelo gratis en OK.station (Otay) o recíbelo a domicilio en todo México. Te avisamos por WhatsApp cuando esté listo.</span></div>'+
+      '<div class="pvmore-specs" hidden><button class="specsmore" type="button" data-specsmore>Ver ficha técnica completa →</button></div>'+
       '<button class="maddbtn" data-madd="'+p.id+'">Agregar al carrito · '+mxn(p.price)+'</button>'+
       '</div>';
     show("prodOv"); okiEmit("vista-previa");
-    if(p.dbId) enrichPreview(p.dbId);   // trae imágenes+ficha de Icecat sin bloquear el banner
+    if(p.dbId) enrichPreview(p.dbId);
   }
   $("prodOv").addEventListener("click",function(e){
     var mg=e.target.closest("[data-mg]"); if(mg){var m=$("pvMain"); if(m&&mg.dataset.src){m.src=mg.dataset.src; m.style.visibility="visible";} [].forEach.call(document.querySelectorAll(".pvthumb"),function(t){t.classList.toggle("on",t===mg);}); return;}
-    var dm=e.target.closest("[data-descmore]"); if(dm){var dd=$("prodModal").querySelector(".desc"); if(dd){var cl=dd.classList.toggle("clamp"); dm.textContent=cl?"Ver más":"Ver menos";} return;}
-    var smb=e.target.closest("[data-specsmore]"); if(smb){var su=$("prodModal").querySelector(".specs"); if(su){var col=su.classList.toggle("specs-collapsed"); smb.textContent=col?("Ver ficha completa ("+su.children.length+")"):"Ver menos";} return;}
+    var dm=e.target.closest("[data-descmore]"); if(dm){ $("pvDesc").hidden=false; return; }         // descripción → banner IZQUIERDO
+    var smb=e.target.closest("[data-specsmore]"); if(smb){ $("pvSpecs").hidden=false; return; }        // ficha → banner DERECHO
+    var pc=e.target.closest("[data-pvclose]"); if(pc){ var pcel=$(pc.dataset.pvclose); if(pcel) pcel.hidden=true; return; }   // cerrar un banner lateral (el del medio permanece)
     if(e.target.id==="prodOv"||e.target.closest("[data-close]")){hide("prodOv"); okiEmit("vista-previa-cerrada"); maybeReopenWish(); return;} var w=e.target.closest("[data-wish]"); if(w){toggleWishlist(+w.dataset.wish); openProduct(+w.dataset.wish); return;} var a=e.target.closest("[data-madd]"); if(a){addToCart(+a.dataset.madd,1); hide("prodOv"); okiEmit("vista-previa-cerrada");}});
 
   function shopToken(){return localStorage.getItem("okstation.token")||"";}
