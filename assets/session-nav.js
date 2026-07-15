@@ -68,14 +68,18 @@
 
     tb.setAttribute("aria-haspopup", "true"); tb.setAttribute("aria-expanded", "false");
     function tbClose() { tbMenu.hidden = true; tb.setAttribute("aria-expanded", "false"); }
-    tb.addEventListener("click", function (e) {
-      e.preventDefault();
-      var willOpen = tbMenu.hidden; tbMenu.hidden = !willOpen; tb.setAttribute("aria-expanded", String(willOpen));
-    });
+    function tbToggle(e) { if (e) e.preventDefault(); var willOpen = tbMenu.hidden; tbMenu.hidden = !willOpen; tb.setAttribute("aria-expanded", String(willOpen)); }
+    tb.addEventListener("click", tbToggle);
+    /* .tb-cuenta es un <a role=button>: Enter dispara click solo; la barra ESPACIADORA no. */
+    tb.addEventListener("keydown", function (e) { if (e.key === " " || e.key === "Spacebar") tbToggle(e); });
     document.addEventListener("click", function (e) {
       if (!tbMenu.hidden && !tbMenu.contains(e.target) && !tb.contains(e.target)) tbClose();
     });
-    document.addEventListener("keydown", function (e) { if (e.key === "Escape") tbClose(); });
+    /* Escape en CAPTURA: si el menú está abierto, ciérralo y NO dejes que el Escape
+       global de la tienda cierre además el carrito/drawers. */
+    document.addEventListener("keydown", function (e) {
+      if (e.key === "Escape" && !tbMenu.hidden) { e.stopPropagation(); tbClose(); }
+    }, true);
     tbMenu.querySelector(".tb-acctlogout").addEventListener("click", function () {
       try { localStorage.removeItem("okstation.token"); localStorage.removeItem("okstation.user"); } catch (e) {}
       window.location.reload();

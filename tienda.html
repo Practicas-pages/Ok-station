@@ -316,6 +316,8 @@ html.store-view .header-bar, html.store-view .site-header{display:none}
 #site .tb-acctmenu a:hover,#site .tb-acctmenu button:hover{background:var(--paper,#f5f8fd)}
 #site .tb-acctadmin{color:var(--blue,#066CFF); font-weight:700}
 #site .tb-acctlogout{color:#e11d48; font-weight:600}
+/* En móvil el chip queda a la derecha: ancla el menú a la derecha para que no se corte. */
+@media(max-width:640px){ #site .tb-acctmenu{left:auto; right:0} }
 #site .tb-wa:hover svg{transform:scale(1.12)}
 #site .tb-cart .ct,#site .tb-fav .ct{position:absolute; top:-6px; right:-4px; background:var(--amber); color:#fff; border-radius:99px; font-size:.66rem; font-weight:800; min-width:20px; height:20px; display:grid; place-items:center; padding:0 5px; border:2px solid var(--blue)}
 #site .volver-sitio{flex:none; display:inline-flex; align-items:center; gap:6px; color:#fff; font-weight:700; font-size:.82rem; text-decoration:none; padding:6px 12px; margin-right:6px; border-radius:99px; background:rgba(9,14,34,.42); border:1.5px solid rgba(255,255,255,.6); backdrop-filter:blur(8px); transition:background .15s}
@@ -1174,7 +1176,7 @@ html.q-lock, html.q-lock body{overflow:hidden}
   [80, 300, 800].forEach(function(ms){ setTimeout(measure, ms); });
 })();</script>
 <!-- Sesión en el header (muestra tu cuenta si iniciaste sesión) + navbar inteligente -->
-<script src="assets/session-nav.js?v=20260715b" defer></script>
+<script src="assets/session-nav.js?v=20260715c" defer></script>
 <!-- OKi, el astronauta ayudante. Conectado a la tienda vía el contrato window.OKtienda (ver OKi-tienda-integracion.md). -->
 <script src="assets/oki.js?v=20260714d" defer></script>
 </body>
