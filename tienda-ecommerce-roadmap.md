@@ -14,7 +14,7 @@
 | 1 | Catálogo: tablas `products` + `product_images` | ✅ Hecho |
 | 2 | Runner de Exel (catálogo → filtrar papelería → UPSERT masivo) | 🟨 Hecho y probado en local (falta API key para datos reales) |
 | 3 | Enriquecer con Icecat + carrito con validación en vivo | ⬜ Pendiente |
-| 4 | Conectar la tienda (endpoints + frontend + checkout) | ⬜ Pendiente |
+| 4 | Conectar la tienda (endpoints + frontend + checkout) | 🟨 Endpoints de catálogo hechos; falta frontend + checkout |
 | 5 | Deploy (server, credenciales, agendar runner) | ⬜ Pendiente |
 
 ## Decisiones confirmadas (2026-07-15)
@@ -71,11 +71,19 @@ del 3%, y visibilidad (ocultar/reactivar/descontinuar) — todo verificado.
 - Sin stock → avisar "Sorry, este se nos acabó" y sugerir alternativa.
 - Costo subió > 3% → avisar el cambio y actualizar precio.
 
-## Fase 4 — Conectar la tienda ⬜ PENDIENTE
+## Fase 4 — Conectar la tienda 🟨 EN PROGRESO
 
-- **Endpoints** de catálogo en `backend/api/shop/`: listar, detalle, buscador (leen de `products`).
-- Ligar `tienda.html` a esos endpoints (hoy no lee de `products` todavía — revisar cómo está armada).
-- **Checkout:** revalidar stock/precio al pagar (el IVA por geo ya existe en `shop/geo.php`).
+**Endpoints de catálogo (hechos y probados en local):** leen de `products`, solo activos,
+precio con IVA 8% incluido (convención de `ShopCatalog`), sin exponer costo ni datos internos.
+- `GET shop/products.php` — lista/búsqueda/filtro (params: `q`, `category`, `brand`, `sort`, `page`, `per_page`) con paginación.
+- `GET shop/product.php?id=|sku=` — detalle (descripción, specs, imágenes). Los ocultos dan 404.
+- `GET shop/categories.php` — árbol de categorías/subcategorías con conteos (para el menú).
+
+**Pendiente (requiere coordinar con quien edita `tienda.html`):**
+- Ligar `tienda.html` / `assets/catalogo.js` a estos endpoints (hoy usa un array hardcodeado).
+- **Checkout:** que `shop/create.php` resuelva precio/stock desde la tabla `products`
+  (hoy usa el catálogo hardcodeado de `ShopCatalog`) y revalide stock al pagar.
+  El IVA por geo ya existe en `shop/geo.php`.
 
 ## Fase 5 — Deploy ⬜ PENDIENTE
 
