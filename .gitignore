@@ -70,3 +70,6 @@ dump_*.sql
 .image-slots.state.json
 .thumbnail
 # serve.ps1 se mantiene a propósito (servidor de preview local).
+
+# Imágenes de productos descargadas por el runner (generadas, no se versionan)
+assets/img/products/
