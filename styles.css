@@ -510,13 +510,15 @@ h1, h2, h3, h4, h5, h6 {
 
 /* WhatsApp */
 .btn--wa {
-  background: var(--color-wa);
+  /* Verde WhatsApp más oscuro SOLO en el botón (texto blanco): #25D366 daba ~2:1
+     (falla AA); #0B8043 da ~5:1. El token --color-wa (íconos sobre blanco) no se toca. */
+  background: #0B8043;
   color: #fff;
   box-shadow: var(--shadow-wa);
 }
 
 .btn--wa:hover {
-  background: #1FBF5B;
+  background: #09703B;
   transform: translateY(-2px);
   box-shadow: 0 12px 36px rgba(37,211,102,0.50);
 }

@@ -75,7 +75,12 @@
      ============================================================ */
   function enforceGuard() {
     if (!document.body.hasAttribute("data-requires-auth")) return true;
-    if (!getToken()) { window.location.href = "cuenta.html"; return false; }
+    if (!getToken()) {
+      /* Recuerda a dónde iba el usuario para volver AHÍ tras iniciar sesión,
+         en vez de dejarlo siempre en el perfil (navegación lógica entre páginas). */
+      try { sessionStorage.setItem("oks_intended", location.pathname + location.search + location.hash); } catch (e) {}
+      window.location.href = "cuenta.html"; return false;
+    }
     return true;
   }
 
@@ -133,8 +138,13 @@
      Solo acepta una URL del MISMO sitio y que no sea una página de auth (anti open-redirect
      y anti bucle). Si no hay destino guardado, usa el fallback (perfil.html). */
   function afterAuthDest(fallback) {
-    var next = null;
-    try { next = sessionStorage.getItem("oks_intended"); sessionStorage.removeItem("oks_intended"); } catch (e) {}
+    /* Prioridad: ?next de la URL (contexto explícito, p. ej. cuenta.html?next=tienda.html#store)
+       y si no, el destino guardado 'oks_intended'. 'oks_intended' se limpia SIEMPRE para que no
+       quede colgado y desvíe un login posterior. */
+    var qnext = null, snext = null;
+    try { qnext = new URLSearchParams(location.search).get("next"); } catch (e) {}
+    try { snext = sessionStorage.getItem("oks_intended"); sessionStorage.removeItem("oks_intended"); } catch (e) {}
+    var next = qnext || snext;
     if (!next) return fallback;
     try {
       var u = new URL(next, location.href);

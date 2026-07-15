@@ -45,6 +45,16 @@
     '</div>';
   acct.appendChild(wrap);
 
+  /* Topbar de la TIENDA (tienda.html): el botón .tb-cuenta no vive dentro de #acct,
+     así que lo alineamos aquí con la sesión → apunta al perfil y muestra el nombre.
+     (En otras páginas no existe .tb-cuenta y esto es un no-op.) */
+  var tb = document.querySelector(".tb-cuenta");
+  if (tb) {
+    tb.setAttribute("href", "perfil.html");
+    var tbLbl = tb.querySelector("span");
+    if (tbLbl) tbLbl.textContent = first;
+  }
+
   var btn = wrap.querySelector("#acct-btn");
   var menu = wrap.querySelector("#acct-menu");
   function close() { menu.hidden = true; btn.setAttribute("aria-expanded", "false"); }
