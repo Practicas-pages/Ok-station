@@ -45,14 +45,41 @@
     '</div>';
   acct.appendChild(wrap);
 
-  /* Topbar de la TIENDA (tienda.html): el botón .tb-cuenta no vive dentro de #acct,
-     así que lo alineamos aquí con la sesión → apunta al perfil y muestra el nombre.
-     (En otras páginas no existe .tb-cuenta y esto es un no-op.) */
+  /* Topbar de la TIENDA (tienda.html): el botón .tb-cuenta no vive dentro de #acct.
+     Le damos el MISMO menú desplegable que el home (todo el sitio conectado), anclado
+     al chip. (En otras páginas no existe .tb-cuenta y esto es un no-op.) */
   var tb = document.querySelector(".tb-cuenta");
-  if (tb) {
-    tb.setAttribute("href", "perfil.html");
-    var tbLbl = tb.querySelector("span");
-    if (tbLbl) tbLbl.textContent = first;
+  if (tb && tb.parentNode && !tb.parentNode.querySelector(".tb-acctmenu")) {
+    tb.setAttribute("href", "perfil.html");           // respaldo si el JS fallara
+    var tbLbl = tb.querySelector("span"); if (tbLbl) tbLbl.textContent = first;
+
+    var host = tb.parentNode;                          // .tb-actions
+    host.style.position = "relative";
+    var tbMenu = document.createElement("div");
+    tbMenu.className = "tb-acctmenu"; tbMenu.hidden = true; tbMenu.setAttribute("role", "menu");
+    tbMenu.innerHTML =
+      '<div class="tb-accthead"><b>' + esc(u.full_name || "") + '</b><span>' + esc(u.email || "") + '</span></div>' +
+      '<a role="menuitem" href="perfil.html">Mi perfil</a>' +
+      '<a role="menuitem" href="perfil.html#pedidos">Mis pedidos</a>' +
+      '<a role="menuitem" href="perfil.html#citas">Mis citas</a>' +
+      (isStaff ? '<a role="menuitem" href="admin.html" class="tb-acctadmin">' + panelLabel + '</a>' : '') +
+      '<button role="menuitem" type="button" class="tb-acctlogout">Cerrar sesión</button>';
+    host.appendChild(tbMenu);
+
+    tb.setAttribute("aria-haspopup", "true"); tb.setAttribute("aria-expanded", "false");
+    function tbClose() { tbMenu.hidden = true; tb.setAttribute("aria-expanded", "false"); }
+    tb.addEventListener("click", function (e) {
+      e.preventDefault();
+      var willOpen = tbMenu.hidden; tbMenu.hidden = !willOpen; tb.setAttribute("aria-expanded", String(willOpen));
+    });
+    document.addEventListener("click", function (e) {
+      if (!tbMenu.hidden && !tbMenu.contains(e.target) && !tb.contains(e.target)) tbClose();
+    });
+    document.addEventListener("keydown", function (e) { if (e.key === "Escape") tbClose(); });
+    tbMenu.querySelector(".tb-acctlogout").addEventListener("click", function () {
+      try { localStorage.removeItem("okstation.token"); localStorage.removeItem("okstation.user"); } catch (e) {}
+      window.location.reload();
+    });
   }
 
   var btn = wrap.querySelector("#acct-btn");
