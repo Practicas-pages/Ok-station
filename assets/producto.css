@@ -22,8 +22,12 @@
 /* ── Galería ── */
 .pdp__gallery { position: relative; background: #fff; border: 1px solid var(--border-light, #e6eaf2); border-radius: var(--radius-lg, 18px); padding: clamp(14px, 2vw, 22px); box-shadow: 0 12px 40px rgba(4, 12, 40, .08); }
 .pdp__off { position: absolute; top: 14px; left: 14px; z-index: 3; background: linear-gradient(100deg, #FF8A00, #FF5E3A); color: #fff; font-size: .78rem; font-weight: 800; padding: 5px 10px; border-radius: 9px; box-shadow: 0 6px 16px rgba(255, 94, 58, .38); }
-.pdp__stage { position: relative; overflow: hidden; border-radius: var(--radius-md, 14px); background: linear-gradient(135deg, #f4f8ff, #eaf2fb); display: grid; place-items: center; aspect-ratio: 1 / 1; }
-.pdp__stage img { width: 100%; height: 100%; object-fit: contain; padding: clamp(14px, 3vw, 32px); box-sizing: border-box; display: block; transition: transform .25s ease; }
+.pdp__stage { position: relative; overflow: hidden; border-radius: var(--radius-md, 14px); background: linear-gradient(135deg, #f4f8ff, #eaf2fb); aspect-ratio: 1 / 1; }
+/* La imagen va ABSOLUTA contra su caja. Con `height:100%` a secas NO funciona: dentro de
+   un grid/flex de fila automática, el 100% no tiene una altura definida contra la cual
+   resolverse, el navegador lo trata como `auto` y la foto sale a su tamaño natural. Aquí
+   eso hacía que la imagen (742px) reventara su marco (521px) y saliera recortada. */
+.pdp__stage img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; padding: clamp(14px, 3vw, 32px); box-sizing: border-box; display: block; transition: transform .25s ease; }
 .pdp__stage--empty { font-size: 4rem; }
 /* Zoom tipo tienda grande: SOLO con mouse (con el dedo estorba y bloquea el scroll). */
 @media (hover: hover) and (pointer: fine) {
@@ -119,8 +123,11 @@
 .pdp__rel { position: relative; background: #fff; border: 1px solid var(--border-light, #e6eaf2); border-radius: var(--radius-md, 14px); padding: 12px; text-decoration: none; display: flex; flex-direction: column; gap: 8px; transition: transform .15s, border-color .15s, box-shadow .15s; }
 .pdp__rel:hover { transform: translateY(-3px); border-color: #c9d8f2; box-shadow: 0 14px 30px rgba(4, 12, 40, .12); }
 .pdp__rel-off { position: absolute; top: 9px; left: 9px; z-index: 2; background: linear-gradient(100deg, #FF8A00, #FF5E3A); color: #fff; font-size: .64rem; font-weight: 800; padding: 3px 7px; border-radius: 8px; }
-.pdp__rel-img { height: 104px; border-radius: 10px; background: linear-gradient(135deg, #f4f8ff, #eaf2fb); display: grid; place-items: center; font-size: 2rem; }
-.pdp__rel-img img { width: 100%; height: 100%; object-fit: contain; padding: 9px; box-sizing: border-box; }
+/* Mismo caso que .pdp__stage: la imagen va absoluta contra la caja, porque `height:100%`
+   dentro de un grid de fila automática se resuelve como `auto` y la foto salía a tamaño
+   natural (150px en una caja de 104px), desbordándose y quedando DEBAJO del nombre. */
+.pdp__rel-img { position: relative; height: 104px; border-radius: 10px; background: linear-gradient(135deg, #f4f8ff, #eaf2fb); display: grid; place-items: center; font-size: 2rem; overflow: hidden; }
+.pdp__rel-img img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; padding: 9px; box-sizing: border-box; }
 .pdp__rel h3 { font-size: .85rem; line-height: 1.32; margin: 0; color: var(--text-primary, #12141C); font-weight: 600; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .pdp__rel-price { font-weight: 800; font-size: .95rem; color: var(--text-primary, #12141C); font-variant-numeric: tabular-nums; margin-top: auto; }
 .pdp__rel-price s { font-weight: 500; font-size: .78rem; color: var(--text-muted, #6B7280); }

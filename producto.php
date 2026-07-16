@@ -171,8 +171,8 @@ $ldCrumbs = [
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" media="print" onload="this.media='all'">
   <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap"></noscript>
   <link rel="stylesheet" href="/styles.css?v=20260716a">
-  <link rel="stylesheet" href="/assets/producto.css?v=20260716a">
-  <link rel="stylesheet" href="/assets/oki.css?v=20260716c">
+  <link rel="stylesheet" href="/assets/producto.css?v=20260716b">
+  <link rel="stylesheet" href="/assets/oki.css?v=20260716d">
   <?php if ($images): ?><link rel="preload" as="image" href="<?= e($images[0]) ?>" fetchpriority="high"><?php endif; ?>
 
   <script type="application/ld+json"><?= json_encode($ld, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?></script>
@@ -385,10 +385,10 @@ $ldCrumbs = [
       'url'   => $canonPath,
   ], JSON_UNESCAPED_UNICODE) ?>;
 </script>
-<script src="/assets/producto.js?v=20260716a" defer></script>
+<script src="/assets/producto.js?v=20260716b" defer></script>
 <script src="/assets/session-nav.js?v=20260716a" defer></script>
 <script src="/assets/catalogo.js?v=20260716a" defer></script>
-<script src="/assets/oki.js?v=20260716c" defer></script>
+<script src="/assets/oki.js?v=20260716e" defer></script>
 <script>(function(){var t=document.querySelector(".nav__toggle"),n=document.getElementById("nav-menu");if(t&&n){t.addEventListener("click",function(){var o=n.classList.toggle("is-open");t.setAttribute("aria-expanded",o?"true":"false");});}})();</script>
 </body>
 </html>

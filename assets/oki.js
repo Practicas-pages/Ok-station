@@ -849,16 +849,31 @@
      Para que otras páginas puedan invocar a OKi sin conocer sus tripas. Hoy la usa la
      ficha de producto (assets/producto.js) para preguntarle sobre el producto que estás
      viendo. Se expone SOLO lo necesario; el resto sigue encerrado en este módulo. */
+  /* Abrir en el SIGUIENTE tick, no ya mismo. Casi siempre esto se llama desde un clic
+     (un botón de la página), y ese clic sigue burbujeando hasta el `document`, donde
+     OKi cierra "al hacer clic fuera": el panel se cerraba solo en el mismo clic que lo
+     abría. Al diferir, el clic termina primero y el panel se queda abierto. */
+  function okiAbrirDiferido(luego) {
+    setTimeout(function () {
+      open();
+      // Un respiro para que el panel termine de abrir antes de escribir en él.
+      if (luego) setTimeout(luego, 260);
+    }, 0);
+  }
   window.OKi = {
-    abrir: function () { open(); },
+    abrir: function () { okiAbrirDiferido(); },
     cerrar: function () { close(); },
     /** Abre el panel y manda la pregunta como si la hubieras escrito tú. */
     preguntar: function (texto) {
       texto = String(texto == null ? "" : texto).trim();
-      if (!texto) { open(); return; }
-      open();
-      // Un respiro para que el panel termine de abrir antes de escribir.
-      setTimeout(function () { send(texto); }, 260);
+      okiAbrirDiferido(texto ? function () { send(texto); } : null);
+    },
+    /** Abre el panel y OKi DICE algo, sin preguntarle nada al cerebro. Sirve para
+     *  invitar a preguntar (lo usa el botón de la ficha de producto): la pregunta la
+     *  pone la persona, no nosotros. */
+    decir: function (texto) {
+      texto = String(texto == null ? "" : texto).trim();
+      okiAbrirDiferido(texto ? function () { okiSay(texto); } : null);
     }
   };
 

@@ -122,20 +122,30 @@
     });
   }
 
-  /* ── Leer más / ficha completa ── */
-  function toggleMore(btnId, boxId, abierta, cerrada, cls) {
-    var b = $(btnId), box = $(boxId);
-    if (!b || !box) return;
-    box.classList.add(cls === "is-open" ? "" : cls);   // la descripción arranca recortada
+  /* ── Leer más ── (la descripción arranca recortada por líneas) */
+  (function descMore() {
+    var b = $("pdpDescMore"), box = $("pdpDesc");
+    if (!box) return;
+    box.classList.add("is-clamp");
+    if (!b) return;                       // descripción corta: no hace falta el botón
     b.addEventListener("click", function () {
-      var open = cls === "is-open" ? !box.classList.contains("is-open") : box.classList.contains(cls);
-      if (cls === "is-open") box.classList.toggle("is-open", open); else box.classList.toggle(cls, !open);
-      b.textContent = open ? abierta : cerrada;
-      b.setAttribute("aria-expanded", String(open));
+      var recortada = box.classList.toggle("is-clamp");
+      b.textContent = recortada ? "Leer más" : "Leer menos";
+      b.setAttribute("aria-expanded", String(!recortada));
     });
-  }
-  toggleMore("pdpDescMore", "pdpDesc", "Leer menos", "Leer más", "is-clamp");
-  toggleMore("pdpSpecsMore", "pdpSpecs", "Ver menos", "Ver ficha completa", "is-open");
+  })();
+
+  /* ── Ficha completa ── (las filas extra se ocultan con .pdp__specs:not(.is-open)) */
+  (function specsMore() {
+    var b = $("pdpSpecsMore"), box = $("pdpSpecs");
+    if (!b || !box) return;               // ficha corta: se ve entera, sin botón
+    var total = box.querySelectorAll(".pdp__spec").length;
+    b.addEventListener("click", function () {
+      var abierta = box.classList.toggle("is-open");
+      b.textContent = abierta ? "Ver menos" : "Ver ficha completa (" + total + ")";
+      b.setAttribute("aria-expanded", String(abierta));
+    });
+  })();
 
   /* ── Barra de compra pegada abajo (móvil): sale cuando el botón de arriba se pierde ── */
   (function stickyBar() {
@@ -147,16 +157,21 @@
   })();
 
   /* ── Puente con OKi ──
-     OKi ya está en la página; aquí solo se le dice DE QUÉ producto se pregunta.
-     `okiPreguntar` lo expone assets/oki.js; si aún no cargó, se reintenta un momento. */
+     Al tocar el botón, OKi ASOMA y te invita a preguntar lo que quieras de ESTE producto
+     (no le manda una pregunta inventada: la pregunta la pones tú). OKi ya está en la
+     página; aquí solo se le dice de qué producto se trata.
+     Si oki.js aún no terminó de cargar (va con defer), se reintenta un momento antes de
+     mandar a WhatsApp: quedarse sin respuesta sería peor. */
   var okiBtn = $("pdpOki");
   if (okiBtn) okiBtn.addEventListener("click", function () {
-    var pregunta = "Cuéntame de este producto: " + P.name;
-    var t = 0;
+    var invita = "¡Claro! Pregúntame lo que quieras sobre " + P.name + " 🚀\n" +
+      "Por ejemplo: para qué sirve, con qué es compatible, cuánto rinde o cómo se usa. Te leo 😊";
+    var intentos = 0;
     (function intenta() {
-      if (window.OKi && typeof window.OKi.preguntar === "function") { window.OKi.preguntar(pregunta); return; }
-      if (++t < 20) return setTimeout(intenta, 100);
-      window.location.href = "https://wa.me/526647194117?text=" + encodeURIComponent("Hola, tengo una duda sobre " + P.name);
+      if (window.OKi && typeof window.OKi.decir === "function") { window.OKi.decir(invita); return; }
+      if (++intentos < 25) return setTimeout(intenta, 100);
+      window.location.href = "https://wa.me/526647194117?text=" +
+        encodeURIComponent("Hola, tengo una duda sobre " + P.name);
     })();
   });
 
