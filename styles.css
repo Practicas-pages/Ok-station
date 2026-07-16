@@ -3296,15 +3296,20 @@ a.info-card:hover { border-color: var(--brand-blue); }
   transform: translateY(0);
 }
 
-/* El botón sube 3px al pasar el cursor: si el puntero estaba en el borde, se salía
-   de debajo, se perdía el :hover, bajaba, y parpadeaba sin parar. Este colchón
-   invisible viaja con el botón y mantiene el puntero "dentro". */
+/* El botón sube 3px al pasar el cursor: si el puntero estaba en el borde, se salía de
+   debajo, se perdía el :hover, bajaba, y parpadeaba sin parar. Un colchón invisible no
+   basta (se mueve con el botón y el parpadeo solo se recorre a su orilla): el colchón
+   lleva la MISMA animación AL REVÉS, así la zona sensible se queda clavada en su sitio
+   mientras el botón sube. Mismo arreglo que #site .totop en tienda.html. */
 .scroll-top::after {
   content: "";
   position: absolute;
   inset: -6px;
   border-radius: inherit;
+  transition: transform .22s cubic-bezier(.34,1.56,.64,1);
 }
+
+.scroll-top.is-visible:hover::after { transform: translateY(3px); }
 
 .scroll-top.is-visible:hover {
   background: var(--brand-blue);

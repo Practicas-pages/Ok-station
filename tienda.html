@@ -354,23 +354,44 @@ html.store-view .header-bar, html.store-view .site-header{display:none}
 #site .tb-fav{width:40px; height:40px; padding:0; justify-content:center; gap:0}
 #site .tb-fav svg{width:19px; height:19px; flex:none; color:var(--blue)}
 #site .tb-fav .tb-name{display:none}
+/* ── Activo = SU PANEL ESTÁ ABIERTO (misma idea que la categoría seleccionada) ──
+   Se pinta azul mientras el panel está abierto, no "porque lleves cosas": para eso ya
+   está el globito con el número. Si se quedaran azules de forma fija, la barra tendría
+   dos botones gritando a la vez y se perdería la jerarquía (el carrito es EL principal).
+   Al ser un estado pasajero, en móvil tampoco estorba. */
+#site .tb-fav.on,#site .tb-cart.on{background:var(--blue); border-color:#fff; color:#fff}
+#site .tb-fav.on svg,#site .tb-cart.on svg{color:#fff}
+#site .tb-fav.on:hover,#site .tb-cart.on:hover{background:var(--blue-h,#0558CC)}
+#site .tb-cart.on{box-shadow:0 8px 22px rgba(6,108,255,.45)}
+#site .tb-cart.on:hover{box-shadow:0 16px 34px rgba(6,108,255,.5)}
+#site .tb-fav.on{box-shadow:0 6px 18px rgba(6,108,255,.4)}
+#site .tb-cart.on .ct,#site .tb-fav.on .ct{border-color:#fff}
 /* Carrito: el único macizo. Más aire, monto en negritas y sombra fuerte. */
 #site .tb-cart{font-weight:800; padding:9px 17px; font-size:.9rem; box-shadow:0 8px 22px rgba(8,12,30,.28)}
 #site .tb-cart:hover{box-shadow:0 16px 34px rgba(8,12,30,.34)}
 #site .tb-cart svg{width:19px; height:19px}
-/* ══ Parpadeo del hover en los bordes (arreglo) ══
-   Estos botones SUBEN 2-3px al pasar el cursor. Si el puntero estaba justo en el
-   borde, el botón se quitaba de debajo → se perdía el :hover → bajaba → volvía a
-   quedar debajo → :hover otra vez… y parpadeaba sin parar mientras no movieras el
-   mouse. El colchón invisible de abajo viaja CON el botón, así el puntero nunca
-   queda "fuera" a media animación. Es más chico que la separación entre botones,
-   para que ninguno robe el clic del de junto. */
-#site .tb-cuenta::after,#site .tb-fav::after,#site .tb-cart::after,#site .tb-wa::after{
-  content:""; position:absolute; inset:-5px; border-radius:inherit}
+/* ══ Parpadeo del hover en los bordes ══
+   Estos botones SUBEN al pasar el cursor. Si el puntero está en el borde, el botón se
+   quita de debajo → se pierde el :hover → baja → vuelve a quedar debajo → :hover otra
+   vez… y parpadea sin parar sin que muevas el mouse.
+   Un colchón invisible NO basta: la zona sensible se mueve junto con el botón, así que
+   el parpadeo solo se recorre a la orilla del colchón. La clave es que la zona sensible
+   NO SE MUEVA: el colchón lleva la MISMA animación pero AL REVÉS, así se queda clavado
+   en su sitio mientras el botón sube. El colchón es más chico que la separación entre
+   botones, para que ninguno le robe el clic al de junto. */
+#site .tb-cuenta::after,#site .tb-fav::after,#site .tb-cart::after,#site .tb-wa::after,
+#site .pop::after,#site .totop::after{
+  content:""; position:absolute; inset:-5px; border-radius:inherit;
+  transition:transform .18s cubic-bezier(.34,1.56,.64,1)}
 #site .tb-wa{position:relative}
 #site .pop{position:relative}
-#site .pop::after{content:""; position:absolute; inset:-4px; border-radius:inherit}
-#site .totop::after{content:""; position:absolute; inset:-6px; border-radius:inherit}
+#site .pop::after{inset:-4px}
+/* Contrapeso: el botón sube 2px, el colchón baja 2px → la zona sensible no se mueve.
+   Misma curva y duración que el botón, para que se cancelen en TODO el recorrido. */
+#site .tb-cuenta:hover::after,#site .tb-fav:hover::after,#site .tb-cart:hover::after,#site .tb-wa:hover::after,
+#site .pop:not(.on):not(.hot):hover::after{transform:translateY(2px)}
+#site .totop::after{inset:-6px; transition:transform .22s cubic-bezier(.34,1.56,.64,1)}
+#site .totop.show:hover::after{transform:translateY(3px)}
 /* WhatsApp verde de marca (.btn--wa del home) */
 #site .tb-wa{flex:none; display:grid; place-items:center; width:40px; height:40px; border-radius:99px; background:linear-gradient(135deg,#25D366,#0FB84F); border:none; box-shadow:0 6px 16px rgba(37,211,102,.42); transition:transform .18s cubic-bezier(.34,1.56,.64,1), box-shadow .18s}
 #site .tb-wa svg{width:21px; height:21px; color:#fff; transition:transform .2s}
@@ -1260,6 +1281,24 @@ html.q-lock, html.q-lock body{overflow:hidden}
     window.addEventListener("scroll", sync, {passive:true});
     window.addEventListener("hashchange", sync);
     window.__toTopSync=sync;
+    sync();
+  })();
+
+  /* Favoritos y Carrito se pintan de azul mientras SU panel está abierto, igual que la
+     píldora de la categoría seleccionada. Se vigila la clase de #app y del banner de
+     deseados en vez de sincronizarlo a mano: el carrito se abre y se cierra desde
+     muchos lados (botón, ×, scrim, Escape, OKi) y siempre se olvidaría uno. */
+  (function(){
+    var app=$("app"), fav=$("wishBtn"), cart=$("cartBtn"), wish=$("wishOv");
+    if(!app||!fav||!cart||!wish) return;
+    function sync(){
+      cart.classList.toggle("on", app.classList.contains("cart-open"));
+      fav.classList.toggle("on", wish.classList.contains("show"));
+    }
+    if(window.MutationObserver){
+      new MutationObserver(sync).observe(app,{attributes:true, attributeFilter:["class"]});
+      new MutationObserver(sync).observe(wish,{attributes:true, attributeFilter:["class"]});
+    }
     sync();
   })();
 
