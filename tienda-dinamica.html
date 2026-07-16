@@ -86,8 +86,21 @@
   transition:background .14s,transform .1s}
 .td-add:hover{background:var(--brand-blue-hover,#0558CC)}
 .td-add:active{transform:scale(.96)}
-.td-add.in{background:var(--brand-purple,#9C1DFF)}
-.td-add[disabled]{background:#c9ced9;cursor:not-allowed}
+.td-add[disabled]{cursor:default}
+/* Confirmación de "agregado": el botón late, confirma y vuelve SOLO a "+ Agregar".
+   Van DESPUÉS de [disabled] a propósito: misma especificidad, gana el último. */
+.td-add.done{background:var(--brand-purple,#9C1DFF);animation:tdPop .42s cubic-bezier(.34,1.56,.64,1)}
+.td-add.max{background:var(--brand-orange,#FF7C19)}
+@keyframes tdPop{0%{transform:scale(1)}40%{transform:scale(1.14)}100%{transform:scale(1)}}
+.td-add .ck{display:inline-block;animation:tdCk .34s cubic-bezier(.34,1.56,.64,1) .04s both}
+@keyframes tdCk{from{transform:scale(0) rotate(-30deg);opacity:0}to{transform:scale(1) rotate(0);opacity:1}}
+/* Destello del ítem recién agregado, para ver dónde cayó */
+.td-ci.flash{animation:tdFlash .8s ease}
+@keyframes tdFlash{0%{background:rgba(255,255,255,.5)}100%{background:rgba(255,255,255,.14)}}
+/* Respeta a quien pide menos movimiento (mareos, vestibular) */
+@media(prefers-reduced-motion:reduce){
+  .td-add.done,.td-add .ck,.td-ci.flash{animation:none}
+}
 
 .td-state{padding:26px 18px;text-align:center;color:var(--muted,#667085);font-size:.9rem}
 .td-sentinel{height:1px}
@@ -257,32 +270,48 @@
     row.className = "td-row";
     var img = p.image ? '<div class="td-img" style="background-image:url('+encodeURI(p.image)+')"></div>' : '<div class="td-img"></div>';
     var old = p.old ? '<span class="old">'+mxn(p.old)+'</span>' : '';
-    var inPre = !!pre[p.id];
     row.innerHTML =
       img +
       '<div><div class="td-name">'+esc(p.name)+'</div><div class="td-meta">'+esc(p.brand||"")+(p.stock<=5?' · <b>solo '+p.stock+'</b>':'')+'</div></div>' +
       '<div class="td-price">'+old+mxn(p.price)+'</div>' +
-      '<div style="text-align:right"><button class="td-add'+(inPre?' in':'')+'" data-add="'+p.id+'">'+(inPre?'✓ Agregado':'+ Agregar')+'</button></div>';
+      '<div style="text-align:right"><button class="td-add" data-add="'+p.id+'">+ Agregar</button></div>';
     row.querySelector("[data-add]").addEventListener("click", function(){ addToPre(p); });
     $("tdRows").appendChild(row);
   }
 
   /* ═══ Pre-carrito ═══ */
+  var ADD_MS = 950;   // dura la confirmación antes de volver a "+ Agregar"
+
   function addToPre(p){
+    var b = document.querySelector('[data-add="'+p.id+'"]');
+    if (b && b.disabled) return;                               // está confirmando → ignora el clic
+    var cur = pre[p.id] ? pre[p.id].qty : 0;
+    if (cur >= p.stock){ btnTemp(b, "max", "Máximo"); return; } // ya no hay más piezas
     if (!pre[p.id]) pre[p.id] = { p:p, qty:0 };
-    if (pre[p.id].qty >= p.stock) return;   // no más de lo que hay
     pre[p.id].qty++;
-    renderPre(); markRow(p.id, true);
+    renderPre(p.id);
+    btnTemp(b, "done", '<span class="ck">✓</span> Agregado');
   }
-  function markRow(id, on){
-    var b = document.querySelector('[data-add="'+id+'"]');
-    if (b){ b.classList.toggle("in", on); b.textContent = on ? "✓ Agregado" : "+ Agregar"; }
+
+  /* Pone el botón en un estado temporal (bloqueado mientras dura la animación) y
+     lo regresa solo a "+ Agregar". Así no se puede agregar de más por doble clic. */
+  function btnTemp(b, cls, html){
+    if (!b) return;
+    b.disabled = true;
+    b.classList.add(cls);
+    b.innerHTML = html;
+    setTimeout(function(){
+      b.classList.remove(cls);
+      b.disabled = false;
+      b.textContent = "+ Agregar";
+    }, ADD_MS);
   }
+
   function chg(id, d){
     var it = pre[id]; if (!it) return;
     it.qty += d;
-    if (it.qty <= 0){ delete pre[id]; markRow(id, false); }
-    else if (it.qty > it.p.stock){ it.qty = it.p.stock; }
+    if (it.qty <= 0) delete pre[id];
+    else if (it.qty > it.p.stock) it.qty = it.p.stock;
     renderPre();
   }
   function totals(){
@@ -291,20 +320,25 @@
     var ship = (shipMode==="envio" && n>0) ? SHIP_COST : 0;
     return { sub:sub, ship:ship, total:sub+ship, n:n };
   }
-  function renderPre(){
+  /* flashId (opcional): id del producto recién agregado → destella para ubicarlo. */
+  function renderPre(flashId){
     var box = $("tdCItems"), keys = Object.keys(pre);
     if (!keys.length){
       box.innerHTML = '<div class="td-empty">Aún no agregas nada.<br>Busca y dale <b>+ Agregar</b>.</div>';
     } else {
       box.innerHTML = keys.map(function(id){
         var it = pre[id];
-        return '<div class="td-ci"><div><div class="nm">'+esc(it.p.name)+'</div>'+
+        return '<div class="td-ci" data-id="'+id+'"><div><div class="nm">'+esc(it.p.name)+'</div>'+
                '<div class="pu">'+mxn(it.p.price)+' c/u</div></div>'+
                '<div class="td-qty"><button data-d="'+id+'" aria-label="Quitar uno">−</button>'+
                '<span>'+it.qty+'</span><button data-i="'+id+'" aria-label="Agregar uno">+</button></div></div>';
       }).join("");
       box.querySelectorAll("[data-i]").forEach(function(b){ b.addEventListener("click", function(){ chg(+b.dataset.i, 1); }); });
       box.querySelectorAll("[data-d]").forEach(function(b){ b.addEventListener("click", function(){ chg(+b.dataset.d, -1); }); });
+      if (flashId != null){
+        var el = box.querySelector('.td-ci[data-id="'+flashId+'"]');
+        if (el){ el.classList.add("flash"); setTimeout(function(){ el.classList.remove("flash"); }, 800); }
+      }
     }
     var t = totals();
     $("tdTotal").textContent = mxn(t.total);
