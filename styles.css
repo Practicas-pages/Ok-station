@@ -3261,7 +3261,9 @@ a.info-card:hover { border-color: var(--brand-blue); }
   }
 }
 
-/* Botón scroll-to-top */
+/* Botón scroll-to-top — mismo estilo que el de la tienda (#site .totop en
+   tienda.html): flecha azul de marca, elevación con rebote y sombra azul al pasar
+   el mouse. Si tocas uno, toca el otro. */
 .scroll-top {
   position: fixed;
   bottom: 28px;
@@ -3272,18 +3274,19 @@ a.info-card:hover { border-color: var(--brand-blue); }
   border-radius: 50%;
   background: rgba(255,255,255,0.92);
   border: 1px solid var(--border-medium);
-  box-shadow: var(--shadow-md);
+  box-shadow: 0 10px 28px rgba(8,12,30,.22);
   display: grid;
   place-items: center;
   cursor: pointer;
-  color: var(--text-secondary);
+  color: var(--brand-blue);
   opacity: 0;
   pointer-events: none;
   transform: translateY(12px);
   transition:
-    opacity var(--transition-base),
-    transform var(--transition-base),
-    background var(--transition-fast);
+    opacity .22s ease,
+    transform .22s cubic-bezier(.34,1.56,.64,1),
+    background var(--transition-fast),
+    box-shadow var(--transition-fast);
   backdrop-filter: blur(8px);
 }
 
@@ -3293,12 +3296,12 @@ a.info-card:hover { border-color: var(--brand-blue); }
   transform: translateY(0);
 }
 
-.scroll-top:hover {
+.scroll-top.is-visible:hover {
   background: var(--brand-blue);
   color: #fff;
   border-color: transparent;
-  box-shadow: var(--shadow-brand);
-  transform: translateY(-2px);
+  box-shadow: 0 16px 34px rgba(6,108,255,.42);
+  transform: translateY(-3px);
 }
 
 .scroll-top:focus-visible {

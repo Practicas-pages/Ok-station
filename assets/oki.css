@@ -37,6 +37,10 @@
 .oki:hover .oki__astro{transform:rotate(3deg) translateY(-2px)}
 /* Badge con el número de artículos del carrito, sobre el astronauta (modo tienda). */
 .oki-cart-badge{position:absolute;top:2px;right:2px;min-width:21px;height:21px;padding:0 5px;border-radius:var(--r-full);background:#e11d48;color:#fff;font-size:.72rem;font-weight:800;display:flex;align-items:center;justify-content:center;box-shadow:0 3px 8px rgba(225,29,72,.45);border:2px solid #fff;z-index:6;animation:okiBadgePop .3s cubic-bezier(.2,1.4,.4,1) !important;pointer-events:none}
+/* Escondido (peek): el astronauta se recuesta en la pared derecha y su mitad derecha
+   queda FUERA de la pantalla — con el contador ahí, no se veía cuántos productos
+   llevas. Escondido va a la izquierda; asomado, a la derecha de siempre. */
+.oki-dock.oki-peek .oki-cart-badge{right:auto;left:2px}
 @keyframes okiBadgePop{from{transform:scale(.3);opacity:0}to{transform:scale(1);opacity:1}}
 .oki{position:relative;display:block;width:76px;height:88px;border:0;background:transparent;cursor:pointer;overflow:visible}
 .oki:active .oki__craft{transform:rotate(var(--ctilt,0deg)) scale(.92)}

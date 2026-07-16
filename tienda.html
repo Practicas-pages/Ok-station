@@ -33,7 +33,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap">
 <link rel="stylesheet" href="styles.css">
-<link rel="stylesheet" href="assets/oki.css?v=20260716b">
+<link rel="stylesheet" href="assets/oki.css?v=20260716c">
 
 <script type="application/ld+json">
 {
@@ -257,10 +257,15 @@
 #site .mcta .gostore{width:100%; justify-content:center; padding:14px}
 #site #tienda.on ~ .mcta{}
 #site #app{background:var(--paper)}
-/* Navbar del catálogo (buscador + categorías) como un solo bloque pegado:
-   así nunca se despega al hacer scroll y las barras (carrito/categorías) no
-   dejan hueco arriba. */
-#site .shopnav{position:sticky; top:0; z-index:40}
+/* ── Navbar inteligente del catálogo ──
+   Al bajar, la fila de CATEGORÍAS se va (se mete por debajo del buscador, que es
+   opaco) y queda solo el buscador pegado arriba; al volver arriba, reaparece.
+   Se logra con puro scroll: el buscador es sticky y la fila de categorías no, así
+   que se desliza detrás. Sin JS, sin saltos de maquetación y sin parpadeos.
+   (Van sueltos, no dentro de un bloque: un padre corto le cortaría el sticky al
+   buscador en cuanto ese padre saliera de pantalla.) */
+#site .topbar{position:sticky; top:0; z-index:41}
+#site .popbar-row{position:relative; z-index:40}
 #site #store .siteheader{position:static}
 #site .app-benefits{background:var(--grad); color:#fff; font-size:.72rem; font-weight:600; text-align:center; padding:6px 10px}
 #site .topbar{display:flex; align-items:center; gap:10px; padding:10px max(14px,calc((100% - var(--store-col))/2)); background:var(--grad)}
@@ -297,13 +302,15 @@
    padding vertical para que la elevación/sombra de las píldoras NO se corte. */
 #site .popbar{display:flex; align-items:center; gap:8px; flex:1; min-width:0; overflow-x:auto; overflow-y:hidden; scroll-behavior:smooth; padding:7px 3px; scrollbar-width:none; -ms-overflow-style:none; -webkit-overflow-scrolling:touch; overscroll-behavior-x:contain}
 #site .popbar::-webkit-scrollbar{display:none}
-/* El difuminado se aplica al CONTENIDO (máscara), no al fondo: así funciona sobre
-   el degradado sin tener que adivinar un color sólido que lo empate. */
-#site .popbar-row.can-prev .popbar{-webkit-mask-image:linear-gradient(90deg,transparent 0,#000 36px); mask-image:linear-gradient(90deg,transparent 0,#000 36px)}
-#site .popbar-row.can-next .popbar{-webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 36px),transparent 100%); mask-image:linear-gradient(90deg,#000 calc(100% - 36px),transparent 100%)}
-#site .popbar-row.can-prev.can-next .popbar{-webkit-mask-image:linear-gradient(90deg,transparent 0,#000 36px,#000 calc(100% - 36px),transparent 100%); mask-image:linear-gradient(90deg,transparent 0,#000 36px,#000 calc(100% - 36px),transparent 100%)}
-/* Las dos flechas juntas: ocupan poco y dejan respirar a las píldoras. */
-#site .popnavs{flex:none; display:none; align-items:center; gap:5px; padding-left:12px; margin-left:2px; border-left:1px solid rgba(255,255,255,.25)}
+/* Difuminado corto (14px) y solo del lado por el que hay más: lo justo para que se
+   note que sigue, sin comerse media píldora. Va sobre el CONTENIDO (máscara), no
+   sobre el fondo, para que funcione encima del degradado. */
+#site .popbar-row.can-prev .popbar{-webkit-mask-image:linear-gradient(90deg,transparent 0,#000 14px); mask-image:linear-gradient(90deg,transparent 0,#000 14px)}
+#site .popbar-row.can-next .popbar{-webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 14px),transparent 100%); mask-image:linear-gradient(90deg,#000 calc(100% - 14px),transparent 100%)}
+#site .popbar-row.can-prev.can-next .popbar{-webkit-mask-image:linear-gradient(90deg,transparent 0,#000 14px,#000 calc(100% - 14px),transparent 100%); mask-image:linear-gradient(90deg,transparent 0,#000 14px,#000 calc(100% - 14px),transparent 100%)}
+/* Las dos flechas juntas a la derecha, bien despegadas del carril (la línea marca
+   que son un control aparte, no una píldora más). */
+#site .popnavs{flex:none; display:none; align-items:center; gap:6px; padding-left:20px; margin-left:8px; border-left:1px solid rgba(255,255,255,.25)}
 #site .popbar-row.can-scroll .popnavs{display:flex}
 #site .popnav{width:29px; height:29px; padding:0; border-radius:50%; border:1.5px solid rgba(255,255,255,.55); background:rgba(9,14,34,.5); backdrop-filter:blur(8px); color:#fff; display:grid; place-items:center; cursor:pointer; transition:background .15s, transform .15s, opacity .15s}
 #site .popnav:hover:not(:disabled){background:rgba(9,14,34,.85); transform:scale(1.09)}
@@ -407,13 +414,15 @@ html.store-view .header-bar, html.store-view .site-header{display:none}
    que los productos se repiten a propósito. */
 #site .loopsep{grid-column:1/-1; display:flex; align-items:center; gap:14px; margin:14px 2px 4px; color:var(--muted); font-size:.74rem; font-weight:600; white-space:nowrap}
 #site .loopsep::before,#site .loopsep::after{content:""; flex:1; height:1px; background:var(--line)}
-/* Botón "subir al inicio": aparece al bajar y desaparece con el cajón abierto (le
-   estorbaría). Va a la izquierda porque la derecha es de OKi. */
-#site .totop{position:fixed; left:26px; bottom:26px; z-index:100; width:46px; height:46px; padding:0; border-radius:50%; border:1px solid var(--line); background:#fff; color:var(--blue); display:grid; place-items:center; cursor:pointer; box-shadow:0 10px 28px rgba(8,12,30,.22); opacity:0; transform:translateY(12px); pointer-events:none; transition:opacity .2s ease, transform .2s cubic-bezier(.34,1.56,.64,1), background .15s}
+/* Botón "subir al inicio". Va a la DERECHA, a un lado de OKi (mismo sitio que en el
+   home, ver .scroll-top en styles.css: es el mismo estilo en todo el sitio). */
+#site .totop{position:fixed; right:104px; bottom:28px; z-index:100; width:46px; height:46px; padding:0; border-radius:50%; border:1px solid var(--line); background:rgba(255,255,255,.92); backdrop-filter:blur(8px); color:var(--blue); display:grid; place-items:center; cursor:pointer; box-shadow:0 10px 28px rgba(8,12,30,.22); opacity:0; transform:translateY(12px); pointer-events:none; transition:opacity .22s ease, transform .22s cubic-bezier(.34,1.56,.64,1), background .15s, box-shadow .15s}
 #site .totop.show{opacity:1; transform:none; pointer-events:auto}
-#site .totop.show:hover{background:var(--paper); transform:translateY(-3px); box-shadow:0 16px 34px rgba(8,12,30,.3)}
-#site #app.drawer-open .totop{opacity:0; pointer-events:none; transform:translateY(12px)}
-@media(max-width:640px){ #site .totop{left:16px; bottom:16px; width:42px; height:42px} }
+#site .totop.show:hover{background:var(--blue); color:#fff; border-color:transparent; transform:translateY(-3px); box-shadow:0 16px 34px rgba(6,108,255,.42)}
+#site .totop:focus-visible{outline:3px solid var(--cyan,#00C6FF); outline-offset:2px}
+/* Con el carrito abierto (empuja el contenido) el botón se recorre para no quedar debajo. */
+@media(min-width:1001px){ #site #app.cart-open .totop{right:calc(min(400px,92vw) + 26px)} }
+@media(max-width:640px){ #site .totop{right:88px; bottom:18px; width:42px; height:42px} }
 #site .cart{position:fixed; top:0; right:0; height:100%; width:min(400px,92vw); background:var(--card); display:flex; flex-direction:column; transform:translateX(100%); transition:transform .3s cubic-bezier(.4,0,.2,1); z-index:120; box-shadow:-18px 0 50px rgba(18,20,28,.22)}
 #site #app.cart-open .cart{transform:translateX(0)}
 #site .cart .ch{padding:14px 18px 10px; font-weight:800; display:flex; align-items:center; gap:8px; flex:none; border-bottom:1px solid var(--line)}
@@ -873,7 +882,6 @@ html.q-lock, html.q-lock body{overflow:hidden}
   <div class="view" id="store">
     <div id="app">
 
-      <div class="shopnav">
       <div class="topbar">
         <button class="hamb" id="hamb" aria-label="Categorías"><span></span><span></span><span></span></button>
         <a class="tb-logo" href="index.html" aria-label="Ok.station — Ir al inicio"><img src="assets/img/okstation-logo.webp" alt="Ok.station" width="158" height="24"></a>
@@ -894,7 +902,6 @@ html.q-lock, html.q-lock body{overflow:hidden}
           <button type="button" class="popnav" id="popPrev" aria-label="Ver categorías anteriores"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>
           <button type="button" class="popnav" id="popNext" aria-label="Ver más categorías"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></button>
         </div>
-      </div>
       </div>
       <div class="shell">
         <div class="catalog"><div class="catbar"><span class="ctitle" id="catTitle">Todos los productos</span><div class="catbar-right"><span class="cnt" id="catCount"></span><div class="viewtoggle"><button type="button" data-view="list" class="on" title="Lista" aria-label="Ver como lista"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="8" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="20" y2="12"/><line x1="8" y1="18" x2="20" y2="18"/><line x1="3.5" y1="6" x2="3.51" y2="6"/><line x1="3.5" y1="12" x2="3.51" y2="12"/><line x1="3.5" y1="18" x2="3.51" y2="18"/></svg></button><button type="button" data-view="grid" title="Cuadros" aria-label="Ver como cuadros"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg></button></div></div></div><div class="grid" id="grid"></div></div>
@@ -1114,6 +1121,9 @@ html.q-lock, html.q-lock body{overflow:hidden}
      por vueltas, para que una categoría de 2 productos también dé mucho scroll; existe
      solo para no dejar al navegador sin memoria. */
   var loops=1, MAX_CARDS=1500;
+  /* Solo "Todos" (sin búsqueda) da la vuelta: ahí el catálogo ES la tienda entera y que
+     no se acabe se lee como "hay de todo". En un filtro, saber dónde termina es útil. */
+  function loopAllowed(){ return activeCat==="all" && !activeSub && query.length<2; }
   function cardsHTML(list){return list.map(function(p){var low=p.stock<=5;
       return '<div class="prod">'+(p.old?'<span class="deal-badge">−'+Math.round((1-p.price/p.old)*100)+'%</span>':'')+pimg(p)+heartBtn(p.id,'position:absolute;top:10px;right:10px;z-index:4;width:36px;height:36px;padding:0;')+
         '<div class="pinfo"><div class="pnametext"><div class="cat">'+catName(p.cat)+'</div><h3>'+p.name+'</h3><div class="pdesc">'+(p.brand?p.brand+' · ':'')+(p.desc||'')+'</div></div>'+
@@ -1186,9 +1196,13 @@ html.q-lock, html.q-lock body{overflow:hidden}
       if(grid.offsetParent===null) return;                         // grid oculto
       if(grid.getBoundingClientRect().bottom >= window.innerHeight + 600) return;
       if(dbMode && dbPage<dbPages){ loadMoreFromDB(); return; }    // aún falta catálogo
-      /* Ya está completo → otra vuelta. Se repite hasta que haya de sobra debajo:
-         una categoría de 2 productos no llena la pantalla con una sola vuelta, y sin
-         algo debajo no hay scroll que dispare la siguiente. */
+      /* El bucle sin fin es SOLO para "Todos": dentro de una categoría, subcategoría,
+         ofertas o una búsqueda, la lista se acaba donde se acaba (repetir ahí confunde:
+         parece que la categoría tiene más productos de los que tiene). */
+      if(!loopAllowed()) return;
+      /* Otra vuelta. Se repite hasta que haya de sobra debajo: una lista corta no llena
+         la pantalla con una sola vuelta, y sin algo debajo no hay scroll que dispare la
+         siguiente. */
       var guard=0;
       do{ var before=loops; appendLoop(); if(loops===before) break; }   // tope alcanzado
       while(++guard<80 && grid.getBoundingClientRect().bottom < window.innerHeight + 600);
@@ -1375,13 +1389,20 @@ html.q-lock, html.q-lock body{overflow:hidden}
   var tt2; function flash(m){var el=$("toast"); el.textContent=m; el.classList.add("show"); clearTimeout(tt2); tt2=setTimeout(function(){el.classList.remove("show");},1600);}
 
   // ── Vista de deseos (overlay) ──────────────────────────────
+  /* Miniatura de deseados: la foto REAL del producto (antes siempre salía el emoji
+     sobre el gradiente, aunque el producto sí tuviera foto). */
+  function wishThumb(p){
+    var base='flex:0 0 auto;width:46px;height:46px;border-radius:12px;cursor:pointer;overflow:hidden;';
+    if(p.image) return '<div data-open="'+p.id+'" title="Ver producto" style="'+base+'background:#fff;border:1px solid var(--line);padding:3px;box-sizing:border-box"><img src="'+encodeURI(p.image)+'" alt="" loading="lazy" style="width:100%;height:100%;object-fit:contain;display:block"></div>';
+    return '<div data-open="'+p.id+'" title="Ver producto" class="pimg" style="'+base+'background:'+(p.grad||"var(--grad-blue)")+'"><span class="pemoji" style="font-size:26px">'+(p.emoji||"📦")+'</span></div>';
+  }
   function renderWishlist(){var items=wishlist.map(prod).filter(Boolean);
     var body='<button class="x" data-close style="position:absolute;top:14px;right:14px;z-index:5">×</button><div class="mb" style="padding-top:26px"><h3 style="margin:0 0 4px;font-size:1.25rem">💙 Tus deseados</h3><p class="desc" style="font-size:.86rem;max-width:none">Guarda lo que te gusta y págalo cuando quieras. Recoge gratis en OK.station o recíbelo a domicilio en todo México.</p>';
     if(!items.length){body+='<div style="padding:26px 0;text-align:center;color:var(--muted)">Aún no tienes productos en deseados.<br>Toca el ❤ en cualquier producto para guardarlo aquí.</div>';}
     else{body+='<div style="display:flex;flex-direction:column;gap:10px;margin-top:12px">'+items.map(function(p){
       return '<div style="display:flex;gap:12px;align-items:center;border:1px solid var(--line);border-radius:14px;padding:10px 12px">'
-        +'<div data-open="'+p.id+'" title="Ver producto" class="pimg" style="flex:0 0 auto;width:46px;height:46px;border-radius:12px;cursor:pointer;background:'+(p.grad||"var(--grad-blue)")+'"><span class="pemoji" style="font-size:26px">'+(p.emoji||"📦")+'</span></div>'
-        +'<div data-open="'+p.id+'" style="flex:1 1 auto;min-width:0;cursor:pointer"><div style="font-weight:700;font-size:.95rem">'+p.name+'</div><div style="color:var(--muted);font-size:.85rem">'+mxn(p.price)+'</div></div>'
+        +wishThumb(p)
+        +'<div data-open="'+p.id+'" style="flex:1 1 auto;min-width:0;cursor:pointer"><div style="font-weight:700;font-size:.95rem">'+okEsc(p.name)+'</div><div style="color:var(--muted);font-size:.85rem">'+mxn(p.price)+'</div></div>'
         +'<button class="maddbtn" data-madd="'+p.id+'" style="flex:0 0 auto;padding:9px 14px;font-size:.85rem;width:auto">Agregar</button>'
         +heartBtn(p.id,'flex:0 0 auto;width:38px;height:38px;padding:0;')
         +'</div>';}).join("")+'</div>';}
@@ -1572,13 +1593,15 @@ html.q-lock, html.q-lock body{overflow:hidden}
 <!-- Mantiene --shop-top = borde inferior de la navbar, para que el carrito y las categorías arranquen debajo de ella (y no encima) -->
 <script>(function(){
   var site=document.getElementById("site"); if(!site) return;
-  /* --shop-top = alto de la navbar del catálogo (bloque .shopnav, pegado arriba).
-     Como .shopnav es UN solo bloque sticky, su borde inferior es constante y
-     confiable: las barras (carrito/categorías) arrancan justo DEBAJO de él, sin
-     hueco ni saltos. */
+  /* --shop-top = borde inferior de lo que se VE de la navbar. Arriba del todo son las
+     dos filas (buscador + categorías); al bajar, las categorías se van detrás del
+     buscador y solo cuenta el buscador. Por eso es el MAYOR de los dos bordes: así la
+     cabecera de las barras (carrito/categorías) sigue casando con la navbar mientras
+     se hace scroll. */
   function measure(){
-    var nav=document.querySelector("#site .shopnav");
-    var b=nav ? nav.getBoundingClientRect().bottom : 0;
+    var tb=document.querySelector("#site .topbar"), pb=document.querySelector("#site .popbar-row");
+    if(!tb) return;
+    var b=Math.max(tb.getBoundingClientRect().bottom, pb?pb.getBoundingClientRect().bottom:0);
     if(b>0) site.style.setProperty("--shop-top", Math.round(b)+"px");
   }
   var raf=0;
@@ -1591,8 +1614,7 @@ html.q-lock, html.q-lock body{overflow:hidden}
      barra, sin depender de un scroll posterior: */
   if(window.ResizeObserver){
     var ro=new ResizeObserver(schedule);
-    var nav=document.querySelector("#site .shopnav");
-    if(nav) ro.observe(nav);
+    [".topbar",".popbar-row"].forEach(function(s){ var el=document.querySelector("#site "+s); if(el) ro.observe(el); });
   }
   var app=document.getElementById("app");
   if(app && window.MutationObserver){ new MutationObserver(schedule).observe(app, {attributes:true, attributeFilter:["class"]}); }

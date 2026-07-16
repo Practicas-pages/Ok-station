@@ -46,15 +46,23 @@ foreach ($rows as $r) {
     if (preg_match('/\.(jpe?g|png|gif|webp)(\?|$)/i', $r['url'], $m)) $ext = strtolower($m[1]) === 'jpeg' ? 'jpg' : strtolower($m[1]);
     $fname = $r['id'] . '.' . $ext;
 
-    $ch = curl_init($r['url']);
-    curl_setopt_array($ch, [
-        CURLOPT_RETURNTRANSFER => true, CURLOPT_TIMEOUT => 20,
-        CURLOPT_FOLLOWLOCATION => true, CURLOPT_USERAGENT => 'OkStation/1.0 (+images)',
-    ]);
-    $data = curl_exec($ch);
-    $code = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    curl_close($ch);
-    if ($data === false || $code !== 200 || strlen($data) < 100) { echo "  ✗ #{$r['id']} HTTP {$code}\n"; continue; }
+    /* Con 3 intentos: los fallos del CDN suelen ser pasajeros y, sin reintento, el
+       producto se quedaba SIN FOTO hasta la siguiente corrida. */
+    $data = false; $code = 0;
+    for ($try = 1; $try <= 3; $try++) {
+        $ch = curl_init($r['url']);
+        curl_setopt_array($ch, [
+            CURLOPT_RETURNTRANSFER => true, CURLOPT_TIMEOUT => 20,
+            CURLOPT_FOLLOWLOCATION => true, CURLOPT_USERAGENT => 'OkStation/1.0 (+images)',
+        ]);
+        $data = curl_exec($ch);
+        $code = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+        if ($data !== false && $code === 200 && strlen($data) >= 100) break;
+        $data = false;
+        if ($try < 3) usleep(400000);                      // 0.4 s y va de nuevo
+    }
+    if ($data === false) { echo "  ✗ #{$r['id']} HTTP {$code} (3 intentos)\n"; continue; }
 
     file_put_contents($dir . '/' . $fname, $data);
     $rel = '/assets/img/products/' . $pid . '/' . $fname;

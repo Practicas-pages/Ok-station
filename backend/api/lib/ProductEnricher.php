@@ -68,7 +68,16 @@ final class ProductEnricher
             $args[] = $productId;
             $pdo->prepare('UPDATE products SET ' . implode(', ', $sets) . ' WHERE id = ?')->execute($args);
 
-            // Imágenes: reemplaza SOLO las de Icecat (no toca las de Exel).
+            /* Imágenes: reemplaza SOLO las de Icecat (no toca las de Exel).
+               ANTES de borrarlas se apunta qué archivo local tenía cada URL, para
+               devolvérselo abajo a la que vuelva con la misma URL. Sin esto, volver a
+               enriquecer DEJA SIN FOTOS a la tienda (stored_path se pierde y se sirve
+               el CDN de Icecat) hasta que alguien corra el descargador otra vez. */
+            $old = [];
+            $st2 = $pdo->prepare("SELECT url, stored_path FROM product_images WHERE product_id = ? AND source = 'icecat' AND stored_path IS NOT NULL AND stored_path <> ''");
+            $st2->execute([$productId]);
+            foreach ($st2->fetchAll(PDO::FETCH_ASSOC) as $r) $old[(string) $r['url']] = (string) $r['stored_path'];
+
             $pdo->prepare("DELETE FROM product_images WHERE product_id = ? AND source = 'icecat'")->execute([$productId]);
             // Cap TOTAL de 5 por producto: cuenta las que ya hay (p. ej. de Exel) y solo
             // llena los huecos restantes. Ej: 2 de Exel + 4 de Icecat -> se guardan 5 (2+3).
@@ -80,8 +89,8 @@ final class ProductEnricher
             $slots      = max(0, 5 - $already);
 
             $ins = $pdo->prepare(
-                'INSERT INTO product_images (product_id, url, source, sort_order, is_primary)
-                 VALUES (?, ?, \'icecat\', ?, ?)'
+                'INSERT INTO product_images (product_id, url, stored_path, source, sort_order, is_primary)
+                 VALUES (?, ?, ?, \'icecat\', ?, ?)'
             );
             $i = 0;
             foreach ($data['images'] as $img) {
@@ -89,7 +98,8 @@ final class ProductEnricher
                 // Solo una imagen de Icecat puede ser principal, y solo si Exel no puso ya una.
                 $primary = (!$hasPrimary && !empty($img['is_primary'])) ? 1 : 0;
                 if ($primary) $hasPrimary = true;
-                $ins->execute([$productId, $img['url'], $already + $i, $primary]);
+                // Misma URL que antes → conserva el archivo ya descargado (no se re-baja).
+                $ins->execute([$productId, $img['url'], $old[(string) $img['url']] ?? null, $already + $i, $primary]);
                 $i++;
             }
 

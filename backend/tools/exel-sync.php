@@ -122,7 +122,16 @@ $cols = ['supplier','supplier_ref','supplier_id','sku','barcode','sat_code','nam
          'brand','category','subcategory','currency','cost','price','stock','warehouse_id','last_synced_at'];
 // prev_cost = cost (el VIEJO, antes de pisarlo) → base para la regla del 3%.
 $updates = ['prev_cost = cost'];
-foreach ($cols as $c) { if ($c !== 'supplier' && $c !== 'supplier_ref') $updates[] = "$c = VALUES($c)"; }
+foreach ($cols as $c) {
+    if ($c === 'supplier' || $c === 'supplier_ref') continue;
+    /* `description` NO se pisa con un valor vacío: Exel casi nunca manda
+       `descripcion_extendida`, y quien la llena es Icecat (ProductEnricher). Sin esto,
+       cada corrida del runner BORRABA la ficha que Icecat ya había traído y la tienda
+       se quedaba sin descripción. Si Exel SÍ manda descripción, esa manda. */
+    $updates[] = $c === 'description'
+        ? "description = IF(VALUES(description) IS NULL OR VALUES(description) = '', description, VALUES(description))"
+        : "$c = VALUES($c)";
+}
 $onDup = implode(",\n  ", $updates);
 
 $ph = '(' . implode(',', array_fill(0, count($cols), '?')) . ')';
