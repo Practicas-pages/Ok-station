@@ -14,20 +14,6 @@
         "stock": 12
     },
     {
-        "referencia": "3MPADHAB001",
-        "id": "1002",
-        "sku": "6065",
-        "codigo_barras": "051141239927",
-        "nombre": "Notas adhesivas Post-it 3M",
-        "descripcion_extendida": "",
-        "marca_nombre": "3M",
-        "categoria_nombre": "Oficina y Escolar",
-        "subcategoria_nombre": "Notas Adhesivas",
-        "precio": 38,
-        "moneda": "MXN",
-        "stock": 137
-    },
-    {
         "referencia": "3M810MAGIC",
         "id": "2001",
         "sku": "810",

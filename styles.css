@@ -4643,13 +4643,24 @@ body {
   padding: 5px 10px 5px 6px;
   border: 1px solid var(--border-light); background: #fff;
   border-radius: var(--radius-full); cursor: pointer; font-family: inherit;
-  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast), background var(--transition-fast);
 }
 .acct__btn:hover { border-color: var(--border-medium); box-shadow: var(--shadow-sm); }
 .acct__btn:focus-visible { outline: 3px solid var(--brand-cyan); outline-offset: 2px; }
-.acct__avatar { width: 30px; height: 30px; border-radius: 50%; background: var(--grad-brand); color: #fff; display: grid; place-items: center; font-weight: 700; font-size: 0.8rem; flex-shrink: 0; }
-.acct__name { font-size: 0.85rem; font-weight: 600; color: var(--text-primary); }
-.acct__caret { width: 15px; height: 15px; color: var(--text-muted); }
+.acct__avatar { width: 30px; height: 30px; border-radius: 50%; background: var(--grad-brand); color: #fff; display: grid; place-items: center; font-weight: 700; font-size: 0.8rem; flex-shrink: 0; transition: box-shadow var(--transition-fast); }
+.acct__name { font-size: 0.85rem; font-weight: 600; color: var(--text-primary); transition: color var(--transition-fast); }
+.acct__caret { width: 15px; height: 15px; color: var(--text-muted); transition: transform .22s cubic-bezier(.34,1.56,.64,1), color var(--transition-fast); }
+
+/* ── Menú desplegado: el chip se pinta y la flecha gira ──
+   Mismo lenguaje que favoritos/carrito de la tienda: el botón se ve activo mientras
+   SU panel está abierto. Va colgado de aria-expanded, que ya se mantiene al día para
+   los lectores de pantalla: un solo estado, sin una clase paralela que se desincronice.
+   La flecha girando avisa que la lista está abierta (antes se quedaba igual). */
+.acct__btn[aria-expanded="true"] { background: var(--brand-blue); border-color: transparent; }
+.acct__btn[aria-expanded="true"] .acct__name { color: #fff; }
+.acct__btn[aria-expanded="true"] .acct__caret { color: #fff; transform: rotate(180deg); }
+/* Aro blanco: sobre el azul, el degradado del avatar se confundía con el fondo. */
+.acct__btn[aria-expanded="true"] .acct__avatar { box-shadow: 0 0 0 2px rgba(255,255,255,.55); }
 .acct__menu {
   position: absolute; right: 0; top: calc(100% + 8px);
   min-width: 220px; background: #fff;

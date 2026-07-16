@@ -348,7 +348,16 @@ html.store-view .header-bar, html.store-view .site-header{display:none}
 #site .tb-avatar{width:30px; height:30px; border-radius:50%; background:var(--grad-brand); color:#fff; display:grid; place-items:center; font-weight:700; font-size:.8rem; flex:none}
 /* Con la misma especificidad que `.tb-cuenta svg`: si no, esa regla le gana y la
    flecha sale de 17px y azul en vez de 15px y gris como en el home. */
-#site .tb-cuenta svg.tb-caret{width:15px; height:15px; flex:none; color:var(--muted)}
+#site .tb-cuenta svg.tb-caret{width:15px; height:15px; flex:none; color:var(--muted); transition:transform .22s cubic-bezier(.34,1.56,.64,1), color .15s}
+#site .tb-avatar{transition:box-shadow .15s}
+/* Menú desplegado: el chip se pinta y la flecha gira, igual que en el home y con la
+   misma idea que favoritos/carrito (activo mientras SU panel está abierto). Cuelga de
+   aria-expanded, que ya se mantiene al día: un solo estado, sin clase paralela. */
+#site .tb-cuenta[aria-expanded="true"]{background:var(--blue); border-color:#fff; color:#fff; box-shadow:0 6px 18px rgba(6,108,255,.4)}
+#site .tb-cuenta[aria-expanded="true"] .tb-name{color:#fff}
+#site .tb-cuenta[aria-expanded="true"] svg.tb-caret{color:#fff; transform:rotate(180deg)}
+/* Aro blanco: sobre el azul, el degradado del avatar se confundía con el fondo. */
+#site .tb-cuenta[aria-expanded="true"] .tb-avatar{box-shadow:0 0 0 2px rgba(255,255,255,.55)}
 /* Favoritos: BLANCO como el carrito, pero solo ícono — así sigue pesando menos que el
    carrito (que lleva texto y monto) sin desentonar con el resto de la barra. */
 #site .tb-fav{width:40px; height:40px; padding:0; justify-content:center; gap:0}
