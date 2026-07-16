@@ -41,7 +41,7 @@ $order = [
 ][(string) ($_GET['sort'] ?? 'name')] ?? 'name ASC';
 
 $st = db()->prepare(
-    "SELECT id, sku, name, brand, category, subcategory, price, stock
+    "SELECT id, sku, name, brand, category, subcategory, price, old_price, stock
        FROM products WHERE $wsql ORDER BY $order LIMIT ? OFFSET ?"
 );
 $i = 1;
@@ -73,6 +73,9 @@ $items = array_map(function ($r) use ($imgs) {
         'category'    => $r['category'],
         'subcategory' => $r['subcategory'],
         'price'       => round((float) $r['price'] * 1.08, 2), // base × IVA 8% (lista, como catalogo.js)
+        // Precio anterior (tachado) → "Ofertas del día". Solo si de verdad es mayor.
+        'old'         => ((float) $r['old_price'] > (float) $r['price'])
+                             ? round((float) $r['old_price'] * 1.08, 2) : null,
         'stock'       => (int) $r['stock'],
         'image'       => $imgs[(int) $r['id']] ?? null,
     ];
