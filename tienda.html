@@ -327,12 +327,38 @@ html.store-view .header-bar, html.store-view .site-header{display:none}
 #site .tb-logo{flex:none; display:flex; align-items:center; color:#fff; font-weight:800; font-size:1.18rem; letter-spacing:-.02em; text-decoration:none; white-space:nowrap}
 #site .tb-logo img{height:26px; width:auto; display:block; filter:brightness(0) invert(1)}
 #site .tb-actions{flex:none; display:flex; align-items:center; gap:10px}
-/* Píldoras BLANCAS como el header del home (.btn--light): fondo blanco, texto tinta,
-   ícono azul de marca, misma animación de elevación al hover. */
-#site .tb-cuenta,#site .tb-fav,#site .tb-cart{flex:none; display:flex; align-items:center; gap:7px; padding:8px 15px; border-radius:99px; border:1.5px solid var(--line); background:#fff; color:#12141C; font-weight:600; font-size:.85rem; white-space:nowrap; text-decoration:none; cursor:pointer; position:relative; box-shadow:0 4px 14px rgba(8,12,30,.16); transition:transform .18s cubic-bezier(.34,1.56,.64,1), box-shadow .18s, border-color .15s}
+/* ── Barra de acciones: una sola JERARQUÍA ──
+   Antes eran 4 píldoras blancas del mismo peso sobre el degradado: un muro blanco
+   donde el carrito (la acción que vende) no pesaba más que "Favoritos". Ahora:
+     · Cuenta   → píldora blanca discreta = tu identidad (mismo chip que el home).
+     · Favoritos→ cristal, solo ícono = secundario.
+     · WhatsApp → verde de siempre.
+     · Carrito  → el ÚNICO sólido con peso: es a donde tiene que ir el ojo. */
+#site .tb-cuenta,#site .tb-fav,#site .tb-cart{flex:none; display:flex; align-items:center; gap:7px; padding:8px 15px; border-radius:99px; border:1.5px solid var(--line); background:#fff; color:#12141C; font-weight:600; font-size:.85rem; white-space:nowrap; text-decoration:none; cursor:pointer; position:relative; box-shadow:0 4px 14px rgba(8,12,30,.16); transition:transform .18s cubic-bezier(.34,1.56,.64,1), box-shadow .18s, border-color .15s, background .15s}
 #site .tb-cuenta:hover,#site .tb-fav:hover,#site .tb-cart:hover{border-color:#d5deee; box-shadow:0 12px 28px rgba(8,12,30,.24); transform:translateY(-2px)}
-#site .tb-cuenta svg,#site .tb-fav svg,#site .tb-cart svg{width:17px; height:17px; flex:none; color:var(--blue)}
-#site .tb-cart{font-weight:700; padding:8px 15px}
+#site .tb-cuenta svg,#site .tb-cart svg{width:17px; height:17px; flex:none; color:var(--blue)}
+/* Cuenta: el MISMO chip que el home (avatar con tu inicial en degradado de marca +
+   nombre + flecha). Antes era un ícono genérico de persona y sin flecha, aunque sí
+   despliega menú: no se veía igual ni avisaba que se abría. Lo arma session-nav.js. */
+#site .tb-cuenta{box-shadow:0 3px 10px rgba(8,12,30,.14)}
+#site .tb-cuenta.tb-cuenta--user{padding:5px 10px 5px 6px; gap:8px}
+/* Mismas medidas EXACTAS que .acct__btn/.acct__avatar del home (styles.css), incluido
+   el degradado de marca --grad-brand: si tocas uno, toca el otro. Ojo: aquí NO va
+   var(--grad), que es el degradado de la navbar de la tienda (otro ángulo). */
+#site .tb-avatar{width:30px; height:30px; border-radius:50%; background:var(--grad-brand); color:#fff; display:grid; place-items:center; font-weight:700; font-size:.8rem; flex:none}
+/* Con la misma especificidad que `.tb-cuenta svg`: si no, esa regla le gana y la
+   flecha sale de 17px y azul en vez de 15px y gris como en el home. */
+#site .tb-cuenta svg.tb-caret{width:15px; height:15px; flex:none; color:var(--muted)}
+/* Favoritos: cristal y solo ícono — secundario, y deja de competir con el carrito. */
+#site .tb-fav{width:40px; height:40px; padding:0; justify-content:center; gap:0; background:rgba(255,255,255,.16); border-color:rgba(255,255,255,.5); color:#fff; box-shadow:none; backdrop-filter:blur(8px)}
+#site .tb-fav svg{width:19px; height:19px; flex:none; color:#fff}
+#site .tb-fav .tb-name{display:none}
+#site .tb-fav:hover{background:rgba(255,255,255,.3); border-color:rgba(255,255,255,.8); box-shadow:0 8px 20px rgba(8,12,30,.22)}
+#site .tb-fav .ct{border-color:#fff}
+/* Carrito: el único macizo. Más aire, monto en negritas y sombra fuerte. */
+#site .tb-cart{font-weight:800; padding:9px 17px; font-size:.9rem; box-shadow:0 8px 22px rgba(8,12,30,.28)}
+#site .tb-cart:hover{box-shadow:0 16px 34px rgba(8,12,30,.34)}
+#site .tb-cart svg{width:19px; height:19px}
 /* WhatsApp verde de marca (.btn--wa del home) */
 #site .tb-wa{flex:none; display:grid; place-items:center; width:40px; height:40px; border-radius:99px; background:linear-gradient(135deg,#25D366,#0FB84F); border:none; box-shadow:0 6px 16px rgba(37,211,102,.42); transition:transform .18s cubic-bezier(.34,1.56,.64,1), box-shadow .18s}
 #site .tb-wa svg{width:21px; height:21px; color:#fff; transition:transform .2s}
@@ -354,7 +380,8 @@ html.store-view .header-bar, html.store-view .site-header{display:none}
 #site .tb-cart .ct,#site .tb-fav .ct{position:absolute; top:-6px; right:-4px; background:var(--amber); color:#fff; border-radius:99px; font-size:.66rem; font-weight:800; min-width:20px; height:20px; display:grid; place-items:center; padding:0 5px; border:2px solid var(--blue)}
 #site .volver-sitio{flex:none; display:inline-flex; align-items:center; gap:6px; color:#fff; font-weight:700; font-size:.82rem; text-decoration:none; padding:6px 12px; margin-right:6px; border-radius:99px; background:rgba(9,14,34,.42); border:1.5px solid rgba(255,255,255,.6); backdrop-filter:blur(8px); transition:background .15s}
 #site .volver-sitio:hover{background:rgba(9,14,34,.56)}
-@media(max-width:820px){ #site .tb-cuenta span,#site .tb-fav span:not(.ct){display:none} #site .tb-cuenta,#site .tb-fav,#site .tb-cart{padding:9px 13px} #site .tb-logo{display:none} }
+/* En pantallas medianas se va el NOMBRE (no el avatar: es lo que te identifica). */
+@media(max-width:820px){ #site .tb-cuenta .tb-name{display:none} #site .tb-cuenta.tb-cuenta--user{padding:5px} #site .tb-cuenta,#site .tb-cart{padding:9px 13px} #site .tb-logo{display:none} }
 /* Móvil: el buscador no cabe junto a los 4 botones -> va en su propia fila completa. */
 @media(max-width:640px){
   #site .topbar{flex-wrap:wrap; row-gap:9px}
@@ -888,9 +915,9 @@ html.q-lock, html.q-lock body{overflow:hidden}
         <div class="search"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
           <input id="q" type="search" placeholder="Busca laptops, tinta, papel, accesorios y más…" autocomplete="off" role="combobox" aria-expanded="false" aria-autocomplete="list"><div class="ac" id="acBox" role="listbox"></div></div>
         <div class="tb-actions">
-          <a class="tb-cuenta" href="cuenta.html?next=tienda.html%23store" aria-label="Cuenta"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span>Cuenta</span></a>
+          <a class="tb-cuenta" href="cuenta.html?next=tienda.html%23store" aria-label="Cuenta"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span class="tb-name">Cuenta</span></a>
           <a class="tb-wa" href="https://wa.me/526647194117?text=Hola,%20quiero%20solicitar%20informaci%C3%B3n" target="_blank" rel="noopener" aria-label="WhatsApp" title="WhatsApp"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M.057 24l1.687-6.163a11.867 11.867 0 01-1.587-5.945C.16 5.335 5.495 0 12.05 0a11.82 11.82 0 018.413 3.488 11.82 11.82 0 013.48 8.414c-.003 6.557-5.338 11.892-11.893 11.892a11.9 11.9 0 01-5.688-1.448L.057 24zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884a9.86 9.86 0 001.51 5.26l-.999 3.648 3.978-1.040zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.017-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.247-.694.247-1.29.173-1.414z"/></svg></a>
-          <button class="tb-fav" id="wishBtn" aria-label="Lista de deseos" title="Favoritos"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.8 4.6a5.5 5.5 0 00-7.8 0L12 5.6l-1-1a5.5 5.5 0 00-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 000-7.8z"/></svg><span>Favoritos</span><span class="ct" id="wishCount" style="display:none">0</span></button>
+          <button class="tb-fav" id="wishBtn" aria-label="Lista de deseos" title="Favoritos"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.8 4.6a5.5 5.5 0 00-7.8 0L12 5.6l-1-1a5.5 5.5 0 00-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 000-7.8z"/></svg><span class="tb-name">Favoritos</span><span class="ct" id="wishCount" style="display:none">0</span></button>
           <button class="tb-cart" id="cartBtn" aria-label="Carrito"><span class="ct" id="cartCount">0</span><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.7 13.4a2 2 0 002 1.6h9.7a2 2 0 002-1.6L23 6H6"/></svg><span id="cartTotalTop">$0.00</span></button>
         </div>
       </div>
@@ -1625,7 +1652,7 @@ html.q-lock, html.q-lock body{overflow:hidden}
   [80, 300, 800].forEach(function(ms){ setTimeout(measure, ms); });
 })();</script>
 <!-- Sesión en el header (muestra tu cuenta si iniciaste sesión) + navbar inteligente -->
-<script src="assets/session-nav.js?v=20260715c" defer></script>
+<script src="assets/session-nav.js?v=20260716a" defer></script>
 <!-- OKi, el astronauta ayudante. Conectado a la tienda vía el contrato window.OKtienda (ver OKi-tienda-integracion.md). -->
 <script src="assets/oki.js?v=20260716b" defer></script>
 </body>

@@ -51,7 +51,15 @@
   var tb = document.querySelector(".tb-cuenta");
   if (tb && tb.parentNode && !tb.parentNode.querySelector(".tb-acctmenu")) {
     tb.setAttribute("href", "perfil.html");           // respaldo si el JS fallara
-    var tbLbl = tb.querySelector("span"); if (tbLbl) tbLbl.textContent = first;
+    /* MISMO chip que el home: avatar con tu inicial (degradado de marca) + nombre +
+       flecha. Antes era un ícono genérico de persona y SIN flecha, aunque igual
+       despliega el menú: ni se veía igual que el home ni avisaba que se abre. */
+    tb.classList.add("tb-cuenta--user");
+    tb.innerHTML =
+      '<span class="tb-avatar" aria-hidden="true">' + esc(initial) + '</span>' +
+      '<span class="tb-name">' + esc(first) + '</span>' +
+      '<svg class="tb-caret" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>';
+    tb.setAttribute("aria-label", "Cuenta de " + (u.full_name || first));
 
     var host = tb.parentNode;                          // .tb-actions
     host.style.position = "relative";
