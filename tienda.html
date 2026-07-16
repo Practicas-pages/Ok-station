@@ -444,7 +444,7 @@ html.store-view .header-bar, html.store-view .site-header{display:none}
 html{scrollbar-gutter:stable}
 #site .ov{position:fixed; inset:0; background:rgba(18,20,28,.5); display:none; align-items:center; justify-content:center; padding:18px; z-index:70}
 #site .ov.show{display:flex}
-#site .modal{position:relative; background:#fff; border-radius:18px; max-width:460px; width:100%; max-height:90vh; overflow:auto; box-shadow:0 20px 60px rgba(18,20,28,.3)}
+#site .modal{position:relative; background:#fff; border-radius:22px; max-width:460px; width:100%; max-height:90vh; overflow:auto; box-shadow:0 26px 74px rgba(18,20,28,.24)}
 #site .modal .mh{position:relative; height:170px}
 #site .modal .mh .ph{position:absolute; inset:0; border-radius:18px 18px 0 0; border-width:0 0 2px}
 #site .modal .x{position:absolute; top:12px; right:12px; z-index:5; width:34px; height:34px; border-radius:50%; border:1px solid var(--line); background:#fff; color:var(--ink,#12141C); font-size:1.15rem; font-weight:700; line-height:1; cursor:pointer; box-shadow:0 4px 12px rgba(18,20,28,.18); display:grid; place-items:center; transition:transform .15s ease, background .15s ease}
@@ -453,47 +453,51 @@ html{scrollbar-gutter:stable}
 html.modal-lock, html.modal-lock body{overflow:hidden !important}
 /* Con el buscador (autocompletado) abierto, la página no hace scroll. */
 html.q-lock, html.q-lock body{overflow:hidden}
-#site .mb{padding:20px 22px 22px}
+#site .mb{padding:22px 26px 26px}
 #site .mb .cat{font-size:.7rem; color:var(--muted); text-transform:uppercase}
-#site .mb h3{font-size:1.3rem; font-weight:800; margin:4px 0 8px}
+#site .mb h3{font-size:1.32rem; font-weight:800; margin:6px 0 10px; line-height:1.28}
 #site .mb .desc{color:#33404f; font-size:.92rem; margin:0 0 14px}
 #site .specs{list-style:none; padding:0; margin:0 0 16px; display:grid; gap:7px}
 #site .specs li{display:flex; gap:9px; font-size:.86rem; color:#33404f}
 #site .specs li svg{color:var(--green); flex:none}
 /* Vista previa enriquecida con Icecat: galería de imágenes reales + ficha clave-valor */
 #site .mh.mh-photo{height:auto; background:#fff; border-radius:18px 18px 0 0}
-#site .pvgal{padding:16px 16px 4px}
-#site .pvmain{width:100%; height:230px; object-fit:contain; display:block; background:#f4f6fd; border-radius:14px}
+#site .pvgal{padding:18px 18px 6px}
+#site .pvmain{width:100%; height:clamp(230px,40vw,290px); object-fit:contain; display:block; background:linear-gradient(135deg,#f4f8ff,#e9f0fb); border-radius:18px; padding:14px; box-sizing:border-box}
 #site .pvthumbs{display:flex; gap:8px; margin-top:10px; flex-wrap:wrap}
-#site .pvthumb{width:52px; height:52px; border-radius:10px; border:2px solid var(--line); background:#f4f6fd center/cover no-repeat; cursor:pointer; padding:0; transition:border-color .15s}
+#site .pvthumb{width:56px; height:56px; border-radius:13px; border:2px solid var(--line); background:#f4f6fd center/cover no-repeat; cursor:pointer; padding:0; transition:border-color .15s, transform .15s}
+#site .pvthumb:hover{transform:translateY(-2px)}
 #site .pvthumb.on{border-color:var(--blue)}
-#site .specs.specs-kv li{display:flex; justify-content:space-between; gap:14px; align-items:baseline; padding:4px 0; border-bottom:1px solid #f0f3fa}
-#site .specs.specs-kv .sk{color:var(--muted); flex:1 1 auto}
-#site .specs.specs-kv .sv{font-weight:600; text-align:right; flex:0 0 auto; max-width:52%}
+#site .specs.specs-kv{gap:0}
+#site .specs.specs-kv li{display:flex; justify-content:space-between; gap:16px; align-items:baseline; padding:9px 2px; border-bottom:1px solid #eef2f9; line-height:1.4}
+#site .specs.specs-kv li:last-child{border-bottom:none}
+#site .specs.specs-kv .sk{color:var(--muted); flex:1 1 auto; padding-right:10px}
+#site .specs.specs-kv .sv{font-weight:600; color:var(--ink,#12141C); text-align:right; flex:0 0 auto; max-width:52%}
 #site .specs.specs-kv .more{display:block; text-align:center; color:var(--muted); font-style:italic; border:none}
 #site .pv-loading .desc{opacity:.5}
 /* Vista previa MÁS ANCHA y organizada (menos amontonado) */
-#site #prodModal{max-width:min(640px,94vw)}
+#site #prodModal{max-width:min(560px,94vw)}
 #site #prodModal .pvmain{height:clamp(220px,42vw,300px)}
 /* Descripción recortada + "ver más" (la ficha de Icecat es muy larga) */
 #site .desc.clamp{display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden}
-#site .descmore,#site .specsmore{display:inline-block;margin:-6px 0 14px;border:none;background:none;color:var(--blue);font-weight:700;font-size:.86rem;cursor:pointer;padding:2px 0}
+#site .descmore,#site .specsmore{display:inline-flex; align-items:center; gap:6px; margin:4px 0 16px; border:1.5px solid var(--line); background:var(--paper); color:var(--blue); font-weight:700; font-size:.85rem; cursor:pointer; padding:9px 16px; border-radius:99px; transition:background .15s, box-shadow .15s, transform .15s}
+#site .descmore:hover,#site .specsmore:hover{background:#fff; box-shadow:0 8px 20px rgba(6,108,255,.16); transform:translateY(-1px)}
 /* Ficha: muestra las primeras y colapsa el resto */
 #site .specs.specs-collapsed li:nth-child(n+9){display:none}
 #site .specsmore{margin:2px 0 16px}
 #site .desc.clamp3{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
 /* ── Vista previa de 3 banners: medio (siempre) + descripción (izq) + ficha (der) ── */
 #site #prodOv.show{gap:14px; align-items:center}
-#site .pvside{flex:0 0 300px; width:300px; max-height:88vh; overflow:auto; background:#fff; border-radius:18px; box-shadow:0 20px 60px rgba(18,20,28,.3); position:relative; animation:pvIn .22s ease}
+#site .pvside{flex:0 0 308px; width:308px; max-height:88vh; overflow:auto; background:#fff; border-radius:22px; box-shadow:0 26px 74px rgba(18,20,28,.24); position:relative; animation:pvIn .22s ease}
 #site .pvside[hidden]{display:none}
 @keyframes pvIn{from{opacity:0; transform:translateY(10px)}to{opacity:1; transform:none}}
-#site .pvside .pvhead{position:sticky; top:0; z-index:2; background:#fff; padding:15px 16px 12px; border-bottom:1px solid var(--line); font-weight:800; font-size:1.02rem; display:flex; align-items:center; justify-content:space-between; gap:10px}
+#site .pvside .pvhead{position:sticky; top:0; z-index:2; background:#fff; padding:18px 20px 14px; border-bottom:1px solid var(--line); font-weight:800; font-size:1.06rem; display:flex; align-items:center; justify-content:space-between; gap:10px}
 #site .pvside .pvhead .x{position:static; width:32px; height:32px; flex:none}
-#site .pvside .pvbody{padding:14px 16px 18px}
-#site .pvside .pvdesc-full{color:#33404f; font-size:.92rem; line-height:1.55; margin:0 0 14px}
+#site .pvside .pvbody{padding:18px 20px 22px}
+#site .pvside .pvdesc-full{color:#33404f; font-size:.93rem; line-height:1.72; margin:0 0 16px}
 #site .pvside .specs.specs-kv{margin:0}
 /* Responsivo: en pantallas que no dan para 3 columnas, se APILAN (los tres siguen visibles) */
-@media(max-width:1160px){
+@media(max-width:1240px){
   #site #prodOv.show{flex-direction:column; overflow-y:auto; padding:16px 12px; gap:12px}
   #site .pvside{flex:0 0 auto; width:min(520px,94vw); max-width:min(520px,94vw); max-height:none}
   #site #prodModal{max-height:none}
