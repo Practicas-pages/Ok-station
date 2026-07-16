@@ -19,8 +19,5 @@ window.OK_PRODUCTS = [
   {id:9,cat:"accesorios",brand:"Kingston",sku:"ACC-USB64",name:"Memoria USB 64 GB",price:159,stock:12,emoji:"💾",desc:"USB 3.2 de alta velocidad.",specs:["64 GB","USB 3.2","120 MB/s"]},
   {id:10,cat:"accesorios",brand:"Logitech",sku:"ACC-MOU01",name:"Mouse inalámbrico",price:229,old:299,stock:9,emoji:"🖱",desc:"Mouse óptico con receptor USB.",specs:["2.4 GHz","1600 DPI","Pilas incluidas"]},
   {id:11,cat:"computo",brand:"Koblenz",sku:"COM-REG08",name:"Regulador 8 tomas",price:499,old:599,stock:4,emoji:"🔌",desc:"Con supresor de picos.",specs:["8 contactos","Supresor","Garantía 1 año"]},
-  {id:12,cat:"computo",brand:"HP",sku:"COM-AUD05",name:"Audífonos con micrófono",price:349,stock:15,emoji:"🎧",desc:"Diadema con micrófono.",specs:["Con micrófono","Volumen","3.5 mm"]},
-  /* Producto ligado a la BD (products.id = dbId): al abrir la vista previa se
-     enriquece EN VIVO con Icecat (imágenes + ficha técnica reales). */
-  {id:13,dbId:5,cat:"papeleria",brand:"Icecat",sku:"PRB1",name:"Producto demo · ficha Icecat",price:140,stock:7,emoji:"🧪",desc:"Ábrelo para ver el enriquecimiento de Icecat en vivo: imágenes y ficha técnica reales del proveedor.",specs:["Se enriquece con Icecat al abrirlo","Imágenes y ficha reales del proveedor"]}
+  {id:12,cat:"computo",brand:"HP",sku:"COM-AUD05",name:"Audífonos con micrófono",price:349,stock:15,emoji:"🎧",desc:"Diadema con micrófono.",specs:["Con micrófono","Volumen","3.5 mm"]}
 ];

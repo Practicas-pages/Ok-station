@@ -467,6 +467,9 @@ html.q-lock, html.q-lock body{overflow:hidden}
 #site .pvthumbs{display:flex; gap:8px; margin-top:10px; flex-wrap:wrap}
 #site .pvthumb{width:56px; height:56px; border-radius:13px; border:2px solid var(--line); background:#f4f6fd center/cover no-repeat; cursor:pointer; padding:0; transition:border-color .15s, transform .15s}
 #site .pvthumb:hover{transform:translateY(-2px)}
+/* Foto real del producto en las tarjetas del grid (catálogo desde la BD) */
+#site .pimg.has-img{border:none; background:#fff; padding:6px; display:grid; place-items:center}
+#site .pimg-img{width:100%; height:100%; object-fit:contain; display:block}
 #site .pvthumb.on{border-color:var(--blue)}
 #site .specs.specs-kv{gap:0}
 #site .specs.specs-kv li{display:flex; justify-content:space-between; gap:16px; align-items:baseline; padding:9px 2px; border-bottom:1px solid #eef2f9; line-height:1.4}
@@ -839,7 +842,7 @@ html.q-lock, html.q-lock body{overflow:hidden}
   <div class="toast" id="toast"></div>
 </div>
 
-<script src="assets/catalogo.js?v=20260715a"></script>
+<script src="assets/catalogo.js?v=20260715b"></script>
 <script>
 (function(){
   var mxn=function(n){return "$"+n.toLocaleString("es-MX",{minimumFractionDigits:2,maximumFractionDigits:2});};
@@ -847,7 +850,10 @@ html.q-lock, html.q-lock body{overflow:hidden}
   var PHIMG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>';
   function ph(cls){return '<div class="ph '+(cls||'')+'">'+PHIMG+'<small>Imagen</small></div>';}
   // Imagen de producto: usa su emoji sobre el gradiente de su categoría (placeholder "real").
-  function pimg(p,cls){return '<div class="ph pimg '+(cls||'')+'" style="background:'+(p.grad||'var(--grad-blue)')+'"><span class="pemoji">'+(p.emoji||'📦')+'</span></div>';}
+  function pimg(p,cls){
+    /* Producto de la BD con foto real (Icecat/Exel) → la mostramos; si no, el emoji. */
+    if(p.image) return '<div class="ph pimg has-img '+(cls||'')+'"><img class="pimg-img" src="'+encodeURI(p.image)+'" alt="" loading="lazy"></div>';
+    return '<div class="ph pimg '+(cls||'')+'" style="background:'+(p.grad||'var(--grad-blue)')+'"><span class="pemoji">'+(p.emoji||'📦')+'</span></div>';}
   var BOLT='<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M13 2L4 14h6l-1 8 9-12h-6l1-8z"/></svg>';
 
   // Cambio de vista
@@ -943,7 +949,11 @@ html.q-lock, html.q-lock body{overflow:hidden}
       if(c.hot) return '<button class="hot" data-cat="ofertas">'+BOLT+c.name+'</button>';
       return '<button class="'+(on?'on':'')+'" data-cat="'+c.id+'"><span class="dot" style="background:'+c.color+'"></span>'+c.name+'</button>';}).join("");
   }
-  function selectCat(id){activeCat=id; renderCats(); renderGrid(); $("app").classList.remove("drawer-open");}
+  function selectCat(id){
+    /* Con el catálogo de la BD las categorías son las de Exel; si llega un id que ya no
+       existe (p. ej. un atajo del landing), mostramos TODO en vez de dejar el grid vacío. */
+    if(id!=="all" && id!=="ofertas" && !CATS.some(function(c){return c.id===id;})) id="all";
+    activeCat=id; renderCats(); renderGrid(); $("app").classList.remove("drawer-open");}
   document.addEventListener("click",function(e){var b=e.target.closest("[data-cat]"); if(b){selectCat(b.dataset.cat);}});
 
   // ── Buscador inteligente: sin acentos, multi-palabra, busca en nombre/marca/
@@ -1213,8 +1223,36 @@ html.q-lock, html.q-lock body{overflow:hidden}
     entrega:"recoger_en_tienda"  /* sin envíos ni entregas a domicilio */
   };
 
+  /* ── Fase 4: el catálogo REAL viene de la BD (`products`: Exel + Icecat) ──
+     Se pinta primero el respaldo (assets/catalogo.js) para que la tienda abra al
+     instante, y en cuanto responde el API se cambia por los productos reales.
+     Si el API falla o aún no hay productos, se queda el respaldo (no rompe nada). */
+  var CATCOLORS=["#066CFF","#9C1DFF","#0596b8","#0E9F6E","#FF8A00","#6A2BF5"];
+  function loadCatalogFromDB(){
+    var pReq=fetch("/backend/api/shop/products.php?per_page=60").then(function(r){return r.json();}).catch(function(){return null;});
+    var cReq=fetch("/backend/api/shop/categories.php").then(function(r){return r.json();}).catch(function(){return null;});
+    Promise.all([pReq,cReq]).then(function(res){
+      var pj=res[0], cj=res[1];
+      if(!pj||!pj.ok||!pj.items||!pj.items.length) return;      // sin datos → se queda el respaldo
+      P=pj.items.map(function(it){
+        return {id:it.id, dbId:it.id, cat:it.category||"", brand:it.brand||"", sku:it.sku||"",
+                name:it.name||"", price:it.price||0, stock:it.stock||0, image:it.image||null,
+                emoji:"📦", desc:"", specs:[]};   // desc/ficha las trae la vista previa (Icecat)
+      });
+      _sidx=null;                                               // reinicia el índice del buscador
+      if(cj&&cj.ok&&cj.categories&&cj.categories.length){
+        CATS=[{id:"all",name:"Todos",color:"#66748a"}].concat(cj.categories.map(function(c,i){
+          return {id:c.name, name:c.name, color:CATCOLORS[i%CATCOLORS.length]};
+        }));
+        if(activeCat!=="all" && !CATS.some(function(c){return c.id===activeCat;})) activeCat="all";
+      }
+      renderCats(); renderGrid();
+    }).catch(function(){});
+  }
+
   loadCart(); updateWishBadge();
   renderCats(); renderGrid(); renderCart();
+  loadCatalogFromDB();
 
   // Vista lista/cuadros (predeterminado: LISTA)
   function setView(m){ var g=$("grid"); if(g) g.classList.toggle("is-list", m==="list"); [].forEach.call(document.querySelectorAll(".viewtoggle button"),function(b){ b.classList.toggle("on", b.dataset.view===m); }); renderGrid(); if(window.__fillMore) window.__fillMore(); }
