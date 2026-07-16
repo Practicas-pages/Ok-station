@@ -18,13 +18,17 @@ $shipMode = (($b['ship_mode'] ?? 'retiro') === 'envio') ? 'envio' : 'retiro';
 $shipAddress = trim((string) ($b['ship_address'] ?? ''));
 $state = trim((string) ($b['state'] ?? ''));
 $comments = trim((string) ($b['comments'] ?? ''));
-$phone = trim((string) ($b['contact_phone'] ?? ''));
-$phone = preg_replace('/[^\d+()\-\s]/', '', $phone);
+/* Teléfono: se NORMALIZA a 10 dígitos pelones (móvil mexicano). El navegador ya
+   solo deja teclear eso, pero esto es el API: cualquiera puede mandar otra cosa,
+   así que la regla de verdad vive aquí. Se guarda limpio para que las trabajadoras
+   puedan marcar/pegar en WhatsApp sin formatos raros. */
+$phone = preg_replace('/\D/', '', (string) ($b['contact_phone'] ?? ''));
+if (strlen($phone) === 12 && substr($phone, 0, 2) === '52') $phone = substr($phone, 2);  // vino con lada +52
 
 if (!is_array($items) || count($items) === 0) fail('Tu carrito está vacío.');
 if (count($items) > 50) fail('Demasiados productos en un solo pedido (máximo 50).');
 if (mb_strlen($comments) > 1000) fail('Los comentarios son demasiado largos.');
-if (strlen(preg_replace('/\D/', '', $phone)) < 10) fail('Ingresa un teléfono válido (10 dígitos) para poder contactarte.');
+if (strlen($phone) !== 10) fail('Ingresa un teléfono válido (10 dígitos) para poder contactarte.');
 if ($shipMode === 'envio' && mb_strlen($shipAddress) < 10) fail('Ingresa la dirección de envío completa.');
 if (mb_strlen($shipAddress) > 400) fail('La dirección es demasiado larga.');
 

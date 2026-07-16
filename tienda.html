@@ -1715,7 +1715,7 @@ html.q-lock, html.q-lock body{overflow:hidden}
       ? '<div class="field"><label>Estado de entrega</label><select id="coState">'+MX_ESTADOS.map(function(s){return '<option'+(s.toLowerCase()===estadoDef.toLowerCase()?' selected':'')+'>'+esc(s)+'</option>';}).join("")+'</select></div>'
       : '<p class="desc" style="font-size:.82rem;margin:2px 0 8px">Recoges en OK.station (Tijuana, Baja California) · IVA 8%.</p>';
     var body='<h3 style="margin:0 0 12px;font-size:1.2rem">Finaliza tu compra</h3>'+
-      '<div class="field"><label>WhatsApp para avisarte</label><input id="coPhone" inputmode="tel" placeholder="(664) 000 0000"></div>'+
+      '<div class="field"><label>WhatsApp para avisarte</label><input id="coPhone" inputmode="numeric" autocomplete="tel-national" maxlength="10" placeholder="6640000000"></div>'+
       (envio?'<div class="field"><label>Dirección de envío</label><input id="coAddr" placeholder="Calle y número, colonia, C.P., ciudad"></div>':'')+
       stateSel+
       '<div id="coSummary"></div>'+
@@ -1746,8 +1746,8 @@ html.q-lock, html.q-lock body{overflow:hidden}
   }
   function submitShop(){
     var tok=shopToken(); if(!tok){renderCheckout();return;}
-    var phone=($("coPhone")&&$("coPhone").value||"").trim();
-    if(phone.replace(/\D/g,"").length<10){flash("Ingresa un WhatsApp válido (10 dígitos)");return;}
+    var phone=soloTel($("coPhone")&&$("coPhone").value);
+    if(phone.length!==10){flash("Ingresa un WhatsApp válido (10 dígitos)");return;}
     var envio=shipMode==="envio", addr=($("coAddr")&&$("coAddr").value||"").trim();
     if(envio&&addr.length<10){flash("Ingresa la dirección de envío completa");return;}
     var estado=envio?(($("coState")&&$("coState").value)||okGeo.state||"Baja California"):"Baja California";
@@ -1767,6 +1767,22 @@ html.q-lock, html.q-lock body{overflow:hidden}
     if(e.target.id==="coOv"||e.target.closest("[data-close]")){hide("coOv"); return;}
     if(e.target.closest("[data-cologin]")){location.href="cuenta.html?next=tienda.html%23store"; return;}
     if(e.target.closest("[data-copay]")){submitShop(); return;}
+  });
+  /* WhatsApp: SOLO 10 dígitos. maxlength e inputmode no bastan (en escritorio se
+     teclean letras igual; inputmode solo sugiere el teclado en móvil), así que se
+     filtra aquí. Delegado en el overlay porque el modal se vuelve a pintar y un
+     listener puesto sobre el input se perdería en cada render. */
+  function soloTel(v){
+    var d=String(v||"").replace(/\D/g,"");
+    /* Si pegan con lada de país (+52 55 1234 5678 = 12 dígitos), se quita el 52.
+       Sin esto, cortar a los primeros 10 daría un número DISTINTO y en silencio. */
+    if(d.length===12 && d.slice(0,2)==="52") d=d.slice(2);
+    return d.slice(0,10);
+  }
+  $("coOv").addEventListener("input",function(e){
+    if(e.target.id!=="coPhone") return;
+    var limpio=soloTel(e.target.value);
+    if(e.target.value!==limpio) e.target.value=limpio;   // solo si cambió: no mueve el cursor de más
   });
 
   function anyOvOpen(){return !!document.querySelector(".ov.show");}
