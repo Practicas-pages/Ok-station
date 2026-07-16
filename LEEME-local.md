@@ -44,6 +44,41 @@ Prueba rápida del endpoint (PowerShell):
       -Body '{"message":"cuanto cuesta una foto para pasaporte?"}' `
       -ContentType "application/json" | Select -Expand Content
 
+## Catálogo de la tienda en local (Exel + Icecat)
+
+La tienda se alimenta de la tabla `products`, que llena el runner del proveedor **Exel**.
+Sin la API key de Exel puedes probar con el feed de muestra que ya viene en el repo:
+
+    php backend/tools/exel-sync.php --file=backend/tools/sample-exel-feed.json
+
+Luego "vístelos" con **Icecat** (ficha técnica + imágenes, máx 5 por producto):
+
+    php backend/tools/icecat-enrich.php
+
+Para que Icecat funcione, pon esto en `backend/.env` (es un usuario gratis de pruebas,
+no requiere token):
+
+    ICECAT_USERNAME=openicecat-live
+    ICECAT_LANG=ES
+
+### Windows: los certificados de PHP (esto falla EN SILENCIO)
+El PHP de Laragon **no trae el bundle de certificados**, así que cualquier llamada HTTPS
+desde PHP falla (Icecat, Exel, Mercado Pago...). Lo engañoso: el enricher lo reporta como
+*"no está en Icecat"* cuando en realidad es un error de SSL (`errno 60`).
+
+Arréglalo **una sola vez** en el `php.ini` de Laragon
+(`C:\laragon\bin\php\php-8.3.30-Win32-vs16-x64\php.ini`), descomentando estas dos líneas
+y poniéndoles la ruta:
+
+    curl.cainfo = "C:\laragon\etc\ssl\cacert.pem"
+    openssl.cafile="C:\laragon\etc\ssl\cacert.pem"
+
+Reinicia el servidor (y Laragon, si sirves con Apache). Para comprobar que quedó:
+
+    php -r "var_dump(ini_get('curl.cainfo'));"
+
+En el servidor Linux esto no pasa: usa los certificados del sistema.
+
 ## Si otro día vuelves a empezar de cero
 1. Laragon → Start All (Apache + MySQL).
 2. Crear la base `okstationv2` en HeidiSQL (si no existe).
