@@ -82,9 +82,20 @@ echo "  Recibidos: " . count($raw) . " productos del origen\n";
 $whitelist = array_map('norm', PAPELERIA_CATS);
 $rows = [];
 $descartados = 0;
+/* Censo de las categorías REALES que manda Exel, para el informe del --dry-run.
+   Nuestra lista blanca se escribió a mano SIN ver el catálogo real: si los nombres no
+   empatan, esto se importaría vacío y sin saber por qué. Aquí queda a la vista. */
+$censo = [];
 foreach ($raw as $p) {
     $cat = (string) ($p['categoria_nombre'] ?? '');
-    if (!in_array(norm($cat), $whitelist, true)) { $descartados++; continue; }
+    $pasa = in_array(norm($cat), $whitelist, true);
+    $k = $cat === '' ? '(sin categoría)' : $cat;
+    if (!isset($censo[$k])) $censo[$k] = ['n' => 0, 'pasa' => $pasa, 'subs' => []];
+    $censo[$k]['n']++;
+    $sub = trim((string) ($p['subcategoria_nombre'] ?? ''));
+    if ($sub !== '') $censo[$k]['subs'][$sub] = true;
+
+    if (!$pasa) { $descartados++; continue; }
 
     $cost = (float) ($p['precio'] ?? 0);
     $rows[] = [
@@ -110,9 +121,29 @@ foreach ($raw as $p) {
 }
 echo "  Papelería: " . count($rows) . " a importar  ·  descartados (no papelería): {$descartados}\n";
 
-if (!$rows) { echo "  Nada que importar. Fin.\n"; exit(0); }
+/* El informe va ANTES de rendirse: si la lista blanca no empata con los nombres reales
+   de Exel, "no hay nada que importar" no dice NADA. Esto sí dice qué mandó Exel. */
+if ($dryRun || !$rows) {
+    uasort($censo, fn($a, $b) => $b['n'] <=> $a['n']);
+    echo "\n── Categorías que manda EXEL (así se llaman de su lado) ──\n";
+    $entran = $fuera = 0;
+    foreach ($censo as $nombre => $c) {
+        $marca = $c['pasa'] ? '✓ ENTRA ' : '· fuera ';
+        $c['pasa'] ? $entran += $c['n'] : $fuera += $c['n'];
+        $subs = array_slice(array_keys($c['subs']), 0, 4);
+        echo sprintf("  %s %-42s %5d  %s\n", $marca, mb_strimwidth($nombre, 0, 42, '…'), $c['n'],
+            $subs ? '(' . implode(', ', $subs) . (count($c['subs']) > 4 ? '…' : '') . ')' : '');
+    }
+    echo "  ──\n  Entran: {$entran}   ·   Se quedan fuera: {$fuera}   ·   Categorías distintas: " . count($censo) . "\n";
+    if (!$rows) {
+        echo "\n  ⚠ NO entró NI UN producto. La lista blanca PAPELERIA_CATS (arriba en este\n";
+        echo "    archivo) no empata con los nombres de Exel. Copia de la columna de arriba\n";
+        echo "    los que SÍ sean de papelería y ponlos en esa lista.\n";
+        exit(1);
+    }
+}
 if ($dryRun) {
-    echo "  [DRY-RUN] No se escribió nada. Ejemplo de fila:\n";
+    echo "\n  [DRY-RUN] No se escribió nada. Ejemplo de fila que se importaría:\n";
     echo "    " . json_encode($rows[0], JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT) . "\n";
     exit(0);
 }
