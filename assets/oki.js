@@ -145,7 +145,13 @@
   function okiInWish(id) { var S = okiStore(), w = []; try { w = S ? (S.deseados() || []) : []; } catch (e) {} return w.some(function (d) { return d.id == id; }); }
 
   // ── Vista LISTA en la tienda: carrito (con cantidades) + recomendaciones + deseados ──
-  function okiOlvThumb(p) { var f = okiFindProd(p.id) || p; return '<span class="olv-th" data-oki-open="' + p.id + '" title="Ver producto" style="background:' + (f.grad || 'var(--blue)') + ';cursor:pointer">' + (f.emoji || '📦') + '</span>'; }
+  /* Miniatura: la foto REAL del producto (viene en el contrato de la tienda). Si no
+     hay foto, su emoji sobre el gradiente de la categoría. */
+  function okiOlvThumb(p) {
+    var f = okiFindProd(p.id) || {}, img = p.image || f.image;
+    if (img) return '<span class="olv-th olv-th--img" data-oki-open="' + p.id + '" title="Ver producto"><img src="' + encodeURI(img) + '" alt="" loading="lazy"></span>';
+    return '<span class="olv-th" data-oki-open="' + p.id + '" title="Ver producto" style="background:' + (f.grad || p.grad || 'var(--blue)') + ';cursor:pointer">' + (f.emoji || p.emoji || '📦') + '</span>';
+  }
   function okiOlvItem(it) {
     return '<div class="olv-it">' + okiOlvThumb(it) +
       '<div class="olv-nm" data-oki-open="' + it.id + '" style="cursor:pointer"><b>' + esc(it.name) + '</b><small>' + okiMxn(it.price) + ' c/u</small></div>' +
