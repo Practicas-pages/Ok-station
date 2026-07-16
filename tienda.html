@@ -33,7 +33,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap">
 <link rel="stylesheet" href="styles.css">
-<link rel="stylesheet" href="assets/oki.css?v=20260714d">
+<link rel="stylesheet" href="assets/oki.css?v=20260716a">
 
 <script type="application/ld+json">
 {
@@ -288,8 +288,27 @@
 #site .ac-empty{padding:16px 14px; color:var(--muted,#6b7280); font-size:.86rem; line-height:1.45}
 #site .cartpill{margin-left:auto; display:flex; align-items:center; gap:8px; background:rgba(255,255,255,.15); color:#fff; border:1px solid rgba(255,255,255,.25); border-radius:12px; padding:9px 13px; font-weight:700; white-space:nowrap; flex:none}
 #site .cartpill .ct{background:#FFE000; color:#0a1a3a; border-radius:99px; font-size:.7rem; min-width:19px; height:19px; display:grid; place-items:center; padding:0 5px; font-weight:800}
-#site .popbar-row{display:flex; align-items:center; gap:12px; padding:9px max(14px,calc((100% - var(--store-col))/2)); background:linear-gradient(rgba(8,12,30,.16),rgba(8,12,30,.16)),var(--grad)}
-#site .popbar{display:flex; align-items:center; gap:8px; overflow-x:auto; flex:1; min-width:0}
+#site .popbar-row{display:flex; align-items:center; gap:12px; padding:5px max(14px,calc((100% - var(--store-col))/2)); background:linear-gradient(rgba(8,12,30,.16),rgba(8,12,30,.16)),var(--grad)}
+/* ── Carril de categorías ──
+   La barra de scroll nativa se OCULTA (se veía cortando el degradado y encimada
+   sobre lo de abajo). Para recorrer: flechas en desktop, arrastre en móvil, y un
+   difuminado en los extremos que avisa que hay más. El carril lleva padding
+   vertical para que la elevación/sombra de las píldoras NO se corte. */
+#site .popbar-wrap{position:relative; flex:1; min-width:0; display:flex; align-items:center}
+#site .popbar{display:flex; align-items:center; gap:8px; flex:1; min-width:0; overflow-x:auto; overflow-y:hidden; scroll-behavior:smooth; padding:7px 3px; scrollbar-width:none; -ms-overflow-style:none; -webkit-overflow-scrolling:touch; overscroll-behavior-x:contain}
+#site .popbar::-webkit-scrollbar{display:none}
+/* El difuminado se aplica al CONTENIDO (máscara), no al fondo: así funciona sobre
+   el degradado sin tener que adivinar un color sólido que lo empate. */
+#site .popbar-wrap.can-prev .popbar{-webkit-mask-image:linear-gradient(90deg,transparent 0,#000 36px); mask-image:linear-gradient(90deg,transparent 0,#000 36px)}
+#site .popbar-wrap.can-next .popbar{-webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 36px),transparent 100%); mask-image:linear-gradient(90deg,#000 calc(100% - 36px),transparent 100%)}
+#site .popbar-wrap.can-prev.can-next .popbar{-webkit-mask-image:linear-gradient(90deg,transparent 0,#000 36px,#000 calc(100% - 36px),transparent 100%); mask-image:linear-gradient(90deg,transparent 0,#000 36px,#000 calc(100% - 36px),transparent 100%)}
+#site .popnav{position:absolute; top:50%; transform:translateY(-50%); z-index:3; width:30px; height:30px; padding:0; border-radius:50%; border:1.5px solid rgba(255,255,255,.55); background:rgba(9,14,34,.55); backdrop-filter:blur(8px); color:#fff; display:none; place-items:center; cursor:pointer; transition:background .15s, transform .15s}
+#site .popnav:hover{background:rgba(9,14,34,.85); transform:translateY(-50%) scale(1.09)}
+#site .popnav--prev{left:-2px}
+#site .popnav--next{right:-2px}
+#site .popbar-wrap.can-prev .popnav--prev,#site .popbar-wrap.can-next .popnav--next{display:grid}
+/* Móvil/tablet: sin flechas (se arrastra con el dedo); el difuminado sigue avisando. */
+@media(max-width:820px){ #site .popnav{display:none !important} #site .poplab{display:none} }
 #site .pop-actions{flex:none; display:flex; align-items:center; gap:9px; margin-left:auto}
 #site .pop-actions .cartpill{margin-left:0}
 #site .poplab{font-size:.72rem; font-weight:700; color:rgba(255,255,255,.85); text-transform:uppercase; letter-spacing:.06em; white-space:nowrap; flex:none}
@@ -421,6 +440,12 @@ html.store-view .header-bar, html.store-view .site-header{display:none}
 #site .dlist button.on{background:#eef4ff; color:var(--blue); font-weight:700}
 #site .dlist button .dot{width:9px; height:9px; border-radius:3px; flex:none}
 #site .dlist button.hot{background:linear-gradient(100deg,#FF8A00,#FF5E3A); color:#fff; font-weight:800; margin-bottom:6px}
+/* Subcategorías dentro del cajón: sangradas bajo su categoría, con guía vertical. */
+#site .dlist .dsubs{margin:1px 0 6px 20px; padding-left:11px; border-left:2px solid var(--line); display:flex; flex-direction:column}
+#site .dlist .dsub{padding:8px 10px; font-size:.85rem; font-weight:500; color:#5b6879; border-radius:8px}
+#site .dlist .dsub.on{background:#eef4ff; color:var(--blue); font-weight:700}
+#site .dlist .dn{margin-left:auto; font-size:.72rem; font-weight:700; color:#9aa7bd; background:var(--paper); border-radius:99px; padding:1px 7px}
+#site .dlist button.on .dn{background:#fff; color:var(--blue)}
 #site .scrim{position:fixed; inset:0; background:rgba(18,20,28,.45); z-index:56; display:none}
 #site #app.drawer-open .scrim,#site #app.cart-open .scrim{display:block}
 /* ── Barras que EMPUJAN el contenido (solo desktop, donde hay espacio) ──
@@ -436,11 +461,20 @@ html.store-view .header-bar, html.store-view .site-header{display:none}
      Escape o eligiendo categoría, igual que antes) */
   #site #app.cart-open .scrim,#site #app.drawer-open .scrim{background:transparent; pointer-events:none}
 }
-/* ── Barras arrancan DEBAJO de la navbar (no encima) ──
+/* ── Barras de altura COMPLETA con cabecera de marca ──
+   Antes arrancaban debajo de la navbar y quedaba un escalón feo (la barra blanca
+   "cortada" contra el degradado). Ahora la barra cubre toda la columna y su
+   cabecera lleva el MISMO degradado con el alto exacto de la navbar (--shop-top),
+   así el degradado de arriba se lee continuo de lado a lado y la barra se ve como
+   una pieza entera, no como un parche.
    --shop-top = borde inferior de la navbar (lo actualiza un pequeño script
    en scroll/resize, porque la navbar es sticky y su borde cambia). */
 #site{--shop-top:112px}
-#site .cart,#site .drawer{top:var(--shop-top); height:calc(100% - var(--shop-top))}
+#site .cart,#site .drawer{top:0; height:100%}
+#site .cart .ch,#site .drawer .dh{min-height:var(--shop-top); box-sizing:border-box; padding:14px 18px; background:linear-gradient(rgba(8,12,30,.08),rgba(8,12,30,.08)),var(--grad); color:#fff; border-bottom:none; font-size:1.02rem; letter-spacing:-.01em}
+/* Botón de cerrar sobre el degradado: círculo translúcido (el × gris se perdía). */
+#site .cart .ch .close,#site .drawer .dh .x{margin-left:auto; flex:none; width:32px; height:32px; padding:0; border:1px solid rgba(255,255,255,.4); background:rgba(255,255,255,.16); color:#fff; border-radius:50%; font-size:1.15rem; line-height:1; display:grid; place-items:center; cursor:pointer; transition:background .15s, transform .15s}
+#site .cart .ch .close:hover,#site .drawer .dh .x:hover{background:rgba(255,255,255,.34); transform:scale(1.08)}
 /* Las barras (carrito / categorías) son fijas y empujan el contenido; el
    catálogo sigue haciendo scroll normal mientras están abiertas. Se reserva
    el hueco de la barra de scroll para que no haya saltito al abrir un modal. */
@@ -830,7 +864,13 @@ html.q-lock, html.q-lock body{overflow:hidden}
         </div>
       </div>
       <div class="popbar-row">
-        <nav class="popbar" id="popbar"></nav>
+        <a class="volver-sitio" href="index.html"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>Volver al sitio</a>
+        <span class="poplab">Categorías</span>
+        <div class="popbar-wrap" id="popWrap">
+          <button type="button" class="popnav popnav--prev" id="popPrev" aria-label="Ver categorías anteriores"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>
+          <nav class="popbar" id="popbar" aria-label="Categorías de la tienda"></nav>
+          <button type="button" class="popnav popnav--next" id="popNext" aria-label="Ver más categorías"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></button>
+        </div>
       </div>
       </div>
       <div class="shell">
@@ -910,7 +950,7 @@ html.q-lock, html.q-lock body{overflow:hidden}
   // Catálogo desde la fuente compartida (assets/catalogo.js). Fallback a [] por si no cargó.
   var P=(window.OK_PRODUCTS||[]).slice();
   P.forEach(function(p){p.grad=GRADC[p.cat]||"var(--grad-blue)";});
-  var cart={}, activeCat="all", query="", shipMode="retiro", coStep=0;
+  var cart={}, activeCat="all", activeSub="", query="", shipMode="retiro", coStep=0;
 
   /* ── Geolocalización del cliente para el IVA (BC 8% / nacional 16%) ──
      La página pregunta al servidor en qué estado está el cliente (por IP/CDN, o
@@ -944,31 +984,74 @@ html.q-lock, html.q-lock body{overflow:hidden}
 
   // ── Carrito persistente (localStorage): al volver a entrar, tu lista sigue ahí ──
   var CART_KEY="okstation_cart";
-  function saveCart(){try{var s={};for(var k in cart)s[k]=cart[k].qty;localStorage.setItem(CART_KEY,JSON.stringify(s));}catch(e){}}
+  /* Hasta que el catálogo REAL no está resuelto, guardar sería destructivo: el primer
+     pintado ocurre con el respaldo y los ids que el respaldo no conoce se perderían
+     de localStorage antes de poder resolverlos contra la BD. */
+  var catalogReady=false;
+  function saveCart(){ if(!catalogReady) return;
+    try{var s={};for(var k in cart)s[k]=cart[k].qty;localStorage.setItem(CART_KEY,JSON.stringify(s));}catch(e){}}
   function loadCart(){try{var s=JSON.parse(localStorage.getItem(CART_KEY)||"{}");for(var id in s){var p=prod(+id);if(p&&s[id]>0)cart[id]={p:p,qty:Math.min(p.stock,s[id])};}}catch(e){}}
 
-  // Landing: categorías + productos
-  var LANDCATS=[["consumibles","Tinta y tóner"],["papel","Papel y cuadernos"],["escritura","Escritura"],["oficina","Oficina y escolar"],["ofertas","Ofertas del día"]];
-  $("landCats").innerHTML=LANDCATS.map(function(c){return '<button class="ctile" data-cat="'+c[0]+'" data-go-store>'+ph()+'<b>'+c[1]+'</b><span>Ver productos →</span></button>';}).join("");
-  $("landFeat").innerHTML=[1,10,16,4,12,3].map(function(id){var p=P.filter(function(x){return x.id===id;})[0]; var low=p.stock<=6;
-    return '<div class="fcard" data-open-feat="'+p.id+'">'+(p.old?'<span class="off">−'+Math.round((1-p.price/p.old)*100)+'%</span>':'')+pimg(p)+'<h4>'+p.name+'</h4><div class="fp">'+mxn(p.price)+(p.old?' <s>'+mxn(p.old)+'</s>':'')+'</div>'+(low?'<div class="scarce">🔥 Solo quedan '+p.stock+'</div>':'')+'<button class="fadd" data-go-store data-cat="'+p.cat+'">Ver en tienda</button></div>';}).join("");
-  $("landFeat").addEventListener("click",function(e){var c=e.target.closest("[data-open-feat]"); if(c && !e.target.closest(".fadd")){showView("store"); selectCat(prod(+c.dataset.openFeat).cat);}});
+  /* ── Landing: categorías + productos destacados ──
+     Se arman de CATS/P, así que valen igual con el catálogo real de la BD que con el
+     respaldo (antes eran ids fijos del respaldo: en modo BD apuntaban a productos que
+     no existen y "Ver en tienda" tronaba). Se repintan al cargar el catálogo. */
+  function renderLandCats(){
+    var list=CATS.filter(function(c){return c.id!=="all";}).slice(0,6);
+    $("landCats").innerHTML=list.map(function(c){return '<button class="ctile" data-cat="'+okEsc(c.id)+'" data-go-store>'+ph()+'<b>'+okEsc(c.name)+'</b><span>Ver productos →</span></button>';}).join("");
+  }
+  function renderLandFeat(){
+    /* Destacados: primero las ofertas, luego lo demás; siempre con existencia. */
+    var pool=P.filter(function(p){return p.stock>0;});
+    var list=pool.filter(function(p){return !!p.old;}).concat(pool.filter(function(p){return !p.old;})).slice(0,6);
+    $("landFeat").innerHTML=list.map(function(p){var low=p.stock<=6;
+      return '<div class="fcard" data-open-feat="'+p.id+'">'+(p.old?'<span class="off">−'+Math.round((1-p.price/p.old)*100)+'%</span>':'')+pimg(p)+'<h4>'+okEsc(p.name)+'</h4><div class="fp">'+mxn(p.price)+(p.old?' <s>'+mxn(p.old)+'</s>':'')+'</div>'+(low?'<div class="scarce">🔥 Solo quedan '+p.stock+'</div>':'')+'<button class="fadd" data-go-store data-cat="'+okEsc(p.cat)+'">Ver en tienda</button></div>';}).join("");
+  }
+  $("landFeat").addEventListener("click",function(e){var c=e.target.closest("[data-open-feat]"); if(c && !e.target.closest(".fadd")){var p=prod(+c.dataset.openFeat); showView("store"); if(p) selectCat(p.cat);}});
 
   // Tienda interactiva
   function renderCats(){
-    $("popbar").innerHTML='<a class="volver-sitio" href="index.html"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>Volver al sitio</a><span class="poplab">Populares</span>'+CATS.map(function(c){var on=activeCat===c.id;
-      if(c.hot) return '<button class="pop hot" data-cat="ofertas">'+BOLT+c.name+'</button>';
-      return '<button class="pop'+(on?' on':'')+'" data-cat="'+c.id+'"><span class="dot" style="background:'+c.color+'"></span>'+c.name+'</button>';}).join("");
-    $("drawerList").innerHTML=CATS.map(function(c){var on=activeCat===c.id;
-      if(c.hot) return '<button class="hot" data-cat="ofertas">'+BOLT+c.name+'</button>';
-      return '<button class="'+(on?'on':'')+'" data-cat="'+c.id+'"><span class="dot" style="background:'+c.color+'"></span>'+c.name+'</button>';}).join("");
+    /* Carril (píldoras): categorías principales. El cajón "Categorías" muestra el
+       árbol completo (categoría + sus subcategorías), que es donde se ve la
+       estructura fina de la papelería sin saturar el carril. */
+    $("popbar").innerHTML=CATS.map(function(c){var on=activeCat===c.id;
+      if(c.hot) return '<button class="pop hot'+(on?' on':'')+'" data-cat="ofertas">'+BOLT+okEsc(c.name)+'</button>';
+      return '<button class="pop'+(on?' on':'')+'" data-cat="'+okEsc(c.id)+'"><span class="dot" style="background:'+c.color+'"></span>'+okEsc(c.name)+'</button>';}).join("");
+    $("drawerList").innerHTML=CATS.map(function(c){var on=activeCat===c.id&&!activeSub;
+      if(c.hot) return '<button class="hot'+(activeCat==="ofertas"?" on":"")+'" data-cat="ofertas">'+BOLT+okEsc(c.name)+'</button>';
+      var head='<button class="'+(on?'on':'')+'" data-cat="'+okEsc(c.id)+'"><span class="dot" style="background:'+c.color+'"></span>'+okEsc(c.name)+(c.count?'<span class="dn">'+c.count+'</span>':'')+'</button>';
+      var subs=(c.subs||[]);
+      if(!subs.length) return head;
+      return head+'<div class="dsubs">'+subs.map(function(s){
+        return '<button class="dsub'+(activeCat===c.id&&activeSub===s.name?" on":"")+'" data-cat="'+okEsc(c.id)+'" data-sub="'+okEsc(s.name)+'">'+okEsc(s.name)+(s.count?'<span class="dn">'+s.count+'</span>':'')+'</button>';
+      }).join("")+'</div>';
+    }).join("");
+    popSync();                                  // flechas/difuminado del carril
+    var on=$("popbar").querySelector(".pop.on"); // la categoría activa siempre a la vista
+    if(on&&on.scrollIntoView) try{on.scrollIntoView({block:"nearest",inline:"nearest"});}catch(e){}
   }
-  function selectCat(id){
+  /* Flechas + difuminado del carril: solo se muestran si de verdad hay más que recorrer. */
+  function popSync(){
+    var wrap=$("popWrap"), bar=$("popbar"); if(!wrap||!bar) return;
+    var max=bar.scrollWidth-bar.clientWidth;
+    wrap.classList.toggle("can-prev", bar.scrollLeft>4);
+    wrap.classList.toggle("can-next", max>4 && bar.scrollLeft<max-4);
+  }
+  (function(){
+    var bar=$("popbar"); if(!bar) return;
+    function nudge(d){ bar.scrollBy({left:d*Math.max(180,Math.round(bar.clientWidth*.7)), behavior:"smooth"}); }
+    $("popPrev").addEventListener("click",function(){nudge(-1);});
+    $("popNext").addEventListener("click",function(){nudge(1);});
+    bar.addEventListener("scroll", popSync, {passive:true});
+    window.addEventListener("resize", popSync);
+    if(window.ResizeObserver) new ResizeObserver(popSync).observe(bar);
+  })();
+  function selectCat(id,sub){
     /* Con el catálogo de la BD las categorías son las de Exel; si llega un id que ya no
        existe (p. ej. un atajo del landing), mostramos TODO en vez de dejar el grid vacío. */
-    if(id!=="all" && id!=="ofertas" && !CATS.some(function(c){return c.id===id;})) id="all";
-    activeCat=id; renderCats(); renderGrid(); $("app").classList.remove("drawer-open");}
-  document.addEventListener("click",function(e){var b=e.target.closest("[data-cat]"); if(b){selectCat(b.dataset.cat);}});
+    if(id!=="all" && id!=="ofertas" && !CATS.some(function(c){return c.id===id;})){ id="all"; sub=""; }
+    activeCat=id; activeSub=sub||""; renderCats(); reloadFromDB(); $("app").classList.remove("drawer-open");}
+  document.addEventListener("click",function(e){var b=e.target.closest("[data-cat]"); if(b){selectCat(b.dataset.cat, b.dataset.sub||"");}});
 
   // ── Buscador inteligente: sin acentos, multi-palabra, busca en nombre/marca/
   //    categoría/sku/descripción, con tolerancia a erratas (distancia de edición)
@@ -986,8 +1069,16 @@ html.q-lock, html.q-lock body{overflow:hidden}
     if(!found)return -1;   // TODOS los términos deben coincidir (AND)
   } return score;}
   function okSearch(q,limit){var terms=okNorm(q).split(" ").filter(Boolean); if(!terms.length)return []; var idx=searchIndex(),res=[]; for(var i=0;i<idx.length;i++){var s=okScore(idx[i],terms); if(s>=0)res.push({p:idx[i].p,s:s});} res.sort(function(a,b){return b.s-a.s||a.p.name.localeCompare(b.p.name);}); res=res.map(function(x){return x.p;}); return limit?res.slice(0,limit):res;}
-  function filtered(){var base=query.length>=2?okSearch(query):P.slice();
-    return base.filter(function(p){ if(activeCat==="ofertas")return !!p.old; if(activeCat!=="all"&&p.cat!==activeCat)return false; return true;});}
+  function filtered(){
+    /* Con el catálogo real el SERVIDOR ya aplicó categoría/subcategoría/ofertas/búsqueda
+       (ver dbParams): lo que hay en P es justo lo que toca pintar. Solo el respaldo
+       (sin BD, catálogo chico y completo en memoria) se filtra aquí. */
+    if(dbMode) return P.slice();
+    var base=query.length>=2?okSearch(query):P.slice();
+    return base.filter(function(p){ if(activeCat==="ofertas")return !!p.old;
+      if(activeCat!=="all"&&p.cat!==activeCat)return false;
+      if(activeSub&&p.sub!==activeSub)return false;                 // subcategoría (cajón)
+      return true;});}
   function catName(id){var c=CATS.filter(function(x){return x.id===id;})[0]; return c?c.name:id;}
   var infiniteList=[]; // lista actual filtrada, para el scroll infinito (los productos se repiten)
   function cardsHTML(list){return list.map(function(p){var low=p.stock<=5;
@@ -996,8 +1087,11 @@ html.q-lock, html.q-lock body{overflow:hidden}
         '<div class="row"><div><div class="price">'+mxn(p.price)+(p.old?' <s>'+mxn(p.old)+'</s>':'')+'</div><div class="stock'+(low?' low':'')+'">'+(low?"¡Últimas "+p.stock+"!":p.stock+" en stock")+'</div></div><button class="add" data-add="'+p.id+'">+</button></div></div>'+
         '<button style="position:absolute;inset:0;opacity:0;cursor:pointer" data-open="'+p.id+'" aria-label="Ver"></button></div>';}).join("");}
   function renderGrid(){var list=filtered();
-    $("catTitle").textContent=query.length>=2?'Resultados de "'+query+'"':catName(activeCat);
-    $("catCount").textContent=list.length+" producto"+(list.length===1?"":"s");
+    $("catTitle").textContent=query.length>=2?'Resultados de "'+query+'"':(activeSub||catName(activeCat));
+    /* El conteo es el TOTAL del filtro (lo que dice el servidor), no lo que ya se
+       paginó: si no, diría "12 productos" hasta que hicieras scroll. */
+    var total=dbMode?dbTotal:list.length;
+    $("catCount").textContent=total+" producto"+(total===1?"":"s");
     if(!list.length){infiniteList=[]; $("grid").innerHTML='<div class="empty">No encontramos productos.</div>'; return;}
     infiniteList=list;                       // reinicia el scroll infinito al cambiar filtro/categoría/búsqueda
     $("grid").innerHTML=cardsHTML(list);
@@ -1007,16 +1101,33 @@ html.q-lock, html.q-lock body{overflow:hidden}
   function okEsc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];});}
   function acHi(name,q){var terms=okNorm(q).split(" ").filter(function(x){return x.length>=2;}); if(!terms.length)return okEsc(name); terms.sort(function(a,b){return b.length-a.length;}); var map={a:"[aáàä]",e:"[eéèë]",i:"[iíìï]",o:"[oóòö]",u:"[uúùü]",n:"[nñ]"}; for(var k=0;k<terms.length;k++){var pat=terms[k].replace(/[.*+?^${}()|[\]\\]/g,"\\$&").replace(/[aeioun]/g,function(c){return map[c]||c;}); try{var re=new RegExp(pat,"i"),m=name.match(re); if(m){var idx=m.index; return okEsc(name.slice(0,idx))+"<mark>"+okEsc(m[0])+"</mark>"+okEsc(name.slice(idx+m[0].length));}}catch(e){}} return okEsc(name);}
   function acRow(p,q){return '<button type="button" class="ac-item" role="option" data-open="'+p.id+'"><span class="ac-emoji">'+(p.emoji||"📦")+'</span><span class="ac-txt"><span class="ac-name">'+(q?acHi(p.name,q):okEsc(p.name))+'</span><span class="ac-meta">'+okEsc((p.brand?p.brand+" · ":"")+catName(p.cat))+'</span></span><span class="ac-price">'+mxn(p.price)+'</span></button>';}
-  var acItems=[], acSel=-1;
+  /* Búsqueda unificada. Con catálogo real va al SERVIDOR (busca en TODO el catálogo,
+     no solo en la página cargada); con el respaldo usa el buscador local difuso.
+     Devuelve siempre una promesa, para que quien la use no tenga que saber cuál es. */
+  function searchProducts(q,limit){
+    if(!dbMode) return Promise.resolve(okSearch(q,limit));
+    return fetch("/backend/api/shop/products.php?per_page="+(limit||8)+"&page=1&q="+encodeURIComponent(q))
+      .then(function(r){return r.json();})
+      .then(function(j){ return (j&&j.ok&&j.items)?remember(j.items.map(mapDbItem)):[]; })
+      .catch(function(){ return []; });
+  }
+  var acItems=[], acSel=-1, acToken=0;
   function acOpen(html,items){var b=$("acBox"); if(!b)return; b.innerHTML=html; b.classList.add("show"); $("q").setAttribute("aria-expanded","true"); document.documentElement.classList.add("q-lock"); acItems=items||[]; acSel=-1;}
   function acHide(){var b=$("acBox"); if(b)b.classList.remove("show"); var q=$("q"); if(q)q.setAttribute("aria-expanded","false"); document.documentElement.classList.remove("q-lock"); acItems=[]; acSel=-1;}
   function acUpdate(v){var q=(v||"").trim();
-    if(q.length>=2){var r=okSearch(q,7); if(r.length)acOpen('<div class="ac-head">Sugerencias</div>'+r.map(function(p){return acRow(p,q);}).join(""),r);
-      else acOpen('<div class="ac-empty">No encontramos «'+okEsc(q)+'».<br>Revisa la ortografía o prueba con otra palabra (marca o tipo de producto).</div>',[]);}
-    else if(q.length===0){var ideas=[1,10,16,4,12,3].map(prod).filter(Boolean); if(ideas.length)acOpen('<div class="ac-head">Populares</div>'+ideas.map(function(p){return acRow(p,"");}).join(""),ideas); else acHide();}
+    if(q.length>=2){var token=++acToken;
+      searchProducts(q,7).then(function(r){ if(token!==acToken)return;    // llegó tarde: ya escribieron otra cosa
+        if(r.length)acOpen('<div class="ac-head">Sugerencias</div>'+r.map(function(p){return acRow(p,q);}).join(""),r);
+        else acOpen('<div class="ac-empty">No encontramos «'+okEsc(q)+'».<br>Revisa la ortografía o prueba con otra palabra (marca o tipo de producto).</div>',[]);});}
+    else if(q.length===0){acToken++;
+      /* "Populares" = lo que hay a la mano (ofertas primero). Antes eran ids fijos del
+         respaldo: con el catálogo real no existían y no salía nada. */
+      var pool=P.filter(function(p){return p.stock>0;});
+      var ideas=pool.filter(function(p){return !!p.old;}).concat(pool.filter(function(p){return !p.old;})).slice(0,6);
+      if(ideas.length)acOpen('<div class="ac-head">Populares</div>'+ideas.map(function(p){return acRow(p,"");}).join(""),ideas); else acHide();}
     else acHide();}
   function acMove(d){if(!acItems.length)return; acSel=(acSel+d+acItems.length)%acItems.length; var els=$("acBox").querySelectorAll(".ac-item"); [].forEach.call(els,function(el,i){el.classList.toggle("sel",i===acSel); if(i===acSel)el.scrollIntoView({block:"nearest"});});}
-  var t; $("q").addEventListener("input",function(e){var v=e.target.value; clearTimeout(t); t=setTimeout(function(){query=v.trim(); renderGrid();},160); acUpdate(v);});
+  var t; $("q").addEventListener("input",function(e){var v=e.target.value; clearTimeout(t); t=setTimeout(function(){query=v.trim(); reloadFromDB();},250); acUpdate(v);});
   $("q").addEventListener("focus",function(e){acUpdate(e.target.value);});
   $("q").addEventListener("keydown",function(e){ if(e.key==="ArrowDown"){e.preventDefault(); acMove(1);} else if(e.key==="ArrowUp"){e.preventDefault(); acMove(-1);} else if(e.key==="Enter"){ if(acSel>=0&&acItems[acSel]){e.preventDefault(); acHide(); openProduct(acItems[acSel].id);} else acHide();} else if(e.key==="Escape"){acHide();}});
   $("acBox").addEventListener("mousedown",function(e){var it=e.target.closest("[data-open]"); if(it){e.preventDefault(); acHide(); openProduct(+it.dataset.open);}});
@@ -1042,7 +1153,9 @@ html.q-lock, html.q-lock body{overflow:hidden}
   $("cartClose").addEventListener("click",function(){$("app").classList.remove("cart-open"); okiEmit("carrito-cerrado");});
   $("scrim").addEventListener("click",function(){$("app").classList.remove("drawer-open","cart-open"); okiEmit("carrito-cerrado");});
 
-  function prod(id){return P.filter(function(p){return p.id===id;})[0];}
+  /* Por id contra el CACHÉ (PALL), no solo contra la página/filtro actual: si no, al
+     cambiar de categoría se "perderían" los productos que ya llevas en el carrito. */
+  function prod(id){return PALL[+id] || P.filter(function(p){return p.id===+id;})[0];}
   function addToCart(id,q){var p=prod(id); if(!p)return; var c=cart[id]||{p:p,qty:0}; c.qty=Math.min(p.stock,c.qty+q); cart[id]=c; renderCart(); flash(p.name+" agregado");
     // Si estaba en deseados, se "gradúa" al carrito y SALE de deseados.
     var wi=wishlist.indexOf(+id); if(wi>=0){wishlist.splice(wi,1); saveWishlist(); updateWishBadge(); renderGrid(); if($("wishOv").classList.contains("show")) renderWishlist(); okiEmit("deseados");}}
@@ -1220,14 +1333,18 @@ html.q-lock, html.q-lock body{overflow:hidden}
 
   // ── Puente window.OKtienda: OKi lee/actúa sobre la tienda ──
   window.OKtienda={
-    productos:function(){return P.map(function(p){return {id:p.id,name:p.name,price:p.price,old:p.old||null,cat:p.cat,stock:p.stock,emoji:p.emoji,grad:p.grad};});},
+    productos:function(){return P.map(function(p){return {id:p.id,name:p.name,price:p.price,old:p.old||null,cat:p.cat,sub:p.sub||"",brand:p.brand||"",stock:p.stock,emoji:p.emoji,grad:p.grad,image:p.image||null};});},
     carrito:function(){var out=[]; for(var k in cart){out.push({id:cart[k].p.id,name:cart[k].p.name,price:cart[k].p.price,qty:cart[k].qty});} return out;},
     deseados:function(){return wishlist.map(prod).filter(Boolean).map(function(p){return {id:p.id,name:p.name,price:p.price,emoji:p.emoji};});},
     total:function(){return totals().total;},
-    agregar:function(id){addToCart(+id,1);},
+    /* qty opcional: OKi puede pedir "6 folders" de un jalón (por omisión, 1). */
+    agregar:function(id,qty){addToCart(+id, Math.max(1, parseInt(qty,10)||1));},
     cambiar:function(id,d){changeQty(+id,+d||0);},
     quitar:function(id){removeItem(+id);},
     toggleDeseado:function(id){toggleWishlist(+id);},
+    /* Busca en TODO el catálogo (no solo en lo paginado) → promesa de productos.
+       Es lo que le permite a OKi agregar algo que aún no está en pantalla. */
+    buscar:function(q,limit){return searchProducts(String(q||""), limit||8);},
     verProducto:function(id){openProduct(+id);},
     abrirDeseados:function(){renderWishlist(); show("wishOv");},
     abrirCarrito:function(){$("app").classList.add("cart-open"); okiEmit("carrito-abierto");},
@@ -1243,53 +1360,123 @@ html.q-lock, html.q-lock body{overflow:hidden}
   var CATCOLORS=["#066CFF","#9C1DFF","#0596b8","#0E9F6E","#FF8A00","#6A2BF5"];
   /* PER_PAGE corto a propósito: así el scroll infinito trae varias páginas y se
      nota trabajar (con 24 casi todo cabía en la primera). */
-  var PER_PAGE=12, dbMode=false, dbPage=1, dbPages=1, dbLoading=false;
+  var PER_PAGE=12, dbMode=false, dbPage=1, dbPages=1, dbTotal=0, dbLoading=false;
   function mapDbItem(it){
-    return {id:it.id, dbId:it.id, cat:it.category||"", brand:it.brand||"", sku:it.sku||"",
+    return {id:it.id, dbId:it.id, cat:it.category||"", sub:it.subcategory||"",
+            brand:it.brand||"", sku:it.sku||"",
             name:it.name||"", price:it.price||0, old:it.old||null, stock:it.stock||0,
             image:it.image||null,
             emoji:"📦", desc:"", specs:[]};      // desc/ficha las trae la vista previa (Icecat)
   }
+  /* Caché de TODO lo que se ha visto (no solo la página/filtro actual). El carrito,
+     los deseados y OKi resuelven por id contra esto: si no, al cambiar de categoría
+     "desaparecerían" productos que ya llevas. */
+  var PALL={};
+  function remember(list){ list.forEach(function(p){ PALL[p.id]=p; }); return list; }
+  /* Filtros que se le mandan al SERVIDOR (el catálogo se pagina: filtrar en el
+     navegador solo miraría la página cargada). */
+  function dbParams(){
+    var u="per_page="+PER_PAGE;
+    if(activeCat==="ofertas") u+="&ofertas=1";
+    else if(activeCat!=="all") u+="&category="+encodeURIComponent(activeCat);
+    if(activeSub) u+="&subcategory="+encodeURIComponent(activeSub);
+    if(query.length>=2) u+="&q="+encodeURIComponent(query);
+    return u;
+  }
   function loadCatalogFromDB(){
-    var pReq=fetch("/backend/api/shop/products.php?per_page="+PER_PAGE+"&page=1").then(function(r){return r.json();}).catch(function(){return null;});
+    var pReq=fetch("/backend/api/shop/products.php?"+dbParams()+"&page=1").then(function(r){return r.json();}).catch(function(){return null;});
     var cReq=fetch("/backend/api/shop/categories.php").then(function(r){return r.json();}).catch(function(){return null;});
     return Promise.all([pReq,cReq]).then(function(res){
       var pj=res[0], cj=res[1];
       if(!pj||!pj.ok||!pj.items||!pj.items.length) return false;   // sin datos → se queda el respaldo
-      P=pj.items.map(mapDbItem); _sidx=null;
-      dbMode=true; dbPage=pj.page||1; dbPages=pj.pages||1;
+      P=remember(pj.items.map(mapDbItem)); _sidx=null;
+      dbMode=true; dbPage=pj.page||1; dbPages=pj.pages||1; dbTotal=pj.total||P.length;
       if(cj&&cj.ok&&cj.categories&&cj.categories.length){
         /* "Ofertas del día" no es una categoría de la BD: agrupa los productos con
-           precio tachado (old), igual que en el catálogo de respaldo. */
+           precio tachado (old), igual que en el catálogo de respaldo.
+           Las subcategorías (que Exel sí trae) alimentan el árbol del cajón. */
         CATS=[{id:"ofertas",name:"Ofertas del día",hot:true},{id:"all",name:"Todos",color:"#66748a"}]
           .concat(cj.categories.map(function(c,i){
-            return {id:c.name, name:c.name, color:CATCOLORS[i%CATCOLORS.length]};
+            return {id:c.name, name:c.name, color:CATCOLORS[i%CATCOLORS.length],
+                    count:c.count||0, subs:c.subcategories||[]};
           }));
-        if(activeCat!=="all" && activeCat!=="ofertas" && !CATS.some(function(c){return c.id===activeCat;})) activeCat="all";
+        if(activeCat!=="all" && activeCat!=="ofertas" && !CATS.some(function(c){return c.id===activeCat;})){ activeCat="all"; activeSub=""; }
       }
       return true;
     }).catch(function(){ return false; });
   }
-  /* Paginación REAL: al llegar al final se traen MÁS productos del API.
-     (Antes el "scroll infinito" repetía los mismos productos: eso ya no pasa.) */
+  /* Paginación REAL: al llegar al final se traen MÁS productos del API, respetando el
+     filtro activo. (Antes el "scroll infinito" repetía los mismos productos.) */
   function loadMoreFromDB(){
     if(!dbMode || dbLoading || dbPage>=dbPages) return;
     dbLoading=true;
-    fetch("/backend/api/shop/products.php?per_page="+PER_PAGE+"&page="+(dbPage+1))
+    var token=filterToken;                        // si cambian de categoría a medio vuelo, se descarta
+    fetch("/backend/api/shop/products.php?"+dbParams()+"&page="+(dbPage+1))
       .then(function(r){return r.json();}).then(function(j){
         dbLoading=false;
+        if(token!==filterToken) return;           // respuesta de un filtro viejo
         if(!j||!j.ok||!j.items||!j.items.length) return;
         dbPage=j.page||(dbPage+1); dbPages=j.pages||dbPages;
         var seen={}; P.forEach(function(p){ seen[p.id]=1; });
-        var add=j.items.map(mapDbItem).filter(function(p){ return !seen[p.id]; });   // nunca duplica
+        var add=remember(j.items.map(mapDbItem)).filter(function(p){ return !seen[p.id]; });   // nunca duplica
         if(!add.length) return;
         P=P.concat(add); _sidx=null; renderGrid();
       }).catch(function(){ dbLoading=false; });
   }
+  /* Cambió el filtro (categoría/subcategoría/búsqueda) → se le pide al SERVIDOR la
+     página 1 de ese filtro. Así "Tóner" muestra los 9 tóner del catálogo, no solo los
+     que hubiera alcanzado a paginar el scroll. */
+  var filterToken=0;
+  function reloadFromDB(){
+    if(!dbMode) { renderGrid(); return; }
+    var token=++filterToken;
+    dbLoading=true;
+    $("grid").innerHTML='<div class="empty">Cargando productos…</div>';
+    fetch("/backend/api/shop/products.php?"+dbParams()+"&page=1")
+      .then(function(r){return r.json();}).then(function(j){
+        dbLoading=false;
+        if(token!==filterToken) return;           // ya cambiaron de filtro otra vez
+        if(!j||!j.ok){ renderGrid(); return; }
+        P=remember((j.items||[]).map(mapDbItem)); _sidx=null;
+        dbPage=j.page||1; dbPages=j.pages||1; dbTotal=j.total||P.length;
+        renderGrid();
+        if(window.__fillMore) window.__fillMore();  // si la página 1 no llena la pantalla, trae más
+      }).catch(function(){ dbLoading=false; renderGrid(); });
+  }
+
+  /* El carrito y los deseados guardados solo traen IDS: hay que resolverlos contra el
+     catálogo REAL. Si no, como esto corre ANTES de que conteste el API, los ids se
+     resolvían contra el catálogo de RESPALDO y el carrito mostraba otros productos
+     (mismo id, otro artículo). Se piden justo los ids que hagan falta. */
+  function hydrateSaved(){
+    var ids={};
+    try{ Object.keys(JSON.parse(localStorage.getItem(CART_KEY)||"{}")).forEach(function(i){ ids[+i]=1; }); }catch(e){}
+    wishlist.forEach(function(i){ ids[+i]=1; });
+    var need=Object.keys(ids).filter(function(i){ return !PALL[+i]; });
+    if(!need.length) return Promise.resolve(true);
+    return fetch("/backend/api/shop/products.php?per_page=60&page=1&ids="+need.join(","))
+      .then(function(r){return r.json();})
+      .then(function(j){ if(!j||!j.ok) return false; remember((j.items||[]).map(mapDbItem)); return true; })
+      .catch(function(){ return false; });
+  }
 
   loadCart(); updateWishBadge(); renderCart();
+  renderLandCats(); renderLandFeat();          // con el respaldo, para que el landing nunca salga vacío
   $("grid").innerHTML='<div class="empty">Cargando productos…</div>';
-  loadCatalogFromDB().then(function(){ renderCats(); renderGrid(); });
+  loadCatalogFromDB().then(function(){
+    renderCats(); renderGrid(); renderLandCats(); renderLandFeat();
+    if(!dbMode){ catalogReady=true; return; }  // sin BD manda el respaldo, que ya está en memoria
+    return hydrateSaved().then(function(ok){
+      cart={};
+      /* Si el API no respondió, el carrito NO se puede verificar: se muestra vacío y se
+         deja catalogReady=false, así no se pisa lo guardado (al recargar se reintenta). */
+      if(!ok){ renderCart(); return; }
+      catalogReady=true;
+      loadCart(); renderCart();                // ya resuelto contra el catálogo real
+      wishlist=wishlist.filter(function(id){ return !!prod(id); });   // suelta lo descatalogado
+      saveWishlist(); updateWishBadge();
+    });
+  });
 
   // Vista lista/cuadros (predeterminado: LISTA)
   function setView(m){ var g=$("grid"); if(g) g.classList.toggle("is-list", m==="list"); [].forEach.call(document.querySelectorAll(".viewtoggle button"),function(b){ b.classList.toggle("on", b.dataset.view===m); }); renderGrid(); if(window.__fillMore) window.__fillMore(); }
@@ -1343,6 +1530,6 @@ html.q-lock, html.q-lock body{overflow:hidden}
 <!-- Sesión en el header (muestra tu cuenta si iniciaste sesión) + navbar inteligente -->
 <script src="assets/session-nav.js?v=20260715c" defer></script>
 <!-- OKi, el astronauta ayudante. Conectado a la tienda vía el contrato window.OKtienda (ver OKi-tienda-integracion.md). -->
-<script src="assets/oki.js?v=20260714d" defer></script>
+<script src="assets/oki.js?v=20260716a" defer></script>
 </body>
 </html>

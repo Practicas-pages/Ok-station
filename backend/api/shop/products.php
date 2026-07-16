@@ -1,7 +1,9 @@
 <?php
 /** GET /backend/api/shop/products.php — catálogo PÚBLICO de la tienda (lee de `products`).
  *  Solo productos activos (con stock). Nunca expone costo ni datos internos del proveedor.
- *  Params: q (búsqueda), category, brand, sort, page, per_page.
+ *  Params: q (búsqueda), category, subcategory, brand, ofertas, sort, page, per_page.
+ *  El filtrado es AQUÍ (no en el navegador) porque el catálogo se pagina: filtrar en el
+ *  cliente solo miraría la página cargada y "escondería" el resto del catálogo.
  *  Precio devuelto = lista con IVA 8% incluido (misma convención que ShopCatalog/catalogo.js);
  *  en el checkout se re-aplica el IVA por geolocalización.
  */
@@ -10,7 +12,9 @@ only_method('GET');
 
 $q        = trim((string) ($_GET['q'] ?? ''));
 $category = trim((string) ($_GET['category'] ?? ''));
+$subcat   = trim((string) ($_GET['subcategory'] ?? ''));
 $brand    = trim((string) ($_GET['brand'] ?? ''));
+$ofertas  = ($_GET['ofertas'] ?? '') === '1';
 $page     = max(1, (int) ($_GET['page'] ?? 1));
 $perPage  = min(60, max(1, (int) ($_GET['per_page'] ?? 24)));
 $offset   = ($page - 1) * $perPage;
@@ -18,13 +22,24 @@ $offset   = ($page - 1) * $perPage;
 /* Filtros (siempre solo activos). */
 $where  = ['is_active = 1'];
 $params = [];
+/* ids=1,2,3 → resolver productos concretos (el carrito/deseados guardados solo
+   traen ids y hay que "rehidratarlos" contra el catálogo real, no contra la página
+   que la tienda alcanzó a paginar). */
+$ids = array_values(array_filter(array_map('intval', explode(',', (string) ($_GET['ids'] ?? ''))), fn($i) => $i > 0));
+if ($ids) {
+    $ids   = array_slice(array_unique($ids), 0, 100);
+    $where[] = 'id IN (' . implode(',', array_fill(0, count($ids), '?')) . ')';
+    array_push($params, ...$ids);
+}
 if ($q !== '') {
     $where[] = '(name LIKE ? OR brand LIKE ? OR sku LIKE ?)';
     $like = '%' . $q . '%';
     array_push($params, $like, $like, $like);
 }
-if ($category !== '') { $where[] = 'category = ?'; $params[] = $category; }
-if ($brand !== '')    { $where[] = 'brand = ?';    $params[] = $brand; }
+if ($category !== '') { $where[] = 'category = ?';    $params[] = $category; }
+if ($subcat !== '')   { $where[] = 'subcategory = ?'; $params[] = $subcat; }
+if ($brand !== '')    { $where[] = 'brand = ?';       $params[] = $brand; }
+if ($ofertas)         { $where[] = 'old_price > price'; }   // "Ofertas del día"
 $wsql = implode(' AND ', $where);
 
 /* Total (para paginación). */

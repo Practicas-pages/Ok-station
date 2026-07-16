@@ -21,13 +21,24 @@ declare(strict_types=1);
 
 /* ── Filtro de papelería: lista blanca por categoria_nombre de Exel ──
    Decisión de negocio (junta 2026-07-14): "Papelería + impresión".
-   Todas las subcategorías de estas categorías se importan; el resto se descarta. */
+   Todas las subcategorías de estas categorías se importan; el resto se descarta.
+   La lista es ADITIVA a propósito: agregar una categoría que Exel no tenga no rompe
+   nada (simplemente no hace match), y cubre el día que sí la traiga. TODAS deben ser
+   de papelería: lo que no esté aquí (cómputo, accesorios…) NO entra a la tienda. */
 const PAPELERIA_CATS = [
     'Oficina y Escolar',
     'Papel',
     'Consumibles',
     'Impresión y Multifuncionales',
     'Digitalización de Documentos',
+    'Adhesivos y Cintas',
+    'Archivo y Carpetas',
+    'Engrapado y Perforado',
+    'Escritura y Corrección',
+    'Cuadernos y Libretas',
+    'Etiquetas y Rotulación',
+    'Calculadoras',
+    'Arte y Manualidades',
 ];
 
 /* ── Arranque: config + conexión + ShopCatalog (para el margen) ── */

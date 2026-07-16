@@ -97,7 +97,7 @@
       carrito: cartArr,
       deseados: function () { return okiLsWish().map(okiCatById).filter(Boolean); },
       total: function () { var t = 0; cartArr().forEach(function (it) { t += it.price * it.qty; }); return t; },
-      agregar: function (id) { var s = okiLsCart(); s[id] = (s[id] || 0) + 1; okiLsCartSave(s); var w = okiLsWish(), wi = w.indexOf(+id); if (wi >= 0) { w.splice(wi, 1); okiLsWishSave(w); } changed(); },
+      agregar: function (id, qty) { var n = Math.max(1, parseInt(qty, 10) || 1); var s = okiLsCart(); s[id] = (s[id] || 0) + n; okiLsCartSave(s); var w = okiLsWish(), wi = w.indexOf(+id); if (wi >= 0) { w.splice(wi, 1); okiLsWishSave(w); } changed(); },
       cambiar: function (id, d) { var s = okiLsCart(); s[id] = (s[id] || 0) + d; if (s[id] <= 0) delete s[id]; okiLsCartSave(s); changed(); },
       quitar: function (id) { var s = okiLsCart(); delete s[id]; okiLsCartSave(s); changed(); },
       toggleDeseado: function (id) { id = +id; var w = okiLsWish(), i = w.indexOf(id); if (i >= 0) w.splice(i, 1); else w.push(id); okiLsWishSave(w); changed(); },
@@ -197,13 +197,81 @@
   function okiListActive() { return panel && panel.getAttribute("data-view") === "list" && okiHasStore(); }
 
   // Busca un producto por nombre (para "agrega el mouse").
+  /* Quita el plural ("folders" -> "folder", "cajas" -> "caja"). Como después se
+     busca por substring, con recortar la terminación basta. */
+  function okiStem(w) { return w.replace(/(es|s)$/, ""); }
+  /* Busca el producto que el cliente nombró. Gana el que empate MÁS palabras, y se
+     busca también en marca/categoría/subcategoría ("toner", "3M", "papel bond"),
+     no solo en el nombre. */
   function okiMatchProd(q) {
     q = okiNorm(q); if (!q) return null;
-    var prods = okiProducts();
+    var prods = okiProducts(); if (!prods.length) return null;
     var m = prods.filter(function (p) { var n = okiNorm(p.name); return n.indexOf(q) >= 0 || q.indexOf(n) >= 0; })[0];
     if (m) return m;
-    var w = q.split(" ").filter(function (x) { return x.length >= 3; });
-    return prods.filter(function (p) { var n = okiNorm(p.name); return w.some(function (x) { return n.indexOf(x) >= 0; }); })[0] || null;
+    var w = q.split(" ").map(okiStem).filter(function (x) { return x.length >= 3; });
+    if (!w.length) return null;
+    var best = null, bestScore = 0;
+    prods.forEach(function (p) {
+      var hay = okiNorm([p.name, p.brand || "", p.cat || "", p.sub || ""].join(" ")), s = 0;
+      w.forEach(function (x) { if (hay.indexOf(x) >= 0) s++; });
+      if (s > bestScore) { best = p; bestScore = s; }
+    });
+    return bestScore ? best : null;
+  }
+
+  // Cantidades en palabra ("dos cajas") además de dígitos ("2 cajas").
+  var OKI_NUM = { un: 1, una: 1, uno: 1, par: 2, dos: 2, tres: 3, cuatro: 4, cinco: 5, seis: 6,
+                  siete: 7, ocho: 8, nueve: 9, diez: 10, once: 11, doce: 12, docena: 12 };
+  var OKI_FILLER = /^(?:de |del |la |el |los |las |unos |unas |cajas? de |paquetes? de |piezas? de |unidades? de |rollos? de )+/;
+  /* "6 folders" -> {p, qty:6}. Devuelve null si no reconoce ningún producto. */
+  function okiParseOne(s) {
+    s = String(s || "").replace(OKI_FILLER, "").trim();
+    if (!s) return null;
+    var qty = 1, m = s.match(/^(\d{1,3})\s+(.+)$/);
+    if (m) { qty = +m[1]; s = m[2]; }
+    else { var w = s.match(/^([a-zñ]+)\s+(.+)$/); if (w && OKI_NUM[w[1]]) { qty = OKI_NUM[w[1]]; s = w[2]; } }
+    s = s.replace(OKI_FILLER, "").trim();
+    var p = okiMatchProd(s);
+    return p ? { p: p, qty: Math.max(1, Math.min(99, qty)) } : null;
+  }
+  /* Igual que okiParseOne pero, si el producto no está en lo que hay cargado en
+     pantalla, se lo pregunta al catálogo del servidor (OKtienda.buscar). Devuelve
+     una promesa de {p,qty} o null. */
+  function okiResolveOne(s) {
+    var hit = okiParseOne(s);
+    if (hit) return Promise.resolve(hit);
+    var S = okiStore();
+    if (!S || typeof S.buscar !== "function") return Promise.resolve(null);
+    // Reaprovecha el troceo de cantidad: separa el número del nombre.
+    var raw = String(s || "").replace(OKI_FILLER, "").trim(), qty = 1, m = raw.match(/^(\d{1,3})\s+(.+)$/);
+    if (m) { qty = +m[1]; raw = m[2]; }
+    else { var w = raw.match(/^([a-zñ]+)\s+(.+)$/); if (w && OKI_NUM[w[1]]) { qty = OKI_NUM[w[1]]; raw = w[2]; } }
+    raw = raw.replace(OKI_FILLER, "").trim();
+    if (!raw) return Promise.resolve(null);
+    var q = qty;
+    return Promise.resolve(S.buscar(raw, 5)).then(function (list) {
+      if (!list || !list.length) return null;
+      return { p: list[0], qty: Math.max(1, Math.min(99, q)) };
+    }).catch(function () { return null; });
+  }
+  /* Pedido completo: "agrégame 6 folders y 2 tóner" -> [{p,qty:6},{p,qty:2}].
+     Ojo: hay nombres que TRAEN "y" ("Papel HP hogar y oficina"), así que si al
+     partir por "y"/"," no sale más de un producto, se toma la frase completa. */
+  function okiParseAdd(rest) {
+    rest = String(rest || "").trim();
+    var chunks = rest.split(/\s*(?:,|\+|\by\b|\be\b|\btambien\b|\bademas\b)\s*/).filter(Boolean);
+    var multi = chunks.length > 1;
+    return Promise.all((multi ? chunks : [rest]).map(okiResolveOne)).then(function (parts) {
+      parts = parts.filter(Boolean);
+      // Si al partir por "y"/"," no salieron 2+ productos, el texto era UN solo nombre.
+      if (multi && parts.length < 2) return okiResolveOne(rest).then(function (w) { return w ? [w] : []; });
+      var out = [], seen = {};
+      parts.forEach(function (it) {                     // "2 folders y 3 folders" = 5
+        if (seen[it.p.id]) { seen[it.p.id].qty = Math.min(99, seen[it.p.id].qty + it.qty); return; }
+        seen[it.p.id] = it; out.push(it);
+      });
+      return out;
+    });
   }
 
   function okiUpdateBadge() {
@@ -330,19 +398,40 @@
       return "Te recomiendo " + (r.emoji ? r.emoji + " " : "") + r.name + " — " + okiMxn(r.price) + (r.old ? " (¡en oferta! 🔥)" : "") + "\nDime \"agrégalo\" y lo pongo en tu carrito. 🛒";
     }
 
-    // Agregar por nombre ("agrega el mouse") o confirmar la recomendación ("sí, agrégalo")
-    var mAdd = t.match(/(?:agrega|agregar|anade|anadir|pon(?:me|lo)?|quiero|llevo|dame|sumale|mete)\s+(.+)/);
+    /* Agregar al carrito: uno o VARIOS productos, con cantidad.
+       "agrégame 2 notas adhesivas", "quiero 6 folders y 3 tóner", "sí, agrégalo". */
+    var mAdd = t.match(/\b(?:agrega(?:me|le|nos|lo|la|los|las)?|agregar|anade(?:me|le)?|anadir|pon(?:me|le|nos|lo|la)?|poner|mete(?:me|le)?|meter|suma(?:me|le)?|dame|regalame|quiero|llevo|llevame|necesito|echame|vendeme|comprar?)\s+(.+)/);
     var confirma = okiLastRec && /^(si|sip|simon|dale|va|vale|agregalo|ponlo|ese|esa|obvio|claro|ok|okey|de una)\b/.test(t);
     if (mAdd || confirma) {
-      var target = mAdd && mAdd[1] ? okiMatchProd(mAdd[1]) : null;
-      if (!target && confirma) target = okiLastRec;
-      if (!target) return "¿Cuál producto agrego? Dime el nombre (por ejemplo \"agrega el mouse\") y lo busco 🙂";
-      if (target.stock != null && target.stock <= 0) return target.name + " está agotado por ahora 😕. ¿Te recomiendo otra cosa?";
-      okiSelfAdd = true;
-      try { S.agregar(target.id); } catch (e) { okiSelfAdd = false; }
-      var rec2 = okiRecommend();
-      var tip = rec2 ? "\n💡 ¿Le sumas " + rec2.name + " (" + okiMxn(rec2.price) + ")? Dime \"agrégalo\"." : "";
-      return "¡Listo! Agregué " + target.name + " (" + okiMxn(target.price) + ") a tu carrito 🛒\nLlevas " + okiCartCount() + " · " + okiMxn(okiTotal()) + tip;
+      // Promesa: puede tener que buscar el producto en el catálogo del servidor.
+      return (mAdd && mAdd[1] ? okiParseAdd(mAdd[1]) : Promise.resolve([])).then(function (items) {
+        if (!items.length && confirma && okiLastRec) items = [{ p: okiLastRec, qty: 1 }];
+        if (!items.length) {
+          // "quiero saber el precio" no es un pedido: que lo conteste el cerebro.
+          if (!/^(?:agrega|anade|pon|mete|suma|dame)/.test(t)) return null;
+          return "¿Cuál producto agrego? Dime el nombre y la cantidad (por ejemplo \"agrega 3 folders\") y lo busco 🙂";
+        }
+        var added = [], agotados = [];
+        items.forEach(function (it) {
+          var st = it.p.stock;
+          if (st != null && st <= 0) { agotados.push(it.p.name); return; }
+          var q = (st != null) ? Math.min(it.qty, st) : it.qty;   // nunca más de lo que hay
+          okiSelfAdd = true;
+          try { S.agregar(it.p.id, q); added.push({ name: it.p.name, price: it.p.price, qty: q, corto: q < it.qty }); }
+          catch (e) { okiSelfAdd = false; }
+        });
+        if (!added.length) return (agotados.join(", ") || "Eso") + " está agotado por ahora 😕. ¿Te recomiendo otra cosa?";
+        var msg = "¡Listo! Agregué a tu carrito 🛒\n" + added.map(function (a) {
+          return "• " + a.qty + "× " + a.name + " — " + okiMxn(a.price * a.qty);
+        }).join("\n");
+        var cortos = added.filter(function (a) { return a.corto; });
+        if (cortos.length) msg += "\n⚠ De " + cortos.map(function (a) { return a.name; }).join(", ") + " solo quedaba lo que puse.";
+        if (agotados.length) msg += "\n😕 Agotado por ahora: " + agotados.join(", ") + ".";
+        msg += "\nLlevas " + okiCartCount() + " · " + okiMxn(okiTotal());
+        var rec2 = okiRecommend();
+        if (rec2) msg += "\n💡 ¿Le sumas " + rec2.name + " (" + okiMxn(rec2.price) + ")? Dime \"agrégalo\".";
+        return msg;
+      });
     }
 
     // Quitar del carrito ("quita el mouse")
@@ -642,13 +731,29 @@
     // Modo tienda: el estado en vivo del carrito/deseados se responde aquí
     // (el cerebro del servidor no conoce lo que TÚ llevas).
     var local = storeLocalReply(text);
-    if (local) {
-      addMsg(local, "bot");
-      history.push({ role: "assistant", content: local });
-      setTimeout(function () { input.focus(); }, 60);
+    // Agregar al carrito puede tardar un instante (busca el producto en el catálogo
+    // del servidor si no está en pantalla) → viene como promesa.
+    if (local && typeof local.then === "function") {
+      busy = true; typing(true);
+      local.then(function (msg) {
+        typing(false); busy = false;
+        if (msg) { okiSay(msg); } else { askBrain(text); }
+      }).catch(function () { typing(false); busy = false; askBrain(text); });
       return;
     }
+    if (local) { okiSay(local); return; }
 
+    askBrain(text);
+  }
+
+  function okiSay(msg) {
+    addMsg(msg, "bot");
+    history.push({ role: "assistant", content: msg });
+    setTimeout(function () { input.focus(); }, 60);
+  }
+
+  // El cerebro del servidor (precios, envíos, trámites…).
+  function askBrain(text) {
     busy = true;
     typing(true);
 
