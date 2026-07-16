@@ -26,7 +26,7 @@ final class ProductEnricher
         if (!Icecat::available()) { $out['reason'] = 'icecat_no_configurado'; return $out; }
 
         try {
-            $st = $pdo->prepare('SELECT id, barcode, brand, sku, name, description FROM products WHERE id = ? LIMIT 1');
+            $st = $pdo->prepare('SELECT id, barcode, brand, sku, name, description, specs_json FROM products WHERE id = ? LIMIT 1');
             $st->execute([$productId]);
             $p = $st->fetch(PDO::FETCH_ASSOC);
         } catch (Throwable $e) { $out['reason'] = 'db_error'; return $out; }
@@ -50,10 +50,18 @@ final class ProductEnricher
         try {
             $pdo->beginTransaction();
 
-            // Ficha técnica + descripción (solo rellena la descripción si Exel no la trae).
-            $specsPayload = ['source' => 'icecat', 'specs' => $data['specs']];
-            $sets = ['specs_json = ?', 'image_source = ?', 'enriched_at = NOW()'];
-            $args = [json_encode($specsPayload, JSON_UNESCAPED_UNICODE), 'icecat'];
+            /* REGLA: el proveedor (Exel) MANDA; Icecat solo COMPLEMENTA lo que falte.
+               Si ya hay una ficha que NO vino de Icecat (es decir, de Exel), no se pisa.
+               Igual con la descripción: solo se rellena si Exel no la trae. */
+            $existing  = json_decode((string) ($p['specs_json'] ?? ''), true);
+            $fichaExel = is_array($existing) && (($existing['source'] ?? '') !== 'icecat') && !empty($existing['specs']);
+
+            $sets = ['image_source = ?', 'enriched_at = NOW()'];
+            $args = ['icecat'];
+            if (!$fichaExel) {
+                array_unshift($sets, 'specs_json = ?');
+                array_unshift($args, json_encode(['source' => 'icecat', 'specs' => $data['specs']], JSON_UNESCAPED_UNICODE));
+            }
             if (trim((string) $p['description']) === '' && $data['description'] !== '') {
                 $sets[] = 'description = ?'; $args[] = $data['description'];
             }

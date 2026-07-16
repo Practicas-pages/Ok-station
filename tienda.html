@@ -336,8 +336,11 @@ html.store-view .header-bar, html.store-view .site-header{display:none}
 }
 #site .pop{white-space:nowrap; border:1px solid rgba(8,12,30,.14); background:var(--paper); border-radius:99px; padding:7px 14px; font-size:.84rem; font-weight:600; color:#33404f; flex:none; display:flex; align-items:center; gap:6px; box-shadow:0 2px 8px rgba(8,12,30,.20); transition:background .15s, box-shadow .18s, transform .18s cubic-bezier(.34,1.56,.64,1)}
 #site .pop:not(.on):not(.hot):hover{background:#fff; box-shadow:0 6px 16px rgba(8,12,30,.28); transform:translateY(-2px)}
-#site .pop.on{border-color:#fff; background:var(--blue); color:#fff; font-weight:800; box-shadow:0 0 0 2px rgba(255,255,255,.55),0 7px 16px rgba(6,108,255,.45)}
-#site .pop.on .dot{box-shadow:0 0 0 2px rgba(255,255,255,.6)}
+/* Categoría SELECCIONADA: píldora azul de marca sólida, punto blanco y elevación.
+   (Sin doble anillo: se lee limpia y claramente activa sobre el degradado.) */
+#site .pop.on{border-color:#fff; background:var(--blue); color:#fff; font-weight:700; box-shadow:0 8px 20px rgba(6,108,255,.45); transform:translateY(-1px)}
+#site .pop.on .dot{background:#fff !important; box-shadow:none}
+#site .pop.on:hover{background:var(--blue-h,#0558CC); box-shadow:0 10px 24px rgba(6,108,255,.55)}
 #site .pop.hot{border:none; color:#fff; font-weight:800; background:linear-gradient(100deg,#FF8A00,#FF5E3A)}
 #site .pop .dot{width:8px; height:8px; border-radius:3px; flex:none}
 #site .shell{display:block}
@@ -493,12 +496,22 @@ html.q-lock, html.q-lock body{overflow:hidden}
 #site #prodOv.show{gap:14px; align-items:center}
 #site .pvside{flex:0 0 308px; width:308px; max-height:88vh; overflow:auto; background:#fff; border-radius:22px; box-shadow:0 26px 74px rgba(18,20,28,.24); position:relative; animation:pvIn .22s ease}
 #site .pvside[hidden]{display:none}
-@keyframes pvIn{from{opacity:0; transform:translateY(10px)}to{opacity:1; transform:none}}
+/* Solo fade: NO se anima transform para que los paneles nunca queden desalineados
+   respecto al del medio (un transform a medias los desplazaría). */
+@keyframes pvIn{from{opacity:0}to{opacity:1}}
 #site .pvside .pvhead{position:sticky; top:0; z-index:2; background:#fff; padding:18px 20px 14px; border-bottom:1px solid var(--line); font-weight:800; font-size:1.06rem; display:flex; align-items:center; justify-content:space-between; gap:10px}
 #site .pvside .pvhead .x{position:static; width:32px; height:32px; flex:none}
 #site .pvside .pvbody{padding:18px 20px 22px}
 #site .pvside .pvdesc-full{color:#33404f; font-size:.93rem; line-height:1.72; margin:0 0 16px}
 #site .pvside .specs.specs-kv{margin:0}
+/* Con banners laterales abiertos, los 3 paneles comparten altura → bordes alineados */
+@media(min-width:1241px){
+  #site #prodOv.pv-3col > .pvside,#site #prodOv.pv-3col > #prodModal{height:min(86vh,820px); max-height:min(86vh,820px)}
+}
+/* Barras de scroll discretas dentro de los paneles */
+#site .pvside::-webkit-scrollbar,#site #prodModal::-webkit-scrollbar{width:10px}
+#site .pvside::-webkit-scrollbar-thumb,#site #prodModal::-webkit-scrollbar-thumb{background:#d9e1ef; border-radius:99px; border:3px solid #fff}
+#site .pvside::-webkit-scrollbar-thumb:hover,#site #prodModal::-webkit-scrollbar-thumb:hover{background:#c3cede}
 /* Responsivo: en pantallas que no dan para 3 columnas, se APILAN (los tres siguen visibles) */
 @media(max-width:1240px){
   #site #prodOv.show{flex-direction:column; overflow-y:auto; padding:16px 12px; gap:12px}
@@ -1008,23 +1021,18 @@ html.q-lock, html.q-lock body{overflow:hidden}
   $("acBox").addEventListener("mousedown",function(e){var it=e.target.closest("[data-open]"); if(it){e.preventDefault(); acHide(); openProduct(+it.dataset.open);}});
   document.addEventListener("click",function(e){ if(!e.target.closest(".search")) acHide();});
 
-  // Scroll infinito: al acercarse al final del catálogo, se repiten los productos.
+  /* Scroll: al acercarse al final se traen MÁS productos del catálogo (paginación real
+     del API). Antes se REPETÍAN los mismos productos, lo que con el catálogo real se
+     veía como un bug (el mismo artículo una y otra vez). */
   (function(){
     var grid=$("grid"); if(!grid) return;
-    var busy=false;
-    function fill(){
-      if(busy || !infiniteList.length || grid.offsetParent===null) return; // ocupado, sin lista o grid oculto
-      if(!grid.classList.contains("is-list")) return; // vista cuadros: scroll finito, los productos NO se repiten
-      busy=true;
-      var guard=0;                                   // máx 6 tandas por llamada (evita bucles)
-      while(guard++ < 6 && grid.getBoundingClientRect().bottom < window.innerHeight + 800){
-        grid.insertAdjacentHTML("beforeend", cardsHTML(infiniteList)); // repite los productos
-      }
-      busy=false;
+    function onScroll(){
+      if(grid.offsetParent===null) return;                         // grid oculto
+      if(grid.getBoundingClientRect().bottom < window.innerHeight + 600) loadMoreFromDB();
     }
-    window.addEventListener("scroll", fill, {passive:true});
-    window.addEventListener("resize", fill);
-    window.__fillMore=fill;                           // hook para pruebas
+    window.addEventListener("scroll", onScroll, {passive:true});
+    window.addEventListener("resize", onScroll);
+    window.__fillMore=onScroll;                                    // hook para pruebas
   })();
 
   $("hamb").addEventListener("click",function(){$("app").classList.toggle("drawer-open");});
@@ -1079,9 +1087,12 @@ html.q-lock, html.q-lock body{overflow:hidden}
       }
     }).catch(function(){ mid.classList.remove("pv-loading"); });
   }
+  /* Con algún banner lateral abierto, los 3 paneles toman la MISMA altura para que
+     se vean alineados/sincronizados (en desktop). Solo el medio → altura natural. */
+  function pvSync(){ var ov=$("prodOv"); if(!ov) return; ov.classList.toggle("pv-3col", !$("pvDesc").hidden || !$("pvSpecs").hidden); }
   function openProduct(id){var p=prod(id); if(!p)return; var low=p.stock<=5;
     var save=p.old?Math.round(p.old-p.price):0;
-    $("pvDesc").hidden=true; $("pvSpecs").hidden=true;   // reinicia los paneles laterales
+    $("pvDesc").hidden=true; $("pvSpecs").hidden=true; pvSync();   // reinicia los paneles laterales
     $("prodModal").innerHTML='<div class="mh">'+pimg(p)+(p.old?'<span class="deal-badge">−'+Math.round((1-p.price/p.old)*100)+'%</span>':'')+heartBtn(p.id,'position:absolute;top:14px;right:56px;z-index:4;width:40px;height:40px;padding:0;')+'<button class="x" data-close>×</button></div>'+
       '<div class="mb">'+
       '<div class="mmeta">'+(p.brand?'<b>'+p.brand+'</b> · ':'')+(p.sku?'SKU '+p.sku+' · ':'')+catName(p.cat)+'</div>'+
@@ -1099,9 +1110,9 @@ html.q-lock, html.q-lock body{overflow:hidden}
   }
   $("prodOv").addEventListener("click",function(e){
     var mg=e.target.closest("[data-mg]"); if(mg){var m=$("pvMain"); if(m&&mg.dataset.src){m.src=mg.dataset.src; m.style.visibility="visible";} [].forEach.call(document.querySelectorAll(".pvthumb"),function(t){t.classList.toggle("on",t===mg);}); return;}
-    var dm=e.target.closest("[data-descmore]"); if(dm){ $("pvDesc").hidden=false; return; }         // descripción → banner IZQUIERDO
-    var smb=e.target.closest("[data-specsmore]"); if(smb){ $("pvSpecs").hidden=false; return; }        // ficha → banner DERECHO
-    var pc=e.target.closest("[data-pvclose]"); if(pc){ var pcel=$(pc.dataset.pvclose); if(pcel) pcel.hidden=true; return; }   // cerrar un banner lateral (el del medio permanece)
+    var dm=e.target.closest("[data-descmore]"); if(dm){ $("pvDesc").hidden=false; pvSync(); return; }     // descripción → banner IZQUIERDO
+    var smb=e.target.closest("[data-specsmore]"); if(smb){ $("pvSpecs").hidden=false; pvSync(); return; }  // ficha → banner DERECHO
+    var pc=e.target.closest("[data-pvclose]"); if(pc){ var pcel=$(pc.dataset.pvclose); if(pcel) pcel.hidden=true; pvSync(); return; }  // cerrar lateral (el del medio permanece)
     if(e.target.id==="prodOv"||e.target.closest("[data-close]")){hide("prodOv"); okiEmit("vista-previa-cerrada"); maybeReopenWish(); return;} var w=e.target.closest("[data-wish]"); if(w){toggleWishlist(+w.dataset.wish); openProduct(+w.dataset.wish); return;} var a=e.target.closest("[data-madd]"); if(a){addToCart(+a.dataset.madd,1); hide("prodOv"); okiEmit("vista-previa-cerrada");}});
 
   function shopToken(){return localStorage.getItem("okstation.token")||"";}
@@ -1224,35 +1235,54 @@ html.q-lock, html.q-lock body{overflow:hidden}
   };
 
   /* ── Fase 4: el catálogo REAL viene de la BD (`products`: Exel + Icecat) ──
-     Se pinta primero el respaldo (assets/catalogo.js) para que la tienda abra al
-     instante, y en cuanto responde el API se cambia por los productos reales.
-     Si el API falla o aún no hay productos, se queda el respaldo (no rompe nada). */
+     El grid y las categorías se llenan SOLO con datos reales del API. assets/catalogo.js
+     queda como RESPALDO por si el API falla o aún no hay productos (así nunca se rompe,
+     p. ej. en una máquina sin BD). Mientras responde se muestra "Cargando…", para que
+     NO parpadeen las categorías viejas del respaldo. */
   var CATCOLORS=["#066CFF","#9C1DFF","#0596b8","#0E9F6E","#FF8A00","#6A2BF5"];
+  var PER_PAGE=24, dbMode=false, dbPage=1, dbPages=1, dbLoading=false;
+  function mapDbItem(it){
+    return {id:it.id, dbId:it.id, cat:it.category||"", brand:it.brand||"", sku:it.sku||"",
+            name:it.name||"", price:it.price||0, stock:it.stock||0, image:it.image||null,
+            emoji:"📦", desc:"", specs:[]};      // desc/ficha las trae la vista previa (Icecat)
+  }
   function loadCatalogFromDB(){
-    var pReq=fetch("/backend/api/shop/products.php?per_page=60").then(function(r){return r.json();}).catch(function(){return null;});
+    var pReq=fetch("/backend/api/shop/products.php?per_page="+PER_PAGE+"&page=1").then(function(r){return r.json();}).catch(function(){return null;});
     var cReq=fetch("/backend/api/shop/categories.php").then(function(r){return r.json();}).catch(function(){return null;});
-    Promise.all([pReq,cReq]).then(function(res){
+    return Promise.all([pReq,cReq]).then(function(res){
       var pj=res[0], cj=res[1];
-      if(!pj||!pj.ok||!pj.items||!pj.items.length) return;      // sin datos → se queda el respaldo
-      P=pj.items.map(function(it){
-        return {id:it.id, dbId:it.id, cat:it.category||"", brand:it.brand||"", sku:it.sku||"",
-                name:it.name||"", price:it.price||0, stock:it.stock||0, image:it.image||null,
-                emoji:"📦", desc:"", specs:[]};   // desc/ficha las trae la vista previa (Icecat)
-      });
-      _sidx=null;                                               // reinicia el índice del buscador
+      if(!pj||!pj.ok||!pj.items||!pj.items.length) return false;   // sin datos → se queda el respaldo
+      P=pj.items.map(mapDbItem); _sidx=null;
+      dbMode=true; dbPage=pj.page||1; dbPages=pj.pages||1;
       if(cj&&cj.ok&&cj.categories&&cj.categories.length){
         CATS=[{id:"all",name:"Todos",color:"#66748a"}].concat(cj.categories.map(function(c,i){
           return {id:c.name, name:c.name, color:CATCOLORS[i%CATCOLORS.length]};
         }));
         if(activeCat!=="all" && !CATS.some(function(c){return c.id===activeCat;})) activeCat="all";
       }
-      renderCats(); renderGrid();
-    }).catch(function(){});
+      return true;
+    }).catch(function(){ return false; });
+  }
+  /* Paginación REAL: al llegar al final se traen MÁS productos del API.
+     (Antes el "scroll infinito" repetía los mismos productos: eso ya no pasa.) */
+  function loadMoreFromDB(){
+    if(!dbMode || dbLoading || dbPage>=dbPages) return;
+    dbLoading=true;
+    fetch("/backend/api/shop/products.php?per_page="+PER_PAGE+"&page="+(dbPage+1))
+      .then(function(r){return r.json();}).then(function(j){
+        dbLoading=false;
+        if(!j||!j.ok||!j.items||!j.items.length) return;
+        dbPage=j.page||(dbPage+1); dbPages=j.pages||dbPages;
+        var seen={}; P.forEach(function(p){ seen[p.id]=1; });
+        var add=j.items.map(mapDbItem).filter(function(p){ return !seen[p.id]; });   // nunca duplica
+        if(!add.length) return;
+        P=P.concat(add); _sidx=null; renderGrid();
+      }).catch(function(){ dbLoading=false; });
   }
 
-  loadCart(); updateWishBadge();
-  renderCats(); renderGrid(); renderCart();
-  loadCatalogFromDB();
+  loadCart(); updateWishBadge(); renderCart();
+  $("grid").innerHTML='<div class="empty">Cargando productos…</div>';
+  loadCatalogFromDB().then(function(){ renderCats(); renderGrid(); });
 
   // Vista lista/cuadros (predeterminado: LISTA)
   function setView(m){ var g=$("grid"); if(g) g.classList.toggle("is-list", m==="list"); [].forEach.call(document.querySelectorAll(".viewtoggle button"),function(b){ b.classList.toggle("on", b.dataset.view===m); }); renderGrid(); if(window.__fillMore) window.__fillMore(); }
