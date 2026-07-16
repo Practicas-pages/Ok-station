@@ -1,7 +1,8 @@
 <?php
 /** GET /backend/api/shop/products.php — catálogo PÚBLICO de la tienda (lee de `products`).
  *  Solo productos activos (con stock). Nunca expone costo ni datos internos del proveedor.
- *  Params: q (búsqueda), category, subcategory, brand, ofertas, sort, page, per_page.
+ *  Params: q (búsqueda), category, subcategory, brand (una o varias con coma),
+ *          ofertas, sort, page, per_page.
  *  El filtrado es AQUÍ (no en el navegador) porque el catálogo se pagina: filtrar en el
  *  cliente solo miraría la página cargada y "escondería" el resto del catálogo.
  *  Precio devuelto = lista con IVA 8% incluido (misma convención que ShopCatalog/catalogo.js);
@@ -38,7 +39,16 @@ if ($q !== '') {
 }
 if ($category !== '') { $where[] = 'category = ?';    $params[] = $category; }
 if ($subcat !== '')   { $where[] = 'subcategory = ?'; $params[] = $subcat; }
-if ($brand !== '')    { $where[] = 'brand = ?';       $params[] = $brand; }
+/* brand acepta VARIAS separadas por coma (brand=HP,Canon) para el panel de filtros.
+   Una sola (brand=HP) sigue funcionando igual: no rompe a quien ya lo usaba. */
+if ($brand !== '') {
+    $brands = array_values(array_unique(array_filter(array_map('trim', explode(',', $brand)))));
+    $brands = array_slice($brands, 0, 30);
+    if ($brands) {
+        $where[] = 'brand IN (' . implode(',', array_fill(0, count($brands), '?')) . ')';
+        array_push($params, ...$brands);
+    }
+}
 if ($ofertas)         { $where[] = 'old_price > price'; }   // "Ofertas del día"
 $wsql = implode(' AND ', $where);
 

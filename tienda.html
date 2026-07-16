@@ -402,6 +402,40 @@ html.store-view .header-bar, html.store-view .site-header{display:none}
 #site .pop:not(.on):not(.hot):hover::after{transform:translateY(2px)}
 #site .totop::after{inset:-6px; transition:transform .22s cubic-bezier(.34,1.56,.64,1)}
 #site .totop.show:hover::after{transform:translateY(3px)}
+/* Ubicación de entrega (estilo Amazon): dos renglones, secundario.
+   Sigue la jerarquía de la barra: "cristal" como .tb-fav (la barra tiene fondo
+   var(--grad), así que el texto va en BLANCO; en oscuro no se leería). */
+#site .tb-loc{flex:none; display:flex; align-items:center; gap:6px; padding:6px 10px; border:1.5px solid transparent; border-radius:12px; background:none; color:#fff; cursor:pointer; text-align:left; max-width:190px; transition:border-color .15s, background .15s}
+#site .tb-loc:hover{background:rgba(255,255,255,.16); border-color:rgba(255,255,255,.5)}
+#site .tb-loc:focus-visible{outline:3px solid #fff; outline-offset:2px}
+#site .tb-loc svg{width:17px; height:17px; flex:none; color:#fff}
+#site .tb-loc__txt{display:flex; flex-direction:column; line-height:1.15; min-width:0}
+#site .tb-loc small{font-size:.68rem; color:rgba(255,255,255,.75); font-weight:600}
+#site .tb-loc b{font-size:.82rem; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+/* Botón de Filtros: junto al buscador, "cristal" como Favoritos (barra con --grad). */
+#site .tb-filt{flex:none; position:relative; display:flex; align-items:center; gap:7px; padding:9px 14px; border-radius:99px; border:1.5px solid rgba(255,255,255,.5); background:rgba(255,255,255,.16); color:#fff; font:inherit; font-weight:700; font-size:.85rem; cursor:pointer; white-space:nowrap; backdrop-filter:blur(8px); transition:background .15s, border-color .15s}
+#site .tb-filt:hover{background:rgba(255,255,255,.3); border-color:rgba(255,255,255,.8)}
+#site .tb-filt:focus-visible{outline:3px solid #fff; outline-offset:2px}
+#site .tb-filt svg{width:17px; height:17px; flex:none; color:#fff}
+#site .tb-filt.on{background:#fff; border-color:#fff; color:var(--blue)}
+#site .tb-filt.on svg{color:var(--blue)}
+#site .tb-filt .ct{position:absolute; top:-6px; right:-4px; background:var(--amber); color:#fff; border-radius:99px; font-size:.66rem; font-weight:800; min-width:20px; height:20px; display:grid; place-items:center; padding:0 5px; border:2px solid var(--blue)}
+/* Cajón de filtros (derecha, como el carrito) */
+#site .fdraw{position:fixed; top:0; right:0; height:100%; width:min(340px,88vw); background:#fff; transform:translateX(100%); transition:transform .3s cubic-bezier(.4,0,.2,1); z-index:61; box-shadow:-12px 0 44px rgba(18,20,28,.22); display:flex; flex-direction:column}
+#site #app.filt-open .fdraw{transform:translateX(0)}
+#site .fdh{display:flex; align-items:center; justify-content:space-between; gap:8px; padding:15px 18px; border-bottom:1px solid var(--line); font-weight:800; flex:none}
+#site .fdbody{padding:6px 18px 18px; overflow-y:auto; flex:1 1 auto; min-height:0}
+#site .fgroup{padding:14px 0; border-bottom:1px solid var(--line)}
+#site .fgroup:last-child{border-bottom:0}
+#site .fgroup h4{margin:0 0 9px; font-size:.82rem; font-weight:800; text-transform:uppercase; letter-spacing:.04em; color:var(--muted)}
+#site .fopt{display:flex; align-items:center; gap:9px; padding:7px 0; font-size:.9rem; cursor:pointer}
+#site .fopt input{width:auto; margin:0; accent-color:var(--blue); flex:none}
+#site .fopt .fn{color:var(--muted); font-size:.78rem; margin-left:auto}
+#site .fdfoot{flex:none; display:flex; gap:9px; padding:14px 18px; border-top:1px solid var(--line)}
+#site .fclear{flex:none; padding:11px 15px; border:1.5px solid var(--line); border-radius:10px; background:#fff; font:inherit; font-weight:700; font-size:.85rem; color:var(--muted); cursor:pointer}
+#site .fclear:hover{border-color:var(--muted); color:var(--ink)}
+#site .fapply{flex:1; padding:11px 15px; border:0; border-radius:10px; background:var(--blue); color:#fff; font:inherit; font-weight:800; font-size:.9rem; cursor:pointer}
+#site .fapply:hover{background:var(--blue-h,#0558CC)}
 /* WhatsApp verde de marca (.btn--wa del home) */
 #site .tb-wa{flex:none; display:grid; place-items:center; width:40px; height:40px; border-radius:99px; background:linear-gradient(135deg,#25D366,#0FB84F); border:none; box-shadow:0 6px 16px rgba(37,211,102,.42); transition:transform .18s cubic-bezier(.34,1.56,.64,1), box-shadow .18s}
 #site .tb-wa svg{width:21px; height:21px; color:#fff; transition:transform .2s}
@@ -424,7 +458,10 @@ html.store-view .header-bar, html.store-view .site-header{display:none}
 #site .volver-sitio{flex:none; display:inline-flex; align-items:center; gap:6px; color:#fff; font-weight:700; font-size:.82rem; text-decoration:none; padding:6px 12px; margin-right:6px; border-radius:99px; background:rgba(9,14,34,.42); border:1.5px solid rgba(255,255,255,.6); backdrop-filter:blur(8px); transition:background .15s}
 #site .volver-sitio:hover{background:rgba(9,14,34,.56)}
 /* En pantallas medianas se va el NOMBRE (no el avatar: es lo que te identifica). */
-@media(max-width:820px){ #site .tb-cuenta .tb-name{display:none} #site .tb-cuenta.tb-cuenta--user{padding:5px} #site .tb-cuenta,#site .tb-cart{padding:9px 13px} #site .tb-logo{display:none} }
+@media(max-width:820px){ #site .tb-cuenta .tb-name{display:none} #site .tb-cuenta.tb-cuenta--user{padding:5px} #site .tb-cuenta,#site .tb-cart{padding:9px 13px} #site .tb-logo{display:none}
+  /* La ubicación y Filtros se reducen al ícono: el texto no cabe junto a los demás. */
+  #site .tb-loc__txt{display:none} #site .tb-loc{padding:9px 10px}
+  #site .tb-filt .tb-name{display:none} #site .tb-filt{padding:9px 11px} }
 /* Móvil: el buscador no cabe junto a los 4 botones -> va en su propia fila completa. */
 @media(max-width:640px){
   #site .topbar{flex-wrap:wrap; row-gap:9px}
@@ -673,7 +710,32 @@ html.q-lock, html.q-lock body{overflow:hidden}
 #site .steps .s.on{background:var(--grad)}
 #site .field{margin-bottom:11px}
 #site .field label{display:block; font-size:.78rem; font-weight:600; margin-bottom:4px}
-#site .field input{width:100%; font:inherit; padding:9px 12px; border:1.5px solid var(--line); border-radius:9px}
+/* La tienda es tema CLARO. styles.css global estiliza .field input para tema OSCURO
+   (fondo var(--surface-dark-3), texto #fff): sin esto los campos salen negros
+   dentro de un modal blanco. Afecta a este modal y al del checkout. */
+#site .field input,#site .field select,#site .field textarea{width:100%; font:inherit; padding:9px 12px; border:1.5px solid var(--line); border-radius:9px; background:#fff; color:var(--ink)}
+#site .field input::placeholder,#site .field textarea::placeholder{color:var(--muted); opacity:.7}
+#site .field label{color:var(--ink)}
+/* ── Libreta de direcciones (modal de ubicación) ── */
+#site .addrs{display:flex; flex-direction:column; gap:9px}
+#site .addr{display:flex; flex-direction:column; gap:2px; width:100%; text-align:left; padding:12px 14px; border:1.5px solid var(--line); border-radius:12px; background:#fff; cursor:pointer; font:inherit; color:var(--ink); transition:border-color .15s, box-shadow .15s}
+#site .addr:hover{border-color:var(--blue); box-shadow:0 6px 18px rgba(8,12,30,.10)}
+#site .addr--on{border-color:var(--blue); background:#f5f9ff}
+#site .addr b{font-size:.9rem; font-weight:700}
+#site .addr span{font-size:.82rem; color:var(--muted)}
+#site .addr__note{font-style:italic}
+#site .addr__tag{display:inline-block; margin-left:6px; padding:1px 7px; border-radius:99px; background:var(--blue); color:#fff; font-size:.64rem; font-weight:800; vertical-align:middle}
+#site .addr--new{flex-direction:row; align-items:center; gap:9px; border-style:dashed; justify-content:center; color:var(--blue)}
+#site .addr--new b{color:var(--blue)}
+#site .addr__plus{font-size:1.2rem; font-weight:700; line-height:1}
+/* Formulario de alta: dos columnas donde el dato es corto (núm., CP). */
+#site .afrow{display:grid; grid-template-columns:1fr 1fr; gap:10px}
+#site .afopt{font-weight:500; color:var(--muted); font-size:.72rem}
+#site .afchk{display:flex; align-items:center; gap:8px; margin-top:10px; font-size:.83rem; cursor:pointer}
+#site .afchk input{width:auto; margin:0}
+#site .afback{display:block; width:100%; margin-top:10px; padding:9px; border:0; background:none; color:var(--blue); font:inherit; font-size:.85rem; font-weight:600; cursor:pointer}
+#site #locModal{max-height:86vh; overflow-y:auto}
+@media(max-width:480px){ #site .afrow{grid-template-columns:1fr} }
 #site .paybadges{display:flex; gap:6px; flex-wrap:wrap; margin:10px 0 4px}
 #site .paybadges span{font-size:.68rem; font-weight:700; color:#33404f; background:var(--paper); border:1px solid var(--line); border-radius:7px; padding:4px 9px}
 #site .ok-anim{text-align:center; padding:14px 0}
@@ -957,7 +1019,9 @@ html.q-lock, html.q-lock body{overflow:hidden}
         <a class="tb-logo" href="index.html" aria-label="Ok.station — Ir al inicio"><img src="assets/img/okstation-logo.webp" alt="Ok.station" width="158" height="24"></a>
         <div class="search"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
           <input id="q" type="search" placeholder="Busca laptops, tinta, papel, accesorios y más…" autocomplete="off" role="combobox" aria-expanded="false" aria-autocomplete="list"><div class="ac" id="acBox" role="listbox"></div></div>
+        <button class="tb-filt" id="filtBtn" aria-label="Filtros" aria-haspopup="dialog" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="6" x2="20" y2="6"/><line x1="7" y1="12" x2="17" y2="12"/><line x1="10" y1="18" x2="14" y2="18"/></svg><span class="tb-name">Filtros</span><span class="ct" id="filtCount" hidden>0</span></button>
         <div class="tb-actions">
+          <button class="tb-loc" id="locBtn" aria-label="Ubicación de entrega"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg><span class="tb-loc__txt"><small id="locTop">Entrega en</small><b id="locMain">Elige tu ubicación</b></span></button>
           <a class="tb-cuenta" href="cuenta.html?next=tienda.html%23store" aria-label="Cuenta"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span class="tb-name">Cuenta</span></a>
           <a class="tb-wa" href="https://wa.me/526647194117?text=Hola,%20quiero%20solicitar%20informaci%C3%B3n" target="_blank" rel="noopener" aria-label="WhatsApp" title="WhatsApp"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M.057 24l1.687-6.163a11.867 11.867 0 01-1.587-5.945C.16 5.335 5.495 0 12.05 0a11.82 11.82 0 018.413 3.488 11.82 11.82 0 013.48 8.414c-.003 6.557-5.338 11.892-11.893 11.892a11.9 11.9 0 01-5.688-1.448L.057 24zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884a9.86 9.86 0 001.51 5.26l-.999 3.648 3.978-1.040zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.017-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.247-.694.247-1.29.173-1.414z"/></svg></a>
           <button class="tb-fav" id="wishBtn" aria-label="Lista de deseos" title="Favoritos"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.8 4.6a5.5 5.5 0 00-7.8 0L12 5.6l-1-1a5.5 5.5 0 00-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 000-7.8z"/></svg><span class="tb-name">Favoritos</span><span class="ct" id="wishCount" style="display:none">0</span></button>
@@ -984,6 +1048,12 @@ html.q-lock, html.q-lock body{overflow:hidden}
             <button class="checkout" id="checkoutBtn" disabled>Finalizar compra</button><div class="taxnote" id="taxnote">Precios con IVA incluido</div></div></aside>
       </div>
       <aside class="drawer" id="drawer"><div class="dh">Categorías <button class="x" id="drawerClose">×</button></div><div class="dlist" id="drawerList"></div></aside>
+      <!-- Filtros: cajón DERECHO (el de categorías ya ocupa el izquierdo). -->
+      <aside class="fdraw" id="fdraw" role="dialog" aria-label="Filtros" aria-modal="false">
+        <div class="fdh">Filtros <button class="x" id="fdrawClose" aria-label="Cerrar">×</button></div>
+        <div class="fdbody" id="fdrawBody"></div>
+        <div class="fdfoot"><button type="button" class="fclear" id="fClear">Limpiar</button><button type="button" class="fapply" id="fApply">Ver resultados</button></div>
+      </aside>
       <button type="button" class="totop" id="toTop" aria-label="Subir al inicio" title="Subir al inicio"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg></button>
       <div class="scrim" id="scrim"></div>
     </div>
@@ -996,6 +1066,7 @@ html.q-lock, html.q-lock body{overflow:hidden}
   <div class="ov" id="prodOv"><aside class="pvside pvside--left" id="pvDesc" hidden><div class="pvhead"><span>Descripción</span><button class="x" data-pvclose="pvDesc" aria-label="Cerrar">×</button></div><div class="pvbody"></div></aside><div class="modal" id="prodModal"></div><aside class="pvside pvside--right" id="pvSpecs" hidden><div class="pvhead"><span>Ficha técnica</span><button class="x" data-pvclose="pvSpecs" aria-label="Cerrar">×</button></div><div class="pvbody"></div></aside></div>
   <div class="ov" id="wishOv"><div class="modal" id="wishModal"></div></div>
   <div class="ov" id="coOv"><div class="modal" id="coModal"></div></div>
+  <div class="ov" id="locOv"><div class="modal" id="locModal"></div></div>
   <div class="toast" id="toast"></div>
 </div>
 
@@ -1158,7 +1229,12 @@ html.q-lock, html.q-lock body{overflow:hidden}
     /* Con el catálogo de la BD las categorías son las de Exel; si llega un id que ya no
        existe (p. ej. un atajo del landing), mostramos TODO en vez de dejar el grid vacío. */
     if(id!=="all" && id!=="ofertas" && !CATS.some(function(c){return c.id===id;})){ id="all"; sub=""; }
-    activeCat=id; activeSub=sub||""; renderCats(); reloadFromDB(); $("app").classList.remove("drawer-open");}
+    activeCat=id; activeSub=sub||"";
+    /* Las marcas del panel se acotan a la categoría, así que la caché ya no sirve.
+       Las marcas ELEGIDAS se respetan: si no existen aquí, el servidor devuelve 0
+       y el contador del botón te dice por qué (no es un catálogo "vacío" a secas). */
+    fBrandsLoaded=false;
+    renderCats(); reloadFromDB(); $("app").classList.remove("drawer-open");}
   document.addEventListener("click",function(e){var b=e.target.closest("[data-cat]"); if(b){selectCat(b.dataset.cat, b.dataset.sub||"");}});
 
   // ── Buscador inteligente: sin acentos, multi-palabra, busca en nombre/marca/
@@ -1317,6 +1393,62 @@ html.q-lock, html.q-lock body{overflow:hidden}
 
   $("hamb").addEventListener("click",function(){$("app").classList.toggle("drawer-open");});
   $("drawerClose").addEventListener("click",function(){$("app").classList.remove("drawer-open");});
+
+  /* ── Panel de filtros (cajón derecho) ──────────────────────────────────────
+     Marca y orden se aplican en el SERVIDOR (ver dbParams): el catálogo se pagina,
+     así que filtrar aquí solo miraría la página cargada. Las marcas se piden al
+     abrir, no al cargar la tienda, y se acotan a la categoría que estás viendo. */
+  function filtCountUpdate(){
+    var n=fBrands.length+(fSort!=="name"?1:0);
+    var b=$("filtBtn"), c=$("filtCount");
+    c.textContent=n; c.hidden=n===0; b.classList.toggle("on",n>0);
+  }
+  function filtClose(){ $("app").classList.remove("filt-open"); $("filtBtn").setAttribute("aria-expanded","false"); }
+  function filtOpen(){
+    $("app").classList.remove("cart-open","drawer-open");   // un cajón a la vez
+    $("app").classList.add("filt-open");
+    $("filtBtn").setAttribute("aria-expanded","true");
+    filtRender();                       // pinta ya con lo que haya (aunque las marcas tarden)
+    if(fBrandsLoaded) return;
+    var cat=(activeCat && activeCat!=="all" && activeCat!=="ofertas") ? "?category="+encodeURIComponent(activeCat) : "";
+    fetch("/backend/api/shop/brands.php"+cat).then(function(r){return r.json();}).then(function(j){
+      if(j&&j.ok){ fBrandList=j.brands||[]; fBrandsLoaded=true; filtRender(); }
+    }).catch(function(e){ console.error("Filtros (marcas):",e); });
+  }
+  var fBrandList=[];
+  var SORTS=[["name","Nombre (A-Z)"],["price_asc","Precio: menor a mayor"],["price_desc","Precio: mayor a menor"],["newest","Más nuevos"]];
+  function filtRender(){
+    var orden=SORTS.map(function(s){
+      return '<label class="fopt"><input type="radio" name="fsort" value="'+s[0]+'"'+(fSort===s[0]?" checked":"")+'>'+esc(s[1])+'</label>';
+    }).join("");
+    var marcas=fBrandsLoaded
+      ? (fBrandList.length
+          ? fBrandList.map(function(b){
+              return '<label class="fopt"><input type="checkbox" class="fbrand" value="'+esc(b.name)+'"'+(fBrands.indexOf(b.name)>=0?" checked":"")+'>'+esc(b.name)+'<span class="fn">'+b.count+'</span></label>';
+            }).join("")
+          : '<p class="fn">No hay marcas en esta categoría.</p>')
+      : '<p class="fn">Cargando marcas…</p>';
+    $("fdrawBody").innerHTML=
+      '<div class="fgroup"><h4>Ordenar por</h4>'+orden+'</div>'+
+      '<div class="fgroup"><h4>Marca</h4>'+marcas+'</div>';
+  }
+  function filtApply(){
+    fSort=($("fdrawBody").querySelector('input[name="fsort"]:checked')||{}).value||"name";
+    fBrands=[].slice.call($("fdrawBody").querySelectorAll(".fbrand:checked")).map(function(c){return c.value;});
+    filtCountUpdate(); filtClose(); reloadFromDB();
+  }
+  function filtClear(){
+    fBrands=[]; fSort="name";
+    filtCountUpdate(); filtRender(); reloadFromDB();
+  }
+  $("filtBtn").addEventListener("click",function(){
+    $("app").classList.contains("filt-open") ? filtClose() : filtOpen();
+  });
+  $("fdrawClose").addEventListener("click",filtClose);
+  $("fApply").addEventListener("click",filtApply);
+  $("fClear").addEventListener("click",filtClear);
+  /* Esc cierra, como se espera de cualquier panel. */
+  document.addEventListener("keydown",function(e){ if(e.key==="Escape"&&$("app").classList.contains("filt-open")) filtClose(); });
   $("cartBtn").addEventListener("click",function(){var open=$("app").classList.toggle("cart-open"); okiEmit(open?"carrito-abierto":"carrito-cerrado");});
   $("cartClose").addEventListener("click",function(){$("app").classList.remove("cart-open"); okiEmit("carrito-cerrado");});
   $("scrim").addEventListener("click",function(){$("app").classList.remove("drawer-open","cart-open"); okiEmit("carrito-cerrado");});
@@ -1404,6 +1536,147 @@ html.q-lock, html.q-lock body{overflow:hidden}
     if(e.target.id==="prodOv"||e.target.closest("[data-close]")){hide("prodOv"); okiEmit("vista-previa-cerrada"); maybeReopenWish(); return;} var w=e.target.closest("[data-wish]"); if(w){toggleWishlist(+w.dataset.wish); openProduct(+w.dataset.wish); return;} var a=e.target.closest("[data-madd]"); if(a){addToCart(+a.dataset.madd,1); hide("prodOv"); okiEmit("vista-previa-cerrada");}});
 
   function shopToken(){return localStorage.getItem("okstation.token")||"";}
+
+  /* ── Ubicación de entrega: libreta de direcciones (barra de la tienda) ──────
+     Sin sesión  → "Elige tu ubicación" → cuenta.html (login/registro) y vuelve acá.
+     Con sesión  → modal con la libreta: elegir una, o "Agregar dirección" (formulario).
+     La barra muestra la dirección PREDETERMINADA: "Entrega en {ciudad} {CP}".
+     Las direcciones viven en la CUENTA (tabla user_addresses), no en localStorage:
+     así siguen al cliente entre dispositivos y sirven para enviar el pedido. */
+  var LOGIN_URL="cuenta.html?next="+encodeURIComponent("tienda.html#store");
+  var okAddr=null;                  // libreta cacheada en memoria (se pide al abrir)
+  var okStates=MX_ESTADOS;          // el API manda la lista; esto es el respaldo
+  /* Copia del usuario que deja el login: sirve para prellenar el alta (nombre y tel). */
+  function shopUser(){try{return JSON.parse(localStorage.getItem("okstation.user")||"null");}catch(e){return null;}}
+
+  function addrDefault(){ return (okAddr||[]).filter(function(a){return a.is_default;})[0]||null; }
+
+  function renderLoc(){
+    var b=$("locMain"), t=$("locTop"); if(!b) return;
+    var d=shopToken()?addrDefault():null;
+    if(d){ t.hidden=false; t.textContent="Entrega en"; b.textContent=d.city+" "+d.postal_code; }
+    else { t.hidden=true; b.textContent="Elige tu ubicación"; }
+  }
+
+  function authFetch(url,opts){
+    opts=opts||{}; opts.headers=Object.assign({"Content-Type":"application/json","Authorization":"Bearer "+shopToken()},opts.headers||{});
+    return fetch(url,opts).then(function(r){return r.json();});
+  }
+
+  function openLoc(){
+    /* Sin sesión no hay dónde guardar: manda a iniciar sesión / crear cuenta y
+       regresa a la tienda (?next lo resuelve auth.js). */
+    if(!shopToken()){ location.href=LOGIN_URL; return; }
+    $("locModal").innerHTML=locShell('<p class="desc" style="max-width:none;font-size:.9rem">Cargando tus direcciones…</p>');
+    show("locOv");
+    authFetch("/backend/api/shop/addresses.php").then(function(j){
+      if(!j||!j.ok) return locList([]);
+      okAddr=j.addresses||[]; if(j.states&&j.states.length) okStates=j.states;
+      renderLoc();
+      okAddr.length?locList(okAddr):locForm();   // sin direcciones → directo al alta
+    }).catch(function(e){
+      /* Se registra: este catch también atrapa errores de RENDER, no solo de red.
+         Sin el console.error, un bug de código se disfraza de "sin conexión". */
+      console.error("Libreta de direcciones:",e); locList([]);
+    });
+  }
+
+  function locShell(inner,title){
+    return '<div class="mb" style="padding-top:22px">'+
+      '<button class="x" data-close style="position:static;float:right;background:var(--paper)">×</button><div style="clear:both"></div>'+
+      '<h3 style="margin:0 0 10px;font-size:1.2rem">'+(title||"¿A dónde te lo enviamos?")+'</h3>'+inner+'</div>';
+  }
+
+  /* Lista: cada dirección es seleccionable (marca la predeterminada) + alta nueva. */
+  function locList(list){
+    var items=list.map(function(a){
+      return '<button type="button" class="addr'+(a.is_default?" addr--on":"")+'" data-addr="'+a.id+'">'+
+        '<b>'+esc(a.recipient)+(a.is_default?' <span class="addr__tag">Predeterminada</span>':'')+'</b>'+
+        '<span>'+esc(a.label)+'</span>'+
+        (a.notes?'<span class="addr__note">'+esc(a.notes)+'</span>':'')+'</button>';
+    }).join("");
+    $("locModal").innerHTML=locShell(
+      (list.length?'<p class="desc" style="max-width:none;font-size:.88rem;margin-bottom:12px">Elige a dónde enviamos tu pedido.</p>':'')+
+      '<div class="auth-alert" id="locErr" role="alert" hidden style="margin:0 0 12px;padding:10px 12px;border-radius:10px;background:#fdeaea;color:#8a1c1c;font-size:.85rem"></div>'+
+      '<div class="addrs">'+items+
+        '<button type="button" class="addr addr--new" id="addrNew"><span class="addr__plus">+</span><b>Agregar dirección</b></button>'+
+      '</div>');
+  }
+
+  /* Formulario de alta. Campos pensados para entregar de verdad en México:
+     la colonia es indispensable y el CP no la deduce (no tenemos catálogo SEPOMEX). */
+  function locForm(){
+    var u=shopUser()||{};
+    var opts=okStates.map(function(s){return '<option'+(s==="Baja California"?' selected':'')+'>'+esc(s)+'</option>';}).join("");
+    var hayPrevias=(okAddr||[]).length>0;
+    $("locModal").innerHTML=locShell(
+      '<div class="auth-alert" id="locErr" role="alert" hidden style="margin:0 0 12px;padding:10px 12px;border-radius:10px;background:#fdeaea;color:#8a1c1c;font-size:.85rem"></div>'+
+      '<div class="field"><label for="afRec">¿Quién recibe?</label><input id="afRec" type="text" maxlength="160" autocomplete="name" placeholder="Nombre y apellido" value="'+esc(u.full_name||"")+'"></div>'+
+      '<div class="field"><label for="afPhone">Teléfono</label><input id="afPhone" type="tel" maxlength="40" inputmode="tel" autocomplete="tel" placeholder="664 719 4117" value="'+esc(u.phone||"")+'"></div>'+
+      '<div class="field"><label for="afStreet">Calle</label><input id="afStreet" type="text" maxlength="200" autocomplete="address-line1" placeholder="Blvd. Insurgentes"></div>'+
+      '<div class="afrow"><div class="field"><label for="afExt">Núm. exterior</label><input id="afExt" type="text" maxlength="30" placeholder="123"></div>'+
+        '<div class="field"><label for="afInt">Interior <span class="afopt">(opcional)</span></label><input id="afInt" type="text" maxlength="30" placeholder="4B"></div></div>'+
+      '<div class="field"><label for="afCol">Colonia</label><input id="afCol" type="text" maxlength="160" autocomplete="address-line2" placeholder="Otay Constituyentes"></div>'+
+      '<div class="afrow"><div class="field"><label for="afCity">Ciudad</label><input id="afCity" type="text" maxlength="120" autocomplete="address-level2" placeholder="Tijuana" value="Tijuana"></div>'+
+        '<div class="field"><label for="afCp">Código postal</label><input id="afCp" type="text" inputmode="numeric" maxlength="5" autocomplete="postal-code" placeholder="22204"></div></div>'+
+      '<div class="field"><label for="afState">Estado</label><select id="afState" autocomplete="address-level1">'+opts+'</select></div>'+
+      '<div class="field"><label for="afNotes">Referencias <span class="afopt">(opcional)</span></label><input id="afNotes" type="text" maxlength="255" placeholder="Casa azul, portón negro, entre X y Y"></div>'+
+      '<label class="afchk"><input type="checkbox" id="afDef"'+(hayPrevias?'':' checked disabled')+'> Usar como mi dirección predeterminada'+
+        (hayPrevias?'':' <span class="afopt">(es tu primera dirección)</span>')+'</label>'+
+      '<button class="maddbtn" style="margin-top:14px" id="afSave">Agregar dirección</button>'+
+      (hayPrevias?'<button type="button" class="afback" id="afBack">← Volver a mis direcciones</button>':''),
+      "Agregar una nueva dirección");
+    setTimeout(function(){var f=$("afRec"); if(f)f.focus();},50);
+  }
+
+  function saveAddr(){
+    var err=$("locErr"); function bad(m){ err.textContent=m; err.hidden=false; err.scrollIntoView({block:"nearest"}); }
+    var v=function(id){return ($(id).value||"").trim();};
+    var body={recipient:v("afRec"),phone:v("afPhone"),street:v("afStreet"),ext_num:v("afExt"),
+              int_num:v("afInt"),neighborhood:v("afCol"),city:v("afCity"),state:v("afState"),
+              postal_code:v("afCp"),notes:v("afNotes"),is_default:$("afDef").checked};
+    /* Validación mínima en cliente (rapidez); el SERVIDOR revalida todo. */
+    if(body.recipient.length<3)                 return bad("Escribe el nombre de quien recibe.");
+    if((body.phone.match(/\d/g)||[]).length<10) return bad("El teléfono debe tener al menos 10 dígitos.");
+    if(!body.street)                            return bad("Escribe la calle.");
+    if(!body.ext_num)                           return bad("Escribe el número exterior.");
+    if(!body.neighborhood)                      return bad("Escribe la colonia.");
+    if(!body.city)                              return bad("Escribe la ciudad.");
+    if(!/^\d{5}$/.test(body.postal_code))       return bad("El código postal debe tener 5 dígitos.");
+
+    var btn=$("afSave"); btn.disabled=true; btn.textContent="Guardando…";
+    authFetch("/backend/api/shop/address-save.php",{method:"POST",body:JSON.stringify(body)})
+      .then(function(j){
+        if(!j||!j.ok){ btn.disabled=false; btn.textContent="Agregar dirección"; return bad((j&&j.error)||"No se pudo guardar."); }
+        okAddr=j.addresses||[]; renderLoc(); hide("locOv"); flash("Dirección agregada");
+      }).catch(function(){ btn.disabled=false; btn.textContent="Agregar dirección"; bad("Sin conexión con el servidor."); });
+  }
+
+  function pickAddr(id){
+    authFetch("/backend/api/shop/address-default.php",{method:"POST",body:JSON.stringify({id:id})})
+      .then(function(j){
+        if(!j||!j.ok) return;
+        okAddr=j.addresses||[]; renderLoc(); hide("locOv"); flash("Entrega actualizada");
+      }).catch(function(){});
+  }
+
+  $("locBtn").addEventListener("click",openLoc);
+  $("locOv").addEventListener("click",function(e){
+    if(e.target.id==="locOv"||e.target.closest("[data-close]")){hide("locOv"); return;}
+    if(e.target.closest("#addrNew")) return locForm();
+    if(e.target.closest("#afBack"))  return locList(okAddr||[]);
+    if(e.target.closest("#afSave"))  return saveAddr();
+    var a=e.target.closest("[data-addr]"); if(a) return pickAddr(+a.dataset.addr);
+  });
+  /* Enter envía el formulario, pero no desde el <select> (ahí Enter elige opción). */
+  $("locOv").addEventListener("keydown",function(e){
+    if(e.key==="Enter"&&e.target.tagName==="INPUT"&&$("afSave")){e.preventDefault(); saveAddr();}
+  });
+  /* Si ya hay sesión, trae la libreta al cargar para pintar "Entrega en …" en la barra. */
+  if(shopToken()) authFetch("/backend/api/shop/addresses.php").then(function(j){
+    if(j&&j.ok){ okAddr=j.addresses||[]; renderLoc(); }
+  }).catch(function(){});
+  renderLoc();
   function renderCheckout(){var tt=totals(),head='<div class="mb" style="padding-top:22px"><button class="x" data-close style="position:static;float:right;background:var(--paper)">×</button><div style="clear:both"></div>';
     /* Comprar REQUIERE cuenta (para pagar en línea y darle seguimiento al pedido). */
     if(!shopToken()){
@@ -1551,6 +1824,9 @@ html.q-lock, html.q-lock body{overflow:hidden}
      una, sin esperar al scroll. Cuando el catálogo real de Exel traiga miles, esto
      sigue paginando de 60 en 60 conforme se baja, en vez de tumbar la página. */
   var PER_PAGE=60, dbMode=false, dbPage=1, dbPages=1, dbTotal=0, dbLoading=false;
+  /* Estado del panel de filtros. fSort="name" es el orden por defecto del API:
+     mientras esté así no se manda, para no ensuciar la URL de la petición. */
+  var fBrands=[], fSort="name", fBrandsLoaded=false;
   function mapDbItem(it){
     return {id:it.id, dbId:it.id, cat:it.category||"", sub:it.subcategory||"",
             brand:it.brand||"", sku:it.sku||"",
@@ -1571,6 +1847,10 @@ html.q-lock, html.q-lock body{overflow:hidden}
     else if(activeCat!=="all") u+="&category="+encodeURIComponent(activeCat);
     if(activeSub) u+="&subcategory="+encodeURIComponent(activeSub);
     if(query.length>=2) u+="&q="+encodeURIComponent(query);
+    /* Panel de filtros: marca(s) y orden. Van al SERVIDOR por lo mismo que lo demás
+       (el catálogo se pagina; filtrar en el navegador escondería el resto). */
+    if(fBrands.length) u+="&brand="+encodeURIComponent(fBrands.join(","));
+    if(fSort!=="name") u+="&sort="+encodeURIComponent(fSort);
     return u;
   }
   function loadCatalogFromDB(){
