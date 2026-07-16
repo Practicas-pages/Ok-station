@@ -9,7 +9,51 @@
  * Datos confirmados por el negocio el 10-jul-2026.
  */
 
+/**
+ * Datos VIVOS del catálogo para el prompt: las categorías REALES de la tienda, con
+ * cuántos productos tiene cada una, y cuántas ofertas hay.
+ * Se leen de la BD en cada consulta (es un COUNT barato) en vez de escribirlas a mano:
+ * así, cuando el runner de Exel cambie el catálogo, OKi NO se queda con una lista vieja
+ * ni le inventa categorías al cliente. Si la BD no responde, devuelve "" y el prompt
+ * sigue funcionando con lo que ya tiene escrito.
+ */
+function oki_store_facts(): string
+{
+    try {
+        $rows = db()->query(
+            "SELECT category, COUNT(*) AS n
+               FROM products
+              WHERE is_active = 1 AND category IS NOT NULL AND category <> ''
+              GROUP BY category ORDER BY n DESC"
+        )->fetchAll();
+        if (!$rows) return '';
+
+        $total = 0;
+        $lineas = [];
+        foreach ($rows as $r) {
+            $total += (int) $r['n'];
+            $lineas[] = '- ' . $r['category'] . ': ' . (int) $r['n'] . ' productos.';
+        }
+        $ofertas = (int) db()->query("SELECT COUNT(*) FROM products WHERE is_active = 1 AND old_price > price")->fetchColumn();
+
+        $out  = "\n\n# CATÁLOGO REAL DE LA TIENDA AHORA MISMO (dato vivo, no lo inventes)\n";
+        $out .= "- En total hay {$total} productos de papelería a la venta.\n";
+        $out .= "- Categorías exactas (usa ESTOS nombres, no te inventes otros):\n";
+        $out .= implode("\n", $lineas) . "\n";
+        $out .= "- \"Ofertas del día\": {$ofertas} productos con precio rebajado.\n";
+        $out .= "- Si te piden una categoría que NO está en esta lista, dilo y ofrece las que sí hay.\n";
+        return $out;
+    } catch (Throwable $e) {
+        return '';   // sin BD, el prompt base ya trae lo esencial
+    }
+}
+
 function oki_system_prompt(): string
+{
+    return oki_system_prompt_base() . oki_store_facts();
+}
+
+function oki_system_prompt_base(): string
 {
     return <<<'PROMPT'
 # Quién es OKi
@@ -145,7 +189,11 @@ solución correcta. Hablas español de México, siempre de "tú", pero educado, 
 - El cliente trae el documento ya descargado (USB, correo o WhatsApp) o los datos del portal.
 
 # TIENDA EN LÍNEA (e-commerce)
-- Es la sección de tienda (tienda.html): papelería, tinta y tóner, cómputo y accesorios.
+- Es la sección de tienda (tienda.html) y vende SOLO PAPELERÍA: papel, cuadernos, tinta
+  y tóner, artículos de oficina y escuela. NO vendemos cómputo, laptops, accesorios de
+  computadora ni electrónica: si te los piden, dilo con amabilidad y ofrece papelería.
+- Cada producto trae foto y ficha técnica reales. Hay una categoría "Ofertas del día"
+  con los que traen precio rebajado (el precio tachado).
 - El cliente arma su carrito, guarda favoritos (deseados) con el corazón y paga en
   línea con Mercado Pago (tarjeta, OXXO o SPEI).
 - ENTREGA: puedes RECOGER gratis en la tienda OK.station (Centro Comercial Otay,
@@ -154,8 +202,20 @@ solución correcta. Hablas español de México, siempre de "tú", pero educado, 
 - Si preguntan por un producto o precio que no esté a la vista en la tienda, deriva a
   WhatsApp; no inventes existencias ni precios de productos.
 
+# LO QUE TÚ MISMO PUEDES HACER DENTRO DE LA TIENDA
+# (Cuando la persona está en la tienda, estas acciones las haces TÚ al instante; no
+#  digas que "eres un asistente virtual y no puedes": SÍ puedes.)
+- AGREGAR al carrito, incluso varios productos y con cantidad de una sola vez:
+  "agrégame 2 notas adhesivas", "quiero 6 folders y 3 tóner". Nunca pones más de lo
+  que hay en existencia; si pidieron de más, avisas cuánto quedaba.
+- QUITAR del carrito y decir qué lleva y cuánto va ("¿qué llevo?").
+- ABRIR una categoría: "pon la categoría de calculadoras", "muéstrame las ofertas".
+- Mostrar sus FAVORITOS y recomendarle algo del catálogo.
+- Llevarlo a la tienda, al carrito o a la vista de un producto.
+
 # A DÓNDE MANDAR A LA GENTE (guía dentro del sitio)
-- Comprar papelería, tóner, cómputo o accesorios: sección de Tienda (tienda.html).
+- Comprar papelería (papel, cuadernos, tinta y tóner, oficina y escuela): sección de
+  Tienda (tienda.html). Ahí mismo están las Ofertas del día.
 - Imprimir o cotizar archivos: sección "Imprime tus fotos" en la página principal (#fotos).
 - Agendar una cita: sección de citas de la página principal (#citas).
 - Solo ver requisitos: se pueden consultar sin cuenta en el primer paso del agendado.

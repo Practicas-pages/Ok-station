@@ -225,6 +225,33 @@
     return bestScore ? best : null;
   }
 
+  /* Categorías REALES de la tienda (las de la BD, vía el contrato). Fuera de la tienda
+     no hay, y esas preguntas las contesta el cerebro del servidor. */
+  function okiCats() { var S = okiStore(); try { return (S && S.categorias) ? (S.categorias() || []) : []; } catch (e) { return []; } }
+  /* ¿A qué categoría se refiere el mensaje? Gana la coincidencia MÁS LARGA, para que
+     "papel fotográfico" no se quede en "Papel". Busca también en subcategorías. */
+  function okiMatchCat(text, cats) {
+    var n = okiNorm(text), best = null, bestLen = 0;
+    if (/\btodo\b|\btodos\b|\btodas\b|\bcatalogo\b/.test(n)) return { id: "all", name: "Todos" };
+    cats.forEach(function (c) {
+      var cn = okiNorm(c.name);
+      if (cn && n.indexOf(cn) >= 0 && cn.length > bestLen) { best = { id: c.id, name: c.name, count: c.count }; bestLen = cn.length; }
+      (c.subs || []).forEach(function (s) {
+        var sn = okiNorm(s);
+        if (sn && n.indexOf(sn) >= 0 && sn.length > bestLen) { best = { id: c.id, name: s, sub: s }; bestLen = sn.length; }
+      });
+    });
+    if (best) return best;
+    if (/\boferta/.test(n)) { var of = cats.filter(function (c) { return c.ofertas; })[0]; if (of) return { id: of.id, name: of.name, count: of.count }; }
+    // Por palabra suelta y sin plural: "calculadoras" → "Calculadoras".
+    var words = n.split(" ").map(okiStem).filter(function (x) { return x.length >= 4; });
+    cats.forEach(function (c) {
+      var cn = okiNorm(c.name);
+      words.forEach(function (w) { if (cn.indexOf(w) >= 0 && w.length > bestLen) { best = { id: c.id, name: c.name, count: c.count }; bestLen = w.length; } });
+    });
+    return best;
+  }
+
   // Cantidades en palabra ("dos cajas") además de dígitos ("2 cajas").
   var OKI_NUM = { un: 1, una: 1, uno: 1, par: 2, dos: 2, tres: 3, cuatro: 4, cinco: 5, seis: 6,
                   siete: 7, ocho: 8, nueve: 9, diez: 10, once: 11, doce: 12, docena: 12 };
@@ -254,10 +281,15 @@
     else { var w = raw.match(/^([a-zñ]+)\s+(.+)$/); if (w && OKI_NUM[w[1]]) { qty = OKI_NUM[w[1]]; raw = w[2]; } }
     raw = raw.replace(OKI_FILLER, "").trim();
     if (!raw) return Promise.resolve(null);
-    var q = qty;
+    var q = Math.max(1, Math.min(99, qty));
+    var hecho = function (list) { return (list && list.length) ? { p: list[0], qty: q } : null; };
     return Promise.resolve(S.buscar(raw, 5)).then(function (list) {
-      if (!list || !list.length) return null;
-      return { p: list[0], qty: Math.max(1, Math.min(99, q)) };
+      if (list && list.length) return hecho(list);
+      /* El catálogo del servidor busca por texto TAL CUAL: "calculadoras" no encuentra
+         "Calculadora Canon" (el nombre va en singular). Se reintenta sin plural. */
+      var sing = okiNorm(raw).split(" ").map(okiStem).join(" ").trim();
+      if (!sing || sing === okiNorm(raw)) return null;
+      return Promise.resolve(S.buscar(sing, 5)).then(hecho);
     }).catch(function () { return null; });
   }
   /* Pedido completo: "agrégame 6 folders y 2 tóner" -> [{p,qty:6},{p,qty:2}].
@@ -402,6 +434,32 @@
       var r = okiRecommend();
       if (!r) return "Ya llevas de todo 😄 ¿Te muestro el carrito o quieres ver otra categoría?";
       return "Te recomiendo " + (r.emoji ? r.emoji + " " : "") + r.name + " — " + okiMxn(r.price) + (r.old ? " (¡en oferta! 🔥)" : "") + "\nDime \"agrégalo\" y lo pongo en tu carrito. 🛒";
+    }
+
+    /* ── Categorías de la tienda ── (VA ANTES DE AGREGAR, a propósito)
+       "pon la categoría de calculadoras" NO es "ponme una calculadora": como el verbo
+       "pon" también dispara el agregar, antes esa frase te METÍA el producto al
+       carrito en vez de abrir la categoría. */
+    var pideCat  = /\bcategoria|\bcategorias\b|\bseccion\b|\bfiltro\b/.test(t);
+    var esAgregar = /\b(?:agrega|anade|pon(?:me|le|nos|lo|la)?|mete|suma|dame|quiero|llevo|necesito)\b/.test(t);
+    var pideOfertas = /\boferta/.test(t) && !esAgregar;
+    if (pideCat || pideOfertas) {
+      var cats = okiCats();
+      if (!cats.length) return null;              // fuera de la tienda lo cuenta el cerebro
+      // "¿qué categorías hay?" → listarlas
+      if (/\b(que|cuales|cuantas|dime|hay|tienen|tienes|muestrame las|ver las)\b[^]*\b(categoria|seccion)/.test(t) || /^categorias\b/.test(t)) {
+        return "Estas son las categorías de la tienda 🛒\n" +
+          cats.map(function (c) { return "• " + c.name + (c.count ? " (" + c.count + ")" : ""); }).join("\n") +
+          "\nDime \"pon la categoría de " + (cats[1] || cats[0]).name + "\" y te la abro.";
+      }
+      var destino = okiMatchCat(t, cats);
+      if (destino) {
+        try { S.verCategoria(destino.id, destino.sub || ""); } catch (e) { return null; }
+        var cuantos = destino.count ? " (" + destino.count + " productos)" : "";
+        return "¡Va! Te puse la categoría " + destino.name + cuantos + " 🛒\n" +
+               "Dime \"agrégame 2 de <producto>\" y te los pongo en el carrito.";
+      }
+      if (pideCat) return "¿Cuál categoría te abro? Tengo: " + cats.map(function (c) { return c.name; }).join(", ") + ".";
     }
 
     /* Agregar al carrito: uno o VARIOS productos, con cantidad.

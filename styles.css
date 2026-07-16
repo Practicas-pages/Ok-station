@@ -3296,6 +3296,16 @@ a.info-card:hover { border-color: var(--brand-blue); }
   transform: translateY(0);
 }
 
+/* El botón sube 3px al pasar el cursor: si el puntero estaba en el borde, se salía
+   de debajo, se perdía el :hover, bajaba, y parpadeaba sin parar. Este colchón
+   invisible viaja con el botón y mantiene el puntero "dentro". */
+.scroll-top::after {
+  content: "";
+  position: absolute;
+  inset: -6px;
+  border-radius: inherit;
+}
+
 .scroll-top.is-visible:hover {
   background: var(--brand-blue);
   color: #fff;

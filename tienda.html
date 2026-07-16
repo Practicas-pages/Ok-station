@@ -349,16 +349,28 @@ html.store-view .header-bar, html.store-view .site-header{display:none}
 /* Con la misma especificidad que `.tb-cuenta svg`: si no, esa regla le gana y la
    flecha sale de 17px y azul en vez de 15px y gris como en el home. */
 #site .tb-cuenta svg.tb-caret{width:15px; height:15px; flex:none; color:var(--muted)}
-/* Favoritos: cristal y solo ícono — secundario, y deja de competir con el carrito. */
-#site .tb-fav{width:40px; height:40px; padding:0; justify-content:center; gap:0; background:rgba(255,255,255,.16); border-color:rgba(255,255,255,.5); color:#fff; box-shadow:none; backdrop-filter:blur(8px)}
-#site .tb-fav svg{width:19px; height:19px; flex:none; color:#fff}
+/* Favoritos: BLANCO como el carrito, pero solo ícono — así sigue pesando menos que el
+   carrito (que lleva texto y monto) sin desentonar con el resto de la barra. */
+#site .tb-fav{width:40px; height:40px; padding:0; justify-content:center; gap:0}
+#site .tb-fav svg{width:19px; height:19px; flex:none; color:var(--blue)}
 #site .tb-fav .tb-name{display:none}
-#site .tb-fav:hover{background:rgba(255,255,255,.3); border-color:rgba(255,255,255,.8); box-shadow:0 8px 20px rgba(8,12,30,.22)}
-#site .tb-fav .ct{border-color:#fff}
 /* Carrito: el único macizo. Más aire, monto en negritas y sombra fuerte. */
 #site .tb-cart{font-weight:800; padding:9px 17px; font-size:.9rem; box-shadow:0 8px 22px rgba(8,12,30,.28)}
 #site .tb-cart:hover{box-shadow:0 16px 34px rgba(8,12,30,.34)}
 #site .tb-cart svg{width:19px; height:19px}
+/* ══ Parpadeo del hover en los bordes (arreglo) ══
+   Estos botones SUBEN 2-3px al pasar el cursor. Si el puntero estaba justo en el
+   borde, el botón se quitaba de debajo → se perdía el :hover → bajaba → volvía a
+   quedar debajo → :hover otra vez… y parpadeaba sin parar mientras no movieras el
+   mouse. El colchón invisible de abajo viaja CON el botón, así el puntero nunca
+   queda "fuera" a media animación. Es más chico que la separación entre botones,
+   para que ninguno robe el clic del de junto. */
+#site .tb-cuenta::after,#site .tb-fav::after,#site .tb-cart::after,#site .tb-wa::after{
+  content:""; position:absolute; inset:-5px; border-radius:inherit}
+#site .tb-wa{position:relative}
+#site .pop{position:relative}
+#site .pop::after{content:""; position:absolute; inset:-4px; border-radius:inherit}
+#site .totop::after{content:""; position:absolute; inset:-6px; border-radius:inherit}
 /* WhatsApp verde de marca (.btn--wa del home) */
 #site .tb-wa{flex:none; display:grid; place-items:center; width:40px; height:40px; border-radius:99px; background:linear-gradient(135deg,#25D366,#0FB84F); border:none; box-shadow:0 6px 16px rgba(37,211,102,.42); transition:transform .18s cubic-bezier(.34,1.56,.64,1), box-shadow .18s}
 #site .tb-wa svg{width:21px; height:21px; color:#fff; transition:transform .2s}
@@ -1463,6 +1475,13 @@ html.q-lock, html.q-lock body{overflow:hidden}
     /* Busca en TODO el catálogo (no solo en lo paginado) → promesa de productos.
        Es lo que le permite a OKi agregar algo que aún no está en pantalla. */
     buscar:function(q,limit){return searchProducts(String(q||""), limit||8);},
+    /* Categorías REALES del catálogo (las de la BD), con sus subcategorías y conteos:
+       OKi las lee para poder listarlas y para abrir la que le pidan. */
+    categorias:function(){return CATS.filter(function(c){return c.id!=="all";}).map(function(c){
+      return {id:c.id, name:c.name, count:c.count||0, ofertas:!!c.hot,
+              subs:(c.subs||[]).map(function(s){return s.name;})};});},
+    categoriaActual:function(){return {cat:activeCat, sub:activeSub, nombre:activeSub||catName(activeCat)};},
+    verCategoria:function(id,sub){showView("store"); selectCat(String(id||"all"), sub||""); return true;},
     verProducto:function(id){openProduct(+id);},
     abrirDeseados:function(){renderWishlist(); show("wishOv");},
     abrirCarrito:function(){$("app").classList.add("cart-open"); okiEmit("carrito-abierto");},
@@ -1654,6 +1673,6 @@ html.q-lock, html.q-lock body{overflow:hidden}
 <!-- Sesión en el header (muestra tu cuenta si iniciaste sesión) + navbar inteligente -->
 <script src="assets/session-nav.js?v=20260716a" defer></script>
 <!-- OKi, el astronauta ayudante. Conectado a la tienda vía el contrato window.OKtienda (ver OKi-tienda-integracion.md). -->
-<script src="assets/oki.js?v=20260716b" defer></script>
+<script src="assets/oki.js?v=20260716c" defer></script>
 </body>
 </html>
