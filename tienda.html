@@ -490,6 +490,17 @@ html.store-view .header-bar, html.store-view .site-header{display:none}
 #site .prod h3{font-size:.84rem; font-weight:700; margin:0 0 3px; line-height:1.25}
 #site .prod .cat{font-size:.66rem; color:var(--muted); text-transform:uppercase; margin-bottom:7px}
 #site .prod .row{margin-top:auto; display:flex; align-items:center; justify-content:space-between; gap:6px}
+/* La tarjeta entera enlaza a la FICHA del producto. Va por debajo (z-index:1) de los
+   botones (corazón z:4, agregar y vista rápida z:2), para no robarles el clic. */
+#site .pcover{position:absolute; inset:0; z-index:1; opacity:0; border:none; background:none; padding:0; cursor:pointer; display:block}
+#site .pacts{display:flex; align-items:center; gap:6px; flex:none}
+/* Vista rápida: discreta, aparece al pasar el mouse. En pantallas táctiles no hay hover,
+   así que ahí se queda siempre visible. Solo cambia la opacidad: no mueve la maqueta. */
+#site .quick{position:relative; z-index:2; flex:none; width:30px; height:30px; padding:0; display:grid; place-items:center; border:1px solid var(--line); background:#fff; color:var(--muted); border-radius:50%; cursor:pointer; opacity:0; transition:opacity .16s, color .15s, border-color .15s, background .15s}
+#site .quick svg{width:16px; height:16px}
+#site .quick:hover{color:var(--blue); border-color:#c9d8f2; background:var(--paper)}
+#site .prod:hover .quick,#site .quick:focus-visible{opacity:1}
+@media(hover:none){ #site .quick{opacity:1} }
 #site .prod .pinfo{display:flex; flex-direction:column; flex:1; min-width:0}
 /* Vista de LISTA */
 #site .pdesc{display:none}
@@ -1273,11 +1284,23 @@ html.q-lock, html.q-lock body{overflow:hidden}
   /* Solo "Todos" (sin búsqueda) da la vuelta: ahí el catálogo ES la tienda entera y que
      no se acabe se lee como "hay de todo". En un filtro, saber dónde termina es útil. */
   function loopAllowed(){ return activeCat==="all" && !activeSub && query.length<2; }
-  function cardsHTML(list){return list.map(function(p){var low=p.stock<=5;
+  /* URL de la FICHA del producto (/producto/49-toner-hp-85a). El slug es solo para que
+     la URL se lea y Google la entienda: manda el id, y si el slug no coincide,
+     producto.php redirige al canónico. Con el catálogo de respaldo (sin BD) esa página
+     no existe, así que ahí no se enlaza y la tarjeta sigue abriendo la vista rápida. */
+  function slugify(s){ return okNorm(s).replace(/\s+/g,"-").replace(/^-+|-+$/g,"").slice(0,70) || "producto"; }
+  function prodUrl(p){ return dbMode ? ("/producto/"+p.id+"-"+slugify(p.name)) : null; }
+  var EYE='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1.5 12S5 5 12 5s10.5 7 10.5 7-3.5 7-10.5 7S1.5 12 1.5 12z"/><circle cx="12" cy="12" r="3"/></svg>';
+  function cardsHTML(list){return list.map(function(p){var low=p.stock<=5; var url=prodUrl(p);
       return '<div class="prod">'+(p.old?'<span class="deal-badge">−'+Math.round((1-p.price/p.old)*100)+'%</span>':'')+pimg(p)+heartBtn(p.id,'position:absolute;top:10px;right:10px;z-index:4;width:36px;height:36px;padding:0;')+
         '<div class="pinfo"><div class="pnametext"><div class="cat">'+catName(p.cat)+'</div><h3>'+p.name+'</h3><div class="pdesc">'+(p.brand?p.brand+' · ':'')+(p.desc||'')+'</div></div>'+
-        '<div class="row"><div><div class="price">'+mxn(p.price)+(p.old?' <s>'+mxn(p.old)+'</s>':'')+'</div><div class="stock'+(low?' low':'')+'">'+(low?"¡Últimas "+p.stock+"!":p.stock+" en stock")+'</div></div><button class="add" data-add="'+p.id+'">+</button></div></div>'+
-        '<button style="position:absolute;inset:0;opacity:0;cursor:pointer" data-open="'+p.id+'" aria-label="Ver"></button></div>';}).join("");}
+        '<div class="row"><div><div class="price">'+mxn(p.price)+(p.old?' <s>'+mxn(p.old)+'</s>':'')+'</div><div class="stock'+(low?' low':'')+'">'+(low?"¡Últimas "+p.stock+"!":p.stock+" en stock")+'</div></div>'+
+        '<div class="pacts"><button class="quick" data-open="'+p.id+'" title="Vista rápida" aria-label="Vista rápida de '+okEsc(p.name)+'">'+EYE+'</button><button class="add" data-add="'+p.id+'">+</button></div></div></div>'+
+        /* La tarjeta entera es un ENLACE a la ficha (clic normal, abrir en pestaña nueva,
+           y Google la sigue). La vista rápida quedó en su propio botón. */
+        (url ? '<a class="pcover" href="'+url+'" aria-label="Ver '+okEsc(p.name)+'"></a>'
+             : '<button class="pcover" data-open="'+p.id+'" aria-label="Ver '+okEsc(p.name)+'"></button>')+
+        '</div>';}).join("");}
   function renderGrid(){var list=filtered();
     $("catTitle").textContent=query.length>=2?'Resultados de "'+query+'"':(activeSub||catName(activeCat));
     /* El conteo es el TOTAL del filtro (lo que dice el servidor), no lo que ya se

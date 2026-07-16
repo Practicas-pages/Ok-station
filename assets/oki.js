@@ -845,6 +845,23 @@
       .then(function () { busy = false; input.focus(); });
   }
 
+  /* ── API pública mínima: window.OKi ──
+     Para que otras páginas puedan invocar a OKi sin conocer sus tripas. Hoy la usa la
+     ficha de producto (assets/producto.js) para preguntarle sobre el producto que estás
+     viendo. Se expone SOLO lo necesario; el resto sigue encerrado en este módulo. */
+  window.OKi = {
+    abrir: function () { open(); },
+    cerrar: function () { close(); },
+    /** Abre el panel y manda la pregunta como si la hubieras escrito tú. */
+    preguntar: function (texto) {
+      texto = String(texto == null ? "" : texto).trim();
+      if (!texto) { open(); return; }
+      open();
+      // Un respiro para que el panel termine de abrir antes de escribir.
+      setTimeout(function () { send(texto); }, 260);
+    }
+  };
+
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", build);
   } else {

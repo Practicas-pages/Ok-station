@@ -67,6 +67,15 @@ RewriteRule ^ /%1 [R=301,L]
 # 3. URLS LIMPIAS — sirve archivo .html sin mostrarlo en la URL
 # --------------------------------------------------------------
 
+# Ficha de producto: /producto/49-toner-hp-85a-negro → producto.php?id=49
+# El slug es SOLO para que la URL se lea (y para Google); manda el id. Si el slug no
+# es el correcto, producto.php responde 301 a la URL buena, para no tener la misma
+# ficha viviendo en mil URLs (contenido duplicado).
+# Va ANTES de las reglas genéricas: si no, /producto/... buscaría un .html que no existe.
+RewriteRule ^producto/([0-9]+)(?:-[^/]*)?/?$ producto.php?id=$1 [L,QSA]
+# /producto sin id → la tienda
+RewriteRule ^producto/?$ /tienda [R=301,L]
+
 # No reescribir si el archivo existe literalmente
 RewriteCond %{REQUEST_FILENAME} -f [OR]
 RewriteCond %{REQUEST_FILENAME} -d
