@@ -345,19 +345,20 @@ html.store-view .header-bar, html.store-view .site-header{display:none}
 /* Mismas medidas EXACTAS que .acct__btn/.acct__avatar del home (styles.css), incluido
    el degradado de marca --grad-brand: si tocas uno, toca el otro. Ojo: aquí NO va
    var(--grad), que es el degradado de la navbar de la tienda (otro ángulo). */
-#site .tb-avatar{width:30px; height:30px; border-radius:50%; background:var(--grad-brand); color:#fff; display:grid; place-items:center; font-weight:700; font-size:.8rem; flex:none}
+#site .tb-avatar{width:30px; height:30px; border-radius:50%; background:var(--grad-brand); color:#fff; display:grid; place-items:center; font-weight:700; font-size:.8rem; flex:none; transition:background .15s, color .15s}
 /* Con la misma especificidad que `.tb-cuenta svg`: si no, esa regla le gana y la
    flecha sale de 17px y azul en vez de 15px y gris como en el home. */
 #site .tb-cuenta svg.tb-caret{width:15px; height:15px; flex:none; color:var(--muted); transition:transform .22s cubic-bezier(.34,1.56,.64,1), color .15s}
-#site .tb-avatar{transition:box-shadow .15s}
 /* Menú desplegado: el chip se pinta y la flecha gira, igual que en el home y con la
    misma idea que favoritos/carrito (activo mientras SU panel está abierto). Cuelga de
    aria-expanded, que ya se mantiene al día: un solo estado, sin clase paralela. */
 #site .tb-cuenta[aria-expanded="true"]{background:var(--blue); border-color:#fff; color:#fff; box-shadow:0 6px 18px rgba(6,108,255,.4)}
 #site .tb-cuenta[aria-expanded="true"] .tb-name{color:#fff}
 #site .tb-cuenta[aria-expanded="true"] svg.tb-caret{color:#fff; transform:rotate(180deg)}
-/* Aro blanco: sobre el azul, el degradado del avatar se confundía con el fondo. */
-#site .tb-cuenta[aria-expanded="true"] .tb-avatar{box-shadow:0 0 0 2px rgba(255,255,255,.55)}
+/* Avatar en BLANCO con la inicial azul: sobre el chip azul, el degradado se confundía
+   con el fondo. Invertirlo hace que el azul del chip se lea mejor y la inicial resalte.
+   Al cerrar, el avatar vuelve solo a su degradado de marca. */
+#site .tb-cuenta[aria-expanded="true"] .tb-avatar{background:#fff; color:var(--blue)}
 /* Favoritos: BLANCO como el carrito, pero solo ícono — así sigue pesando menos que el
    carrito (que lleva texto y monto) sin desentonar con el resto de la barra. */
 #site .tb-fav{width:40px; height:40px; padding:0; justify-content:center; gap:0}
@@ -466,7 +467,7 @@ html.store-view .header-bar, html.store-view .site-header{display:none}
 #site .grid.is-list .prod .pdesc{display:block; font-size:.78rem; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-top:2px}
 #site .grid.is-list .prod .row{margin-top:0; flex:none; gap:14px; margin-right:6px}
 #site .grid.is-list .prod .wishbtn{top:50% !important; right:16px !important; transform:translateY(-50%) !important}
-/* Botón cambiar vista */
+/* Botón cambiar vista (lista / cuadros) */
 #site .catbar-right{display:flex; align-items:center; gap:12px}
 #site .viewtoggle{display:inline-flex; gap:2px; background:var(--paper); border:1px solid var(--line); border-radius:10px; padding:2px}
 #site .viewtoggle button{border:none; background:none; width:32px; height:28px; border-radius:8px; display:grid; place-items:center; color:var(--muted); cursor:pointer}
@@ -973,7 +974,10 @@ html.q-lock, html.q-lock body{overflow:hidden}
         </div>
       </div>
       <div class="shell">
-        <div class="catalog"><div class="catbar"><span class="ctitle" id="catTitle">Todos los productos</span><div class="catbar-right"><span class="cnt" id="catCount"></span><div class="viewtoggle"><button type="button" data-view="list" class="on" title="Lista" aria-label="Ver como lista"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="8" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="20" y2="12"/><line x1="8" y1="18" x2="20" y2="18"/><line x1="3.5" y1="6" x2="3.51" y2="6"/><line x1="3.5" y1="12" x2="3.51" y2="12"/><line x1="3.5" y1="18" x2="3.51" y2="18"/></svg></button><button type="button" data-view="grid" title="Cuadros" aria-label="Ver como cuadros"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg></button></div></div></div><div class="grid" id="grid"></div></div>
+        <!-- La vista predeterminada es LISTA: `is-list` y el botón activo vienen puestos
+             desde el HTML, así no hace falta un setView() al arrancar (ese pintaba el
+             catálogo de respaldo encima del "Cargando…" hasta que contestaba la BD). -->
+        <div class="catalog"><div class="catbar"><span class="ctitle" id="catTitle">Todos los productos</span><div class="catbar-right"><span class="cnt" id="catCount"></span><div class="viewtoggle"><button type="button" data-view="list" class="on" title="Lista" aria-label="Ver como lista"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="8" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="20" y2="12"/><line x1="8" y1="18" x2="20" y2="18"/><line x1="3.5" y1="6" x2="3.51" y2="6"/><line x1="3.5" y1="12" x2="3.51" y2="12"/><line x1="3.5" y1="18" x2="3.51" y2="18"/></svg></button><button type="button" data-view="grid" title="Cuadros" aria-label="Ver como cuadros"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg></button></div></div></div><div class="grid is-list" id="grid"></div></div>
         <aside class="cart" id="cart"><div class="ch">Tu carrito <button class="close" id="cartClose">×</button></div><div class="items" id="items"></div>
           <div class="sum"><div class="ship"><button class="on" data-ship="retiro"><b>Recoger en OK.station</b>Gratis</button><button data-ship="envio"><b>Envío a domicilio</b>$99</button></div>
             <div class="sline"><span>Subtotal</span><span id="sub">$0.00</span></div><div class="sline"><span>Entrega</span><span id="shipCost">Recoge en tienda</span></div><div class="sline total"><span>Total</span><span id="total">$0.00</span></div>
@@ -1668,10 +1672,12 @@ html.q-lock, html.q-lock body{overflow:hidden}
     });
   });
 
-  // Vista lista/cuadros (predeterminado: LISTA)
+  /* Vista lista/cuadros. La predeterminada (lista) ya viene marcada en el HTML, así que
+     aquí SOLO se atienden los clics: antes se llamaba setView("list") al arrancar y ese
+     renderGrid() pintaba el catálogo de RESPALDO encima del "Cargando…" hasta que
+     contestaba la BD. Ahora el grid no se toca hasta que llegan los datos reales. */
   function setView(m){ var g=$("grid"); if(g) g.classList.toggle("is-list", m==="list"); [].forEach.call(document.querySelectorAll(".viewtoggle button"),function(b){ b.classList.toggle("on", b.dataset.view===m); }); renderGrid(); if(window.__fillMore) window.__fillMore(); }
   [].forEach.call(document.querySelectorAll(".viewtoggle button"),function(b){ b.addEventListener("click",function(){ setView(b.dataset.view); }); });
-  setView("list");
   okiEmit("en-tienda");
 
   /* Ruteo por hash: la tienda es una SPA con dos vistas (landing interno #tienda y

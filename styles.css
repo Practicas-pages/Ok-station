@@ -4647,7 +4647,7 @@ body {
 }
 .acct__btn:hover { border-color: var(--border-medium); box-shadow: var(--shadow-sm); }
 .acct__btn:focus-visible { outline: 3px solid var(--brand-cyan); outline-offset: 2px; }
-.acct__avatar { width: 30px; height: 30px; border-radius: 50%; background: var(--grad-brand); color: #fff; display: grid; place-items: center; font-weight: 700; font-size: 0.8rem; flex-shrink: 0; transition: box-shadow var(--transition-fast); }
+.acct__avatar { width: 30px; height: 30px; border-radius: 50%; background: var(--grad-brand); color: #fff; display: grid; place-items: center; font-weight: 700; font-size: 0.8rem; flex-shrink: 0; transition: background var(--transition-fast), color var(--transition-fast); }
 .acct__name { font-size: 0.85rem; font-weight: 600; color: var(--text-primary); transition: color var(--transition-fast); }
 .acct__caret { width: 15px; height: 15px; color: var(--text-muted); transition: transform .22s cubic-bezier(.34,1.56,.64,1), color var(--transition-fast); }
 
@@ -4659,8 +4659,10 @@ body {
 .acct__btn[aria-expanded="true"] { background: var(--brand-blue); border-color: transparent; }
 .acct__btn[aria-expanded="true"] .acct__name { color: #fff; }
 .acct__btn[aria-expanded="true"] .acct__caret { color: #fff; transform: rotate(180deg); }
-/* Aro blanco: sobre el azul, el degradado del avatar se confundía con el fondo. */
-.acct__btn[aria-expanded="true"] .acct__avatar { box-shadow: 0 0 0 2px rgba(255,255,255,.55); }
+/* Avatar en BLANCO con la inicial azul: sobre el chip azul, el degradado se confundía
+   con el fondo. Invertirlo hace que el azul del chip se lea mejor y la inicial resalte.
+   Al cerrar, el avatar vuelve solo a su degradado de marca. */
+.acct__btn[aria-expanded="true"] .acct__avatar { background: #fff; color: var(--brand-blue); }
 .acct__menu {
   position: absolute; right: 0; top: calc(100% + 8px);
   min-width: 220px; background: #fff;
