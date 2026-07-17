@@ -83,13 +83,13 @@
     if (i >= 0) { w.splice(i, 1); writeJSON(WISH_KEY, w); paintWish(); }
 
     if (puestos <= 0) {
-      toast("Ya llevas las " + total + " piezas que hay de este producto. <a href='tienda.html#store'>Ver carrito</a>");
+      toast("Ya llevas las " + total + " piezas que hay de este producto. <a href='/tienda#cart'>Ver carrito</a>");
       return;
     }
     var llevas = 0; for (var k in cart) llevas += parseInt(cart[k], 10) || 0;
     toast("✓ " + puestos + "× " + P.name + " — " + mxn(P.price * puestos) +
-          "<a href='tienda.html#store'>Ver carrito (" + llevas + ")</a>");
-    if (puestos < n) toast("Solo quedaban " + puestos + ". <a href='tienda.html#store'>Ver carrito</a>");
+          "<a href='/tienda#cart'>Ver carrito (" + llevas + ")</a>");
+    if (puestos < n) toast("Solo quedaban " + puestos + ". <a href='/tienda#cart'>Ver carrito</a>");
 
     /* OKi vive en todas las páginas y lee este carrito: que se entere al instante. */
     try { window.dispatchEvent(new CustomEvent("oktienda:carrito")); } catch (e) {}
@@ -116,7 +116,7 @@
     wishBtn.addEventListener("click", function () {
       var w = readJSON(WISH_KEY, []), i = w.indexOf(P.id);
       if (i >= 0) { w.splice(i, 1); toast("Quitado de favoritos"); }
-      else { w.push(P.id); toast("❤ Guardado en favoritos. <a href='tienda.html#store'>Ver la tienda</a>"); }
+      else { w.push(P.id); toast("❤ Guardado en favoritos. <a href='/tienda#store'>Ver la tienda</a>"); }
       writeJSON(WISH_KEY, w); paintWish();
       try { window.dispatchEvent(new CustomEvent("oktienda:deseados")); } catch (e) {}
     });
