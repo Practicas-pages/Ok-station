@@ -2004,6 +2004,9 @@ html.q-lock, html.q-lock body{overflow:hidden}
       /* "Finalizar compra" / "pagar" desde la ficha llega con #cart: abre el carrito.
          Va en la URL (no en sessionStorage) para que sirva también en pestaña nueva. */
       if(location.hash==="#cart"){ showView("store"); $("app").classList.add("cart-open"); okiEmit("carrito-abierto"); }
+      /* #checkout: pagar DIRECTO desde la ficha (igual que el botón del e-commerce). Si el
+         carrito quedó vacío, se abre el carrito en vez de un pago sin nada. */
+      if(location.hash==="#checkout"){ showView("store"); if(totals().n>0){ renderCheckout(); show("coOv"); } else { $("app").classList.add("cart-open"); okiEmit("carrito-abierto"); } }
       var q=sessionStorage.getItem("okstation_q");
       if(q){ sessionStorage.removeItem("okstation_q"); showView("store"); var qi=$("q"); if(qi) qi.value=q; query=q; reloadFromDB(); return; }
       var cat=sessionStorage.getItem("okstation_ir_cat");
@@ -2027,6 +2030,7 @@ html.q-lock, html.q-lock body{overflow:hidden}
      hay datos); si un hashchange trae #cart estando ya cargado, ábrelo también. */
   function routeHash(){
     if(location.hash==="#store"||location.hash==="#cart"){ showView("store"); if(location.hash==="#cart"&&catalogReady){ $("app").classList.add("cart-open"); okiEmit("carrito-abierto"); } }
+    else if(location.hash==="#checkout"){ showView("store"); if(catalogReady){ if(totals().n>0){ renderCheckout(); show("coOv"); } else { $("app").classList.add("cart-open"); okiEmit("carrito-abierto"); } } }
     else if(location.hash==="#tienda"){ showView("tienda"); }
   }
   routeHash();
