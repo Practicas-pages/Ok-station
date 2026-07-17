@@ -1994,7 +1994,19 @@ html.q-lock, html.q-lock body{overflow:hidden}
       wishlist=wishlist.filter(function(id){ return !!prod(id); });   // suelta lo descatalogado
       saveWishlist(); updateWishBadge();
     });
-  });
+  }).then(applyIncoming);   // corre SIEMPRE (con catálogo real o respaldo)
+
+  /* Llegada desde OTRA página del e-commerce (la ficha de producto): esta trae una
+     categoría o una búsqueda en sessionStorage para abrirla aquí. Se consume UNA vez
+     (se borra), para que un refresco no la vuelva a aplicar. */
+  function applyIncoming(){
+    try{
+      var q=sessionStorage.getItem("okstation_q");
+      if(q){ sessionStorage.removeItem("okstation_q"); showView("store"); var qi=$("q"); if(qi) qi.value=q; query=q; reloadFromDB(); return; }
+      var cat=sessionStorage.getItem("okstation_ir_cat");
+      if(cat){ sessionStorage.removeItem("okstation_ir_cat"); showView("store"); selectCat(cat); }
+    }catch(e){}
+  }
 
   /* Vista lista/cuadros. La predeterminada (lista) ya viene marcada en el HTML, así que
      aquí SOLO se atienden los clics: antes se llamaba setView("list") al arrancar y ese

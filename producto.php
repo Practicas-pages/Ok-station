@@ -170,7 +170,8 @@ $ldCrumbs = [
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" media="print" onload="this.media='all'">
   <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap"></noscript>
-  <link rel="stylesheet" href="/styles.css?v=20260716a">
+  <link rel="stylesheet" href="/styles.css?v=20260716b">
+  <link rel="stylesheet" href="/assets/shop-header.css?v=20260716a">
   <link rel="stylesheet" href="/assets/producto.css?v=20260716b">
   <link rel="stylesheet" href="/assets/oki.css?v=20260716d">
   <?php if ($images): ?><link rel="preload" as="image" href="<?= e($images[0]) ?>" fetchpriority="high"><?php endif; ?>
@@ -181,24 +182,40 @@ $ldCrumbs = [
 
 <body id="top">
 <a class="skip-link" href="#main">Saltar al contenido principal</a>
-<div class="header-bar">
-  Te atendemos con gusto y una sonrisa — tú lo imaginas, nosotros lo hacemos. Aquí en Centro Comercial Otay, Tijuana.
-</div>
-<header class="site-header">
-  <div class="wrap nav">
-    <a href="/" class="logo" aria-label="Ok.station — Ir al inicio"><img src="/assets/img/okstation-logo.webp" alt="Ok.station" class="logo__img" width="158" height="24"></a>
-    <nav class="nav__links" id="nav-menu" aria-label="Navegación principal">
-      <a class="nav__link" href="/#citas">Citas</a>
-      <a class="nav__link" href="/#fotos">Imprime tus fotos</a>
-      <a class="nav__link" href="/pedido">Haz tu pedido</a>
-      <a class="nav__link" href="/#visitanos">Visítanos</a>
-    </nav>
-    <div class="nav__actions">
-      <div class="acct" id="acct">
-        <a class="btn btn--light btn--sm" href="/cuenta" id="acct-login" aria-label="Iniciar sesión"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> Cuenta </a>
-      </div>
-      <a class="btn btn--wa btn--sm" href="https://wa.me/526647194117?text=Hola,%20quiero%20solicitar%20informaci%C3%B3n" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M.057 24l1.687-6.163a11.867 11.867 0 01-1.587-5.945C.16 5.335 5.495 0 12.05 0a11.82 11.82 0 018.413 3.488 11.82 11.82 0 013.48 8.414c-.003 6.557-5.338 11.892-11.893 11.892a11.9 11.9 0 01-5.688-1.448L.057 24z"/></svg>WhatsApp</a>
-      <button class="nav__toggle" aria-label="Abrir menú de navegación" aria-expanded="false" aria-controls="nav-menu"><span class="nav__toggle-bar"></span><span class="nav__toggle-bar"></span><span class="nav__toggle-bar"></span></button>
+
+<!-- Barra del e-commerce: la MISMA de la tienda (ver assets/shop-header.css/js). En la
+     ficha las acciones son de NAVEGACIÓN — el buscador sugiere y enlaza a fichas, el
+     carrito/favoritos leen el mismo localStorage y las categorías llevan a la tienda. -->
+<header class="shopbar">
+  <!-- session-nav.js necesita #acct para arrancar; aquí vive OCULTO, solo para hospedar
+       el menú de sesión. El chip visible es .tb-cuenta (session-nav lo convierte en avatar). -->
+  <div class="acct" id="acct" hidden>
+    <a href="/cuenta" id="acct-login" aria-label="Iniciar sesión">Cuenta</a>
+  </div>
+
+  <div class="shopbar__top">
+    <button class="shopbar__hamb" id="sbHamb" aria-label="Categorías"><span></span><span></span><span></span></button>
+    <a class="shopbar__logo" href="/" aria-label="Ok.station — Ir al inicio"><img src="/assets/img/okstation-logo.webp" alt="Ok.station" width="158" height="24"></a>
+    <div class="shopbar__search">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+      <input id="sbSearch" type="search" placeholder="Busca tinta, tóner, papel, carpetas y más…" autocomplete="off" role="combobox" aria-expanded="false" aria-autocomplete="list" aria-label="Buscar productos">
+      <div class="shopbar__ac" id="sbAc" role="listbox"></div>
+    </div>
+    <div class="shopbar__actions">
+      <a class="tb-cuenta" href="/cuenta?next=/tienda%23store" aria-label="Cuenta"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span class="tb-name">Cuenta</span></a>
+      <a class="tb-wa" href="https://wa.me/526647194117?text=Hola,%20quiero%20solicitar%20informaci%C3%B3n" target="_blank" rel="noopener" aria-label="WhatsApp" title="WhatsApp"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M.057 24l1.687-6.163a11.867 11.867 0 01-1.587-5.945C.16 5.335 5.495 0 12.05 0a11.82 11.82 0 018.413 3.488 11.82 11.82 0 013.48 8.414c-.003 6.557-5.338 11.892-11.893 11.892a11.9 11.9 0 01-5.688-1.448L.057 24z"/></svg></a>
+      <a class="tb-fav" href="/tienda#store" aria-label="Favoritos" title="Favoritos"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.8 4.6a5.5 5.5 0 00-7.8 0L12 5.6l-1-1a5.5 5.5 0 00-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 000-7.8z"/></svg><span class="ct" id="sbWishCount" style="display:none">0</span></a>
+      <a class="tb-cart" href="/tienda#store" aria-label="Ver carrito"><span class="ct" id="sbCartCount">0</span><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.7 13.4a2 2 0 002 1.6h9.7a2 2 0 002-1.6L23 6H6"/></svg><span id="sbCartTotal">$0.00</span></a>
+    </div>
+  </div>
+
+  <div class="shopbar__cats" id="sbCats">
+    <a class="shopbar__back" href="/"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>Volver al sitio</a>
+    <span class="shopbar__catlabel">Categorías</span>
+    <nav class="shopbar__rail" id="sbRail" aria-label="Categorías de la tienda"></nav>
+    <div class="shopbar__railnavs">
+      <button type="button" class="shopbar__railnav" id="sbRailPrev" aria-label="Ver categorías anteriores"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>
+      <button type="button" class="shopbar__railnav" id="sbRailNext" aria-label="Ver más categorías"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></button>
     </div>
   </div>
 </header>
@@ -385,10 +402,10 @@ $ldCrumbs = [
       'url'   => $canonPath,
   ], JSON_UNESCAPED_UNICODE) ?>;
 </script>
+<script src="/assets/shop-header.js?v=20260716a" defer></script>
 <script src="/assets/producto.js?v=20260716b" defer></script>
 <script src="/assets/session-nav.js?v=20260716a" defer></script>
 <script src="/assets/catalogo.js?v=20260716a" defer></script>
 <script src="/assets/oki.js?v=20260716e" defer></script>
-<script>(function(){var t=document.querySelector(".nav__toggle"),n=document.getElementById("nav-menu");if(t&&n){t.addEventListener("click",function(){var o=n.classList.toggle("is-open");t.setAttribute("aria-expanded",o?"true":"false");});}})();</script>
 </body>
 </html>
