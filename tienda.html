@@ -355,10 +355,10 @@ html.store-view .header-bar, html.store-view .site-header{display:none}
 #site .tb-cuenta[aria-expanded="true"]{background:var(--blue); border-color:#fff; color:#fff; box-shadow:0 6px 18px rgba(6,108,255,.4)}
 #site .tb-cuenta[aria-expanded="true"] .tb-name{color:#fff}
 #site .tb-cuenta[aria-expanded="true"] svg.tb-caret{color:#fff; transform:rotate(180deg)}
-/* Avatar en BLANCO con la inicial azul: sobre el chip azul, el degradado se confundía
-   con el fondo. Invertirlo hace que el azul del chip se lea mejor y la inicial resalte.
-   Al cerrar, el avatar vuelve solo a su degradado de marca. */
-#site .tb-cuenta[aria-expanded="true"] .tb-avatar{background:#fff; color:var(--blue)}
+/* Avatar en CIAN de marca (#00C6FF) con la inicial en azul profundo: mismo criterio que
+   el chip del home (.acct__btn en styles.css). El cian es del degradado de la marca, se
+   distingue del azul del chip sin fundirse, y no "descuadra" como el blanco puro. */
+#site .tb-cuenta[aria-expanded="true"] .tb-avatar{background:var(--cyan,#00C6FF); color:#0A2A5E}
 /* Favoritos: BLANCO como el carrito, pero solo ícono — así sigue pesando menos que el
    carrito (que lleva texto y monto) sin desentonar con el resto de la barra. */
 #site .tb-fav{width:40px; height:40px; padding:0; justify-content:center; gap:0}

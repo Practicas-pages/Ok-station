@@ -4659,10 +4659,12 @@ body {
 .acct__btn[aria-expanded="true"] { background: var(--brand-blue); border-color: transparent; }
 .acct__btn[aria-expanded="true"] .acct__name { color: #fff; }
 .acct__btn[aria-expanded="true"] .acct__caret { color: #fff; transform: rotate(180deg); }
-/* Avatar en BLANCO con la inicial azul: sobre el chip azul, el degradado se confundía
-   con el fondo. Invertirlo hace que el azul del chip se lea mejor y la inicial resalte.
-   Al cerrar, el avatar vuelve solo a su degradado de marca. */
-.acct__btn[aria-expanded="true"] .acct__avatar { background: #fff; color: var(--brand-blue); }
+/* Avatar en CIAN de marca (--brand-cyan #00C6FF) con la inicial en azul profundo: sobre
+   el chip azul, su degradado morado-cian se confundía, y el blanco puro "descuadraba"
+   (un hueco demasiado duro). El cian es del mismo degradado de la marca, así que se
+   siente de la casa; resalta sobre el azul del chip sin fundirse, y la inicial en azul
+   profundo se lee nítida. Al cerrar, el avatar vuelve solo a su degradado. */
+.acct__btn[aria-expanded="true"] .acct__avatar { background: var(--brand-cyan); color: #0A2A5E; }
 .acct__menu {
   position: absolute; right: 0; top: calc(100% + 8px);
   min-width: 220px; background: #fff;
