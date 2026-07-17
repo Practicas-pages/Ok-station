@@ -69,6 +69,15 @@
   transform:translateX(100%);transition:transform .28s cubic-bezier(.4,0,.2,1);display:flex;flex-direction:column;
   box-shadow:-14px 0 44px rgba(16,24,40,.22)}
 .td-drawer.open{transform:translateX(0)}
+/* Favoritos y Dirección: MODAL CENTRADO (como la tienda normal), no cajón lateral.
+   Solo cambia el posicionamiento; su estructura (encabezado + cuerpo) y su JS no cambian.
+   El carrito se queda como cajón (lleva el checkout, mejor a lo alto). */
+#tdWishDrawer,#tdLocDrawer{
+  top:50%;left:50%;right:auto;bottom:auto;height:auto;max-height:88vh;width:min(460px,92vw);
+  border-radius:22px;overflow:hidden;box-shadow:0 26px 74px rgba(16,24,40,.28);
+  transform:translate(-50%,-50%) scale(.96);opacity:0;visibility:hidden;
+  transition:transform .2s cubic-bezier(.34,1.56,.64,1),opacity .18s,visibility .2s}
+#tdWishDrawer.open,#tdLocDrawer.open{transform:translate(-50%,-50%) scale(1);opacity:1;visibility:visible}
 .td-dh{display:flex;align-items:center;justify-content:space-between;padding:16px 18px;border-bottom:1px solid var(--line,#e3e6ee);font-size:1.05rem}
 .td-dx{width:34px;height:34px;border:0;background:var(--paper,#f4f6fa);border-radius:50%;font-size:1.2rem;line-height:1;cursor:pointer;color:var(--muted,#667085)}
 .td-dx:hover{background:#e9edf5}
