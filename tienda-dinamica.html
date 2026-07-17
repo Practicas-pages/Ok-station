@@ -982,6 +982,23 @@
   });
 
   /* ═══ Arranque ═══ */
+  /* OKi (astronauta): su botón "Ir a pagar" llama OKtienda.abrirCarrito(), que por
+     defecto navega a la tienda normal (/tienda#store). Aquí lo redirigimos al carrito
+     EN LA PÁGINA (con su checkout), y cerramos el panel de OKi (queda por encima).
+     OKtienda lo define shop-cart.js (defer, corre después), así que esperamos a que exista. */
+  function hookOkiPay(){
+    if (!window.OKtienda) return false;
+    window.OKtienda.abrirCarrito = function(){
+      var p = document.querySelector(".oki-panel"); if (p) p.classList.remove("on");   // cerrar OKi (z-index mayor)
+      renderCart(); openDrawer($("tdCartDrawer"));
+    };
+    return true;
+  }
+  if (!hookOkiPay()){
+    var okiIv = setInterval(function(){ if (hookOkiPay()) clearInterval(okiIv); }, 60);
+    setTimeout(function(){ clearInterval(okiIv); }, 6000);
+  }
+
   renderPre(); load(true); renderLoc(); loadMe();
 })();
 </script>
