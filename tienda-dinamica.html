@@ -174,6 +174,14 @@
 .td-row.dragging{opacity:.5;cursor:grabbing}
 .td-dragging .td-cart{outline:2px dashed var(--brand-blue,#066CFF);outline-offset:4px;border-radius:18px}
 .td-drop-over .td-cartbox{background:var(--brand-blue-light,#EAF1FF);box-shadow:0 0 0 3px rgba(6,108,255,.18) inset}
+/* Bote de basura del pre-carrito: oculto salvo cuando arrastras un producto del pre-carrito. */
+.td-trash{display:none;align-items:center;justify-content:center;gap:8px;margin-top:10px;padding:14px;
+  border:2px dashed rgba(225,29,72,.5);border-radius:14px;color:#e11d48;font-weight:600;font-size:.85rem;
+  background:rgba(225,29,72,.06);transition:background .15s,border-color .15s,transform .15s}
+body.td-predrag .td-trash{display:flex}
+.td-trash.over{background:rgba(225,29,72,.16);border-color:#e11d48;transform:scale(1.03)}
+.td-ci[draggable="true"]{cursor:grab}
+.td-ci.dragging{opacity:.5;cursor:grabbing}
 .td-img{width:64px;height:64px;border-radius:10px;background:#f4f6fa center/contain no-repeat;
   border:1px solid var(--line,#e3e6ee);flex:none}
 .td-name{font-weight:600;font-size:.9rem;color:var(--ink,#111);line-height:1.35;
@@ -348,6 +356,11 @@
         </div>
       </div>
       <button class="td-go" id="tdGo" disabled>Enviar al carrito</button>
+      <!-- Bote de basura: aparece al arrastrar un producto DEL pre-carrito; soltarlo aquí lo descarta. -->
+      <div class="td-trash" id="tdTrash" aria-hidden="true">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>
+        <span>Suelta aquí para descartar</span>
+      </div>
       <div class="td-msg" id="tdMsg"></div>
     </aside>
   </div>
@@ -440,7 +453,10 @@
       }
       j.items.forEach(addRow);
       page++;
-      if (page > pages) done = true;
+      /* Scroll infinito de VERDAD: al llegar al final, vuelve a empezar y repite los
+         productos una y otra vez (como el "Todos" del e-commerce). Solo se corta en un
+         tope de tarjetas para no crecer el DOM sin límite. */
+      if (page > pages) { if ($("tdRows").children.length >= 600) done = true; else page = 1; }
       $("tdState").style.display = "none";
       /* El observador solo avisa cuando el centinela ENTRA. Si ya estaba a la vista
          (lista vacía al inicio, o una página que no llena el panel), no vuelve a
@@ -533,7 +549,7 @@
       box.innerHTML = keys.map(function(id){
         var it = pre[id];
         var th = it.p.image ? '<div class="th" style="background-image:url('+encodeURI(it.p.image)+')"></div>' : '<div class="th"></div>';
-        return '<div class="td-ci" data-id="'+id+'">'+th+'<div><div class="nm">'+esc(it.p.name)+'</div>'+
+        return '<div class="td-ci" draggable="true" data-id="'+id+'">'+th+'<div><div class="nm">'+esc(it.p.name)+'</div>'+
                '<div class="pu">'+mxn(it.p.price)+' c/u</div></div>'+
                '<div class="td-qty"><button data-d="'+id+'" aria-label="Quitar uno">−</button>'+
                '<span>'+it.qty+'</span><button data-i="'+id+'" aria-label="Agregar uno">+</button></div></div>';
@@ -719,8 +735,38 @@
       e.preventDefault();
       zone.classList.remove("td-drop-over");
       var id = e.dataTransfer.getData("text/plain");
+      if (id.indexOf("pre:") === 0) return;   // eso viene del pre-carrito (descartar), no re-agregar
       var p = byId[id];
       if (p) addToPre(p);
+    });
+  })();
+
+  /* ═══ Arrastrar DEL pre-carrito al bote → descartar ═══
+     Complementa (no reemplaza) al botón − del pre-carrito. El dato se marca con "pre:" para
+     distinguirlo de arrastrar un producto de la tabla (que agrega). */
+  (function(){
+    var items = $("tdCItems"), trash = $("tdTrash");
+    if (!items || !trash) return;
+    items.addEventListener("dragstart", function(e){
+      var row = e.target.closest(".td-ci"); if (!row) return;
+      e.dataTransfer.setData("text/plain", "pre:" + row.dataset.id);
+      e.dataTransfer.effectAllowed = "move";
+      row.classList.add("dragging");
+      document.body.classList.add("td-predrag");   // muestra el bote
+    });
+    items.addEventListener("dragend", function(e){
+      var row = e.target.closest(".td-ci"); if (row) row.classList.remove("dragging");
+      document.body.classList.remove("td-predrag");
+      trash.classList.remove("over");
+    });
+    function over(e){ e.preventDefault(); e.stopPropagation(); e.dataTransfer.dropEffect = "move"; trash.classList.add("over"); }
+    trash.addEventListener("dragenter", over);
+    trash.addEventListener("dragover", over);
+    trash.addEventListener("dragleave", function(){ trash.classList.remove("over"); });
+    trash.addEventListener("drop", function(e){
+      e.preventDefault(); e.stopPropagation(); trash.classList.remove("over");
+      var d = e.dataTransfer.getData("text/plain") || "";
+      if (d.indexOf("pre:") === 0){ var id = d.slice(4); if (pre[id]){ delete pre[id]; renderPre(); } }
     });
   })();
 

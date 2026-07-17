@@ -728,6 +728,24 @@ h1, h2, h3, h4, h5, h6 {
 }
 @keyframes navTiendaFlow { 0%, 100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
 
+/* Botón "Compra rápida" (tienda dinámica) — gradiente morado como la página de compra rápida */
+.nav__rapida {
+  gap: 7px;
+  border: 0 !important;
+  color: #fff !important;
+  background: linear-gradient(115deg, #7A12E0 0%, #9C1DFF 38%, #6A2BF5 72%, #066CFF 100%) !important;
+  background-size: 200% 200% !important;
+  animation: navTiendaFlow 8s ease infinite !important;
+  box-shadow: 0 6px 18px rgba(124, 18, 224, .30) !important;
+  transition: transform .18s ease, box-shadow .18s ease !important;
+}
+.nav__rapida:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 26px rgba(124, 18, 224, .42) !important;
+}
+@media (max-width: 768px) { .nav__rapida { padding: 9px 12px; } }
+@media (max-width: 380px) { .nav__rapida { padding: 9px 10px; } }
+
 .nav__tienda-badge {
   font-size: 0.5625rem;
   font-weight: 800;
