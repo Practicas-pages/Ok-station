@@ -49,6 +49,15 @@
 
 .shopbar__actions { flex: none; display: flex; align-items: center; gap: 10px; }
 
+/* Chip de ubicación (mismo look que .tb-loc de la tienda; enlaza a /tienda#ubicacion). */
+.shopbar .tb-loc { flex: none; display: flex; align-items: center; gap: 6px; padding: 6px 10px; border: 1.5px solid transparent; border-radius: 12px; background: none; color: #fff; cursor: pointer; text-align: left; max-width: 190px; text-decoration: none; transition: border-color .15s, background .15s; }
+.shopbar .tb-loc:hover { background: rgba(255,255,255,.16); border-color: rgba(255,255,255,.5); }
+.shopbar .tb-loc:focus-visible { outline: 3px solid #fff; outline-offset: 2px; }
+.shopbar .tb-loc svg { width: 17px; height: 17px; flex: none; color: #fff; }
+.shopbar .tb-loc__txt { display: flex; flex-direction: column; line-height: 1.15; min-width: 0; }
+.shopbar .tb-loc small { font-size: .68rem; color: rgba(255,255,255,.75); font-weight: 600; }
+.shopbar .tb-loc b { font-size: .82rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
 /* Chips (mismos valores que .tb-* de la tienda) */
 .shopbar .tb-cuenta, .shopbar .tb-fav, .shopbar .tb-cart { flex: none; display: flex; align-items: center; gap: 7px; padding: 8px 15px; border-radius: 99px; border: 1.5px solid var(--sb-line); background: #fff; color: var(--sb-ink); font-weight: 600; font-size: .85rem; white-space: nowrap; text-decoration: none; cursor: pointer; position: relative; box-shadow: 0 4px 14px rgba(8,12,30,.16); transition: transform .18s cubic-bezier(.34,1.56,.64,1), box-shadow .18s, border-color .15s, background .15s; }
 .shopbar .tb-cuenta:hover, .shopbar .tb-fav:hover, .shopbar .tb-cart:hover { border-color: #d5deee; box-shadow: 0 12px 28px rgba(8,12,30,.24); transform: translateY(-2px); }
@@ -132,6 +141,11 @@
 .shopbar__railnav:disabled { opacity: .32; cursor: default; }
 
 /* ── Responsivo ── */
+/* La ubicación se reduce a solo ícono en cuanto la barra se aprieta (es el chip más ancho). */
+@media (max-width: 1080px) {
+  .shopbar .tb-loc__txt { display: none; }
+  .shopbar .tb-loc { padding: 9px 10px; }
+}
 @media (max-width: 820px) {
   .shopbar__cats.can-scroll .shopbar__railnavs { display: none; }
   .shopbar__catlabel { display: none; }
