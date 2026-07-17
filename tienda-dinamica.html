@@ -173,7 +173,10 @@
 .td-row[draggable="true"]{cursor:grab}
 .td-row.dragging{opacity:.5;cursor:grabbing}
 .td-dragging .td-cart{outline:2px dashed var(--brand-blue,#066CFF);outline-offset:4px;border-radius:18px}
-.td-drop-over .td-cartbox{background:var(--brand-blue-light,#EAF1FF);box-shadow:0 0 0 3px rgba(6,108,255,.18) inset}
+/* Resalte al arrastrar SOBRE el pre-carrito: se conserva el degradado (el texto es blanco),
+   solo se marca con un aro claro y un brillo. Antes se ponía el fondo claro y el texto
+   blanco desaparecía. */
+.td-drop-over .td-cartbox{box-shadow:0 0 0 3px rgba(255,255,255,.75) inset, 0 10px 30px rgba(6,108,255,.4);filter:brightness(1.06)}
 /* Bote de basura del pre-carrito: oculto salvo cuando arrastras un producto del pre-carrito. */
 .td-trash{display:none;align-items:center;justify-content:center;gap:8px;margin-top:10px;padding:14px;
   border:2px dashed rgba(225,29,72,.5);border-radius:14px;color:#e11d48;font-weight:600;font-size:.85rem;
@@ -724,7 +727,12 @@ body.td-predrag .td-trash{display:flex}
   (function(){
     var zone = document.querySelector(".td-cart");
     if (!zone) return;
-    function allow(e){ e.preventDefault(); e.dataTransfer.dropEffect = "copy"; zone.classList.add("td-drop-over"); }
+    function allow(e){
+      // Si arrastras DESDE el pre-carrito (para descartar), no resaltar la zona como
+      // "soltar para agregar" (eso ponía el banner claro y el texto blanco desaparecía).
+      if (document.body.classList.contains("td-predrag")) return;
+      e.preventDefault(); e.dataTransfer.dropEffect = "copy"; zone.classList.add("td-drop-over");
+    }
     zone.addEventListener("dragenter", allow);
     zone.addEventListener("dragover", allow);
     zone.addEventListener("dragleave", function(e){
@@ -758,6 +766,9 @@ body.td-predrag .td-trash{display:flex}
       var row = e.target.closest(".td-ci"); if (row) row.classList.remove("dragging");
       document.body.classList.remove("td-predrag");
       trash.classList.remove("over");
+      // Por si el resalte quedó puesto (el drop en el bote corta la propagación y el
+      // "drop" de .td-cart no alcanza a quitarlo): asegurar que no se quede el banner claro.
+      var z = document.querySelector(".td-drop-over"); if (z) z.classList.remove("td-drop-over");
     });
     function over(e){ e.preventDefault(); e.stopPropagation(); e.dataTransfer.dropEffect = "move"; trash.classList.add("over"); }
     trash.addEventListener("dragenter", over);
