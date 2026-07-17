@@ -98,6 +98,40 @@
 .co-phone{width:100%;height:44px;border:1.5px solid var(--line,#e3e6ee);border-radius:10px;padding:0 14px;font:inherit;font-size:.95rem;background:#fff;color:var(--ink,#111)}
 .co-phone:focus{outline:none;border-color:var(--brand-blue,#066CFF);box-shadow:0 0 0 3px rgba(6,108,255,.14)}
 .co-msg{color:#c0342c;font-size:.82rem;text-align:center;margin-top:8px;min-height:1em}
+/* ── Ubicación de entrega: botón de la navbar + libreta en el cajón ── */
+.tb-loc{flex:none;display:flex;align-items:center;gap:6px;padding:6px 10px;border:1.5px solid transparent;border-radius:12px;background:none;color:#fff;cursor:pointer;text-align:left;max-width:190px;transition:border-color .15s,background .15s}
+.tb-loc:hover{background:rgba(255,255,255,.16);border-color:rgba(255,255,255,.5)}
+.tb-loc:focus-visible{outline:3px solid #fff;outline-offset:2px}
+.tb-loc svg{width:17px;height:17px;flex:none;color:#fff}
+.tb-loc__txt{display:flex;flex-direction:column;line-height:1.15;min-width:0}
+.tb-loc small{font-size:.68rem;color:rgba(255,255,255,.75);font-weight:600}
+.tb-loc b{font-size:.82rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+@media(max-width:640px){ .tb-loc__txt{display:none} .tb-loc{padding:9px 10px} }
+/* Libreta (lista de direcciones) */
+.loc-err{margin:0 0 12px;padding:10px 12px;border-radius:10px;background:#fdeaea;color:#8a1c1c;font-size:.85rem}
+.addrs{display:flex;flex-direction:column;gap:9px}
+.addr{display:flex;flex-direction:column;gap:2px;width:100%;text-align:left;padding:12px 14px;border:1.5px solid var(--line,#e3e6ee);border-radius:12px;background:#fff;cursor:pointer;font:inherit;color:var(--ink,#111);transition:border-color .15s,box-shadow .15s}
+.addr:hover{border-color:var(--brand-blue,#066CFF);box-shadow:0 6px 18px rgba(8,12,30,.10)}
+.addr--on{border-color:var(--brand-blue,#066CFF);background:#f5f9ff}
+.addr b{font-size:.9rem;font-weight:700}
+.addr span{font-size:.82rem;color:var(--muted,#667085)}
+.addr__note{font-style:italic}
+.addr__tag{display:inline-block;margin-left:6px;padding:1px 7px;border-radius:99px;background:var(--brand-blue,#066CFF);color:#fff;font-size:.64rem;font-weight:800;vertical-align:middle}
+.addr--new{flex-direction:row;align-items:center;gap:9px;border-style:dashed;justify-content:center;color:var(--brand-blue,#066CFF)}
+.addr--new b{color:var(--brand-blue,#066CFF)}
+.addr__plus{font-size:1.2rem;font-weight:700;line-height:1}
+/* Formulario de alta */
+.af-field{margin-bottom:11px}
+.af-field label{display:block;font-size:.78rem;font-weight:700;margin-bottom:4px}
+.af-field input,.af-field select{width:100%;font:inherit;padding:9px 12px;border:1.5px solid var(--line,#e3e6ee);border-radius:9px;background:#fff;color:var(--ink,#111)}
+.af-field input:focus,.af-field select:focus{outline:none;border-color:var(--brand-blue,#066CFF);box-shadow:0 0 0 3px rgba(6,108,255,.14)}
+.afrow{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.afopt{font-weight:500;color:var(--muted,#667085);font-size:.72rem}
+.afchk{display:flex;align-items:center;gap:8px;margin-top:10px;font-size:.83rem;cursor:pointer}
+.afchk input{width:auto;margin:0}
+.afsave{display:block;width:100%;margin-top:14px;padding:13px;border:0;border-radius:12px;background:var(--grad-brand);color:#fff;font:inherit;font-weight:800;font-size:.95rem;cursor:pointer}
+.afback{display:block;width:100%;margin-top:10px;padding:9px;border:0;background:none;color:var(--brand-blue,#066CFF);font:inherit;font-size:.85rem;font-weight:600;cursor:pointer}
+@media(max-width:480px){ .afrow{grid-template-columns:1fr} }
 
 /* ── Layout: productos + pre-carrito ── */
 .td-grid{display:grid;grid-template-columns:1fr 330px;gap:18px;align-items:start}
@@ -234,6 +268,9 @@
          filtra la TABLA en el lugar. El de la navbar navegaba a la tienda (otra cosa). -->
     <div class="shopbar__spacer" aria-hidden="true"></div>
     <div class="shopbar__actions">
+      <!-- Ubicación de entrega: abre la libreta de direcciones EN LA PÁGINA (mismas
+           direcciones que la tienda, tabla user_addresses). Muestra la predeterminada. -->
+      <button class="tb-loc" id="tdLocBtn" aria-label="Ubicación de entrega"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg><span class="tb-loc__txt"><small id="locTop">Entrega en</small><b id="locMain">Elige tu ubicación</b></span></button>
       <a class="tb-cuenta" href="cuenta.html?next=tienda.html%23store" aria-label="Cuenta"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span class="tb-name">Cuenta</span></a>
       <a class="tb-wa" href="https://wa.me/526647194117?text=Hola,%20quiero%20solicitar%20informaci%C3%B3n" target="_blank" rel="noopener" aria-label="WhatsApp" title="WhatsApp"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M.057 24l1.687-6.163a11.867 11.867 0 01-1.587-5.945C.16 5.335 5.495 0 12.05 0a11.82 11.82 0 018.413 3.488 11.82 11.82 0 013.48 8.414c-.003 6.557-5.338 11.892-11.893 11.892a11.9 11.9 0 01-5.688-1.448L.057 24z"/></svg></a>
       <!-- Favoritos y Carrito: abren un panel EN LA PÁGINA (no navegan a la tienda).
@@ -314,6 +351,10 @@
   <div class="td-dh"><b>Tus favoritos</b><button type="button" class="td-dx" data-dclose aria-label="Cerrar">×</button></div>
   <div class="td-dbody" id="tdWishBody"></div>
 </aside>
+<aside class="td-drawer" id="tdLocDrawer" aria-label="Ubicación de entrega" aria-hidden="true">
+  <div class="td-dh"><b id="tdLocTitle">¿A dónde te lo enviamos?</b><button type="button" class="td-dx" data-dclose aria-label="Cerrar">×</button></div>
+  <div class="td-dbody" id="tdLocBody"></div>
+</aside>
 
 <script>
 (function(){
@@ -326,11 +367,14 @@
      manda mientras esté así). fBrands: marcas elegidas. */
   var fBrands = [], fSort = "name", fBrandsLoaded = false, fBrandList = [];
   var pre = {};                 // pre-carrito local: { id: {p, qty} }
-  /* Checkout DENTRO del panel de carrito: perfil + dirección predeterminada + envío. */
+  /* Checkout DENTRO del panel de carrito: perfil + libreta de direcciones + envío. */
   var me = null, coAddr = null, coShip = "retiro";
+  var locAddrs = [];            // libreta completa (para el selector de ubicación)
+  var MX_STATES = [];           // estados de MX; el API los manda (esto es respaldo por si falla)
   var SHIP_COST = 99;           // igual que ShopCatalog::SHIP_COST
   function token(){ try{ return localStorage.getItem("okstation.token") || ""; }catch(e){ return ""; } }
   function auth(){ var t = token(); return t ? { "Authorization": "Bearer " + t } : {}; }
+  function shopUser(){ try{ return JSON.parse(localStorage.getItem("okstation.user")||"null"); }catch(e){ return null; } }
   /* Deja solo 10 dígitos (móvil MX). Quita la lada +52 si viene (12 dígitos). */
   function soloTel(v){ var d = String(v||"").replace(/\D/g,""); if (d.length===12 && d.slice(0,2)==="52") d=d.slice(2); return d.slice(0,10); }
   function loadMe(){
@@ -339,8 +383,12 @@
       .then(function(j){ if (j && j.ok) me = j.user; return fetch("backend/api/shop/addresses.php", { headers: auth() }); })
       .then(function(r){ return r ? r.json() : null; })
       .then(function(j){
-        if (j && j.ok && j.addresses && j.addresses.length)
-          coAddr = j.addresses.filter(function(a){ return a.is_default; })[0] || j.addresses[0];
+        if (j && j.ok){
+          locAddrs = j.addresses || [];
+          if (j.states && j.states.length) MX_STATES = j.states;
+          coAddr = locAddrs.filter(function(a){ return a.is_default; })[0] || locAddrs[0] || null;
+        }
+        renderLoc();
         if ($("tdCartDrawer").classList.contains("open")) renderCart();   // refresca si ya estaba abierto
       }).catch(function(){});
   }
@@ -643,10 +691,11 @@
      detalle y actuamos (cambiar cantidad, quitar, agregar a carrito). Para PAGAR se va al
      carrito de la tienda (ahí vive el checkout: sesión, dirección, IVA y pasarela). */
   function OK(){ return window.OKtienda || null; }   // shop-cart.js lo define (carga con defer)
-  function anyDrawerOpen(){ return $("tdCartDrawer").classList.contains("open") || $("tdWishDrawer").classList.contains("open"); }
+  function anyDrawerOpen(){ return $("tdCartDrawer").classList.contains("open") || $("tdWishDrawer").classList.contains("open") || $("tdLocDrawer").classList.contains("open"); }
   function closeDrawers(){
     $("tdCartDrawer").classList.remove("open"); $("tdCartDrawer").setAttribute("aria-hidden","true");
     $("tdWishDrawer").classList.remove("open"); $("tdWishDrawer").setAttribute("aria-hidden","true");
+    $("tdLocDrawer").classList.remove("open"); $("tdLocDrawer").setAttribute("aria-hidden","true");
     $("tdScrim").hidden = true;
     document.body.style.overflow = "";
   }
@@ -790,8 +839,115 @@
   window.addEventListener("oktienda:carrito", function(){ if ($("tdCartDrawer").classList.contains("open")) renderCart(); });
   window.addEventListener("oktienda:deseados", function(){ if ($("tdWishDrawer").classList.contains("open")) renderWish(); });
 
+  /* ═══ Ubicación de entrega: libreta de direcciones EN LA PÁGINA ═══
+     Mismas direcciones y endpoints que la tienda (tabla user_addresses). La barra
+     muestra la PREDETERMINADA; elegir/agregar aquí actualiza coAddr, así el checkout
+     del carrito usa la dirección elegida. */
+  function authFetch(url, opts){
+    opts = opts || {}; opts.headers = Object.assign({ "Content-Type":"application/json" }, auth(), opts.headers||{});
+    return fetch(url, opts).then(function(r){ return r.json(); });
+  }
+  function renderLoc(){
+    var b = $("locMain"), t = $("locTop"); if (!b) return;
+    var d = token() ? coAddr : null;
+    if (d){ t.hidden = false; t.textContent = "Entrega en"; b.textContent = d.city + " " + d.postal_code; }
+    else { t.hidden = true; b.textContent = "Elige tu ubicación"; }
+  }
+  function openLoc(){
+    /* Sin sesión no hay dónde guardar → a iniciar sesión y volver a la compra rápida. */
+    if (!token()){ location.href = "cuenta.html?next=" + encodeURIComponent("tienda-dinamica.html"); return; }
+    $("tdLocTitle").textContent = "¿A dónde te lo enviamos?";
+    $("tdLocBody").innerHTML = '<div class="td-dempty">Cargando tus direcciones…</div>';
+    openDrawer($("tdLocDrawer"));
+    authFetch("backend/api/shop/addresses.php").then(function(j){
+      if (!j || !j.ok) return locList([]);
+      locAddrs = j.addresses || []; if (j.states && j.states.length) MX_STATES = j.states;
+      coAddr = locAddrs.filter(function(a){ return a.is_default; })[0] || locAddrs[0] || null;
+      renderLoc();
+      locAddrs.length ? locList(locAddrs) : locForm();   // sin direcciones → directo al alta
+    }).catch(function(e){ console.error("Direcciones:", e); locList([]); });
+  }
+  function locList(list){
+    $("tdLocTitle").textContent = "¿A dónde te lo enviamos?";
+    var items = list.map(function(a){
+      return '<button type="button" class="addr'+(a.is_default?" addr--on":"")+'" data-addr="'+a.id+'">'+
+        '<b>'+esc(a.recipient)+(a.is_default?' <span class="addr__tag">Predeterminada</span>':'')+'</b>'+
+        '<span>'+esc(a.label || (a.city+" "+a.postal_code))+'</span>'+
+        (a.notes?'<span class="addr__note">'+esc(a.notes)+'</span>':'')+'</button>';
+    }).join("");
+    $("tdLocBody").innerHTML =
+      '<div class="loc-err" id="locErr" role="alert" hidden></div>'+
+      (list.length?'<p class="td-dnote" style="text-align:left;margin:0 0 12px">Elige a dónde enviamos tu pedido.</p>':'')+
+      '<div class="addrs">'+items+
+        '<button type="button" class="addr addr--new" id="addrNew"><span class="addr__plus">+</span><b>Agregar dirección</b></button>'+
+      '</div>';
+  }
+  function locForm(){
+    $("tdLocTitle").textContent = "Agregar una dirección";
+    var u = shopUser() || {};
+    var opts = MX_STATES.map(function(s){ return '<option'+(s==="Baja California"?' selected':'')+'>'+esc(s)+'</option>'; }).join("");
+    var hayPrevias = (locAddrs||[]).length > 0;
+    $("tdLocBody").innerHTML =
+      '<div class="loc-err" id="locErr" role="alert" hidden></div>'+
+      '<div class="af-field"><label for="afRec">¿Quién recibe?</label><input id="afRec" type="text" maxlength="160" autocomplete="name" placeholder="Nombre y apellido" value="'+esc(u.full_name||"")+'"></div>'+
+      '<div class="af-field"><label for="afPhone">Teléfono</label><input id="afPhone" type="tel" maxlength="40" inputmode="tel" autocomplete="tel" placeholder="664 719 4117" value="'+esc(u.phone||"")+'"></div>'+
+      '<div class="af-field"><label for="afStreet">Calle</label><input id="afStreet" type="text" maxlength="200" autocomplete="address-line1" placeholder="Blvd. Insurgentes"></div>'+
+      '<div class="afrow"><div class="af-field"><label for="afExt">Núm. exterior</label><input id="afExt" type="text" maxlength="30" placeholder="123"></div>'+
+        '<div class="af-field"><label for="afInt">Interior <span class="afopt">(opcional)</span></label><input id="afInt" type="text" maxlength="30" placeholder="4B"></div></div>'+
+      '<div class="af-field"><label for="afCol">Colonia</label><input id="afCol" type="text" maxlength="160" autocomplete="address-line2" placeholder="Otay Constituyentes"></div>'+
+      '<div class="afrow"><div class="af-field"><label for="afCity">Ciudad</label><input id="afCity" type="text" maxlength="120" autocomplete="address-level2" placeholder="Tijuana" value="Tijuana"></div>'+
+        '<div class="af-field"><label for="afCp">Código postal</label><input id="afCp" type="text" inputmode="numeric" maxlength="5" autocomplete="postal-code" placeholder="22204"></div></div>'+
+      '<div class="af-field"><label for="afState">Estado</label><select id="afState" autocomplete="address-level1">'+opts+'</select></div>'+
+      '<div class="af-field"><label for="afNotes">Referencias <span class="afopt">(opcional)</span></label><input id="afNotes" type="text" maxlength="255" placeholder="Casa azul, portón negro, entre X y Y"></div>'+
+      '<label class="afchk"><input type="checkbox" id="afDef"'+(hayPrevias?'':' checked disabled')+'> Usar como mi dirección predeterminada'+(hayPrevias?'':' <span class="afopt">(es tu primera dirección)</span>')+'</label>'+
+      '<button type="button" class="afsave" id="afSave">Agregar dirección</button>'+
+      (hayPrevias?'<button type="button" class="afback" id="afBack">← Volver a mis direcciones</button>':'');
+    setTimeout(function(){ var f=$("afRec"); if(f)f.focus(); }, 50);
+  }
+  function saveAddr(){
+    var err = $("locErr"); function bad(m){ if(err){ err.textContent=m; err.hidden=false; err.scrollIntoView({block:"nearest"}); } }
+    var v = function(id){ return ($(id).value||"").trim(); };
+    var body = { recipient:v("afRec"), phone:v("afPhone"), street:v("afStreet"), ext_num:v("afExt"),
+                 int_num:v("afInt"), neighborhood:v("afCol"), city:v("afCity"), state:v("afState"),
+                 postal_code:v("afCp"), notes:v("afNotes"), is_default:$("afDef").checked };
+    if (body.recipient.length < 3)                 return bad("Escribe el nombre de quien recibe.");
+    if ((body.phone.match(/\d/g)||[]).length < 10) return bad("El teléfono debe tener al menos 10 dígitos.");
+    if (!body.street)                              return bad("Escribe la calle.");
+    if (!body.ext_num)                             return bad("Escribe el número exterior.");
+    if (!body.neighborhood)                        return bad("Escribe la colonia.");
+    if (!body.city)                                return bad("Escribe la ciudad.");
+    if (!/^\d{5}$/.test(body.postal_code))         return bad("El código postal debe tener 5 dígitos.");
+    var btn = $("afSave"); btn.disabled = true; btn.textContent = "Guardando…";
+    authFetch("backend/api/shop/address-save.php", { method:"POST", body:JSON.stringify(body) }).then(function(j){
+      if (!j || !j.ok){ btn.disabled=false; btn.textContent="Agregar dirección"; return bad((j&&j.error)||"No se pudo guardar."); }
+      locAddrs = j.addresses || [];
+      coAddr = locAddrs.filter(function(a){ return a.is_default; })[0] || locAddrs[0] || null;
+      renderLoc(); closeDrawers();
+      if ($("tdCartDrawer").classList.contains("open")) renderCart();
+    }).catch(function(){ btn.disabled=false; btn.textContent="Agregar dirección"; bad("Sin conexión con el servidor."); });
+  }
+  function pickAddr(id){
+    authFetch("backend/api/shop/address-default.php", { method:"POST", body:JSON.stringify({ id:id }) }).then(function(j){
+      if (!j || !j.ok) return;
+      locAddrs = j.addresses || [];
+      coAddr = locAddrs.filter(function(a){ return a.is_default; })[0] || locAddrs[0] || null;
+      renderLoc(); closeDrawers();
+      if ($("tdCartDrawer").classList.contains("open")) renderCart();
+    }).catch(function(){});
+  }
+  $("tdLocBtn").addEventListener("click", openLoc);
+  $("tdLocDrawer").addEventListener("click", function(e){
+    if (e.target.closest("#addrNew")) return locForm();
+    if (e.target.closest("#afBack"))  return locList(locAddrs||[]);
+    if (e.target.closest("#afSave"))  return saveAddr();
+    var a = e.target.closest("[data-addr]"); if (a) return pickAddr(+a.dataset.addr);
+  });
+  $("tdLocDrawer").addEventListener("keydown", function(e){
+    if (e.key === "Enter" && e.target.tagName === "INPUT" && $("afSave")){ e.preventDefault(); saveAddr(); }
+  });
+
   /* ═══ Arranque ═══ */
-  renderPre(); load(true); loadMe();
+  renderPre(); load(true); renderLoc(); loadMe();
 })();
 </script>
 <!-- Barra del e-commerce: puente del carrito (shop-cart) + comportamiento (shop-header). -->
