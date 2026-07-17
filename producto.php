@@ -188,8 +188,10 @@ $ldCrumbs = [
      carrito/favoritos leen el mismo localStorage y las categorías llevan a la tienda. -->
 <header class="shopbar">
   <!-- session-nav.js necesita #acct para arrancar; aquí vive OCULTO, solo para hospedar
-       el menú de sesión. El chip visible es .tb-cuenta (session-nav lo convierte en avatar). -->
-  <div class="acct" id="acct" hidden>
+       el menú de sesión. El chip visible es .tb-cuenta (session-nav lo convierte en avatar).
+       OJO: NADA de class="acct" — esa clase trae display:inline-flex y le gana a [hidden],
+       así que el chip se colaba VISIBLE encima de la barra. display:none en línea gana. -->
+  <div id="acct" style="display:none">
     <a href="/cuenta" id="acct-login" aria-label="Iniciar sesión">Cuenta</a>
   </div>
 
@@ -401,10 +403,19 @@ $ldCrumbs = [
       'sku'   => $sku,
       'url'   => $canonPath,
   ], JSON_UNESCAPED_UNICODE) ?>;
+  /* Los relacionados de ESTA ficha, para que el puente del carrito (shop-cart.js) los
+     conozca sin pedirlos de nuevo, y OKi pueda recomendarlos con datos reales. */
+  window.OK_PDP_RELATED = <?= json_encode(array_map(function ($r) {
+      return ['id' => $r['id'], 'name' => $r['name'], 'price' => $r['price'], 'old' => $r['old'],
+              'stock' => $r['stock'], 'image' => $r['image'], 'brand' => $r['brand'], 'url' => $r['url']];
+  }, $related), JSON_UNESCAPED_UNICODE) ?>;
 </script>
+<!-- shop-cart.js va ANTES de oki.js: define window.OKtienda (el puente del carrito con
+     datos REALES) para que OKi muestre la MISMA lista que el e-commerce, no el respaldo. -->
+<script src="/assets/shop-cart.js?v=20260717a" defer></script>
 <script src="/assets/shop-header.js?v=20260716a" defer></script>
 <script src="/assets/producto.js?v=20260716b" defer></script>
-<script src="/assets/session-nav.js?v=20260716a" defer></script>
+<script src="/assets/session-nav.js?v=20260717a" defer></script>
 <script src="/assets/catalogo.js?v=20260716a" defer></script>
 <script src="/assets/oki.js?v=20260716e" defer></script>
 </body>

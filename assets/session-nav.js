@@ -37,10 +37,10 @@
     '</button>' +
     '<div class="acct__menu" id="acct-menu" role="menu" hidden>' +
       '<div class="acct__head"><b>' + esc(u.full_name || "") + '</b><span>' + esc(u.email || "") + '</span></div>' +
-      '<a role="menuitem" href="perfil.html">Mi perfil</a>' +
-      '<a role="menuitem" href="perfil.html#pedidos">Mis pedidos</a>' +
-      '<a role="menuitem" href="perfil.html#citas">Mis citas</a>' +
-      (isStaff ? '<a role="menuitem" href="admin.html" class="acct__admin">' + panelLabel + '</a>' : '') +
+      '<a role="menuitem" href="/perfil">Mi perfil</a>' +
+      '<a role="menuitem" href="/perfil#pedidos">Mis pedidos</a>' +
+      '<a role="menuitem" href="/perfil#citas">Mis citas</a>' +
+      (isStaff ? '<a role="menuitem" href="/admin" class="acct__admin">' + panelLabel + '</a>' : '') +
       '<button role="menuitem" id="acct-logout" type="button">Cerrar sesión</button>' +
     '</div>';
   acct.appendChild(wrap);
@@ -50,7 +50,7 @@
      al chip. (En otras páginas no existe .tb-cuenta y esto es un no-op.) */
   var tb = document.querySelector(".tb-cuenta");
   if (tb && tb.parentNode && !tb.parentNode.querySelector(".tb-acctmenu")) {
-    tb.setAttribute("href", "perfil.html");           // respaldo si el JS fallara
+    tb.setAttribute("href", "/perfil");               // respaldo si el JS fallara (absoluto: sirve desde /producto/…)
     /* MISMO chip que el home: avatar con tu inicial (degradado de marca) + nombre +
        flecha. Antes era un ícono genérico de persona y SIN flecha, aunque igual
        despliega el menú: ni se veía igual que el home ni avisaba que se abre. */
@@ -67,10 +67,10 @@
     tbMenu.className = "tb-acctmenu"; tbMenu.hidden = true; tbMenu.setAttribute("role", "menu");
     tbMenu.innerHTML =
       '<div class="tb-accthead"><b>' + esc(u.full_name || "") + '</b><span>' + esc(u.email || "") + '</span></div>' +
-      '<a role="menuitem" href="perfil.html">Mi perfil</a>' +
-      '<a role="menuitem" href="perfil.html#pedidos">Mis pedidos</a>' +
-      '<a role="menuitem" href="perfil.html#citas">Mis citas</a>' +
-      (isStaff ? '<a role="menuitem" href="admin.html" class="tb-acctadmin">' + panelLabel + '</a>' : '') +
+      '<a role="menuitem" href="/perfil">Mi perfil</a>' +
+      '<a role="menuitem" href="/perfil#pedidos">Mis pedidos</a>' +
+      '<a role="menuitem" href="/perfil#citas">Mis citas</a>' +
+      (isStaff ? '<a role="menuitem" href="/admin" class="tb-acctadmin">' + panelLabel + '</a>' : '') +
       '<button role="menuitem" type="button" class="tb-acctlogout">Cerrar sesión</button>';
     host.appendChild(tbMenu);
 
