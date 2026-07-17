@@ -9,6 +9,7 @@
  *  en el checkout se re-aplica el IVA por geolocalización.
  */
 require __DIR__ . '/../_bootstrap.php';
+require __DIR__ . '/_synonyms.php';
 only_method('GET');
 
 $q        = trim((string) ($_GET['q'] ?? ''));
@@ -33,9 +34,10 @@ if ($ids) {
     array_push($params, ...$ids);
 }
 if ($q !== '') {
-    $where[] = '(name LIKE ? OR brand LIKE ? OR sku LIKE ?)';
-    $like = '%' . $q . '%';
-    array_push($params, $like, $like, $like);
+    // Búsqueda con sinónimos de papelería (tinta↔cartucho, hojas↔papel, pluma↔bolígrafo…),
+    // tolerante a acentos/mayúsculas/plurales. Ver _synonyms.php.
+    [$qSql, $qParams] = shop_search_clause($q);
+    if ($qSql !== '') { $where[] = $qSql; array_push($params, ...$qParams); }
 }
 if ($category !== '') { $where[] = 'category = ?';    $params[] = $category; }
 if ($subcat !== '')   { $where[] = 'subcategory = ?'; $params[] = $subcat; }
