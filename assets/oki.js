@@ -324,11 +324,24 @@
   // en la pared derecha y solo asoma su cabecita; al tocarlo o pasar el mouse, regresa.
   // Así no estorba banners/botones y sigue a la mano en su esquina.
   var okiPeeked = false, okiPeekTimer = null, OKI_PEEK_MS = 12000;
-  function okiCartOpen() { var a = document.getElementById("app"); return !!(a && a.classList.contains("cart-open")); }
+  /* ¿Hay algún panel/cajón abierto que OKi taparía (o que taparía a OKi)? Se aparta cuando:
+     - Tienda: carrito (#app.cart-open) o filtros (#app.filt-open).
+     - Ficha: carrito (.sb-panel.show de shop-header.js).
+     - Compra rápida: cajones (.td-drawer.open) o filtros (#tdFilts.open).
+     Así OKi "se hace a un lado" igual que en el e-commerce, en toda la tienda. */
+  function okiShouldDodge() {
+    var a = document.getElementById("app");
+    if (a && (a.classList.contains("cart-open") || a.classList.contains("filt-open"))) return true;
+    if (document.querySelector(".sb-panel.show")) return true;   // carrito de la ficha
+    if (document.querySelector(".td-drawer.open")) return true;  // cajones de la compra rápida
+    var tf = document.getElementById("tdFilts");                 // filtros de la compra rápida
+    if (tf && tf.classList.contains("open")) return true;
+    return false;
+  }
   function okiUpdatePosition() {
     if (!dock) return;
     var mobile = window.innerWidth <= 640;
-    if (okiCartOpen()) {                         // carrito abierto → apartarse
+    if (okiShouldDodge()) {                       // carrito/filtro abierto → apartarse
       dock.classList.remove("oki-peek");
       dock.style.transform = mobile ? "translate3d(0,140px,0)" : "translate3d(-430px,0,0)";
       dock.style.opacity = mobile ? "0" : ""; dock.style.pointerEvents = mobile ? "none" : "";
@@ -581,11 +594,19 @@
       // que NUNCA se quede colgado aunque el carrito se cierre por checkout/Escape/scrim.
       var okiAppEl = document.getElementById("app");
       function okiApplyDodge() {
-        if (okiAppEl && okiAppEl.classList.contains("cart-open") && panel && panel.classList.contains("on")) close();
+        if (okiShouldDodge() && panel && panel.classList.contains("on")) close();
         okiUpdatePosition();
       }
-      if (okiAppEl && window.MutationObserver) {
-        new MutationObserver(okiApplyDodge).observe(okiAppEl, { attributes: true, attributeFilter: ["class"] });
+      /* Se observa la clase REAL de los paneles (no solo eventos), para que OKi nunca se
+         quede colgado aunque el panel se cierre por checkout/Escape/scrim. En la ficha el
+         carrito (.sb-panel) se crea al vuelo, así que shop-header.js emite carrito-abierto/
+         cerrado; en la compra rápida se observan sus cajones y filtro. */
+      if (window.MutationObserver) {
+        var obs = new MutationObserver(okiApplyDodge), OPT = { attributes: true, attributeFilter: ["class"] };
+        if (okiAppEl) obs.observe(okiAppEl, OPT);                                   // tienda (#app: cart-open/filt-open)
+        ["tdFilts", "tdCartDrawer", "tdWishDrawer", "tdLocDrawer"].forEach(function (id) {
+          var el = document.getElementById(id); if (el) obs.observe(el, OPT);       // compra rápida
+        });
       }
       window.addEventListener("oktienda:carrito-abierto", okiApplyDodge);
       window.addEventListener("oktienda:carrito-cerrado", okiApplyDodge);
@@ -691,7 +712,7 @@
     });
     // Al pasar el mouse por encima, regresa (por si estorbaba) y reinicia el conteo.
     dock.addEventListener("mouseenter", function () { if (okiPeeked) okiWake(); else okiResetPeekTimer(); });
-    window.addEventListener("resize", function () { if (okiPeeked || okiCartOpen()) okiUpdatePosition(); }, { passive: true });
+    window.addEventListener("resize", function () { if (okiPeeked || okiShouldDodge()) okiUpdatePosition(); }, { passive: true });
     okiResetPeekTimer(); // arranca el conteo de inactividad (12s → se esconde en su esquina derecha)
     panel.querySelector(".cls").addEventListener("click", close);
     panel.querySelector("#oki-form").addEventListener("submit", function (e) {

@@ -297,6 +297,8 @@
     document.documentElement.classList.add("sb-lock");
     openName = which;
     paintActive();
+    // Avisa a OKi para que se aparte cuando se abre el carrito (igual que en el e-commerce).
+    if (which === "cart") emitOki("carrito-abierto");
   }
   function closePanels() {
     if (cartPanel) { cartPanel.classList.remove("show"); cartPanel.setAttribute("aria-hidden", "true"); }
@@ -305,7 +307,9 @@
     document.documentElement.classList.remove("sb-lock");
     openName = null;
     paintActive();
+    emitOki("carrito-cerrado");
   }
+  function emitOki(t) { try { window.dispatchEvent(new CustomEvent("oktienda:" + t)); } catch (e) {} }
   // El botón cuyo panel está abierto se pinta de azul (mismo estado activo que el e-commerce).
   function paintActive() {
     var cb = $(".tb-cart"), fb = $(".tb-fav");

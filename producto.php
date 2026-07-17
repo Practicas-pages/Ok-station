@@ -418,11 +418,11 @@ $ldCrumbs = [
 <!-- shop-cart.js va ANTES de oki.js: define window.OKtienda (el puente del carrito con
      datos REALES) para que OKi muestre la MISMA lista que el e-commerce, no el respaldo. -->
 <script src="/assets/shop-cart.js?v=20260717c" defer></script>
-<script src="/assets/shop-header.js?v=20260717e" defer></script>
+<script src="/assets/shop-header.js?v=20260717f" defer></script>
 <script src="/assets/producto.js?v=20260717a" defer></script>
 <script src="/assets/session-nav.js?v=20260717a" defer></script>
 <script src="/assets/address-book.js?v=20260717a" defer></script>
 <script src="/assets/catalogo.js?v=20260716a" defer></script>
-<script src="/assets/oki.js?v=20260717c" defer></script>
+<script src="/assets/oki.js?v=20260717d" defer></script>
 </body>
 </html>
