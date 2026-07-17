@@ -374,6 +374,17 @@
   }
 
   // Cada cambio del carrito: actualiza el badge y, si algo se agregó, lo muestra.
+  /* No abrir la lista sola cuando el usuario llegó a la tienda para PAGAR o para poner su
+     UBICACIÓN: taparía el pago (coOv) o la libreta (locOv). Se detecta por el hash (fiable
+     desde la carga) o por el overlay ya visible. La lista igual se prepara en silencio. */
+  function okiSuppressAutoOpen() {
+    var h = (location.hash || "");
+    if (h === "#checkout" || h === "#ubicacion") return true;
+    var co = document.getElementById("coOv"), lo = document.getElementById("locOv");
+    if (co && co.classList.contains("show")) return true;
+    if (lo && lo.classList.contains("show")) return true;
+    return false;
+  }
   function okiOnCartChange() {
     var now = okiCartMap(), addedId = null, nowN = 0, oldN = 0;
     for (var id in now) { nowN += now[id]; if (now[id] > (okiSnap[id] || 0)) addedId = +id; }
@@ -389,9 +400,10 @@
     var abierto = panel && panel.classList.contains("on");
     if (!abierto) {
       // Al AGREGAR, la lista se abre sola y se queda abierta (hasta cerrar/vista previa/salir).
+      // Salvo que se esté pagando o eligiendo ubicación (no taparlos).
       panel.setAttribute("data-view", "list");
       renderStoreList();
-      open();
+      if (!okiSuppressAutoOpen()) open();
     } else if (panel.getAttribute("data-view") === "chat") {
       var rec = okiRecommend();
       var msg = "🛒 Agregué " + p.name + " a tu carrito. Llevas " + okiCartCount() + " (" + okiMxn(okiTotal()) + ").";
@@ -583,6 +595,8 @@
         if (!panel) return;
         panel.setAttribute("data-view", "list");
         renderStoreList();
+        // Si llegamos para PAGAR o poner UBICACIÓN, no abrir la lista sola (taparía el pago/libreta).
+        if (okiSuppressAutoOpen()) return;
         if (okiCartCount() > 0) {
           open();
         } else if (!panel.classList.contains("on")) {
