@@ -177,8 +177,8 @@
   /* ── Carrito (cajón) y Favoritos (modal) EN LA PROPIA página ──
      Se ven EXACTAMENTE como en la tienda (el carrito es un cajón con envío + IVA +
      total; favoritos es el modal centrado "Tus deseados"). Los datos son los REALES
-     de window.OKtienda (shop-cart.js). El checkout lleva a la tienda (#cart) para no
-     duplicar el pago. */
+     de window.OKtienda (shop-cart.js). El checkout lleva a la tienda (#checkout) para
+     abrir el pago ahí y no duplicar el flujo. */
   function OK() { return window.OKtienda || null; }
   var scrim, cartPanel, cartBody, cartFoot, wishOv, wishList, openName = null, shipMode = "retiro";
 
@@ -263,8 +263,9 @@
       '<div class="sb-sline"><span>Subtotal</span><span>' + mxn(sub) + '</span></div>' +
       '<div class="sb-sline"><span>Entrega</span><span>' + (ship ? mxn(ship) : "Recoge en tienda") + '</span></div>' +
       '<div class="sb-sline total"><span>Total</span><span>' + mxn(total) + '</span></div>' +
-      // #cart hace que la tienda abra el carrito al llegar (funciona hasta en pestaña nueva).
-      '<a class="sb-checkout" href="/tienda#cart">Finalizar compra</a>' +
+      // #checkout: la tienda abre DIRECTO el pago (no solo el carrito), igual que "Finalizar
+      // compra" del e-commerce. Funciona hasta en pestaña nueva.
+      '<a class="sb-checkout" href="/tienda#checkout">Finalizar compra</a>' +
       '<p class="sb-panel__note">Precios con IVA incluido · Pago seguro con Mercado Pago 🔒</p>';
   }
 

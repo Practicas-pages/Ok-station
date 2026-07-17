@@ -40,7 +40,16 @@ if ($q !== '') {
     if ($qSql !== '') { $where[] = $qSql; array_push($params, ...$qParams); }
 }
 if ($category !== '') { $where[] = 'category = ?';    $params[] = $category; }
-if ($subcat !== '')   { $where[] = 'subcategory = ?'; $params[] = $subcat; }
+/* subcategory acepta VARIAS separadas por coma (el filtro "Tipo" del panel), igual que
+   brand. Una sola (subcategory=Tinta) sigue funcionando igual. */
+if ($subcat !== '') {
+    $subs = array_values(array_unique(array_filter(array_map('trim', explode(',', $subcat)))));
+    $subs = array_slice($subs, 0, 40);
+    if ($subs) {
+        $where[] = 'subcategory IN (' . implode(',', array_fill(0, count($subs), '?')) . ')';
+        array_push($params, ...$subs);
+    }
+}
 /* brand acepta VARIAS separadas por coma (brand=HP,Canon) para el panel de filtros.
    Una sola (brand=HP) sigue funcionando igual: no rompe a quien ya lo usaba. */
 if ($brand !== '') {

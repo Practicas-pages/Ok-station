@@ -115,7 +115,7 @@ function oki_intents(): array
 
         // ── Tienda en línea (e-commerce) ──
         ['kw'=>['tienda','tienda en linea','comprar en linea','comprar','e-commerce','ecommerce','carrito','carrito de compras','agregar al carrito','anadir al carrito','productos','catalogo de productos','venden','a la venta','ofertas','deseados','lista de deseos','favoritos'],
-         'a'=>"Tienda en línea 🛒\nTenemos papelería, tinta y tóner, cómputo y accesorios. Armas tu carrito, guardas favoritos con el ❤ y pagas seguro con Mercado Pago (tarjeta, OXXO o SPEI).\nRecoge GRATIS en la tienda OK.station (Centro Comercial Otay, Local G-03) o pide envío a domicilio (costo según tu C.P.); te avisamos por WhatsApp cuando esté listo.\nSi quieres, dime \"llévame a la tienda\" y te llevo. 🚀"],
+         'a'=>"Tienda en línea 🛒\nVendemos SOLO papelería: tinta y tóner, papel, carpetas y archivo, adhesivos y cintas, engrapado y perforado, calculadoras, etiquetas y más. Armas tu carrito, guardas favoritos con el ❤ y pagas seguro con Mercado Pago (tarjeta, OXXO o SPEI).\nRecoge GRATIS en la tienda OK.station (Centro Comercial Otay, Local G-03) o pide envío a domicilio (costo según tu C.P.); te avisamos por WhatsApp cuando esté listo.\nSi quieres, dime \"llévame a la tienda\" y te llevo. 🚀"],
 
         // ── Cómo usar el sitio ──
         ['kw'=>['subir archivo','imprimir en linea','hacer un pedido','como imprimo','mandar archivo','pedido de impresion','imprimir','impresion','archivo','pdf'],

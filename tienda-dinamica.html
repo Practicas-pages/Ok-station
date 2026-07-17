@@ -377,6 +377,8 @@
   /* Estado del panel de filtros. fSort="name" es el orden por defecto del API (no se
      manda mientras esté así). fBrands: marcas elegidas. */
   var fBrands = [], fSort = "name", fBrandsLoaded = false, fBrandList = [];
+  /* Faceta "Tipo" = subcategoría (dato real de la BD: Tinta, Tóner, Carpetas, Papel Bond…). */
+  var fSubcats = [], fSubcatsLoaded = false, fSubcatList = [];
   var pre = {};                 // pre-carrito local: { id: {p, qty} }
   /* Checkout DENTRO del panel de carrito: perfil + libreta de direcciones + envío. */
   var me = null, coAddr = null, coShip = "retiro";
@@ -420,6 +422,7 @@
     var u = "backend/api/shop/products.php?per_page="+PER+"&page="+page
           + (q ? "&q="+encodeURIComponent(q) : "")
           + (cat ? "&category="+encodeURIComponent(cat) : "")
+          + (fSubcats.length ? "&subcategory="+encodeURIComponent(fSubcats.join(",")) : "")
           + (fBrands.length ? "&brand="+encodeURIComponent(fBrands.join(",")) : "")
           + (fSort !== "name" ? "&sort="+encodeURIComponent(fSort) : "");
 
@@ -596,6 +599,8 @@
         cat = b.dataset.cat;
         row.querySelectorAll("[data-cat]").forEach(function(x){ x.classList.toggle("on", x===b); });
         fBrandsLoaded = false;   // las marcas se acotan a la categoría → recargar al reabrir filtros
+        /* El "Tipo" es propio de cada categoría: recargar y limpiar lo elegido. */
+        fSubcatsLoaded = false; fSubcats = []; filtCount();
         load(true);
       });
     });
@@ -606,7 +611,7 @@
      navegador solo miraría la página cargada. Aplica al instante, como las categorías. */
   var TD_SORTS = [["name","Nombre (A-Z)"],["price_asc","Precio: menor a mayor"],["price_desc","Precio: mayor a menor"],["newest","Más nuevos"]];
   function filtCount(){
-    var n = fBrands.length + (fSort !== "name" ? 1 : 0);
+    var n = fBrands.length + fSubcats.length + (fSort !== "name" ? 1 : 0);
     var el = $("tdFiltCount"); el.textContent = n; el.hidden = n === 0;
     $("tdFiltBtn").classList.toggle("on", $("tdFilts").classList.contains("open"));
   }
@@ -614,6 +619,13 @@
     var orden = TD_SORTS.map(function(s){
       return '<label class="td-fopt"><input type="radio" name="tdsort" value="'+s[0]+'"'+(fSort===s[0]?" checked":"")+'>'+esc(s[1])+'</label>';
     }).join("");
+    var tipos = fSubcatsLoaded
+      ? (fSubcatList.length
+          ? fSubcatList.map(function(s){
+              return '<label class="td-fopt"><input type="checkbox" class="tdsubcat" value="'+esc(s.name)+'"'+(fSubcats.indexOf(s.name)>=0?" checked":"")+'>'+esc(s.name)+'<span class="n">'+s.count+'</span></label>';
+            }).join("")
+          : '<span class="n" style="color:var(--muted)">No hay tipos en esta categoría.</span>')
+      : '<span class="n" style="color:var(--muted)">Cargando tipos…</span>';
     var marcas = fBrandsLoaded
       ? (fBrandList.length
           ? fBrandList.map(function(b){
@@ -623,6 +635,7 @@
       : '<span class="n" style="color:var(--muted)">Cargando marcas…</span>';
     $("tdFilts").innerHTML =
       '<div class="td-fgroup"><h4>Ordenar por</h4>'+orden+'</div>'+
+      '<div class="td-fgroup"><h4>Tipo</h4>'+tipos+'</div>'+
       '<div class="td-fgroup"><h4>Marca</h4>'+marcas+'</div>';
   }
   function filtOpen(){
@@ -632,11 +645,17 @@
     $("tdFiltBtn").setAttribute("aria-expanded", open ? "true" : "false");
     if (!open) return;
     filtRender();
-    if (fBrandsLoaded) return;
-    var url = "backend/api/shop/brands.php" + (cat ? "?category="+encodeURIComponent(cat) : "");
-    fetch(url).then(function(r){ return r.json(); }).then(function(j){
-      if (j && j.ok){ fBrandList = j.brands || []; fBrandsLoaded = true; filtRender(); }
-    }).catch(function(e){ console.error("Filtros (marcas):", e); });
+    var qs = cat ? "?category="+encodeURIComponent(cat) : "";
+    if (!fBrandsLoaded){
+      fetch("backend/api/shop/brands.php" + qs).then(function(r){ return r.json(); }).then(function(j){
+        if (j && j.ok){ fBrandList = j.brands || []; fBrandsLoaded = true; filtRender(); }
+      }).catch(function(e){ console.error("Filtros (marcas):", e); });
+    }
+    if (!fSubcatsLoaded){
+      fetch("backend/api/shop/subcategories.php" + qs).then(function(r){ return r.json(); }).then(function(j){
+        if (j && j.ok){ fSubcatList = j.subcategories || []; fSubcatsLoaded = true; filtRender(); }
+      }).catch(function(e){ console.error("Filtros (tipos):", e); });
+    }
   }
   $("tdFiltBtn").addEventListener("click", filtOpen);
   /* Aplica al instante: cambiar orden o marca recarga la tabla. */
@@ -644,6 +663,8 @@
     if (e.target.name === "tdsort") fSort = e.target.value;
     else if (e.target.classList.contains("tdbrand")){
       fBrands = [].slice.call($("tdFilts").querySelectorAll(".tdbrand:checked")).map(function(c){ return c.value; });
+    } else if (e.target.classList.contains("tdsubcat")){
+      fSubcats = [].slice.call($("tdFilts").querySelectorAll(".tdsubcat:checked")).map(function(c){ return c.value; });
     } else return;
     filtCount(); load(true);
   });
