@@ -177,8 +177,12 @@
 .sb-ci__lt { font-weight: 800; font-size: .85rem; font-variant-numeric: tabular-nums; color: #12141C; }
 .sb-ci__rm { border: none; background: none; color: #c2410c; font-size: .68rem; cursor: pointer; padding: 0; }
 
-/* Pie con total + checkout */
+/* Pie con envío + subtotal/entrega/total + checkout (igual que el carrito de la tienda) */
 .sb-panel__foot { flex: none; border-top: 1px solid #E3E8F1; padding: 14px 18px calc(14px + env(safe-area-inset-bottom)); }
+.sb-ship { display: flex; gap: 7px; margin-bottom: 12px; }
+.sb-ship button { flex: 1; border: 1.5px solid #E3E8F1; background: #F5F8FD; border-radius: 9px; padding: 8px 6px; font-size: .76rem; font-weight: 600; color: #33404f; cursor: pointer; text-align: center; }
+.sb-ship button b { display: block; font-size: .82rem; }
+.sb-ship button.on { border-color: #066CFF; background: #eef4ff; color: #066CFF; }
 .sb-sline { display: flex; justify-content: space-between; font-size: .85rem; color: #5b6474; margin: 5px 0; }
 .sb-sline.total { color: #12141C; font-weight: 800; font-size: 1.12rem; margin-top: 9px; padding-top: 9px; border-top: 1px solid #E3E8F1; }
 .sb-sline span:last-child { font-variant-numeric: tabular-nums; }
@@ -186,12 +190,27 @@
 .sb-checkout:hover { transform: translateY(-2px); box-shadow: 0 18px 46px rgba(6,108,255,.36); }
 .sb-panel__note { font-size: .74rem; color: #5b6474; text-align: center; margin: 9px 0 0; }
 
-/* Renglón de favoritos */
-.sb-wi { display: grid; grid-template-columns: 46px 1fr auto auto; gap: 10px; align-items: center; padding: 10px 0; border-bottom: 1px solid #eef1f7; }
-.sb-wi__nm { font-size: .83rem; font-weight: 600; line-height: 1.22; color: #12141C; }
-.sb-wi__pu { font-size: .74rem; color: #5b6474; margin-top: 1px; }
-.sb-wi__add { border: none; background: linear-gradient(135deg,#9C1DFF,#066CFF 55%,#00C6FF); color: #fff; font-weight: 700; font-size: .78rem; padding: 7px 13px; border-radius: 99px; cursor: pointer; white-space: nowrap; }
-.sb-wi__heart { width: 34px; height: 34px; flex: none; border: 1px solid #E3E8F1; background: #fff; border-radius: 50%; display: grid; place-items: center; cursor: pointer; color: #e11d48; }
-.sb-wi__heart svg { width: 17px; height: 17px; fill: #e11d48; stroke: #e11d48; }
+/* ── Favoritos: MODAL CENTRADO "Tus deseados" (igual que la tienda), no un cajón ── */
+.sb-ov { position: fixed; inset: 0; background: rgba(18,20,28,.5); z-index: 119; display: none; align-items: center; justify-content: center; padding: 18px; opacity: 0; transition: opacity .2s; }
+.sb-ov.show { display: flex; opacity: 1; }
+.sb-modal { position: relative; background: #fff; border-radius: 22px; max-width: 460px; width: 100%; max-height: 90vh; overflow: auto; box-shadow: 0 26px 74px rgba(18,20,28,.24); padding: 26px 24px 24px; }
+.sb-modal__x { position: absolute; top: 14px; right: 14px; z-index: 5; width: 34px; height: 34px; border-radius: 50%; border: 1px solid #E3E8F1; background: #fff; color: #12141C; font-size: 1.15rem; font-weight: 700; line-height: 1; cursor: pointer; box-shadow: 0 4px 12px rgba(18,20,28,.18); display: grid; place-items: center; transition: transform .15s ease, background .15s ease; }
+.sb-modal__x:hover { transform: scale(1.08); background: #f1f4fb; color: #e11d48; }
+.sb-modal h3 { margin: 0 0 4px; font-size: 1.25rem; color: #12141C; }
+.sb-modal__desc { font-size: .86rem; color: #5b6474; line-height: 1.5; margin: 0; }
+.sb-modal__list { display: flex; flex-direction: column; gap: 10px; margin-top: 14px; }
+.sb-modal__empty { padding: 26px 0; text-align: center; color: #5b6474; line-height: 1.5; }
+/* Tarjeta de un favorito (mismo look que la tienda) */
+.sb-wi { display: flex; gap: 12px; align-items: center; border: 1px solid #E3E8F1; border-radius: 14px; padding: 10px 12px; }
+.sb-wi__t { flex: 0 0 auto; width: 46px; height: 46px; border-radius: 12px; overflow: hidden; background: #fff; border: 1px solid #E3E8F1; display: grid; place-items: center; }
+.sb-wi__t img { width: 100%; height: 100%; object-fit: contain; padding: 3px; box-sizing: border-box; }
+.sb-wi__t .sb-emoji { font-size: 24px; }
+.sb-wi__info { flex: 1 1 auto; min-width: 0; }
+.sb-wi__nm { font-weight: 700; font-size: .95rem; color: #12141C; line-height: 1.25; }
+.sb-wi__pu { color: #5b6474; font-size: .85rem; margin-top: 2px; }
+.sb-wi__add { flex: 0 0 auto; border: none; background: #066CFF; color: #fff; font-weight: 700; font-size: .85rem; padding: 9px 16px; border-radius: 999px; cursor: pointer; white-space: nowrap; box-shadow: 0 8px 22px rgba(6,108,255,.28); transition: background .15s, transform .15s; }
+.sb-wi__add:hover { background: #0558CC; transform: translateY(-1px); }
+.sb-wi__heart { flex: 0 0 auto; width: 38px; height: 38px; border: 1px solid #E3E8F1; background: #fff; border-radius: 50%; display: grid; place-items: center; cursor: pointer; color: #e11d48; }
+.sb-wi__heart svg { width: 18px; height: 18px; fill: #e11d48; stroke: #e11d48; }
 
 html.sb-lock, html.sb-lock body { overflow: hidden; }

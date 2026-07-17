@@ -171,7 +171,7 @@ $ldCrumbs = [
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" media="print" onload="this.media='all'">
   <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap"></noscript>
   <link rel="stylesheet" href="/styles.css?v=20260716b">
-  <link rel="stylesheet" href="/assets/shop-header.css?v=20260717c">
+  <link rel="stylesheet" href="/assets/shop-header.css?v=20260717d">
   <link rel="stylesheet" href="/assets/producto.css?v=20260716b">
   <link rel="stylesheet" href="/assets/oki.css?v=20260716d">
   <?php if ($images): ?><link rel="preload" as="image" href="<?= e($images[0]) ?>" fetchpriority="high"><?php endif; ?>
@@ -417,7 +417,7 @@ $ldCrumbs = [
 <!-- shop-cart.js va ANTES de oki.js: define window.OKtienda (el puente del carrito con
      datos REALES) para que OKi muestre la MISMA lista que el e-commerce, no el respaldo. -->
 <script src="/assets/shop-cart.js?v=20260717c" defer></script>
-<script src="/assets/shop-header.js?v=20260717b" defer></script>
+<script src="/assets/shop-header.js?v=20260717c" defer></script>
 <script src="/assets/producto.js?v=20260716b" defer></script>
 <script src="/assets/session-nav.js?v=20260717a" defer></script>
 <script src="/assets/catalogo.js?v=20260716a" defer></script>

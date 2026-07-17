@@ -174,53 +174,72 @@
     document.addEventListener("click", function (e) { if (!e.target.closest(".shopbar__search")) acClose(); });
   }
 
-  /* ── Paneles de carrito y favoritos EN LA PROPIA página ──
-     Antes los botones del carrito/favoritos redirigían a la tienda; ahora abren un
-     panel aquí mismo, con los datos REALES (window.OKtienda, que lo define
-     shop-cart.js). El checkout sí lleva a la tienda, para no duplicarlo. */
+  /* ── Carrito (cajón) y Favoritos (modal) EN LA PROPIA página ──
+     Se ven EXACTAMENTE como en la tienda (el carrito es un cajón con envío + IVA +
+     total; favoritos es el modal centrado "Tus deseados"). Los datos son los REALES
+     de window.OKtienda (shop-cart.js). El checkout lleva a la tienda (#cart) para no
+     duplicar el pago. */
   function OK() { return window.OKtienda || null; }
-  var scrim, cartPanel, cartBody, cartFoot, wishPanel, wishBody, openName = null;
+  var scrim, cartPanel, cartBody, cartFoot, wishOv, wishList, openName = null, shipMode = "retiro";
 
   function buildPanels() {
     scrim = document.createElement("div"); scrim.className = "sb-scrim"; scrim.id = "sbScrim";
+    // Carrito: cajón a la derecha (igual que la tienda).
     cartPanel = document.createElement("aside"); cartPanel.className = "sb-panel"; cartPanel.id = "sbCartPanel";
     cartPanel.setAttribute("aria-label", "Tu carrito"); cartPanel.setAttribute("aria-hidden", "true");
     cartPanel.innerHTML =
       '<div class="sb-panel__head">Tu carrito <button type="button" class="sb-panel__close" aria-label="Cerrar">×</button></div>' +
       '<div class="sb-panel__body" id="sbCartBody"></div>' +
       '<div class="sb-panel__foot" id="sbCartFoot" hidden></div>';
-    wishPanel = document.createElement("aside"); wishPanel.className = "sb-panel"; wishPanel.id = "sbWishPanel";
-    wishPanel.setAttribute("aria-label", "Tus favoritos"); wishPanel.setAttribute("aria-hidden", "true");
-    wishPanel.innerHTML =
-      '<div class="sb-panel__head">Tus favoritos <button type="button" class="sb-panel__close" aria-label="Cerrar">×</button></div>' +
-      '<div class="sb-panel__body" id="sbWishBody"></div>';
-    document.body.appendChild(scrim); document.body.appendChild(cartPanel); document.body.appendChild(wishPanel);
-    cartBody = $("#sbCartBody", cartPanel); cartFoot = $("#sbCartFoot", cartPanel); wishBody = $("#sbWishBody", wishPanel);
+    // Favoritos: modal centrado (su propio fondo, no usa el scrim del carrito).
+    wishOv = document.createElement("div"); wishOv.className = "sb-ov"; wishOv.id = "sbWishOv";
+    wishOv.setAttribute("aria-hidden", "true");
+    wishOv.innerHTML =
+      '<div class="sb-modal" role="dialog" aria-label="Tus deseados">' +
+        '<button type="button" class="sb-modal__x" aria-label="Cerrar">×</button>' +
+        '<h3>💙 Tus deseados</h3>' +
+        '<p class="sb-modal__desc">Guarda lo que te gusta y págalo cuando quieras. Recoge gratis en OK.station o recíbelo a domicilio en todo México.</p>' +
+        '<div class="sb-modal__list" id="sbWishList"></div>' +
+      '</div>';
+    document.body.appendChild(scrim); document.body.appendChild(cartPanel); document.body.appendChild(wishOv);
+    cartBody = $("#sbCartBody", cartPanel); cartFoot = $("#sbCartFoot", cartPanel); wishList = $("#sbWishList", wishOv);
 
     scrim.addEventListener("click", closePanels);
-    document.querySelectorAll(".sb-panel__close").forEach(function (b) { b.addEventListener("click", closePanels); });
+    $(".sb-panel__close", cartPanel).addEventListener("click", closePanels);
+    $(".sb-modal__x", wishOv).addEventListener("click", closePanels);
+    // Clic en el FONDO del modal (no en la tarjeta blanca) cierra.
+    wishOv.addEventListener("click", function (e) { if (e.target === wishOv) closePanels(); });
     document.addEventListener("keydown", function (e) { if (e.key === "Escape" && openName) closePanels(); });
 
-    // Delegación: qty / quitar / agregar / heart
+    // Carrito: qty / quitar / cambiar modo de envío.
     cartPanel.addEventListener("click", function (e) {
       var S = OK(); if (!S) return;
-      var inc = e.target.closest("[data-inc]"), dec = e.target.closest("[data-dec]"), rm = e.target.closest("[data-rm]");
+      var inc = e.target.closest("[data-inc]"), dec = e.target.closest("[data-dec]"),
+          rm = e.target.closest("[data-rm]"), sh = e.target.closest("[data-ship]");
       if (inc) S.cambiar(+inc.dataset.inc, 1);
       else if (dec) S.cambiar(+dec.dataset.dec, -1);
       else if (rm) S.quitar(+rm.dataset.rm);
+      else if (sh) { shipMode = sh.dataset.ship; renderCart(); }   // solo re-pinta el pie
     });
-    wishPanel.addEventListener("click", function (e) {
+    // Favoritos: agregar (gradúa al carrito) / quitar / ir al producto.
+    wishOv.addEventListener("click", function (e) {
       var S = OK(); if (!S) return;
-      var add = e.target.closest("[data-add]"), rm = e.target.closest("[data-wrm]");
-      if (add) { S.agregar(+add.dataset.add, 1); }        // se gradúa al carrito y sale de favoritos
-      else if (rm) { S.toggleDeseado(+rm.dataset.wrm); }
+      var add = e.target.closest("[data-add]"), rm = e.target.closest("[data-wrm]"), go = e.target.closest("[data-go]");
+      if (add) S.agregar(+add.dataset.add, 1);
+      else if (rm) S.toggleDeseado(+rm.dataset.wrm);
+      else if (go) S.verProducto(+go.dataset.go);
     });
   }
 
-  function thumb(p) {
+  function ciThumb(p) {
     if (p.image) return '<span class="sb-ci__t"><img src="' + encodeURI(p.image) + '" alt="" loading="lazy"></span>';
     return '<span class="sb-ci__t" style="background:' + (p.grad || "var(--grad-blue)") + '"><span class="sb-emoji">' + (p.emoji || "📦") + '</span></span>';
   }
+  function wiThumb(p) {
+    if (p.image) return '<span class="sb-wi__t"><img src="' + encodeURI(p.image) + '" alt="" loading="lazy"></span>';
+    return '<span class="sb-wi__t" style="background:' + (p.grad || "var(--grad-blue)") + '"><span class="sb-emoji">' + (p.emoji || "📦") + '</span></span>';
+  }
+
   function renderCart() {
     var S = OK(); if (!cartBody) return;
     var items = S ? S.carrito() : [];
@@ -229,30 +248,37 @@
       cartFoot.hidden = true; return;
     }
     cartBody.innerHTML = items.map(function (it) {
-      return '<div class="sb-ci">' + thumb(it) +
+      return '<div class="sb-ci">' + ciThumb(it) +
         '<div><div class="sb-ci__nm">' + esc(it.name) + '</div><div class="sb-ci__pu">' + mxn(it.price) + ' c/u</div>' +
         '<div class="sb-qty"><button data-dec="' + it.id + '" aria-label="Quitar uno">−</button><span>' + it.qty + '</span><button data-inc="' + it.id + '" aria-label="Agregar uno">+</button></div></div>' +
         '<div class="sb-ci__right"><div class="sb-ci__lt">' + mxn(it.price * it.qty) + '</div><button class="sb-ci__rm" data-rm="' + it.id + '">Quitar</button></div></div>';
     }).join("");
+    var sub = S.total(), ship = (shipMode === "envio") ? 99 : 0, total = sub + ship;
     cartFoot.hidden = false;
     cartFoot.innerHTML =
-      '<div class="sb-sline total"><span>Total</span><span>' + mxn(S.total()) + '</span></div>' +
-      // El hash #cart hace que la tienda abra el carrito al llegar. Va en la URL (no en
-      // sessionStorage) para que también funcione en pestaña nueva (ctrl+clic).
-      '<a class="sb-checkout" href="/tienda#cart" id="sbCheckout">Finalizar compra</a>' +
-      '<p class="sb-panel__note">Recoge gratis en OK.station o pide envío · Pago seguro con Mercado Pago 🔒</p>';
+      '<div class="sb-ship">' +
+        '<button' + (shipMode === "retiro" ? ' class="on"' : '') + ' data-ship="retiro"><b>Recoger en OK.station</b>Gratis</button>' +
+        '<button' + (shipMode === "envio" ? ' class="on"' : '') + ' data-ship="envio"><b>Envío a domicilio</b>$99</button>' +
+      '</div>' +
+      '<div class="sb-sline"><span>Subtotal</span><span>' + mxn(sub) + '</span></div>' +
+      '<div class="sb-sline"><span>Entrega</span><span>' + (ship ? mxn(ship) : "Recoge en tienda") + '</span></div>' +
+      '<div class="sb-sline total"><span>Total</span><span>' + mxn(total) + '</span></div>' +
+      // #cart hace que la tienda abra el carrito al llegar (funciona hasta en pestaña nueva).
+      '<a class="sb-checkout" href="/tienda#cart">Finalizar compra</a>' +
+      '<p class="sb-panel__note">Precios con IVA incluido · Pago seguro con Mercado Pago 🔒</p>';
   }
+
   var HEART = '<svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.8 4.6a5.5 5.5 0 00-7.8 0L12 5.6l-1-1a5.5 5.5 0 00-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 000-7.8z"/></svg>';
   function renderWish() {
-    var S = OK(); if (!wishBody) return;
+    var S = OK(); if (!wishList) return;
     var items = S ? S.deseados() : [];
     if (!items.length) {
-      wishBody.innerHTML = '<div class="sb-panel__empty">Aún no tienes favoritos ❤<br>Toca el corazón en cualquier producto para guardarlo.</div>';
+      wishList.innerHTML = '<div class="sb-modal__empty">Aún no tienes productos en deseados.<br>Toca el ❤ en cualquier producto para guardarlo aquí.</div>';
       return;
     }
-    wishBody.innerHTML = items.map(function (p) {
-      return '<div class="sb-wi">' + thumb(p) +
-        '<div><div class="sb-wi__nm">' + esc(p.name) + '</div><div class="sb-wi__pu">' + mxn(p.price) + '</div></div>' +
+    wishList.innerHTML = items.map(function (p) {
+      return '<div class="sb-wi">' + wiThumb(p) +
+        '<div class="sb-wi__info" data-go="' + p.id + '" style="cursor:pointer"><div class="sb-wi__nm">' + esc(p.name) + '</div><div class="sb-wi__pu">' + mxn(p.price) + '</div></div>' +
         '<button class="sb-wi__add" data-add="' + p.id + '">Agregar</button>' +
         '<button class="sb-wi__heart" data-wrm="' + p.id + '" aria-label="Quitar de favoritos" title="Quitar de favoritos">' + HEART + '</button></div>';
     }).join("");
@@ -260,17 +286,19 @@
 
   function openPanel(which) {
     if (!scrim) buildPanels();
-    var panel = which === "wish" ? wishPanel : cartPanel;
-    var other = which === "wish" ? cartPanel : wishPanel;
-    other.classList.remove("show"); other.setAttribute("aria-hidden", "true");
-    which === "wish" ? renderWish() : renderCart();
-    scrim.classList.add("show"); panel.classList.add("show"); panel.setAttribute("aria-hidden", "false");
+    if (which === "wish") {
+      cartPanel.classList.remove("show"); cartPanel.setAttribute("aria-hidden", "true"); scrim.classList.remove("show");
+      renderWish(); wishOv.classList.add("show"); wishOv.setAttribute("aria-hidden", "false");
+    } else {
+      wishOv.classList.remove("show"); wishOv.setAttribute("aria-hidden", "true");
+      renderCart(); scrim.classList.add("show"); cartPanel.classList.add("show"); cartPanel.setAttribute("aria-hidden", "false");
+    }
     document.documentElement.classList.add("sb-lock");
     openName = which;
   }
   function closePanels() {
     if (cartPanel) { cartPanel.classList.remove("show"); cartPanel.setAttribute("aria-hidden", "true"); }
-    if (wishPanel) { wishPanel.classList.remove("show"); wishPanel.setAttribute("aria-hidden", "true"); }
+    if (wishOv) { wishOv.classList.remove("show"); wishOv.setAttribute("aria-hidden", "true"); }
     if (scrim) scrim.classList.remove("show");
     document.documentElement.classList.remove("sb-lock");
     openName = null;
@@ -281,8 +309,7 @@
   var cartBtn = $(".tb-cart"), favBtn = $(".tb-fav");
   if (cartBtn) cartBtn.addEventListener("click", function (e) { e.preventDefault(); openPanel("cart"); });
   if (favBtn) favBtn.addEventListener("click", function (e) { e.preventDefault(); openPanel("wish"); });
-  // Si el carrito/deseados cambian (desde el propio panel, la ficha u OKi), repintar el
-  // panel abierto además de los contadores.
+  // Si el carrito/deseados cambian (desde el panel, la ficha u OKi), repintar lo abierto.
   window.addEventListener("oktienda:carrito", function () { if (openName === "cart") renderCart(); });
-  window.addEventListener("oktienda:deseados", function () { if (openName === "wish") renderWish(); if (openName === "cart") renderCart(); });
+  window.addEventListener("oktienda:deseados", function () { if (openName === "wish") renderWish(); else if (openName === "cart") renderCart(); });
 })();
