@@ -213,7 +213,9 @@
 .td-cartbox h3{margin:0 0 12px;font-size:.95rem;font-weight:800;text-align:center}
 .td-citems{display:flex;flex-direction:column;gap:8px;max-height:46vh;overflow-y:auto;margin:0 -4px;padding:0 4px}
 .td-ci{background:rgba(255,255,255,.14);border-radius:10px;padding:8px 10px;display:grid;
-  grid-template-columns:1fr auto;gap:8px;align-items:center}
+  grid-template-columns:auto 1fr auto;gap:8px;align-items:center}
+.td-ci .th{width:38px;height:38px;flex:none;border-radius:8px;background:#fff center/contain no-repeat;
+  border:1px solid rgba(255,255,255,.55)}
 .td-ci .nm{font-size:.78rem;font-weight:600;line-height:1.3;
   display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .td-ci .pu{font-size:.72rem;opacity:.85;margin-top:2px}
@@ -530,7 +532,8 @@
     } else {
       box.innerHTML = keys.map(function(id){
         var it = pre[id];
-        return '<div class="td-ci" data-id="'+id+'"><div><div class="nm">'+esc(it.p.name)+'</div>'+
+        var th = it.p.image ? '<div class="th" style="background-image:url('+encodeURI(it.p.image)+')"></div>' : '<div class="th"></div>';
+        return '<div class="td-ci" data-id="'+id+'">'+th+'<div><div class="nm">'+esc(it.p.name)+'</div>'+
                '<div class="pu">'+mxn(it.p.price)+' c/u</div></div>'+
                '<div class="td-qty"><button data-d="'+id+'" aria-label="Quitar uno">−</button>'+
                '<span>'+it.qty+'</span><button data-i="'+id+'" aria-label="Agregar uno">+</button></div></div>';
@@ -691,7 +694,8 @@
   }
   /* Listener de scroll en vez de IntersectionObserver (el observador con `root` no
      resultó fiable). Se limita con setTimeout y NO con requestAnimationFrame: el rAF
-     se congela en pestañas ocultas y el scroll se quedaría mudo al volver. */
+     se congela en pestañas ocultas y el scroll se quedaría mudo al volver.
+     Se escucha en el contenedor interno Y en la ventana (móvil scrollea la ventana). */
   var tick = false;
   function onScroll(){ if (tick) return; tick = true; setTimeout(function(){ tick = false; maybeMore(); }, 120); }
   $("tdScroll").addEventListener("scroll", onScroll, { passive: true });  // caja interna (escritorio)
@@ -991,6 +995,6 @@
 <script src="assets/session-nav.js?v=20260716a" defer></script>
 <!-- OKi (astronauta): se auto-inyecta. Va DESPUÉS de shop-cart.js, que define
      window.OKtienda (el puente del carrito/deseados compartido que OKi lee). -->
-<script src="assets/oki.js?v=20260716e" defer></script>
+<script src="assets/oki.js?v=20260717c" defer></script>
 </body>
 </html>
