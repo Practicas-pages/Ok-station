@@ -390,8 +390,10 @@ $ldCrumbs = [
 <script>
   /* Datos del producto para el carrito del NAVEGADOR (mismo localStorage que la
      tienda) y para que OKi sepa de qué producto estás preguntando.
-     JSON_HEX_TAG/AMP/APOS/QUOT: blinda el <script> inline por si un nombre del catálogo
-     (Exel/Icecat) trae "</script>" u otros caracteres que lo romperían. */
+     JSON_HEX_TAG/AMP/APOS/QUOT: blinda el script inline por si un nombre del catálogo
+     (Exel/Icecat) trae la cadena de cierre de etiqueta u otros caracteres que lo
+     romperían. (OJO: NO escribir esa cadena literal ni en los comentarios: el parser
+     de HTML cerraría el script ahí mismo — fue justo el bug que rompió esta página.) */
   window.OK_PDP = <?= json_encode([
       'id'    => (int) $row['id'],
       'name'  => $name,
