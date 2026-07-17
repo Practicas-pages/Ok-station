@@ -101,6 +101,15 @@
 
 .shopbar .tb-cuenta:focus-visible, .shopbar .tb-fav:focus-visible, .shopbar .tb-cart:focus-visible, .shopbar .tb-wa:focus-visible, .shopbar .pop:focus-visible { outline: 3px solid #0a1a3a; outline-offset: 2px; }
 
+/* Estado activo: el botón cuyo panel está abierto se pinta de azul (igual que el e-commerce). */
+.shopbar .tb-fav.on, .shopbar .tb-cart.on { background: var(--sb-blue); border-color: #fff; color: #fff; }
+.shopbar .tb-fav.on svg, .shopbar .tb-cart.on svg { color: #fff; }
+.shopbar .tb-fav.on:hover, .shopbar .tb-cart.on:hover { background: var(--sb-blue-h, #0558CC); }
+.shopbar .tb-cart.on { box-shadow: 0 8px 22px rgba(6,108,255,.45); }
+.shopbar .tb-cart.on:hover { box-shadow: 0 16px 34px rgba(6,108,255,.5); }
+.shopbar .tb-fav.on { box-shadow: 0 6px 18px rgba(6,108,255,.4); }
+.shopbar .tb-fav.on .ct, .shopbar .tb-cart.on .ct { border-color: #fff; }
+
 /* ── Fila 2: carril de categorías (degradado con velo) ── */
 .shopbar__cats { display: flex; align-items: center; gap: 12px; padding: 5px max(14px, calc((100% - var(--sb-col)) / 2)); background: linear-gradient(rgba(8,12,30,.16), rgba(8,12,30,.16)), var(--sb-grad); }
 .shopbar__back { flex: none; display: inline-flex; align-items: center; gap: 6px; color: #fff; font-weight: 700; font-size: .82rem; text-decoration: none; padding: 6px 12px; border-radius: 99px; background: rgba(9,14,34,.42); border: 1.5px solid rgba(255,255,255,.6); backdrop-filter: blur(8px); transition: background .15s; }

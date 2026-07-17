@@ -295,6 +295,7 @@
     }
     document.documentElement.classList.add("sb-lock");
     openName = which;
+    paintActive();
   }
   function closePanels() {
     if (cartPanel) { cartPanel.classList.remove("show"); cartPanel.setAttribute("aria-hidden", "true"); }
@@ -302,6 +303,13 @@
     if (scrim) scrim.classList.remove("show");
     document.documentElement.classList.remove("sb-lock");
     openName = null;
+    paintActive();
+  }
+  // El botón cuyo panel está abierto se pinta de azul (mismo estado activo que el e-commerce).
+  function paintActive() {
+    var cb = $(".tb-cart"), fb = $(".tb-fav");
+    if (cb) cb.classList.toggle("on", openName === "cart");
+    if (fb) fb.classList.toggle("on", openName === "wish");
   }
 
   // Los botones de la barra abren el panel EN LA PÁGINA (el href a /tienda queda de
