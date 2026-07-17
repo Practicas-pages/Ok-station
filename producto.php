@@ -421,7 +421,8 @@ $ldCrumbs = [
 <script src="/assets/shop-header.js?v=20260717e" defer></script>
 <script src="/assets/producto.js?v=20260717a" defer></script>
 <script src="/assets/session-nav.js?v=20260717a" defer></script>
+<script src="/assets/address-book.js?v=20260717a" defer></script>
 <script src="/assets/catalogo.js?v=20260716a" defer></script>
-<script src="/assets/oki.js?v=20260716e" defer></script>
+<script src="/assets/oki.js?v=20260717c" defer></script>
 </body>
 </html>
