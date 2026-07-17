@@ -27,15 +27,23 @@
     var w = readJSON("okstation_wishlist", []).length;
     if (wishCountEl) { wishCountEl.textContent = w; wishCountEl.style.display = w ? "" : "none"; }
   }
-  /* El TOTAL necesita los precios: el carrito solo guarda {id: cantidad}. Se piden al
-     API por ids (una sola llamada). Si falla, se queda el conteo, que no necesita red. */
+  /* El TOTAL de la barra.
+     Con el puente (window.OKtienda de shop-cart.js) se calcula SÍNCRONO desde el carrito
+     ya resuelto: sin red y sin carrera (antes, dos cambios rápidos lanzaban dos fetch y
+     el que llegaba último —no el último pedido— pintaba el total, quedando desfasado).
+     Sin puente (páginas que no lo cargan) se pide al API con guarda de orden (token). */
+  var totalToken = 0;
   function paintTotal() {
     if (!cartTotalEl) return;
+    var S = window.OKtienda;
+    if (S && typeof S.total === "function") { cartTotalEl.textContent = mxn(S.total()); return; }
+    var token = ++totalToken;                          // invalida cualquier respuesta en vuelo
     var c = cartMap(), ids = Object.keys(c).filter(function (id) { return (parseInt(c[id], 10) || 0) > 0; });
     if (!ids.length) { cartTotalEl.textContent = "$0.00"; return; }
     fetch("/backend/api/shop/products.php?per_page=100&page=1&ids=" + ids.join(","))
       .then(function (r) { return r.json(); })
       .then(function (j) {
+        if (token !== totalToken) return;               // llegó tarde: ya hay una petición más nueva
         if (!j || !j.ok || !j.items) return;
         var total = 0;
         j.items.forEach(function (p) { total += (Number(p.price) || 0) * (parseInt(c[p.id], 10) || 0); });
@@ -165,4 +173,116 @@
     });
     document.addEventListener("click", function (e) { if (!e.target.closest(".shopbar__search")) acClose(); });
   }
+
+  /* ── Paneles de carrito y favoritos EN LA PROPIA página ──
+     Antes los botones del carrito/favoritos redirigían a la tienda; ahora abren un
+     panel aquí mismo, con los datos REALES (window.OKtienda, que lo define
+     shop-cart.js). El checkout sí lleva a la tienda, para no duplicarlo. */
+  function OK() { return window.OKtienda || null; }
+  var scrim, cartPanel, cartBody, cartFoot, wishPanel, wishBody, openName = null;
+
+  function buildPanels() {
+    scrim = document.createElement("div"); scrim.className = "sb-scrim"; scrim.id = "sbScrim";
+    cartPanel = document.createElement("aside"); cartPanel.className = "sb-panel"; cartPanel.id = "sbCartPanel";
+    cartPanel.setAttribute("aria-label", "Tu carrito"); cartPanel.setAttribute("aria-hidden", "true");
+    cartPanel.innerHTML =
+      '<div class="sb-panel__head">Tu carrito <button type="button" class="sb-panel__close" aria-label="Cerrar">×</button></div>' +
+      '<div class="sb-panel__body" id="sbCartBody"></div>' +
+      '<div class="sb-panel__foot" id="sbCartFoot" hidden></div>';
+    wishPanel = document.createElement("aside"); wishPanel.className = "sb-panel"; wishPanel.id = "sbWishPanel";
+    wishPanel.setAttribute("aria-label", "Tus favoritos"); wishPanel.setAttribute("aria-hidden", "true");
+    wishPanel.innerHTML =
+      '<div class="sb-panel__head">Tus favoritos <button type="button" class="sb-panel__close" aria-label="Cerrar">×</button></div>' +
+      '<div class="sb-panel__body" id="sbWishBody"></div>';
+    document.body.appendChild(scrim); document.body.appendChild(cartPanel); document.body.appendChild(wishPanel);
+    cartBody = $("#sbCartBody", cartPanel); cartFoot = $("#sbCartFoot", cartPanel); wishBody = $("#sbWishBody", wishPanel);
+
+    scrim.addEventListener("click", closePanels);
+    document.querySelectorAll(".sb-panel__close").forEach(function (b) { b.addEventListener("click", closePanels); });
+    document.addEventListener("keydown", function (e) { if (e.key === "Escape" && openName) closePanels(); });
+
+    // Delegación: qty / quitar / agregar / heart
+    cartPanel.addEventListener("click", function (e) {
+      var S = OK(); if (!S) return;
+      var inc = e.target.closest("[data-inc]"), dec = e.target.closest("[data-dec]"), rm = e.target.closest("[data-rm]");
+      if (inc) S.cambiar(+inc.dataset.inc, 1);
+      else if (dec) S.cambiar(+dec.dataset.dec, -1);
+      else if (rm) S.quitar(+rm.dataset.rm);
+    });
+    wishPanel.addEventListener("click", function (e) {
+      var S = OK(); if (!S) return;
+      var add = e.target.closest("[data-add]"), rm = e.target.closest("[data-wrm]");
+      if (add) { S.agregar(+add.dataset.add, 1); }        // se gradúa al carrito y sale de favoritos
+      else if (rm) { S.toggleDeseado(+rm.dataset.wrm); }
+    });
+  }
+
+  function thumb(p) {
+    if (p.image) return '<span class="sb-ci__t"><img src="' + encodeURI(p.image) + '" alt="" loading="lazy"></span>';
+    return '<span class="sb-ci__t" style="background:' + (p.grad || "var(--grad-blue)") + '"><span class="sb-emoji">' + (p.emoji || "📦") + '</span></span>';
+  }
+  function renderCart() {
+    var S = OK(); if (!cartBody) return;
+    var items = S ? S.carrito() : [];
+    if (!items.length) {
+      cartBody.innerHTML = '<div class="sb-panel__empty">Tu carrito está vacío 🛒<br>Agrega productos y aparecerán aquí.</div>';
+      cartFoot.hidden = true; return;
+    }
+    cartBody.innerHTML = items.map(function (it) {
+      return '<div class="sb-ci">' + thumb(it) +
+        '<div><div class="sb-ci__nm">' + esc(it.name) + '</div><div class="sb-ci__pu">' + mxn(it.price) + ' c/u</div>' +
+        '<div class="sb-qty"><button data-dec="' + it.id + '" aria-label="Quitar uno">−</button><span>' + it.qty + '</span><button data-inc="' + it.id + '" aria-label="Agregar uno">+</button></div></div>' +
+        '<div class="sb-ci__right"><div class="sb-ci__lt">' + mxn(it.price * it.qty) + '</div><button class="sb-ci__rm" data-rm="' + it.id + '">Quitar</button></div></div>';
+    }).join("");
+    cartFoot.hidden = false;
+    cartFoot.innerHTML =
+      '<div class="sb-sline total"><span>Total</span><span>' + mxn(S.total()) + '</span></div>' +
+      // El hash #cart hace que la tienda abra el carrito al llegar. Va en la URL (no en
+      // sessionStorage) para que también funcione en pestaña nueva (ctrl+clic).
+      '<a class="sb-checkout" href="/tienda#cart" id="sbCheckout">Finalizar compra</a>' +
+      '<p class="sb-panel__note">Recoge gratis en OK.station o pide envío · Pago seguro con Mercado Pago 🔒</p>';
+  }
+  var HEART = '<svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.8 4.6a5.5 5.5 0 00-7.8 0L12 5.6l-1-1a5.5 5.5 0 00-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 000-7.8z"/></svg>';
+  function renderWish() {
+    var S = OK(); if (!wishBody) return;
+    var items = S ? S.deseados() : [];
+    if (!items.length) {
+      wishBody.innerHTML = '<div class="sb-panel__empty">Aún no tienes favoritos ❤<br>Toca el corazón en cualquier producto para guardarlo.</div>';
+      return;
+    }
+    wishBody.innerHTML = items.map(function (p) {
+      return '<div class="sb-wi">' + thumb(p) +
+        '<div><div class="sb-wi__nm">' + esc(p.name) + '</div><div class="sb-wi__pu">' + mxn(p.price) + '</div></div>' +
+        '<button class="sb-wi__add" data-add="' + p.id + '">Agregar</button>' +
+        '<button class="sb-wi__heart" data-wrm="' + p.id + '" aria-label="Quitar de favoritos" title="Quitar de favoritos">' + HEART + '</button></div>';
+    }).join("");
+  }
+
+  function openPanel(which) {
+    if (!scrim) buildPanels();
+    var panel = which === "wish" ? wishPanel : cartPanel;
+    var other = which === "wish" ? cartPanel : wishPanel;
+    other.classList.remove("show"); other.setAttribute("aria-hidden", "true");
+    which === "wish" ? renderWish() : renderCart();
+    scrim.classList.add("show"); panel.classList.add("show"); panel.setAttribute("aria-hidden", "false");
+    document.documentElement.classList.add("sb-lock");
+    openName = which;
+  }
+  function closePanels() {
+    if (cartPanel) { cartPanel.classList.remove("show"); cartPanel.setAttribute("aria-hidden", "true"); }
+    if (wishPanel) { wishPanel.classList.remove("show"); wishPanel.setAttribute("aria-hidden", "true"); }
+    if (scrim) scrim.classList.remove("show");
+    document.documentElement.classList.remove("sb-lock");
+    openName = null;
+  }
+
+  // Los botones de la barra abren el panel EN LA PÁGINA (el href a /tienda queda de
+  // respaldo si el JS no cargó).
+  var cartBtn = $(".tb-cart"), favBtn = $(".tb-fav");
+  if (cartBtn) cartBtn.addEventListener("click", function (e) { e.preventDefault(); openPanel("cart"); });
+  if (favBtn) favBtn.addEventListener("click", function (e) { e.preventDefault(); openPanel("wish"); });
+  // Si el carrito/deseados cambian (desde el propio panel, la ficha u OKi), repintar el
+  // panel abierto además de los contadores.
+  window.addEventListener("oktienda:carrito", function () { if (openName === "cart") renderCart(); });
+  window.addEventListener("oktienda:deseados", function () { if (openName === "wish") renderWish(); if (openName === "cart") renderCart(); });
 })();
