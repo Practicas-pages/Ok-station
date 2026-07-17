@@ -745,8 +745,12 @@
       : '<div class="td-dempty">No tienes favoritos todavía.<br>Marca el ❤ en un producto desde la tienda.</div>';
   }
 
-  $("tdCartNavBtn").addEventListener("click", function(e){ e.preventDefault(); renderCart(); openDrawer($("tdCartDrawer")); });
-  $("tdFavBtn").addEventListener("click", function(e){ e.preventDefault(); renderWish(); openDrawer($("tdWishDrawer")); });
+  /* stopImmediatePropagation: shop-header.js (compartido) también engancha .tb-cart/.tb-fav
+     y abre SUS paneles, cuyo "Finalizar compra" va a /tienda#cart (la tienda normal). Aquí
+     queremos PAGAR en la página, así que bloqueamos su handler. El nuestro se registra antes
+     (script inline vs. defer), así que corta el suyo. */
+  $("tdCartNavBtn").addEventListener("click", function(e){ e.preventDefault(); e.stopImmediatePropagation(); renderCart(); openDrawer($("tdCartDrawer")); });
+  $("tdFavBtn").addEventListener("click", function(e){ e.preventDefault(); e.stopImmediatePropagation(); renderWish(); openDrawer($("tdWishDrawer")); });
   $("tdScrim").addEventListener("click", closeDrawers);
   document.addEventListener("keydown", function(e){ if (e.key === "Escape" && anyDrawerOpen()) closeDrawers(); });
   document.querySelectorAll("[data-dclose]").forEach(function(b){ b.addEventListener("click", closeDrawers); });
