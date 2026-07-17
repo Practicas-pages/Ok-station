@@ -10,6 +10,7 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap">
 <link rel="stylesheet" href="styles.css">
 <link rel="stylesheet" href="assets/shop-header.css?v=20260716a">
+<link rel="stylesheet" href="assets/oki.css?v=20260716d">
 <style>
 /* ══════════════════════════════════════════════════════════════════
    Tienda dinámica (compra rápida) — vista de tabla + pre-carrito.
@@ -988,5 +989,8 @@
 <script src="assets/shop-cart.js?v=20260717a" defer></script>
 <script src="assets/shop-header.js?v=20260716a" defer></script>
 <script src="assets/session-nav.js?v=20260716a" defer></script>
+<!-- OKi (astronauta): se auto-inyecta. Va DESPUÉS de shop-cart.js, que define
+     window.OKtienda (el puente del carrito/deseados compartido que OKi lee). -->
+<script src="assets/oki.js?v=20260716e" defer></script>
 </body>
 </html>
