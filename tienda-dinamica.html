@@ -125,7 +125,9 @@
 .addr b{font-size:.9rem;font-weight:700}
 .addr span{font-size:.82rem;color:var(--muted,#667085)}
 .addr__note{font-style:italic}
-.addr__tag{display:inline-block;margin-left:6px;padding:1px 7px;border-radius:99px;background:var(--brand-blue,#066CFF);color:#fff;font-size:.64rem;font-weight:800;vertical-align:middle}
+/* .addr .addr__tag (no solo .addr__tag): si no, la regla .addr span de arriba —más
+   específica— le gana y el texto sale gris en vez de blanco. */
+.addr .addr__tag{display:inline-block;margin-left:6px;padding:1px 7px;border-radius:99px;background:var(--brand-blue,#066CFF);color:#fff;font-size:.64rem;font-weight:800;vertical-align:middle}
 .addr--new{flex-direction:row;align-items:center;gap:9px;border-style:dashed;justify-content:center;color:var(--brand-blue,#066CFF)}
 .addr--new b{color:var(--brand-blue,#066CFF)}
 .addr__plus{font-size:1.2rem;font-weight:700;line-height:1}
