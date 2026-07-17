@@ -659,19 +659,21 @@
      ¿El centinela del fondo está a la vista (o casi)? → carga la siguiente página. */
   function maybeMore(){
     if (loading || done) return;
-    var scR = $("tdScroll").getBoundingClientRect();
     var seR = $("tdSentinel").getBoundingClientRect();
-    if (seR.top <= scR.bottom + 240) load(false);
+    /* Fondo REALMENTE visible = el menor entre el borde de la caja interna (escritorio,
+       max-height 62vh) y el alto de la ventana (móvil/≤980px, donde la caja crece y quien
+       hace scroll es la PÁGINA). Sin esto, en móvil scR.bottom queda muy abajo y cargaba
+       TODO de golpe en vez de poco a poco. */
+    var visibleBottom = Math.min($("tdScroll").getBoundingClientRect().bottom, window.innerHeight);
+    if (seR.top <= visibleBottom + 240) load(false);
   }
   /* Listener de scroll en vez de IntersectionObserver (el observador con `root` no
      resultó fiable). Se limita con setTimeout y NO con requestAnimationFrame: el rAF
      se congela en pestañas ocultas y el scroll se quedaría mudo al volver. */
   var tick = false;
-  $("tdScroll").addEventListener("scroll", function(){
-    if (tick) return;
-    tick = true;
-    setTimeout(function(){ tick = false; maybeMore(); }, 120);
-  }, { passive: true });
+  function onScroll(){ if (tick) return; tick = true; setTimeout(function(){ tick = false; maybeMore(); }, 120); }
+  $("tdScroll").addEventListener("scroll", onScroll, { passive: true });  // caja interna (escritorio)
+  window.addEventListener("scroll", onScroll, { passive: true });          // la PÁGINA (móvil/≤980px)
   window.addEventListener("resize", maybeMore);
 
   /* ═══ Arrastrar productos al pre-carrito ═══
