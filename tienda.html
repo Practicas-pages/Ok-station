@@ -2020,7 +2020,13 @@ html.q-lock, html.q-lock body{overflow:hidden}
      catálogo #store). Si la URL trae #store —p. ej. al volver del login desde la
      tienda (cuenta.html?next=tienda.html#store)— abre el catálogo directamente en
      vez del landing, para que la navegación entre páginas sea lógica. */
-  function routeHash(){ if(location.hash==="#store"){ showView("store"); } else if(location.hash==="#tienda"){ showView("tienda"); } }
+  /* #cart abre el catálogo Y despliega el carrito: lo usa la tienda dinámica
+     ("compra rápida"), que manda sus productos al carrito real y termina aquí el pago. */
+  function routeHash(){
+    if(location.hash==="#store"){ showView("store"); }
+    else if(location.hash==="#tienda"){ showView("tienda"); }
+    else if(location.hash==="#cart"){ showView("store"); $("app").classList.add("cart-open"); okiEmit("carrito-abierto"); }
+  }
   routeHash();
   window.addEventListener("hashchange", routeHash);
 })();

@@ -9,6 +9,7 @@
 <link rel="icon" href="favicon.ico">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap">
 <link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="assets/shop-header.css?v=20260716a">
 <style>
 /* ══════════════════════════════════════════════════════════════════
    Tienda dinámica (compra rápida) — vista de tabla + pre-carrito.
@@ -17,8 +18,10 @@
    ══════════════════════════════════════════════════════════════════ */
 .td-wrap{max-width:1240px;margin:0 auto;padding:18px 16px 60px}
 
-/* ── Barra superior: buscador + categorías ── */
-.td-top{display:grid;grid-template-columns:1fr auto;gap:14px;align-items:center;margin-bottom:14px}
+/* La navbar sin buscador: el spacer ocupa el hueco central (logo izq, acciones der). */
+.shopbar__spacer{flex:1 1 auto}
+/* ── Barra superior: buscador + categorías + filtros ── */
+.td-top{display:grid;grid-template-columns:1fr auto auto;gap:10px;align-items:center;margin-bottom:14px}
 .td-search{position:relative}
 .td-search input{
   width:100%;height:52px;border-radius:999px;border:1px solid var(--line,#e3e6ee);
@@ -48,6 +51,53 @@
 .td-chip:hover{border-color:var(--brand-blue,#066CFF);color:var(--brand-blue,#066CFF)}
 .td-chip.on{background:var(--grad-brand);border-color:transparent;color:#fff}
 .td-chip .n{opacity:.65;font-weight:500;margin-left:5px;font-size:.78rem}
+/* Botón de Filtros: secundario (contorno), para no competir con Categorías. */
+.td-filtbtn{background:#fff !important;color:var(--ink,#111) !important;border:1.5px solid var(--line,#e3e6ee) !important;box-shadow:0 1px 2px rgba(16,24,40,.04) !important}
+.td-filtbtn:hover{border-color:var(--brand-blue,#066CFF) !important}
+.td-filtbtn .fct{background:var(--brand-blue,#066CFF);color:#fff;border-radius:999px;min-width:20px;height:20px;display:grid;place-items:center;font-size:.72rem;font-weight:800;padding:0 5px}
+/* Panel de filtros (reusa .td-cats como contenedor). */
+.td-fgroup{padding:4px 2px 12px;border-bottom:1px solid var(--line,#eef1f6)}
+.td-fgroup:last-child{border-bottom:0;padding-bottom:2px}
+.td-fgroup h4{margin:0 0 8px;font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.04em;color:var(--muted,#667085)}
+.td-fopt{display:inline-flex;align-items:center;gap:7px;padding:6px 10px;margin:0 6px 6px 0;border:1px solid var(--line,#e3e6ee);border-radius:999px;font-size:.85rem;font-weight:600;cursor:pointer}
+.td-fopt input{accent-color:var(--brand-blue,#066CFF);margin:0}
+.td-fopt:hover{border-color:var(--brand-blue,#066CFF)}
+.td-fopt .n{opacity:.6;font-weight:500;font-size:.78rem}
+/* ── Paneles de carrito / favoritos (cajón derecho, en la página) ── */
+.td-scrim{position:fixed;inset:0;background:rgba(16,24,40,.42);z-index:70}
+.td-drawer{position:fixed;top:0;right:0;height:100%;width:min(380px,92vw);background:#fff;z-index:71;
+  transform:translateX(100%);transition:transform .28s cubic-bezier(.4,0,.2,1);display:flex;flex-direction:column;
+  box-shadow:-14px 0 44px rgba(16,24,40,.22)}
+.td-drawer.open{transform:translateX(0)}
+.td-dh{display:flex;align-items:center;justify-content:space-between;padding:16px 18px;border-bottom:1px solid var(--line,#e3e6ee);font-size:1.05rem}
+.td-dx{width:34px;height:34px;border:0;background:var(--paper,#f4f6fa);border-radius:50%;font-size:1.2rem;line-height:1;cursor:pointer;color:var(--muted,#667085)}
+.td-dx:hover{background:#e9edf5}
+.td-dbody{flex:1 1 auto;overflow-y:auto;padding:12px 14px}
+.td-dfoot{flex:none;border-top:1px solid var(--line,#e3e6ee);padding:14px 16px}
+.td-dempty{text-align:center;color:var(--muted,#667085);font-size:.9rem;padding:40px 12px}
+.td-di{display:grid;grid-template-columns:46px 1fr auto;gap:11px;align-items:center;padding:10px 4px;border-bottom:1px solid #f1f3f8}
+.td-di:last-child{border-bottom:0}
+.td-di .im{width:46px;height:46px;border-radius:8px;background:#f4f6fa center/contain no-repeat;border:1px solid var(--line,#e3e6ee)}
+.td-di .nm{font-size:.86rem;font-weight:600;line-height:1.2}
+.td-di .pu{font-size:.78rem;color:var(--muted,#667085);margin-top:2px}
+.td-di .qty{display:inline-flex;align-items:center;gap:8px;margin-top:5px}
+.td-di .qty button{width:24px;height:24px;border:1px solid var(--line,#e3e6ee);background:#fff;border-radius:6px;cursor:pointer;font-weight:700;line-height:1}
+.td-di .rgt{text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:6px}
+.td-di .lt{font-size:.86rem;font-weight:700}
+.td-di .lnk{border:0;background:none;color:var(--brand-blue,#066CFF);font:inherit;font-size:.78rem;font-weight:600;cursor:pointer;padding:0}
+.td-di .lnk.del{color:#c0342c}
+.td-dtot{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px;font-weight:800}
+.td-dtot .v{font-size:1.15rem}
+.td-dgo{display:block;width:100%;padding:13px;border:0;border-radius:12px;background:var(--grad-brand);color:#fff;font:inherit;font-weight:800;font-size:.95rem;cursor:pointer;text-align:center;text-decoration:none}
+.td-dnote{text-align:center;font-size:.76rem;color:var(--muted,#667085);margin-top:8px}
+/* Checkout dentro del panel de carrito */
+.co-ship{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+.co-ship button{padding:10px 8px;border:1.5px solid var(--line,#e3e6ee);background:#fff;border-radius:10px;font:inherit;font-size:.82rem;font-weight:700;cursor:pointer;color:var(--ink,#111)}
+.co-ship button.on{border-color:var(--brand-blue,#066CFF);background:var(--brand-blue-light,#EAF1FF);color:var(--brand-blue,#066CFF)}
+.co-lbl{display:block;font-size:.78rem;font-weight:700;margin-bottom:5px}
+.co-phone{width:100%;height:44px;border:1.5px solid var(--line,#e3e6ee);border-radius:10px;padding:0 14px;font:inherit;font-size:.95rem;background:#fff;color:var(--ink,#111)}
+.co-phone:focus{outline:none;border-color:var(--brand-blue,#066CFF);box-shadow:0 0 0 3px rgba(6,108,255,.14)}
+.co-msg{color:#c0342c;font-size:.82rem;text-align:center;margin-top:8px;min-height:1em}
 
 /* ── Layout: productos + pre-carrito ── */
 .td-grid{display:grid;grid-template-columns:1fr 330px;gap:18px;align-items:start}
@@ -73,6 +123,11 @@
 .td-row{padding:10px 18px;border-bottom:1px solid #f1f3f8;transition:background .12s}
 .td-row:hover{background:var(--brand-blue-light,#EAF1FF)}
 .td-row:last-child{border-bottom:0}
+/* Arrastrar al pre-carrito: la fila se agarra, y el pre-carrito se resalta al arrastrar. */
+.td-row[draggable="true"]{cursor:grab}
+.td-row.dragging{opacity:.5;cursor:grabbing}
+.td-dragging .td-cart{outline:2px dashed var(--brand-blue,#066CFF);outline-offset:4px;border-radius:18px}
+.td-drop-over .td-cartbox{background:var(--brand-blue-light,#EAF1FF);box-shadow:0 0 0 3px rgba(6,108,255,.18) inset}
 .td-img{width:64px;height:64px;border-radius:10px;background:#f4f6fa center/contain no-repeat;
   border:1px solid var(--line,#e3e6ee);flex:none}
 .td-name{font-weight:600;font-size:.9rem;color:var(--ink,#111);line-height:1.35;
@@ -155,16 +210,49 @@
   .td-img{width:52px;height:52px}
   .td-scroll{max-height:none}
 }
+/* Móvil: el buscador ocupa su fila y los dos botones se reparten la de abajo. */
+@media(max-width:560px){
+  .td-top{grid-template-columns:1fr 1fr;gap:8px}
+  .td-search{grid-column:1 / -1}
+  .td-catbtn{height:46px;padding:0 12px;font-size:.86rem;justify-content:center}
+}
 </style>
 </head>
 <body>
+<!-- Barra del e-commerce: la MISMA de la tienda/ficha (assets/shop-header.css/js).
+     Aquí es de NAVEGACIÓN: buscador que enlaza a fichas, carrito/favoritos del mismo
+     localStorage y categorías que llevan a la tienda con el filtro puesto. -->
+<header class="shopbar">
+  <!-- session-nav.js necesita #acct para arrancar; oculto, solo hospeda el menú de sesión.
+       El chip visible es .tb-cuenta. Nada de class="acct" (su display le gana a [hidden]). -->
+  <div id="acct" style="display:none">
+    <a href="cuenta.html" id="acct-login" aria-label="Iniciar sesión">Cuenta</a>
+  </div>
+  <div class="shopbar__top">
+    <a class="shopbar__logo" href="index.html" aria-label="Ok.station — Ir al inicio"><img src="assets/img/okstation-logo.webp" alt="Ok.station" width="158" height="24"></a>
+    <!-- Sin buscador en la navbar: la compra rápida tiene el suyo propio (#tdQ), que
+         filtra la TABLA en el lugar. El de la navbar navegaba a la tienda (otra cosa). -->
+    <div class="shopbar__spacer" aria-hidden="true"></div>
+    <div class="shopbar__actions">
+      <a class="tb-cuenta" href="cuenta.html?next=tienda.html%23store" aria-label="Cuenta"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span class="tb-name">Cuenta</span></a>
+      <a class="tb-wa" href="https://wa.me/526647194117?text=Hola,%20quiero%20solicitar%20informaci%C3%B3n" target="_blank" rel="noopener" aria-label="WhatsApp" title="WhatsApp"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M.057 24l1.687-6.163a11.867 11.867 0 01-1.587-5.945C.16 5.335 5.495 0 12.05 0a11.82 11.82 0 018.413 3.488 11.82 11.82 0 013.48 8.414c-.003 6.557-5.338 11.892-11.893 11.892a11.9 11.9 0 01-5.688-1.448L.057 24z"/></svg></a>
+      <!-- Favoritos y Carrito: abren un panel EN LA PÁGINA (no navegan a la tienda).
+           El href a la tienda queda como respaldo si el JS no cargó. -->
+      <a class="tb-fav" id="tdFavBtn" href="tienda.html#store" aria-label="Ver favoritos" title="Favoritos"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.8 4.6a5.5 5.5 0 00-7.8 0L12 5.6l-1-1a5.5 5.5 0 00-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 000-7.8z"/></svg><span class="ct" id="sbWishCount" style="display:none">0</span></a>
+      <a class="tb-cart" id="tdCartNavBtn" href="tienda.html#store" aria-label="Ver carrito"><span class="ct" id="sbCartCount">0</span><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.7 13.4a2 2 0 002 1.6h9.7a2 2 0 002-1.6L23 6H6"/></svg><span id="sbCartTotal">$0.00</span></a>
+    </div>
+  </div>
+  <!-- Sin carril de categorías en la navbar: filtrar por categoría se hace DENTRO de la
+       compra rápida (botón "Categorías" de la página). El carril navegaba a la tienda
+       normal, que sacaba al usuario de aquí. "Volver a la tienda" queda en el cuerpo. -->
+</header>
 <main class="td-wrap">
   <a class="td-back" href="tienda.html">
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>
     Volver a la tienda
   </a>
 
-  <!-- Buscador + categorías -->
+  <!-- Buscador + categorías + filtros (todo dentro de la compra rápida) -->
   <div class="td-top">
     <div class="td-search">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
@@ -174,8 +262,14 @@
       Categorías
       <svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M6 9l6 6 6-6"/></svg>
     </button>
+    <button class="td-catbtn td-filtbtn" id="tdFiltBtn" type="button" aria-expanded="false">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="6" x2="20" y2="6"/><line x1="7" y1="12" x2="17" y2="12"/><line x1="10" y1="18" x2="14" y2="18"/></svg>
+      Filtros<span class="fct" id="tdFiltCount" hidden>0</span>
+      <svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M6 9l6 6 6-6"/></svg>
+    </button>
   </div>
   <div class="td-cats" id="tdCats"><div class="row" id="tdCatsRow"></div></div>
+  <div class="td-cats" id="tdFilts"></div>
 
   <div class="td-grid">
     <!-- Productos -->
@@ -196,22 +290,30 @@
       <div class="td-cartbox">
         <h3>Pre-carrito</h3>
         <div class="td-citems" id="tdCItems"></div>
-        <div class="td-ship">
-          <button type="button" data-ship="retiro" class="on">Recoger en Otay</button>
-          <button type="button" data-ship="envio">Envío</button>
-        </div>
-        <div class="td-shipnote" id="tdShipNote"></div>
         <div class="td-total">
-          <div class="lbl">Total</div>
+          <div class="lbl">Subtotal</div>
           <div class="val" id="tdTotal">$0.00</div>
-          <div class="iva" id="tdIva">IVA incluido</div>
+          <div class="iva" id="tdIva">Envío e IVA se calculan al pagar</div>
         </div>
       </div>
-      <button class="td-go" id="tdGo" disabled>Agregar al carrito y pagar</button>
+      <button class="td-go" id="tdGo" disabled>Enviar al carrito</button>
       <div class="td-msg" id="tdMsg"></div>
     </aside>
   </div>
 </main>
+
+<!-- Carrito y Favoritos: paneles EN LA PÁGINA, vinculados al mismo localStorage que la
+     tienda (vía window.OKtienda de shop-cart.js). Ver aquí, sin salir de la compra rápida. -->
+<div class="td-scrim" id="tdScrim" hidden></div>
+<aside class="td-drawer" id="tdCartDrawer" aria-label="Tu carrito" aria-hidden="true">
+  <div class="td-dh"><b>Tu carrito</b><button type="button" class="td-dx" data-dclose aria-label="Cerrar">×</button></div>
+  <div class="td-dbody" id="tdCartBody"></div>
+  <div class="td-dfoot" id="tdCartFoot"></div>
+</aside>
+<aside class="td-drawer" id="tdWishDrawer" aria-label="Tus favoritos" aria-hidden="true">
+  <div class="td-dh"><b>Tus favoritos</b><button type="button" class="td-dx" data-dclose aria-label="Cerrar">×</button></div>
+  <div class="td-dbody" id="tdWishBody"></div>
+</aside>
 
 <script>
 (function(){
@@ -220,10 +322,28 @@
   var PER = 24;                 // productos por página (scroll infinito)
   var page = 1, pages = 1, loading = false, done = false;
   var q = "", cat = "";
+  /* Estado del panel de filtros. fSort="name" es el orden por defecto del API (no se
+     manda mientras esté así). fBrands: marcas elegidas. */
+  var fBrands = [], fSort = "name", fBrandsLoaded = false, fBrandList = [];
   var pre = {};                 // pre-carrito local: { id: {p, qty} }
-  var shipMode = "retiro";
-  var me = null, addr = null;   // perfil y dirección predeterminada
+  /* Checkout DENTRO del panel de carrito: perfil + dirección predeterminada + envío. */
+  var me = null, coAddr = null, coShip = "retiro";
   var SHIP_COST = 99;           // igual que ShopCatalog::SHIP_COST
+  function token(){ try{ return localStorage.getItem("okstation.token") || ""; }catch(e){ return ""; } }
+  function auth(){ var t = token(); return t ? { "Authorization": "Bearer " + t } : {}; }
+  /* Deja solo 10 dígitos (móvil MX). Quita la lada +52 si viene (12 dígitos). */
+  function soloTel(v){ var d = String(v||"").replace(/\D/g,""); if (d.length===12 && d.slice(0,2)==="52") d=d.slice(2); return d.slice(0,10); }
+  function loadMe(){
+    if (!token()) return;
+    fetch("backend/api/me.php", { headers: auth() }).then(function(r){ return r.json(); })
+      .then(function(j){ if (j && j.ok) me = j.user; return fetch("backend/api/shop/addresses.php", { headers: auth() }); })
+      .then(function(r){ return r ? r.json() : null; })
+      .then(function(j){
+        if (j && j.ok && j.addresses && j.addresses.length)
+          coAddr = j.addresses.filter(function(a){ return a.is_default; })[0] || j.addresses[0];
+        if ($("tdCartDrawer").classList.contains("open")) renderCart();   // refresca si ya estaba abierto
+      }).catch(function(){});
+  }
 
   var $ = function(id){ return document.getElementById(id); };
   var mxn = function(n){ return "$" + (Math.round(n*100)/100).toLocaleString("es-MX",{minimumFractionDigits:2,maximumFractionDigits:2}); };
@@ -240,7 +360,9 @@
 
     var u = "backend/api/shop/products.php?per_page="+PER+"&page="+page
           + (q ? "&q="+encodeURIComponent(q) : "")
-          + (cat ? "&category="+encodeURIComponent(cat) : "");
+          + (cat ? "&category="+encodeURIComponent(cat) : "")
+          + (fBrands.length ? "&brand="+encodeURIComponent(fBrands.join(",")) : "")
+          + (fSort !== "name" ? "&sort="+encodeURIComponent(fSort) : "");
 
     fetch(u).then(function(r){ return r.json(); }).then(function(j){
       loading = false;
@@ -265,9 +387,14 @@
     });
   }
 
+  var byId = {};                // índice para resolver el producto al SOLTAR (drop trae solo el id)
+
   function addRow(p){
+    byId[p.id] = p;
     var row = document.createElement("div");
     row.className = "td-row";
+    row.draggable = true;                       // arrastrable al pre-carrito
+    row.dataset.pid = p.id;
     var img = p.image ? '<div class="td-img" style="background-image:url('+encodeURI(p.image)+')"></div>' : '<div class="td-img"></div>';
     var old = p.old ? '<span class="old">'+mxn(p.old)+'</span>' : '';
     row.innerHTML =
@@ -276,6 +403,18 @@
       '<div class="td-price">'+old+mxn(p.price)+'</div>' +
       '<div style="text-align:right"><button class="td-add" data-add="'+p.id+'">+ Agregar</button></div>';
     row.querySelector("[data-add]").addEventListener("click", function(){ addToPre(p); });
+    /* Arrastrar-y-soltar: alternativa al botón (que sigue siendo el camino principal
+       y el único en táctil, donde el drag HTML5 no aplica). */
+    row.addEventListener("dragstart", function(e){
+      e.dataTransfer.setData("text/plain", String(p.id));
+      e.dataTransfer.effectAllowed = "copy";
+      row.classList.add("dragging");
+      document.body.classList.add("td-dragging");   // resalta la zona de drop mientras arrastras
+    });
+    row.addEventListener("dragend", function(){
+      row.classList.remove("dragging");
+      document.body.classList.remove("td-dragging");
+    });
     $("tdRows").appendChild(row);
   }
 
@@ -317,8 +456,8 @@
   function totals(){
     var sub = 0, n = 0;
     for (var id in pre){ sub += pre[id].p.price * pre[id].qty; n += pre[id].qty; }
-    var ship = (shipMode==="envio" && n>0) ? SHIP_COST : 0;
-    return { sub:sub, ship:ship, total:sub+ship, n:n };
+    /* Solo SUBTOTAL: el envío y el IVA por geo se calculan en el checkout de la tienda. */
+    return { sub:sub, total:sub, n:n };
   }
   /* flashId (opcional): id del producto recién agregado → destella para ubicarlo. */
   function renderPre(flashId){
@@ -342,109 +481,46 @@
     }
     var t = totals();
     $("tdTotal").textContent = mxn(t.total);
-    $("tdIva").textContent = t.ship ? "IVA incluido · envío "+mxn(t.ship) : "IVA incluido";
     $("tdGo").disabled = t.n === 0;
-    $("tdGo").textContent = t.n ? ("Agregar al carrito y pagar ("+t.n+")") : "Agregar al carrito y pagar";
+    $("tdGo").textContent = t.n ? ("Enviar al carrito ("+t.n+")") : "Enviar al carrito";
   }
 
-  /* ═══ Entrega ═══ */
-  document.querySelectorAll("[data-ship]").forEach(function(b){
-    b.addEventListener("click", function(){
-      shipMode = b.dataset.ship;
-      document.querySelectorAll("[data-ship]").forEach(function(x){ x.classList.toggle("on", x===b); });
-      shipNote(); renderPre();
-    });
-  });
-  function shipNote(){
-    var el = $("tdShipNote");
-    if (shipMode === "retiro"){ el.textContent = "Gratis · Centro Comercial Otay"; return; }
-    if (!me){ el.textContent = "Inicia sesión para enviar a domicilio"; return; }
-    el.textContent = addr
-      ? "A: " + addr.city + ", " + addr.state
-      : "Agrega una dirección en tu cuenta";
-  }
+  /* La entrega (recoger/envío), el IVA por geo, el teléfono y la dirección se piden en
+     el CHECKOUT de la tienda, no aquí: la compra rápida solo llena el carrito. */
 
-  /* ═══ Perfil + dirección (para crear el pedido sin preguntar) ═══ */
-  /* Misma llave que usa toda la tienda (shopToken() y session-nav.js). */
-  function token(){ try{ return localStorage.getItem("okstation.token") || ""; }catch(e){ return ""; } }
-  function auth(){ var t = token(); return t ? { "Authorization": "Bearer " + t } : {}; }
-
-  function loadMe(){
-    if (!token()) { shipNote(); return; }
-    fetch("backend/api/me.php", { headers: auth() })
-      .then(function(r){ return r.json(); })
-      .then(function(j){ if (j && j.ok) me = j.user; return fetch("backend/api/shop/addresses.php", { headers: auth() }); })
-      .then(function(r){ return r ? r.json() : null; })
-      .then(function(j){
-        if (j && j.ok && j.addresses && j.addresses.length){
-          addr = j.addresses.filter(function(a){ return a.is_default; })[0] || j.addresses[0];
-        }
-        shipNote();
-      })
-      .catch(function(){ shipNote(); });
-  }
-
-  /* ═══ Agregar al carrito → crear pedido → pago.html ═══ */
+  /* ═══ Enviar al carrito → abrir el panel para PAGAR aquí mismo ═══ */
+  /* Fusiona el pre-carrito en el carrito compartido y abre el panel del carrito, donde
+     está el checkout completo (envío, teléfono, pago). Todo sin salir de la compra rápida. */
   $("tdGo").addEventListener("click", function(){
-    var msg = $("tdMsg"); msg.className = "td-msg"; msg.textContent = "";
     var t = totals();
     if (!t.n) return;
-
-    // Sin sesión → a iniciar sesión y regresar aquí.
-    if (!token()){
-      guardaCarrito();
-      location.href = "cuenta.html?next=" + encodeURIComponent("tienda-dinamica.html");
-      return;
-    }
-    var phone = (me && me.phone) || (addr && addr.phone) || "";
-    if (String(phone).replace(/\D/g,"").length < 10){
-      msg.textContent = "Agrega tu teléfono en tu perfil para poder contactarte.";
-      return;
-    }
-    if (shipMode === "envio" && !addr){
-      msg.textContent = "Agrega una dirección de envío en tu cuenta.";
-      return;
-    }
-
-    var items = Object.keys(pre).map(function(id){ return { id:+id, qty:pre[id].qty }; });
-    var body = { items: items, ship_mode: shipMode, contact_phone: phone };
-    if (shipMode === "envio"){
-      body.ship_address = [addr.street, addr.ext_num, addr.int_num, addr.neighborhood, addr.city, addr.state, "CP " + addr.postal_code]
-                            .filter(Boolean).join(", ");
-      body.state = addr.state;   // define el IVA (8% BC / 16% nacional)
-    }
-
-    $("tdGo").disabled = true; $("tdGo").textContent = "Creando tu pedido…";
-    fetch("backend/api/shop/create.php", {
-      method: "POST",
-      headers: Object.assign({ "Content-Type": "application/json" }, auth()),
-      body: JSON.stringify(body)
-    }).then(function(r){ return r.json().then(function(j){ return { s:r.status, j:j }; }); })
-      .then(function(res){
-        if (res.j && res.j.ok && res.j.order){
-          try{ localStorage.removeItem("okstation_cart"); }catch(e){}
-          location.href = "pago.html?shop=" + res.j.order.id;   // ← pago tradicional
-          return;
-        }
-        $("tdGo").disabled = false; renderPre();
-        // 409 = sin stock suficiente (guard de create.php)
-        msg.textContent = (res.j && res.j.error) || "No se pudo crear el pedido.";
-      }).catch(function(){
-        $("tdGo").disabled = false; renderPre();
-        msg.textContent = "Error de conexión. Reintenta.";
-      });
+    var ids = Object.keys(pre);
+    enviarAlCarrito();
+    pre = {}; renderPre();                 // el pre-carrito ya pasó al carrito real
+    /* enviarAlCarrito escribió localStorage directo; OKtienda no se enteró (su listener
+       'storage' solo dispara entre pestañas). Un cambiar(id,0) lo obliga a re-hidratar
+       el carrito desde el API y emitir 'carrito' → el panel se pinta completo. */
+    var o = OK(); if (o && ids.length) o.cambiar(+ids[0], 0);
+    renderCart(); openDrawer($("tdCartDrawer"));
   });
 
-  /* Guarda el pre-carrito en el carrito compartido (mismo formato que la tienda). */
-  function guardaCarrito(){
+  /* Fusiona el pre-carrito en el carrito COMPARTIDO, SUMANDO a lo que ya hubiera y sin
+     pasarse del stock. NO sobrescribe: si el cliente ya tenía cosas en el carrito de la
+     tienda, se conservan. */
+  function enviarAlCarrito(){
     try{
-      var s = {}; for (var id in pre) s[id] = pre[id].qty;
-      localStorage.setItem("okstation_cart", JSON.stringify(s));
+      var c = JSON.parse(localStorage.getItem("okstation_cart") || "{}") || {};
+      for (var id in pre){
+        var cur = parseInt(c[id], 10) || 0;
+        c[id] = Math.min(pre[id].p.stock, cur + pre[id].qty);
+      }
+      localStorage.setItem("okstation_cart", JSON.stringify(c));
     }catch(e){}
   }
 
   /* ═══ Categorías ═══ */
   $("tdCatBtn").addEventListener("click", function(){
+    $("tdFilts").classList.remove("open"); $("tdFiltBtn").classList.remove("on"); $("tdFiltBtn").setAttribute("aria-expanded","false");
     var open = $("tdCats").classList.toggle("open");
     $("tdCatBtn").classList.toggle("on", open);
     $("tdCatBtn").setAttribute("aria-expanded", open ? "true" : "false");
@@ -460,10 +536,58 @@
       b.addEventListener("click", function(){
         cat = b.dataset.cat;
         row.querySelectorAll("[data-cat]").forEach(function(x){ x.classList.toggle("on", x===b); });
+        fBrandsLoaded = false;   // las marcas se acotan a la categoría → recargar al reabrir filtros
         load(true);
       });
     });
   }).catch(function(){});
+
+  /* ═══ Filtros (marca + orden), dentro de la compra rápida ═══
+     Filtra en el SERVIDOR (ver load): el catálogo se pagina, así que filtrar en el
+     navegador solo miraría la página cargada. Aplica al instante, como las categorías. */
+  var TD_SORTS = [["name","Nombre (A-Z)"],["price_asc","Precio: menor a mayor"],["price_desc","Precio: mayor a menor"],["newest","Más nuevos"]];
+  function filtCount(){
+    var n = fBrands.length + (fSort !== "name" ? 1 : 0);
+    var el = $("tdFiltCount"); el.textContent = n; el.hidden = n === 0;
+    $("tdFiltBtn").classList.toggle("on", $("tdFilts").classList.contains("open"));
+  }
+  function filtRender(){
+    var orden = TD_SORTS.map(function(s){
+      return '<label class="td-fopt"><input type="radio" name="tdsort" value="'+s[0]+'"'+(fSort===s[0]?" checked":"")+'>'+esc(s[1])+'</label>';
+    }).join("");
+    var marcas = fBrandsLoaded
+      ? (fBrandList.length
+          ? fBrandList.map(function(b){
+              return '<label class="td-fopt"><input type="checkbox" class="tdbrand" value="'+esc(b.name)+'"'+(fBrands.indexOf(b.name)>=0?" checked":"")+'>'+esc(b.name)+'<span class="n">'+b.count+'</span></label>';
+            }).join("")
+          : '<span class="n" style="color:var(--muted)">No hay marcas en esta categoría.</span>')
+      : '<span class="n" style="color:var(--muted)">Cargando marcas…</span>';
+    $("tdFilts").innerHTML =
+      '<div class="td-fgroup"><h4>Ordenar por</h4>'+orden+'</div>'+
+      '<div class="td-fgroup"><h4>Marca</h4>'+marcas+'</div>';
+  }
+  function filtOpen(){
+    $("tdCats").classList.remove("open"); $("tdCatBtn").classList.remove("on"); $("tdCatBtn").setAttribute("aria-expanded","false");
+    var open = $("tdFilts").classList.toggle("open");
+    $("tdFiltBtn").classList.toggle("on", open);
+    $("tdFiltBtn").setAttribute("aria-expanded", open ? "true" : "false");
+    if (!open) return;
+    filtRender();
+    if (fBrandsLoaded) return;
+    var url = "backend/api/shop/brands.php" + (cat ? "?category="+encodeURIComponent(cat) : "");
+    fetch(url).then(function(r){ return r.json(); }).then(function(j){
+      if (j && j.ok){ fBrandList = j.brands || []; fBrandsLoaded = true; filtRender(); }
+    }).catch(function(e){ console.error("Filtros (marcas):", e); });
+  }
+  $("tdFiltBtn").addEventListener("click", filtOpen);
+  /* Aplica al instante: cambiar orden o marca recarga la tabla. */
+  $("tdFilts").addEventListener("change", function(e){
+    if (e.target.name === "tdsort") fSort = e.target.value;
+    else if (e.target.classList.contains("tdbrand")){
+      fBrands = [].slice.call($("tdFilts").querySelectorAll(".tdbrand:checked")).map(function(c){ return c.value; });
+    } else return;
+    filtCount(); load(true);
+  });
 
   /* ═══ Buscador (con retardo para no pegarle a la API en cada tecla) ═══ */
   var tmr = null;
@@ -491,10 +615,184 @@
   }, { passive: true });
   window.addEventListener("resize", maybeMore);
 
+  /* ═══ Arrastrar productos al pre-carrito ═══
+     El botón "+ Agregar" sigue siendo el camino principal (y el único en táctil).
+     El drop reusa addToPre(), así que respeta el tope de stock y la animación. */
+  (function(){
+    var zone = document.querySelector(".td-cart");
+    if (!zone) return;
+    function allow(e){ e.preventDefault(); e.dataTransfer.dropEffect = "copy"; zone.classList.add("td-drop-over"); }
+    zone.addEventListener("dragenter", allow);
+    zone.addEventListener("dragover", allow);
+    zone.addEventListener("dragleave", function(e){
+      /* Solo apaga el resalte al salir de la zona de verdad (no al pasar sobre un hijo). */
+      if (!zone.contains(e.relatedTarget)) zone.classList.remove("td-drop-over");
+    });
+    zone.addEventListener("drop", function(e){
+      e.preventDefault();
+      zone.classList.remove("td-drop-over");
+      var id = e.dataTransfer.getData("text/plain");
+      var p = byId[id];
+      if (p) addToPre(p);
+    });
+  })();
+
+  /* ═══ Carrito y Favoritos: paneles EN LA PÁGINA ═══
+     Leen y mutan el MISMO localStorage que la tienda, vía window.OKtienda (shop-cart.js).
+     Los contadores de la navbar ya los mantiene shop-header.js. Aquí solo pintamos el
+     detalle y actuamos (cambiar cantidad, quitar, agregar a carrito). Para PAGAR se va al
+     carrito de la tienda (ahí vive el checkout: sesión, dirección, IVA y pasarela). */
+  function OK(){ return window.OKtienda || null; }   // shop-cart.js lo define (carga con defer)
+  function anyDrawerOpen(){ return $("tdCartDrawer").classList.contains("open") || $("tdWishDrawer").classList.contains("open"); }
+  function closeDrawers(){
+    $("tdCartDrawer").classList.remove("open"); $("tdCartDrawer").setAttribute("aria-hidden","true");
+    $("tdWishDrawer").classList.remove("open"); $("tdWishDrawer").setAttribute("aria-hidden","true");
+    $("tdScrim").hidden = true;
+    document.body.style.overflow = "";
+  }
+  function openDrawer(el){
+    closeDrawers();
+    $("tdScrim").hidden = false;
+    el.classList.add("open"); el.setAttribute("aria-hidden","false");
+    document.body.style.overflow = "hidden";
+  }
+
+  function cartRow(it){
+    var img = it.image ? '<span class="im" style="background-image:url('+encodeURI(it.image)+')"></span>' : '<span class="im"></span>';
+    return '<div class="td-di" data-id="'+it.id+'">'+img+
+      '<div><div class="nm">'+esc(it.name)+'</div><div class="pu">'+mxn(it.price)+' c/u</div>'+
+        '<div class="qty"><button data-cd="'+it.id+'" aria-label="Quitar uno">−</button><span>'+it.qty+'</span><button data-ci="'+it.id+'" aria-label="Agregar uno">+</button></div></div>'+
+      '<div class="rgt"><div class="lt">'+mxn(it.price*it.qty)+'</div><button class="lnk del" data-crm="'+it.id+'">Quitar</button></div></div>';
+  }
+  function renderCart(){
+    var o = OK(), items = o ? o.carrito() : [];
+    if (!items.length){ $("tdCartBody").innerHTML = '<div class="td-dempty">Tu carrito está vacío.<br>Agrega productos y dale <b>Enviar al carrito</b>.</div>'; $("tdCartFoot").innerHTML = ""; return; }
+    $("tdCartBody").innerHTML = items.map(cartRow).join("");
+
+    /* ── Pie = CHECKOUT completo (se paga aquí, sin salir de la compra rápida) ── */
+    var sub = o.total();
+    if (!token()){
+      $("tdCartFoot").innerHTML =
+        '<div class="td-dtot"><span>Subtotal</span><span class="v">'+mxn(sub)+'</span></div>'+
+        '<button type="button" class="td-dgo" data-cologin>Inicia sesión para pagar</button>'+
+        '<div class="td-dnote">Necesitas una cuenta para pagar en línea.</div>';
+      return;
+    }
+    var envio = coShip === "envio";
+    var ship  = envio ? SHIP_COST : 0;
+    var phone = soloTel((me && me.phone) || "");
+    var addrOk = !envio || !!coAddr;
+    var addrHtml = envio
+      ? (coAddr
+          ? '<div class="td-dnote" style="text-align:left;margin:0 0 10px"><b>Enviar a:</b> '+esc(coAddr.label || (coAddr.city+", "+coAddr.state))+'</div>'
+          : '<div class="td-dnote" style="text-align:left;margin:0 0 10px;color:#c0342c">Agrega una dirección en <a href="perfil.html">tu cuenta</a> para envío.</div>')
+      : '<div class="td-dnote" style="text-align:left;margin:0 0 10px">Recoges en OK.station · Centro Comercial Otay</div>';
+
+    $("tdCartFoot").innerHTML =
+      '<div class="co-ship">'+
+        '<button type="button" data-coship="retiro" class="'+(envio?'':'on')+'">Recoger · Gratis</button>'+
+        '<button type="button" data-coship="envio" class="'+(envio?'on':'')+'">Envío · '+mxn(SHIP_COST)+'</button>'+
+      '</div>'+
+      addrHtml+
+      '<label class="co-lbl" for="coPhone">WhatsApp para avisarte</label>'+
+      '<input class="co-phone" id="coPhone" inputmode="numeric" maxlength="10" autocomplete="tel-national" placeholder="6640000000" value="'+esc(phone)+'">'+
+      '<div class="td-dtot" style="margin-top:12px"><span>Total'+(envio?' (+ envío)':'')+'</span><span class="v">'+mxn(sub+ship)+'</span></div>'+
+      '<button type="button" class="td-dgo" id="coPay"'+(addrOk?'':' disabled')+'>Pagar '+mxn(sub+ship)+'</button>'+
+      '<div class="td-dnote">IVA incluido · pago seguro con Mercado Pago</div>'+
+      '<div class="co-msg" id="coMsg"></div>';
+  }
+
+  /* Crea el pedido desde el carrito COMPARTIDO y va a pago.html (misma pasarela que la
+     tienda). El servidor recalcula precios, IVA por geo y stock: no confía en el cliente. */
+  function doCheckout(){
+    var o = OK(); if (!o) return;
+    var msg = $("coMsg"); if (msg){ msg.textContent = ""; }
+    function bad(m){ if (msg){ msg.textContent = m; } }
+    var phone = soloTel($("coPhone") && $("coPhone").value);
+    if (phone.length !== 10) return bad("Ingresa un WhatsApp válido (10 dígitos).");
+    var envio = coShip === "envio";
+    if (envio && !coAddr) return bad("Agrega una dirección de envío en tu cuenta.");
+    var items = o.carrito().map(function(it){ return { id: it.id, qty: it.qty }; });
+    if (!items.length) return bad("Tu carrito está vacío.");
+    var body = { items: items, ship_mode: coShip, contact_phone: phone };
+    if (envio){
+      body.ship_address = [coAddr.street, coAddr.ext_num, coAddr.int_num, coAddr.neighborhood, coAddr.city, coAddr.state, "CP " + coAddr.postal_code].filter(Boolean).join(", ");
+      body.state = coAddr.state;   // define el IVA (8% BC / 16% nacional)
+    }
+    var btn = $("coPay"); if (btn){ btn.disabled = true; btn.textContent = "Procesando…"; }
+    fetch("backend/api/shop/create.php", { method:"POST", headers: Object.assign({ "Content-Type":"application/json" }, auth()), body: JSON.stringify(body) })
+      .then(function(r){ return r.json(); })
+      .then(function(j){
+        if (j && j.ok && j.order){
+          try{ localStorage.removeItem("okstation_cart"); }catch(e){}
+          location.href = "pago.html?shop=" + j.order.id;
+          return;
+        }
+        if (btn){ btn.disabled = false; }
+        bad((j && j.error) || "No se pudo crear el pedido."); renderCart();
+      }).catch(function(){ if (btn){ btn.disabled = false; } bad("Error de conexión. Reintenta."); });
+  }
+  function wishRow(it){
+    var img = it.image ? '<span class="im" style="background-image:url('+encodeURI(it.image)+')"></span>' : '<span class="im"></span>';
+    return '<div class="td-di" data-id="'+it.id+'">'+img+
+      '<div><div class="nm">'+esc(it.name)+'</div><div class="pu">'+mxn(it.price)+'</div></div>'+
+      '<div class="rgt"><button class="lnk" data-wadd="'+it.id+'">Agregar</button><button class="lnk del" data-wrm="'+it.id+'">Quitar</button></div></div>';
+  }
+  function renderWish(){
+    var o = OK(), items = o ? o.deseados() : [];
+    $("tdWishBody").innerHTML = items.length
+      ? items.map(wishRow).join("")
+      : '<div class="td-dempty">No tienes favoritos todavía.<br>Marca el ❤ en un producto desde la tienda.</div>';
+  }
+
+  $("tdCartNavBtn").addEventListener("click", function(e){ e.preventDefault(); renderCart(); openDrawer($("tdCartDrawer")); });
+  $("tdFavBtn").addEventListener("click", function(e){ e.preventDefault(); renderWish(); openDrawer($("tdWishDrawer")); });
+  $("tdScrim").addEventListener("click", closeDrawers);
+  document.addEventListener("keydown", function(e){ if (e.key === "Escape" && anyDrawerOpen()) closeDrawers(); });
+  document.querySelectorAll("[data-dclose]").forEach(function(b){ b.addEventListener("click", closeDrawers); });
+
+  /* Acciones dentro de los paneles (delegadas: el contenido se vuelve a pintar). */
+  $("tdCartDrawer").addEventListener("click", function(e){
+    /* Checkout: login / cambiar envío / pagar (no requieren OKtienda para el ítem). */
+    if (e.target.closest("[data-cologin]")){ location.href = "cuenta.html?next=" + encodeURIComponent("tienda-dinamica.html"); return; }
+    var sh = e.target.closest("[data-coship]"); if (sh){ coShip = sh.dataset.coship; renderCart(); return; }
+    if (e.target.closest("#coPay")){ doCheckout(); return; }
+    /* Ítems del carrito: +/− y quitar. */
+    var o = OK(); if (!o) return;
+    var t = e.target.closest("[data-ci],[data-cd],[data-crm]"); if (!t) return;
+    if (t.hasAttribute("data-ci")) o.cambiar(+t.dataset.ci, 1);
+    else if (t.hasAttribute("data-cd")) o.cambiar(+t.dataset.cd, -1);
+    else if (t.hasAttribute("data-crm")) o.quitar(+t.dataset.crm);
+    renderCart();   // re-pinta YA: el localStorage se actualiza en el acto (no esperar al evento)
+  });
+  /* Teléfono: solo 10 dígitos mientras se escribe (delegado; el pie se re-pinta). */
+  $("tdCartDrawer").addEventListener("input", function(e){
+    if (e.target.id !== "coPhone") return;
+    var limpio = soloTel(e.target.value);
+    if (e.target.value !== limpio) e.target.value = limpio;
+  });
+  $("tdWishDrawer").addEventListener("click", function(e){
+    var o = OK(); if (!o) return;
+    var t = e.target.closest("[data-wadd],[data-wrm]"); if (!t) return;
+    if (t.hasAttribute("data-wadd")) o.agregar(+t.dataset.wadd, 1);   // pasa de favorito a carrito
+    else if (t.hasAttribute("data-wrm")) o.toggleDeseado(+t.dataset.wrm);
+    /* Re-pinta YA. Clave: agregar() saca el item de favoritos pero solo emite el evento
+       'carrito', NO 'deseados' → sin esto el panel mostraría un favorito fantasma y
+       "Quitar" volvería a agregarlo. */
+    renderWish();
+  });
+  /* OKtienda avisa cuando cambia el carrito/deseados (misma pestaña) → re-pintar si el
+     panel está abierto. shop-header ya actualiza los contadores por su cuenta. */
+  window.addEventListener("oktienda:carrito", function(){ if ($("tdCartDrawer").classList.contains("open")) renderCart(); });
+  window.addEventListener("oktienda:deseados", function(){ if ($("tdWishDrawer").classList.contains("open")) renderWish(); });
+
   /* ═══ Arranque ═══ */
-  renderPre(); shipNote(); loadMe(); load(true);
+  renderPre(); load(true); loadMe();
 })();
 </script>
+<!-- Barra del e-commerce: puente del carrito (shop-cart) + comportamiento (shop-header). -->
+<script src="assets/shop-cart.js?v=20260717a" defer></script>
+<script src="assets/shop-header.js?v=20260716a" defer></script>
 <script src="assets/session-nav.js?v=20260716a" defer></script>
 </body>
 </html>
