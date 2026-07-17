@@ -171,7 +171,7 @@ $ldCrumbs = [
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" media="print" onload="this.media='all'">
   <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap"></noscript>
   <link rel="stylesheet" href="/styles.css?v=20260716b">
-  <link rel="stylesheet" href="/assets/shop-header.css?v=20260717a">
+  <link rel="stylesheet" href="/assets/shop-header.css?v=20260717c">
   <link rel="stylesheet" href="/assets/producto.css?v=20260716b">
   <link rel="stylesheet" href="/assets/oki.css?v=20260716d">
   <?php if ($images): ?><link rel="preload" as="image" href="<?= e($images[0]) ?>" fetchpriority="high"><?php endif; ?>

@@ -83,8 +83,13 @@
 .shopbar .tb-cart svg { width: 19px; height: 19px; }
 .shopbar .tb-cart .ct, .shopbar .tb-fav .ct { position: absolute; top: -6px; right: -4px; background: var(--sb-amber); color: #fff; border-radius: 99px; font-size: .66rem; font-weight: 800; min-width: 20px; height: 20px; display: grid; place-items: center; padding: 0 5px; border: 2px solid var(--sb-blue); }
 
-/* Menú de cuenta (lo arma session-nav) */
-.shopbar .tb-acctmenu { position: absolute; top: calc(100% + 10px); right: 0; min-width: 232px; background: #fff; border: 1px solid var(--sb-line); border-radius: 14px; box-shadow: 0 20px 54px rgba(12,20,50,.30); padding: 6px; z-index: 80; }
+/* Menú de cuenta (lo arma session-nav). session-nav ancla el menú a .shopbar__actions
+   (todo el grupo de chips), no al chip. Con right:0 se pegaba al borde DERECHO del grupo
+   (bajo el carrito), viéndose "abierto de lado". El chip de cuenta es el PRIMERO del
+   grupo, así que left:0 lo deja justo DEBAJO del chip (como en el home). */
+.shopbar .tb-acctmenu { position: absolute; top: calc(100% + 10px); left: 0; right: auto; min-width: 232px; background: #fff; border: 1px solid var(--sb-line); border-radius: 14px; box-shadow: 0 20px 54px rgba(12,20,50,.30); padding: 6px; z-index: 80; }
+/* En móvil, anclar a la derecha para que un menú de 232px no se salga de la pantalla. */
+@media (max-width: 640px) { .shopbar .tb-acctmenu { left: auto; right: 0; } }
 .shopbar .tb-acctmenu[hidden] { display: none; }
 .shopbar .tb-accthead { padding: 10px 12px 9px; border-bottom: 1px solid var(--sb-line); margin-bottom: 4px; }
 .shopbar .tb-accthead b { display: block; font-size: .9rem; color: var(--sb-ink); }
