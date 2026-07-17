@@ -171,7 +171,7 @@ $ldCrumbs = [
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" media="print" onload="this.media='all'">
   <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap"></noscript>
   <link rel="stylesheet" href="/styles.css?v=20260716b">
-  <link rel="stylesheet" href="/assets/shop-header.css?v=20260716a">
+  <link rel="stylesheet" href="/assets/shop-header.css?v=20260717d">
   <link rel="stylesheet" href="/assets/producto.css?v=20260716b">
   <link rel="stylesheet" href="/assets/oki.css?v=20260716d">
   <?php if ($images): ?><link rel="preload" as="image" href="<?= e($images[0]) ?>" fetchpriority="high"><?php endif; ?>
@@ -212,7 +212,7 @@ $ldCrumbs = [
   </div>
 
   <div class="shopbar__cats" id="sbCats">
-    <a class="shopbar__back" href="/"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>Volver al sitio</a>
+    <a class="shopbar__back" href="/tienda#store"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>Volver a la tienda</a>
     <span class="shopbar__catlabel">Categorías</span>
     <nav class="shopbar__rail" id="sbRail" aria-label="Categorías de la tienda"></nav>
     <div class="shopbar__railnavs">
@@ -389,7 +389,11 @@ $ldCrumbs = [
 
 <script>
   /* Datos del producto para el carrito del NAVEGADOR (mismo localStorage que la
-     tienda) y para que OKi sepa de qué producto estás preguntando. */
+     tienda) y para que OKi sepa de qué producto estás preguntando.
+     JSON_HEX_TAG/AMP/APOS/QUOT: blinda el script inline por si un nombre del catálogo
+     (Exel/Icecat) trae la cadena de cierre de etiqueta u otros caracteres que lo
+     romperían. (OJO: NO escribir esa cadena literal ni en los comentarios: el parser
+     de HTML cerraría el script ahí mismo — fue justo el bug que rompió esta página.) */
   window.OK_PDP = <?= json_encode([
       'id'    => (int) $row['id'],
       'name'  => $name,
@@ -402,18 +406,18 @@ $ldCrumbs = [
       'sub'   => $sub,
       'sku'   => $sku,
       'url'   => $canonPath,
-  ], JSON_UNESCAPED_UNICODE) ?>;
+  ], JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
   /* Los relacionados de ESTA ficha, para que el puente del carrito (shop-cart.js) los
      conozca sin pedirlos de nuevo, y OKi pueda recomendarlos con datos reales. */
   window.OK_PDP_RELATED = <?= json_encode(array_map(function ($r) {
       return ['id' => $r['id'], 'name' => $r['name'], 'price' => $r['price'], 'old' => $r['old'],
               'stock' => $r['stock'], 'image' => $r['image'], 'brand' => $r['brand'], 'url' => $r['url']];
-  }, $related), JSON_UNESCAPED_UNICODE) ?>;
+  }, $related), JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
 </script>
 <!-- shop-cart.js va ANTES de oki.js: define window.OKtienda (el puente del carrito con
      datos REALES) para que OKi muestre la MISMA lista que el e-commerce, no el respaldo. -->
-<script src="/assets/shop-cart.js?v=20260717a" defer></script>
-<script src="/assets/shop-header.js?v=20260716a" defer></script>
+<script src="/assets/shop-cart.js?v=20260717c" defer></script>
+<script src="/assets/shop-header.js?v=20260717c" defer></script>
 <script src="/assets/producto.js?v=20260716b" defer></script>
 <script src="/assets/session-nav.js?v=20260717a" defer></script>
 <script src="/assets/catalogo.js?v=20260716a" defer></script>

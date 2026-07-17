@@ -1,6 +1,7 @@
 <?php
 require __DIR__ . '/_bootstrap.php';
 require __DIR__ . '/lib/Mailer.php';
+require __DIR__ . '/lib/RateLimit.php';
 only_method('POST');
 
 $b     = body();
@@ -10,6 +11,15 @@ $email = strtolower(field($b, 'email'));
 $generic = ['ok' => true, 'message' => 'Si el correo está registrado, te enviaremos un enlace para restablecer tu contraseña.'];
 
 if (!valid_email($email)) respond($generic);
+
+/* Límite: máx. 5 solicitudes cada 15 min por (IP + correo). El abuso aquí es el ENVÍO
+   (spam al buzón de la víctima y gasto de la cuota de correo), así que se cuenta CADA
+   solicitud, no solo las fallidas. El prefijo 'forgot:' separa este contador del de login
+   para el mismo correo. Como se limita por (ip,correo) del atacante, no filtra si el
+   correo existe. */
+$ip = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
+RateLimit::guard($ip, 'forgot:' . $email);
+RateLimit::hit($ip, 'forgot:' . $email);
 
 $st = db()->prepare('SELECT id FROM users WHERE email = ?');
 $st->execute([$email]);

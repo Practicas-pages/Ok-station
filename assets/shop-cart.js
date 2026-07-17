@@ -47,9 +47,25 @@
     fetch("/backend/api/shop/products.php?per_page=100&page=1&ids=" + need.join(","))
       .then(function (r) { return r.json(); })
       .then(function (j) {
-        if (j && j.ok && j.items) j.items.forEach(function (p) {
-          seed({ id: p.id, name: p.name, price: p.price, old: p.old, stock: p.stock, image: p.image, brand: p.brand, cat: p.category, url: "/producto/" + p.id });
-        });
+        if (j && j.ok && Array.isArray(j.items)) {
+          var got = {};
+          j.items.forEach(function (p) {
+            got[+p.id] = 1;
+            seed({ id: p.id, name: p.name, price: p.price, old: p.old, stock: p.stock, image: p.image, brand: p.brand, cat: p.category, url: "/producto/" + p.id });
+          });
+          /* Poda de fantasmas: si el API RESPONDIÓ ok y un id que pedimos NO volvió, ese
+             producto ya no está activo (lo dio de baja el sync de Exel) o no existe. Se
+             saca del carrito/deseados para que el contador no lo cuente eternamente ni se
+             re-pida en cada cambio. Solo se poda con respuesta OK (un fallo de red no
+             borra items válidos). */
+          var c = rd(CART, {}), w = rd(WISH, []), changed = false;
+          need.forEach(function (id) {
+            if (got[id]) return;
+            if (c[id] != null) { delete c[id]; changed = true; }
+            var wi = w.indexOf(id); if (wi >= 0) { w.splice(wi, 1); changed = true; }
+          });
+          if (changed) { wr(CART, c); wr(WISH, w); }
+        }
         if (done) done(true);
       }).catch(function () { if (done) done(false); });
   }
@@ -80,8 +96,10 @@
     agregar: function (id, qty) {
       id = +id; var n = Math.max(1, parseInt(qty, 10) || 1), c = rd(CART, {}), p = prod(id), cap = p ? p.stock : 99;
       c[id] = Math.min(cap, (+c[id] || 0) + n); wr(CART, c);
-      var w = rd(WISH, []), wi = w.indexOf(id); if (wi >= 0) { w.splice(wi, 1); wr(WISH, w); }   // se gradúa a carrito
+      var w = rd(WISH, []), wi = w.indexOf(id), graduo = wi >= 0;
+      if (graduo) { w.splice(wi, 1); wr(WISH, w); }   // se gradúa a carrito y sale de favoritos
       refresh();
+      if (graduo) emit("deseados");                   // avisa que la lista de favoritos cambió
     },
     cambiar: function (id, d) {
       id = +id; var c = rd(CART, {}); c[id] = (+c[id] || 0) + (+d || 0);
@@ -92,7 +110,9 @@
     toggleDeseado: function (id) { id = +id; var w = rd(WISH, []), i = w.indexOf(id); if (i >= 0) w.splice(i, 1); else w.push(id); wr(WISH, w); refresh(); emit("deseados"); },
     /* Fuera de la tienda no hay vista previa ni panel: se navega a la página real. */
     verProducto: function (id) { var p = prod(id); window.location.href = p && p.url ? p.url : ("/producto/" + id); },
-    abrirCarrito: function () { window.location.href = "/tienda#store"; },
+    // #cart: la tienda abre el carrito al llegar (igual que "Finalizar compra" del panel).
+    // Antes iba a #store y OKi aterrizaba en el grid con el carrito cerrado.
+    abrirCarrito: function () { window.location.href = "/tienda#cart"; },
     abrirDeseados: function () { window.location.href = "/tienda#store"; },
     entrarTienda: function () { window.location.href = "/tienda#store"; },
     entrega: "recoger_en_tienda"

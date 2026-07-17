@@ -130,8 +130,32 @@ function require_auth(): array {
 function valid_email(string $e): bool {
     return (bool) filter_var($e, FILTER_VALIDATE_EMAIL);
 }
+/* Política de contraseñas alineada a NIST SP 800-63B (lo que pide la especificación
+   de seguridad, V6.1/V6.2):
+   - Entre 8 y 64 caracteres; se permite CUALQUIER carácter (Unicode, espacios).
+   - NADA de reglas de "complejidad" (exigir mayúscula/número): están PROHIBIDAS porque
+     empujan a claves predecibles ("Juan2024"). Una passphrase larga es más fuerte.
+   - Se rechaza contra una lista negra de contraseñas comunes/filtradas. */
 function valid_password(string $p): bool {
-    return strlen($p) >= 8 && preg_match('/[A-Za-z]/', $p) && preg_match('/\d/', $p);
+    $len = mb_strlen($p);
+    if ($len < 8 || $len > 64) return false;
+    return !password_is_common($p);
+}
+
+/** ¿La contraseña está en la lista negra de contraseñas comunes/filtradas? */
+function password_is_common(string $p): bool {
+    static $set = null;
+    if ($set === null) {
+        $set = [];
+        $f = __DIR__ . '/lib/common-passwords.txt';
+        if (is_file($f)) {
+            foreach (file($f, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) as $line) {
+                $line = trim($line);
+                if ($line !== '' && $line[0] !== '#') $set[mb_strtolower($line)] = true;
+            }
+        }
+    }
+    return isset($set[mb_strtolower(trim($p))]);
 }
 /** Devuelve el usuario público (sin hash) por id, con sus roles. */
 function user_public(int $id): ?array {
