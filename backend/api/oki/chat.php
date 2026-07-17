@@ -18,6 +18,23 @@ require __DIR__ . '/../_bootstrap.php';
 require __DIR__ . '/brain.php';
 only_method('POST');
 
+/* ¿La pregunta pide OPINIÓN/CONSEJO/COMPATIBILIDAD? Entonces mejor que la conteste la IA
+   (respuesta útil y a la medida) y no una regla enlatada. Recibe el texto ya normalizado
+   (sin acentos, minúsculas). La navegación se resuelve ANTES, así que esto no rompe los
+   "llévame a…". */
+function oki_is_advice(string $t): bool
+{
+    // Límite SOLO al inicio (no al final) para que "recomiendas", "conviene", etc. peguen con
+    // sus sufijos. Las frases son distintivas, así que no hace falta el límite final.
+    return (bool) preg_match(
+        '/\b(?:me conviene|conviene mas|recomiend|cual es mejor|cual me convien|sirve para|'
+        . 'funciona (?:con|para|en)|es compatible|compatible con|vale la pena|diferencia entre|'
+        . 'que opinas|opinas|crees que|es bueno|me sirve|deberia (?:usar|comprar|elegir)|'
+        . 'cual elijo|cual escojo|cual compro|que tan bueno|ayuda(?:ra|ria)? (?:para|con)|mejor opcion)/u',
+        $t
+    );
+}
+
 /* ── Límite de uso por IP (archivo, sin tocar la BD) — anti-spam ── */
 function oki_rate_limit(string $ip): void
 {
@@ -106,6 +123,11 @@ if ($nav !== null) {
 
 /* ── 4) Cerebro por reglas ── */
 $reply = oki_brain_reply($text, $prev);
+
+/* Si la pregunta es de CONSEJO/opinión (compatibilidad, recomendación, "¿me conviene…?"),
+   deja que la IA la conteste de verdad en vez de una regla enlatada. La navegación (paso 3)
+   ya se resolvió, así que esto no rompe los "llévame a…". */
+if ($reply !== null && oki_is_advice(oki_norm($text))) $reply = null;
 
 /* ── 5) Respaldo con IA GRATIS (Gemini) — solo si las reglas no reconocieron ──
    Mantiene la navegación y los datos del negocio en reglas (rápido y determinista);

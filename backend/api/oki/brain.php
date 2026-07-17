@@ -59,7 +59,7 @@ function oki_intents(): array
          'a'=>"Recorte en guillotina ✂️\n\$2 por hoja, corte recto y preciso. Cortamos hojas, tarjetas, volantes, separadores y folletos, desde unas cuantas hasta alto volumen por millar."],
 
         ['kw'=>['papeleria','toner','tóner','cartucho','oficina','mayoreo','pluma','cuaderno','libreta'],
-         'a'=>"Papelería para oficinas ✏️\nManejamos consumibles (tóner, cartuchos) y artículos de escritorio, con opción de mayoreo. No tenemos lista fija: escríbenos por ".OKI_WA_TXT." con lo que necesitas y te cotizamos. Puedes ir armando tu lista con el botón 📝 aquí."],
+         'a'=>"Papelería ✏️\nSí manejamos papelería: tinta y tóner, papel, carpetas y archivo, adhesivos, engrapado, calculadoras y más, con precios en línea. Míralo en la tienda (o dime \"llévame a la tienda\" y te llevo 🚀). Para pedidos por mayoreo, escríbenos por ".OKI_WA_TXT."."],
 
         // ── Trámites / citas ──
         ['need'=>['pasaporte'],
