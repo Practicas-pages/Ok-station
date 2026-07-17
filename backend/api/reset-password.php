@@ -8,7 +8,7 @@ $next  = (string) ($b['new_password'] ?? '');
 $next2 = (string) ($b['new_password_confirm'] ?? '');
 
 if ($token === '')           fail('Enlace inválido.');
-if (!valid_password($next))  fail('La contraseña debe tener mínimo 8 caracteres, con letras y números.');
+if (!valid_password($next))  fail('La contraseña debe tener entre 8 y 64 caracteres y no ser una contraseña común (como "12345678" o "password").');
 if ($next !== $next2)        fail('Las contraseñas no coinciden.');
 
 $tokenHash = hash('sha256', $token);
