@@ -4,6 +4,14 @@ Oscar: hice una auditoría de SEO del proyecto y subí varios arreglos a `desarr
 **Dos de ellos tocan terreno tuyo**, así que los dejo explicados aquí antes de que
 pasen a `main`. Si algo no te late, se revierte sin drama (ninguno rompe nada hoy).
 
+> **Queda en tus manos, como tú prefieras:**
+> - **Lo aplicas tú** — está todo listo para copiar y pegar (son 2 líneas, ~10 segundos).
+> - **O nos dices y lo aplicamos** — igual de bien.
+> - **O dices que no** y se revierte, sin problema.
+>
+> Lo importante es que no te bloquea nada: mientras no se toque el `.htaccess`, el
+> sitio sigue exactamente igual que ahora.
+
 ---
 
 ## ⚠️ 1. Activar las páginas de categoría — faltan 2 líneas en `.htaccess`
@@ -13,8 +21,8 @@ a propósito, para que lo revisaras primero. Hoy se prueba así:
 
     /categoria.php?slug=consumibles
 
-**Si lo apruebas**, con estas 2 líneas queda en `/categoria/consumibles`. Van junto a
-tu regla de producto (son su espejo):
+**Con estas 2 líneas queda en `/categoria/consumibles`.** Van junto a tu regla de
+producto (son su espejo), listas para copiar y pegar:
 
 ```apache
 # Categoria: /categoria/tinta-y-toner -> categoria.php?slug=tinta-y-toner
@@ -106,6 +114,13 @@ Lo mismo con el **bloqueo del 3%** en el precio: no lo encontré implementado en
 está viejo, se cobra el anterior.
 
 ---
+
+## 📌 En resumen: qué queda de tu lado
+
+| Pendiente | Qué hacer | Si no haces nada |
+|---|---|---|
+| Páginas de categoría | Pegar 2 líneas en `.htaccess` (o decir que no) | El sitio sigue igual; la página queda dormida en `/categoria.php?slug=…` |
+| Arreglo del slug (`07e275e`) | Solo revisarlo cuando fusiones a `main` | Ya está en `desarrollo`; ninguna URL actual cambió |
 
 *Cualquier cosa que no te cuadre, se revierte. Nada de esto cambió URLs existentes ni
 tocó la base de datos.*
