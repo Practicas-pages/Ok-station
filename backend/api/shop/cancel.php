@@ -17,7 +17,32 @@ if (!in_array($o['status'], ['recibido'], true)) {
     fail('Este pedido ya está en preparación y no se puede cancelar. Escríbenos por WhatsApp.');
 }
 
-ShopOrder::update($id, ['status' => 'cancelado']);
+/* Devolver las existencias al catálogo. shop/create.php las descuenta al crear la
+   compra, así que cancelarla sin devolverlas iría dejando productos "agotados" que
+   en realidad sí hay. El sync nocturno lo corregiría, pero mientras tanto se dejan
+   de vender cosas que están disponibles.
+
+   Se hace ANTES de marcar cancelado y en una transacción con el cambio de estado:
+   si algo falla, no queda ni el stock devuelto sin cancelar ni al revés. Las
+   comprobaciones de arriba garantizan que sólo se llega aquí una vez por compra
+   (después queda en 'cancelado' y ya no pasa el filtro de estado). */
+$pdo = db();
+$pdo->beginTransaction();
+try {
+    $dev = $pdo->prepare('UPDATE products SET stock = stock + ? WHERE id = ?');
+    foreach (ShopOrder::items($id) as $it) {
+        $pid = (int) ($it['product_id'] ?? 0);
+        $qty = (int) ($it['qty'] ?? 0);
+        if ($pid > 0 && $qty > 0) $dev->execute([$qty, $pid]);
+    }
+    ShopOrder::update($id, ['status' => 'cancelado']);
+    $pdo->commit();
+} catch (Throwable $e) {
+    if ($pdo->inTransaction()) $pdo->rollBack();
+    error_log('[shop.cancel] ' . $e->getMessage());
+    fail('No se pudo cancelar el pedido. Inténtalo de nuevo.', 500);
+}
+
 log_activity((int) $user['id'], 'shop.cancel', 'shop_orders', $id);
 
 respond(['ok' => true]);
