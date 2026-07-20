@@ -1025,7 +1025,9 @@ body.td-predrag .td-trash{display:flex}
     if (phone.length !== 10) return bad("Ingresa un WhatsApp válido (10 dígitos).");
     var envio = coShip === "envio";
     if (envio && !coAddr) return bad("Agrega una dirección de envío en tu cuenta.");
-    var items = o.carrito().map(function(it){ return { id: it.id, qty: it.qty }; });
+    /* seen_unit = precio de LISTA que el carrito mostró; el servidor bloquea si el
+       vigente difiere >3% (deriva por sync de Exel) y manda los precios nuevos. */
+    var items = o.carrito().map(function(it){ return { id: it.id, qty: it.qty, seen_unit: +it.price || 0 }; });
     if (!items.length) return bad("Tu carrito está vacío.");
     var body = { items: items, ship_mode: coShip, contact_phone: phone };
     if (envio){
@@ -1042,6 +1044,14 @@ body.td-predrag .td-trash{display:flex}
           return;
         }
         if (btn){ btn.disabled = false; }
+        if (j && j.price_changed){
+          /* Los precios de esta página viven en la caché de shop-cart.js: la forma
+             honesta de repintar TODO con los vigentes es recargar. El mensaje se
+             muestra primero para que el cliente sepa por qué. */
+          bad((j.error) || "Los precios cambiaron; el carrito se va a actualizar.");
+          setTimeout(function(){ location.reload(); }, 2600);
+          return;
+        }
         bad((j && j.error) || "No se pudo crear el pedido."); renderCart();
       }).catch(function(){ if (btn){ btn.disabled = false; } bad("Error de conexión. Reintenta."); });
   }

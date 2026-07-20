@@ -95,7 +95,7 @@ que estaban anotados ya los cerró el equipo:
 | Vender dos veces la misma pieza | ✅ descuenta existencias al comprar (commit `2bc08ad`) |
 | Inyección SQL | ✅ nada obvio: PDO con prepared statements en todo lo revisado |
 | CSP / cabeceras | ✅ en `.htaccess` (Apache) y `nginx-seguridad.conf` (producción) |
-| **Bloqueo >3% de cambio de precio en checkout** | 🔴 **ÚNICO pendiente serio.** `verificar-precios.php` audita, pero `create.php` no bloquea: si el sync está viejo y Exel subió el precio, se cobra el precio anterior (pérdida directa). Acordado en la junta del 14-jul. Dueño: equipo/Oscar |
+| **Bloqueo >3% de cambio de precio en checkout** | ✅ **HECHO (2026-07-20, pendiente de revisión de Oscar).** El carrito manda `seen_unit` (precio de lista visto); si el vigente difiere >3% (`PRECIO_DERIVA_MAX` en create.php), 409 `price_changed` con los precios nuevos y el carrito se repinta. Retrocompatible: sin `seen_unit` funciona como antes. Probado: 409 con precio viejo, 201 con correcto, 201 sin seen_unit, 201 con deriva 2.96% |
 
 ## 7. Datos estructurados y metadatos
 
@@ -118,7 +118,7 @@ que estaban anotados ya los cerró el equipo:
 
 | # | Qué | Dueño | Esfuerzo |
 |---|---|---|---|
-| 1 | 🔴 Bloqueo >3% de precio en `create.php` | Oscar/equipo | medio — es LA brecha de negocio |
+| 1 | ~~Bloqueo >3% de precio en `create.php`~~ | ✅ **HECHO** (create.php + ambos carritos; Oscar: revisar antes de main) | — |
 | 2 | 🔴 Subir las imágenes pendientes (lista abajo) | sixseven | solo subirlas, ya está todo conectado |
 | 3 | ~~2 líneas para `/categoria/…`~~ | ✅ **HECHO por Oscar** (Nginx `2663124`; espejo Apache en `.htaccess`) | — |
 | 4 | 🟡 `defer` en catalogo.js (confirmar repintado) | Oscar | 1 palabra |
