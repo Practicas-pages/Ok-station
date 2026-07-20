@@ -16,8 +16,16 @@
  *   EXEL_API_KEY=...                                  (obligatorio salvo con --file)
  *   EXEL_WAREHOUSE=4                                  (opcional; default 4)
  *   DATABASE_* (las mismas que usa el resto del backend)
+ *
+ * Solo CLI: hace un UPSERT masivo sobre `products` y pega a la API de Exel.
+ * Por HTTP quedaría expuesto (el vhost no bloquea backend/tools/).
  */
 declare(strict_types=1);
+
+if (PHP_SAPI !== 'cli') {
+    http_response_code(403);
+    exit("Solo CLI.\n");
+}
 
 /* ── Filtro de papelería: lista blanca por categoria_nombre de Exel ──
    Decisión de negocio (junta 2026-07-14): "Papelería + impresión".

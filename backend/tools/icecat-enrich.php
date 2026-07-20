@@ -15,8 +15,16 @@
  * Idempotente y reanudable: solo toca los que faltan. Pensado para un systemd
  * timer nocturno (referencia: Compustar corre a las 02:15).
  * Requiere: ICECAT_USERNAME (y opcional ICECAT_API_TOKEN) en backend/.env.
+ *
+ * Solo CLI: quema cuota de Icecat y escribe en la base. Por HTTP quedaría
+ * expuesto (el vhost no bloquea backend/tools/).
  */
 declare(strict_types=1);
+
+if (PHP_SAPI !== 'cli') {
+    http_response_code(403);
+    exit("Solo CLI.\n");
+}
 
 require __DIR__ . '/../api/lib/env.php';
 load_env(__DIR__ . '/../.env');
