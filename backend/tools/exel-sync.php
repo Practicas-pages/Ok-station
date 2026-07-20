@@ -107,7 +107,15 @@ foreach ($raw as $p) {
     if (!isset($censo[$k])) $censo[$k] = ['n' => 0, 'pasa' => $pasa, 'subs' => []];
     $censo[$k]['n']++;
     $sub = trim((string) ($p['subcategoria_nombre'] ?? ''));
-    if ($sub !== '') $censo[$k]['subs'][$sub] = ($censo[$k]['subs'][$sub] ?? 0) + 1;
+    if ($sub !== '') {
+        $censo[$k]['subs'][$sub] = ($censo[$k]['subs'][$sub] ?? 0) + 1;
+        /* Ejemplos de nombre: hay subcategorías cuyo nombre no dice qué son
+           ("Marcas", "Resinas", "Ribbon"). Sin ver un producto real no se puede
+           decidir si son papelería. */
+        if (count($censo[$k]['ej'][$sub] ?? []) < 3) {
+            $censo[$k]['ej'][$sub][] = mb_strimwidth(trim((string) ($p['nombre'] ?? '')), 0, 64, '…');
+        }
+    }
 
     if (!$pasa) { $descartados++; continue; }
 
@@ -161,6 +169,7 @@ if ($dryRun || !$rows) {
             echo "\n  " . $nombre . "  (" . $c['n'] . " productos, " . count($c['subs']) . " subcategorías)\n";
             foreach ($c['subs'] as $s => $n) {
                 echo sprintf("      %6d  %s\n", $n, $s);
+                foreach (($c['ej'][$s] ?? []) as $ej) echo "                · " . $ej . "\n";
             }
         }
         echo "\n  Total de subcategorías a revisar: " .
