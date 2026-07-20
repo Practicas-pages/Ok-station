@@ -1107,6 +1107,13 @@ html.q-lock, html.q-lock body{overflow:hidden}
     /* Producto de la BD con foto real (Icecat/Exel) → la mostramos; si no, el emoji. */
     if(p.image) return '<div class="ph pimg has-img '+(cls||'')+'"><img class="pimg-img" src="'+encodeURI(p.image)+'" alt="" loading="lazy"></div>';
     return '<div class="ph pimg '+(cls||'')+'" style="background:'+(p.grad||'var(--grad-blue)')+'"><span class="pemoji">'+(p.emoji||'📦')+'</span></div>';}
+  /* Foto para la tarjeta de una categoria: toma la de un producto REAL de esa categoria
+     (las que ya bajo Icecat) y reusa pimg(). Si esa categoria aun no tiene ninguna foto,
+     cae en la caja gris de siempre: nunca se rompe ni se inventa una imagen. */
+  function catImg(catId){
+    var conFoto=P.filter(function(x){return x.cat===catId && x.image;});
+    return conFoto.length ? pimg(conFoto[0]) : ph();
+  }
   var BOLT='<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M13 2L4 14h6l-1 8 9-12h-6l1-8z"/></svg>';
 
   // Cambio de vista
@@ -1198,7 +1205,7 @@ html.q-lock, html.q-lock body{overflow:hidden}
      no existen y "Ver en tienda" tronaba). Se repintan al cargar el catálogo. */
   function renderLandCats(){
     var list=CATS.filter(function(c){return c.id!=="all";}).slice(0,6);
-    $("landCats").innerHTML=list.map(function(c){return '<button class="ctile" data-cat="'+okEsc(c.id)+'" data-go-store>'+ph()+'<b>'+okEsc(c.name)+'</b><span>Ver productos →</span></button>';}).join("");
+    $("landCats").innerHTML=list.map(function(c){return '<button class="ctile" data-cat="'+okEsc(c.id)+'" data-go-store>'+catImg(c.id)+'<b>'+okEsc(c.name)+'</b><span>Ver productos →</span></button>';}).join("");
   }
   function renderLandFeat(){
     /* Destacados: primero las ofertas, luego lo demás; siempre con existencia. */
