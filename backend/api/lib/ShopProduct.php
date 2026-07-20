@@ -34,13 +34,22 @@ final class ShopProduct
         return $p ?: null;
     }
 
-    /** Imágenes del producto: la principal primero. Prefiere la copia local descargada. */
+    /** Tope de fotos que se muestran por producto (galería de la ficha y vista previa). */
+    const MAX_IMAGENES = 5;
+
+    /**
+     * Imágenes del producto: la principal primero. Prefiere la copia local descargada.
+     * Se topan en MAX_IMAGENES: es lo que cabe en la galería, y algunos productos de
+     * Exel traen muchas más de las que tiene sentido cargar (cada una es una petición
+     * al CDN del proveedor).
+     */
     public static function images(PDO $pdo, int $productId): array
     {
         $st = $pdo->prepare(
             "SELECT COALESCE(stored_path, url) AS src
                FROM product_images WHERE product_id = ?
-              ORDER BY is_primary DESC, sort_order ASC, id ASC"
+              ORDER BY is_primary DESC, sort_order ASC, id ASC
+              LIMIT " . self::MAX_IMAGENES
         );
         $st->execute([$productId]);
         return array_values(array_filter(array_column($st->fetchAll(), 'src')));

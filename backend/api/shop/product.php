@@ -45,10 +45,13 @@ if (!$p) fail('Producto no encontrado.', 404);
    importa para vender; la ficha y las fotos llegan esa misma noche. */
 
 /* ── Imágenes (principal primero; copia local si ya se descargó, si no la URL origen) ── */
+/* Mismo tope que la ficha completa (ShopProduct::MAX_IMAGENES): la galería muestra
+   hasta 5 fotos, y algunos productos de Exel traen más de las que tiene sentido cargar. */
 $sti = db()->prepare(
     "SELECT COALESCE(stored_path, url) AS src
        FROM product_images WHERE product_id = ?
-      ORDER BY is_primary DESC, sort_order ASC, id ASC"
+      ORDER BY is_primary DESC, sort_order ASC, id ASC
+      LIMIT " . ShopProduct::MAX_IMAGENES
 );
 $sti->execute([(int) $p['id']]);
 $images = array_values(array_filter(array_column($sti->fetchAll(), 'src')));
