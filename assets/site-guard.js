@@ -34,6 +34,20 @@
     /* true = modo mantenimiento activo | false = sitio público */
     MAINTENANCE_MODE: false,
 
+    /* Mantenimiento SOLO DE LA TIENDA (el resto del sitio sigue público:
+       citas, impresión, fotos, trámites, cuenta…).
+       true  = quien entre a la tienda ve maintenance.html
+       false = tienda abierta
+       Se intercepta la ENTRADA a las páginas y NO los botones: hay 9 variantes de
+       enlace repartidas en 12 archivos (incluidos JS compartidos), y así queda
+       cubierto también quien llegue por enlace directo, favorito o Google.
+       Admin/empleado/directivo con sesión SIGUEN entrando (ver ADMIN_ROLES). */
+    TIENDA_MANTENIMIENTO: true,
+
+    /* Rutas que cuentan como "tienda" para TIENDA_MANTENIMIENTO.
+       Cubre la tienda, la compra rápida y las fichas (/producto/49-slug). */
+    TIENDA_PATHS: ['/tienda', '/tienda-dinamica', '/producto'],
+
     /* Claves del JWT en localStorage.
        JWT_KEY  = la que usa maintenance.html (gate de mantenimiento).
        JWT_KEY_APP = la que usa el login principal (auth.js → 'okstation.token').
@@ -57,11 +71,26 @@
     BYPASS_PATHS: ['/assets/', '/api/', '/recuperar.html', '/restablecer.html'],
   };
 
-  /* Salir inmediatamente si no estamos en modo mantenimiento */
-  if (!GUARD.MAINTENANCE_MODE) { return; }
+  var currentPath = window.location.pathname;
+
+  /* ¿La URL actual es de la TIENDA? (tienda, compra rápida o ficha de producto).
+     Se compara por prefijo para cubrir /tienda, /tienda.html, /tienda#store y
+     /producto/49-slug por igual. */
+  function esRutaDeTienda(path) {
+    for (var t = 0; t < GUARD.TIENDA_PATHS.length; t++) {
+      if (path.indexOf(GUARD.TIENDA_PATHS[t]) === 0) { return true; }
+    }
+    return false;
+  }
+
+  /* Decide si esta carga debe pasar por el gate:
+       - MAINTENANCE_MODE     → todo el sitio
+       - TIENDA_MANTENIMIENTO → solo las rutas de tienda
+     Si ninguno aplica, el guard no hace nada (sitio público como siempre). */
+  var gatear = GUARD.MAINTENANCE_MODE || (GUARD.TIENDA_MANTENIMIENTO && esRutaDeTienda(currentPath));
+  if (!gatear) { return; }
 
   /* No aplicar en la propia pantalla de mantenimiento */
-  var currentPath = window.location.pathname;
   if (currentPath === '/maintenance.html' || currentPath === '/maintenance') {
     return;
   }
@@ -123,10 +152,27 @@
   /* ── Verificar si el rol tiene acceso ── */
   function hasAccess(role) {
     if (!role) { return false; }
-    var r = role.toLowerCase();
+    var r = String(role).toLowerCase();
     return GUARD.ADMIN_ROLES.some(function (allowed) {
       return allowed === r;
     });
+  }
+
+  /* ── Roles desde 'okstation.user' (respaldo del JWT) ──
+     El JWT de este backend NO lleva el rol en su payload (solo sub/email/name),
+     así que extractRole() devolvía null y el propio admin quedaba fuera. El login
+     sí guarda el usuario con sus roles en localStorage —la misma fuente que usa
+     session-nav.js—, así que se consulta de ahí.
+     Es un gate de "aún no abrimos", no un control de acceso: lo que de verdad
+     protege el admin es la autorización del servidor (authz.php). */
+  function rolesDelUsuarioGuardado() {
+    try {
+      var u = JSON.parse(localStorage.getItem('okstation.user') || 'null');
+      return (u && Array.isArray(u.roles)) ? u.roles : [];
+    } catch (_) { return []; }
+  }
+  function tieneAccesoPorUsuarioGuardado() {
+    return rolesDelUsuarioGuardado().some(hasAccess);
   }
 
   /* ── Acceso ya validado por maintenance.html ──
@@ -162,7 +208,9 @@
 
   var role = extractRole(payload);
 
-  if (!hasAccess(role)) {
+  /* El rol puede venir en el JWT o —en este backend, que no lo incluye— en el
+     usuario guardado por el login. Basta con que UNA de las dos lo autorice. */
+  if (!hasAccess(role) && !tieneAccesoPorUsuarioGuardado()) {
     /* Rol sin acceso (cliente): redirigir a mantenimiento */
     window.location.replace(GUARD.MAINTENANCE_URL);
     return;

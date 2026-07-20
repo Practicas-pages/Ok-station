@@ -1156,8 +1156,16 @@
       /* Rutas directas */
       if (obj.role)  return obj.role;
       if (obj.rol)   return obj.rol;
-      /* Array de roles → primer elemento */
-      if (Array.isArray(obj.roles) && obj.roles.length) return obj.roles[0];
+      /* Array de roles → el primero CON ACCESO, no el primero a secas.
+         El backend entrega ["cliente","administrador"]: quedarse con roles[0]
+         leía "cliente" y dejaba fuera al propio administrador. */
+      if (Array.isArray(obj.roles) && obj.roles.length) {
+        for (var i = 0; i < obj.roles.length; i++) {
+          var cand = String(obj.roles[i] || '').toLowerCase().trim();
+          if (CONFIG.ACCESS_ROLES.indexOf(cand) !== -1) return obj.roles[i];
+        }
+        return obj.roles[0];   // ninguno con acceso: se devuelve el primero (para el mensaje)
+      }
       /* Anidado en .user */
       if (obj.user)  return extractRole(obj.user);
       /* Anidado en .data */
@@ -1434,12 +1442,26 @@
        REDIRECT AL SITIO REAL
        ────────────────────────────────────────────────────────── */
     function redirectToSite() {
-      /* Durante el mantenimiento el único destino válido es home.html.
-         index.html reenvía a maintenance.html, así que NO debemos volver
-         a la URL de origen (oks_intended) porque provocaría un bucle. */
-      try { sessionStorage.removeItem('oks_intended'); } catch (_) {}
+      /* Vuelve a DONDE QUERÍA IR el usuario (p. ej. la tienda, si llegó aquí por un
+         botón de la tienda). Antes se descartaba siempre por miedo a un bucle, cuando
+         el mantenimiento era de TODO el sitio y el inicio también rebotaba aquí.
+         Ya no aplica: site-guard respeta 'oks_site_access' y deja pasar en cualquier
+         página una vez concedido el acceso.
+         Se exige MISMO origen y que no sea la propia pantalla de mantenimiento
+         (anti open-redirect y anti bucle). Si algo no cuadra, al inicio. */
+      var destino = CONFIG.SITE_URL;
+      try {
+        var intended = sessionStorage.getItem('oks_intended');
+        sessionStorage.removeItem('oks_intended');
+        if (intended) {
+          var u = new URL(intended, window.location.href);
+          if (u.origin === window.location.origin && u.pathname.indexOf('/maintenance') !== 0) {
+            destino = u.href;
+          }
+        }
+      } catch (_) {}
 
-      window.location.href = CONFIG.SITE_URL;
+      window.location.href = destino;
     }
 
     /* ──────────────────────────────────────────────────────────
