@@ -3,14 +3,16 @@
  *  Detalle PÚBLICO de un producto. Solo activos. No expone costo/margen ni datos
  *  internos del proveedor.
  *
- *  Enriquecimiento PEREZOSO con Icecat: la 1a vista de un producto sin enriquecer
- *  baja de Icecat la ficha técnica e imágenes (complementa a Exel) y las CACHEA en
- *  la BD; las siguientes vistas salen al instante (no se llama a Icecat en cada
- *  visita). Así se muestra "la info del proveedor + la de Icecat" sin costo por vista.
+ *  Lo consume la VISTA PREVIA de la tienda (el panel que abre al tocar un producto),
+ *  así que tiene que devolver exactamente lo mismo que la ficha completa
+ *  (/producto/<id>-<slug>): si no, el cliente ve dos versiones distintas del mismo
+ *  producto según por dónde entre.
  */
 require __DIR__ . '/../_bootstrap.php';
-/* Icecat.php y ProductEnricher.php ya NO se cargan aquí: el enriquecimiento pasó al
-   runner nocturno (ver más abajo). Cargarlas era trabajo muerto en cada petición. */
+/* Este backend NO tiene autoloader: cada entrada requiere sus clases a mano.
+   ShopProduct es quien decide la ficha técnica (Icecat si la hay, si no una básica
+   con los datos de Exel), y se usa aquí para no tener dos criterios distintos. */
+require __DIR__ . '/../lib/ShopProduct.php';
 only_method('GET');
 
 $id  = (int) ($_GET['id'] ?? 0);
@@ -51,9 +53,15 @@ $sti = db()->prepare(
 $sti->execute([(int) $p['id']]);
 $images = array_values(array_filter(array_column($sti->fetchAll(), 'src')));
 
-/* ── Ficha técnica: specs_json puede venir como {source,specs:[...]} o como lista ── */
-$specs = !empty($p['specs_json']) ? json_decode((string) $p['specs_json'], true) : null;
-if (is_array($specs) && isset($specs['specs'])) $specs = $specs['specs'];
+/* ── Ficha técnica ──
+   Se delega en ShopProduct::specs(), la MISMA que usa la ficha completa: devuelve la
+   de Icecat si existe y, si no, una básica armada con lo que manda Exel (marca, tipo,
+   categoría, clave, código de barras, clave SAT).
+
+   Antes esto leía `specs_json` por su cuenta, y como Exel no manda especificaciones
+   técnicas en ningún campo, la vista previa salía SIN ficha en casi todos los
+   productos mientras la página del producto sí la mostraba. */
+$specs = ShopProduct::specs($p);
 
 respond(['ok' => true, 'product' => [
     'id'          => (int) $p['id'],
