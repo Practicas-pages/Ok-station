@@ -100,10 +100,41 @@ try {
     foreach ($resolved as $r) {
         $ins->execute([$shopId, $r['id'], $r['sku'], $r['name'], $r['unit'], $r['qty'], $r['line']]);
     }
+
+    /* ── Descuento de existencias, ATÓMICO y dentro de esta misma transacción ──
+       La validación de más arriba mira el stock que había cuando se armó el carrito.
+       Entre ese momento y éste, otro cliente pudo llevarse la última pieza: sin este
+       paso los dos pagaban y solo uno podía recibirla.
+
+       Lo que de verdad evita la doble venta es la condición `stock >= ?` DENTRO del
+       UPDATE: la base resuelve quién llega primero. Si ya no alcanza, no toca ninguna
+       fila, se levanta el error y la compra entera se deshace (no queda un pedido a
+       medias ni un cobro sin respaldo).
+
+       El stock es el del almacén 4 de Exel y el sync nocturno lo vuelve a fijar con el
+       número del proveedor; esto cubre la ventana entre syncs, que es justo donde dos
+       clientes se pisan. */
+    $dec = $pdo->prepare('UPDATE products SET stock = stock - ? WHERE id = ? AND stock >= ?');
+    $agotados = [];
+    foreach ($resolved as $r) {
+        $dec->execute([$r['qty'], $r['id'], $r['qty']]);
+        if ($dec->rowCount() === 0) $agotados[] = $r['name'];
+    }
+    if ($agotados) throw new RuntimeException('SIN_STOCK:' . implode(', ', $agotados));
+
     $pdo->prepare('UPDATE shop_orders SET code=? WHERE id=?')->execute([$code, $shopId]);
     $pdo->commit();
 } catch (Throwable $e) {
     if ($pdo->inTransaction()) $pdo->rollBack();
+    /* Se distingue "se acabó mientras comprabas" de un error de verdad: al cliente hay
+       que decirle qué pasó y qué hacer, no un 500 opaco. */
+    if (strncmp($e->getMessage(), 'SIN_STOCK:', 10) === 0) {
+        $nombres = substr($e->getMessage(), 10);
+        fail('Alguien se adelantó y ya no hay suficiente de: ' . $nombres
+             . '. Ajusta las cantidades de tu carrito y vuelve a intentar.', 409,
+             ['out_of_stock' => array_map('trim', explode(',', $nombres))]);
+    }
+    error_log('[shop.create] ' . $e->getMessage());
     fail('No se pudo crear el pedido.', 500);
 }
 
