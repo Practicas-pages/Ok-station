@@ -9,8 +9,8 @@
  *  visita). Así se muestra "la info del proveedor + la de Icecat" sin costo por vista.
  */
 require __DIR__ . '/../_bootstrap.php';
-require __DIR__ . '/../lib/Icecat.php';
-require __DIR__ . '/../lib/ProductEnricher.php';
+/* Icecat.php y ProductEnricher.php ya NO se cargan aquí: el enriquecimiento pasó al
+   runner nocturno (ver más abajo). Cargarlas era trabajo muerto en cada petición. */
 only_method('GET');
 
 $id  = (int) ($_GET['id'] ?? 0);
@@ -30,12 +30,17 @@ function shop_load_product(int $id, string $sku, string $ref): ?array
 $p = shop_load_product($id, $sku, $ref);
 if (!$p) fail('Producto no encontrado.', 404);
 
-/* ── Enriquecimiento perezoso (primera vista) ── */
-if ($p['enriched_at'] === null && Icecat::available()) {
-    ProductEnricher::enrich(db(), (int) $p['id']);
-    $reload = shop_load_product((int) $p['id'], '', '');
-    if ($reload) $p = $reload;
-}
+/* ── El enriquecimiento de Icecat NO se hace aquí, a propósito ──
+   Antes se enriquecía en la primera vista de cada producto. Con el catálogo real
+   (~5500 productos) eso significaba que el primer cliente en abrir cada ficha
+   pagaba una llamada SÍNCRONA a Icecat: hasta 8 s de espera (Icecat::HTTP_TIMEOUT)
+   más 5 s de conexión, sin límite de tasa y en una página pública. Un rastreo de
+   Google recorriendo el catálogo ocupaba todos los workers de PHP-FPM.
+
+   Quien enriquece es el runner nocturno `backend/tools/icecat-enrich.php`, que hace
+   lo mismo por lotes y sin nadie esperando. Mientras un producto no esté enriquecido
+   se muestra con lo que mandó Exel (nombre, marca, precio, stock), que es lo que
+   importa para vender; la ficha y las fotos llegan esa misma noche. */
 
 /* ── Imágenes (principal primero; copia local si ya se descargó, si no la URL origen) ── */
 $sti = db()->prepare(

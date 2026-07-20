@@ -58,7 +58,12 @@ if (!Icecat::available()) {
     exit(1);
 }
 
-$limit = max(1, min(5000, (int) ($argv[1] ?? 200)));
+/* Tope por corrida. Sube de 200 a 1000 porque el catálogo real de Exel son ~5500
+   productos: a 200 por noche tardaría cuatro semanas en vestirse, y como el
+   enriquecimiento en vivo se quitó de las páginas públicas (ocupaba workers de
+   PHP-FPM hasta 8 s por producto), este runner es el ÚNICO que trae fichas e
+   imágenes. A 1000 por noche el catálogo queda completo en menos de una semana. */
+$limit = max(1, min(5000, (int) ($argv[1] ?? 1000)));
 
 $d = $CONFIG['db'];
 try {

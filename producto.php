@@ -34,8 +34,8 @@ function db(): PDO {
 }
 /* Este backend NO tiene autoloader: cada entrada requiere sus clases a mano. */
 require __DIR__ . '/backend/api/lib/ShopProduct.php';
-require __DIR__ . '/backend/api/lib/Icecat.php';
-require __DIR__ . '/backend/api/lib/ProductEnricher.php';
+/* Icecat.php y ProductEnricher.php ya NO se cargan aquí: el enriquecimiento pasó al
+   runner nocturno (ver más abajo). Cargarlas era trabajo muerto en cada vista. */
 
 /** Manda un 404 de verdad (para Google) con la página de error del sitio. */
 function producto_404(): void {
@@ -52,14 +52,12 @@ try { $row = ShopProduct::findRow(db(), $id); }
 catch (Throwable $e) { http_response_code(503); exit('La tienda no está disponible en este momento.'); }
 if (!$row) producto_404();
 
-/* Enriquecimiento PEREZOSO: la primera visita a un producto sin ficha la baja de
-   Icecat y la deja cacheada en la BD; las siguientes ya salen al instante. */
-if ($row['enriched_at'] === null && Icecat::available()) {
-    try {
-        ProductEnricher::enrich(db(), (int) $row['id']);
-        $row = ShopProduct::findRow(db(), (int) $row['id']) ?: $row;
-    } catch (Throwable $e) { /* si Icecat falla, se muestra lo que hay de Exel */ }
-}
+/* El enriquecimiento de Icecat NO se hace aquí, a propósito. Antes esta página bajaba
+   la ficha en la PRIMERA visita de cada producto, de forma síncrona: hasta 8 s de
+   espera (Icecat::HTTP_TIMEOUT) más 5 s de conexión, en la página pública que Google
+   rastrea. Con ~5500 productos eso deja el sitio inservible durante un rastreo.
+   Lo hace el runner nocturno `backend/tools/icecat-enrich.php`. Hasta entonces la
+   ficha se arma con lo de Exel, que es lo que hace falta para vender. */
 
 /* URL canónica: si llegaron con un slug viejo o sin él, se manda un 301 al bueno.
    Sin esto, la misma ficha viviría en muchas URLs y Google reparte el peso entre
