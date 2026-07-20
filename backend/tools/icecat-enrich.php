@@ -77,11 +77,27 @@ try {
     exit(1);
 }
 
-/* Pendientes: activos, sin enriquecer, con algo con qué buscar (barcode o marca+sku). */
+/* Pendientes: activos, sin enriquecer, con algo con qué buscar (barcode o marca+sku)
+   y —lo importante— SIN foto del proveedor.
+
+   Las imágenes de Exel mandan: son la foto del producto que de verdad se vende. Icecat
+   solo rellena los huecos. Sin este filtro, el runner gastaría miles de llamadas
+   consultando productos que ya tienen su foto, y tardaría noches en llegar a los que
+   sí la necesitan.
+
+   Nota: los que YA tienen foto de Exel pero no descripción se quedan fuera de esta
+   pasada a propósito. Exel solo manda descripción en el 22% de su catálogo; cuando
+   quieras rellenar esas fichas, corre el runner con --con-foto. */
+$soloSinFoto = !in_array('--con-foto', array_slice($argv, 1), true);
+$filtroFoto  = $soloSinFoto
+    ? "AND NOT EXISTS (SELECT 1 FROM product_images i WHERE i.product_id = products.id)"
+    : "";
+
 $rows = $pdo->prepare(
     "SELECT id, barcode, brand, sku FROM products
       WHERE is_active = 1 AND enriched_at IS NULL
         AND (CHAR_LENGTH(COALESCE(barcode,'')) >= 8 OR (COALESCE(brand,'') <> '' AND COALESCE(sku,'') <> ''))
+        {$filtroFoto}
       ORDER BY id ASC LIMIT {$limit}"
 );
 $rows->execute();
