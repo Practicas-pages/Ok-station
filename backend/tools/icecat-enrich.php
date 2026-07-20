@@ -77,28 +77,32 @@ try {
     exit(1);
 }
 
-/* Pendientes: activos, sin enriquecer, con algo con qué buscar (barcode o marca+sku)
-   y —lo importante— SIN foto del proveedor.
+/* Pendientes: productos a los que les FALTA algo que Icecat pueda dar.
+   Exel del Norte manda la mayoría de las fotos (y el 22% de las descripciones), pero
+   no manda ficha técnica en ningún campo. Icecat rellena los tres huecos:
+     · sin imagen         → 376 productos tras el último sync
+     · sin descripción    → el 78% del catálogo
+     · sin ficha técnica  → todos los que no haya tocado Icecat
 
-   Las imágenes de Exel mandan: son la foto del producto que de verdad se vende. Icecat
-   solo rellena los huecos. Sin este filtro, el runner gastaría miles de llamadas
-   consultando productos que ya tienen su foto, y tardaría noches en llegar a los que
-   sí la necesitan.
+   Se ordena poniendo PRIMERO los que no tienen foto: es lo que más se nota en la
+   tienda, y así las primeras corridas arreglan lo más visible aunque el runner tenga
+   tope por noche. Los que ya tienen foto de Exel la conservan: ProductEnricher solo
+   borra e inserta imágenes con source='icecat', nunca toca las del proveedor.
 
-   Nota: los que YA tienen foto de Exel pero no descripción se quedan fuera de esta
-   pasada a propósito. Exel solo manda descripción en el 22% de su catálogo; cuando
-   quieras rellenar esas fichas, corre el runner con --con-foto. */
-$soloSinFoto = !in_array('--con-foto', array_slice($argv, 1), true);
-$filtroFoto  = $soloSinFoto
-    ? "AND NOT EXISTS (SELECT 1 FROM product_images i WHERE i.product_id = products.id)"
-    : "";
+   --solo-sin-foto limita la corrida a los que no tienen ninguna imagen. */
+$soloSinFoto = in_array('--solo-sin-foto', array_slice($argv, 1), true);
+$sinFoto     = "NOT EXISTS (SELECT 1 FROM product_images i WHERE i.product_id = products.id)";
+$leFalta     = $soloSinFoto
+    ? $sinFoto
+    : "({$sinFoto} OR COALESCE(products.description,'') = '' OR products.specs_json IS NULL)";
 
 $rows = $pdo->prepare(
     "SELECT id, barcode, brand, sku FROM products
       WHERE is_active = 1 AND enriched_at IS NULL
         AND (CHAR_LENGTH(COALESCE(barcode,'')) >= 8 OR (COALESCE(brand,'') <> '' AND COALESCE(sku,'') <> ''))
-        {$filtroFoto}
-      ORDER BY id ASC LIMIT {$limit}"
+        AND {$leFalta}
+      ORDER BY {$sinFoto} DESC, id ASC
+      LIMIT {$limit}"
 );
 $rows->execute();
 $pend = $rows->fetchAll();
