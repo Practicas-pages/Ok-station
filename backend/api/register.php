@@ -1,7 +1,18 @@
 <?php
 require __DIR__ . '/_bootstrap.php';
 require __DIR__ . '/lib/authz.php';
+require __DIR__ . '/lib/RateLimit.php';
 only_method('POST');
+
+/* Límite por IP: cuentas nuevas por dirección cada 15 min (RateLimit::MAX_REGISTER).
+   Frena a un bot que crea cuentas en masa (cada intento usa un correo distinto, así
+   que se limita por IP, no por correo). '@register' es un "bucket" propio para no
+   chocar con el contador de login del mismo IP.
+   El tope es más alto que el de login a propósito: con CGNAT (Telcel/AT&T) muchos
+   clientes comparten IP y el tope de login los dejaba fuera. El mensaje también es
+   propio: aquí no hubo "intentos fallidos", solo se alcanzó el tope. */
+$ip = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
+RateLimit::guard($ip, '@register', 'Se crearon demasiadas cuentas desde esta conexión. Espera unos minutos e inténtalo de nuevo.');
 
 $b        = body();
 $name     = field($b, 'full_name');
@@ -13,7 +24,7 @@ $address  = field($b, 'address');
 
 if ($name === '' || mb_strlen($name) < 3)   fail('Ingresa tu nombre completo.');
 if (!valid_email($email))                    fail('El correo electrónico no es válido.');
-if (!valid_password($pass))                  fail('La contraseña debe tener mínimo 8 caracteres, con letras y números.');
+if (!valid_password($pass))                  fail('La contraseña debe tener entre 8 y 64 caracteres y no ser una contraseña común (como "12345678" o "password").');
 if ($pass !== $pass2)                        fail('Las contraseñas no coinciden.');
 if ($phone === '')                           fail('Ingresa tu teléfono.');
 
@@ -27,6 +38,8 @@ $st   = $pdo->prepare('INSERT INTO users (full_name, email, password_hash, phone
 $st->execute([$name, $email, $hash, $phone, $address !== '' ? $address : null]);
 
 $uid = (int) $pdo->lastInsertId();
+
+RateLimit::hit($ip, '@register', RateLimit::MAX_REGISTER);   // cuenta esta cuenta creada contra el límite del IP
 
 // Asigna rol 'cliente' (y 'administrador' si el correo está en ADMIN_EMAILS del .env).
 ensure_roles_for_new_user($uid, $email);

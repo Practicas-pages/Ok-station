@@ -89,4 +89,24 @@ return [
         'api_key' => env('ANTHROPIC_API_KEY', ''),
         'model'   => env('ANTHROPIC_MODEL', 'claude-opus-4-8'),
     ],
+
+    /* Cerebro IA GRATIS de OKi (Google Gemini). Llave SOLO en backend/.env
+       (GEMINI_API_KEY). Vacío = OKi usa su cerebro por reglas + WhatsApp. */
+    'gemini' => [
+        'api_key' => env('GEMINI_API_KEY', ''),
+        'model'   => env('GEMINI_MODEL', 'gemini-flash-lite-latest'),
+    ],
+
+    /* Icecat — enriquece los productos de la tienda con ficha técnica e imágenes.
+       COMPLEMENTA a Exel del Norte (match por código de barras GTIN/EAN). Secreto de
+       servidor: solo backend/.env. Vacío = los productos se quedan con lo de Exel
+       (no rompe la tienda).
+         · ICECAT_USERNAME  = usuario/shopname de Icecat (Open Icecat: 'openicecat-live').
+         · ICECAT_API_TOKEN = token de API (solo Full Icecat; Open no lo requiere).
+         · ICECAT_LANG      = idioma de la ficha (por defecto ES). */
+    'icecat' => [
+        'username'  => env('ICECAT_USERNAME', ''),
+        'api_token' => env('ICECAT_API_TOKEN', ''),
+        'lang'      => env('ICECAT_LANG', 'ES'),
+    ],
 ];

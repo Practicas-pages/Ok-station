@@ -10,7 +10,7 @@ $current = (string) ($b['current_password'] ?? '');
 $next    = (string) ($b['new_password'] ?? '');
 $next2   = (string) ($b['new_password_confirm'] ?? '');
 
-if (!valid_password($next))  fail('La nueva contraseña debe tener mínimo 8 caracteres, con letras y números.');
+if (!valid_password($next))  fail('La nueva contraseña debe tener entre 8 y 64 caracteres y no ser una contraseña común (como "12345678" o "password").');
 if ($next !== $next2)        fail('Las contraseñas nuevas no coinciden.');
 
 $st = db()->prepare('SELECT password_hash FROM users WHERE id = ?');

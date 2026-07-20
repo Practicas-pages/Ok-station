@@ -508,18 +508,22 @@ h1, h2, h3, h4, h5, h6 {
   border-color: var(--border-medium);
 }
 
-/* WhatsApp */
+/* WhatsApp — verde de marca VIVO (degradado) con sombra de texto para legibilidad
+   del blanco encima (el degradado + text-shadow lo hacen legible sin apagar el verde). */
 .btn--wa {
-  background: var(--color-wa);
+  background: linear-gradient(135deg, #25D366 0%, #0FB84F 100%);
   color: #fff;
-  box-shadow: var(--shadow-wa);
+  text-shadow: 0 1px 2px rgba(4, 40, 20, 0.35);
+  box-shadow: 0 8px 22px rgba(37,211,102,0.42);
 }
 
 .btn--wa:hover {
-  background: #1FBF5B;
-  transform: translateY(-2px);
-  box-shadow: 0 12px 36px rgba(37,211,102,0.50);
+  background: linear-gradient(135deg, #2FE472 0%, #16C95E 100%);
+  transform: translateY(-3px) scale(1.03);
+  box-shadow: 0 18px 46px rgba(37,211,102,0.55);
 }
+
+.btn--wa:active { transform: translateY(-1px) scale(1.0); }
 
 /* Oscuro */
 .btn--dark {
@@ -705,6 +709,65 @@ h1, h2, h3, h4, h5, h6 {
   display: flex;
   align-items: center;
   gap: var(--space-3);
+}
+
+/* Botón "Tienda" (nuevo) — gradiente animado como el banner de la tienda */
+.nav__tienda {
+  gap: 7px;
+  border: 0 !important;
+  color: #fff !important;
+  background: linear-gradient(115deg, #0552C8 0%, #066CFF 34%, #00A6FF 66%, #00C6FF 100%) !important;
+  background-size: 200% 200% !important;
+  animation: navTiendaFlow 8s ease infinite !important;
+  box-shadow: 0 6px 18px rgba(6, 108, 255, .32) !important;
+  transition: transform .18s ease, box-shadow .18s ease !important;
+}
+.nav__tienda:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 26px rgba(6, 108, 255, .42) !important;
+}
+@keyframes navTiendaFlow { 0%, 100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
+
+/* Botón "Compra rápida" (tienda dinámica) — gradiente morado como la página de compra rápida */
+.nav__rapida {
+  gap: 7px;
+  border: 0 !important;
+  color: #fff !important;
+  background: linear-gradient(115deg, #7A12E0 0%, #9C1DFF 38%, #6A2BF5 72%, #066CFF 100%) !important;
+  background-size: 200% 200% !important;
+  animation: navTiendaFlow 8s ease infinite !important;
+  box-shadow: 0 6px 18px rgba(124, 18, 224, .30) !important;
+  transition: transform .18s ease, box-shadow .18s ease !important;
+}
+.nav__rapida:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 26px rgba(124, 18, 224, .42) !important;
+}
+@media (max-width: 768px) { .nav__rapida { padding: 9px 12px; } }
+@media (max-width: 380px) { .nav__rapida { padding: 9px 10px; } }
+
+.nav__tienda-badge {
+  font-size: 0.5625rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  line-height: 1;
+  padding: 3px 7px;
+  border-radius: var(--radius-full);
+  background: linear-gradient(135deg, #FF7C19, #FF9A3D);
+  color: #fff;
+  box-shadow: 0 3px 8px rgba(255, 124, 25, .4);
+}
+
+/* En móvil el header oculta WhatsApp (hay botón flotante), así que sí cabe Tienda.
+   Se ahorra ancho ocultando el badge; en pantallas muy chicas queda solo el ícono. */
+@media (max-width: 768px) {
+  .nav__tienda { padding: 9px 12px; }
+  .nav__tienda-badge { display: none; }
+}
+@media (max-width: 380px) {
+  .nav__tienda-label { display: none; }
+  .nav__tienda { padding: 9px 10px; }
 }
 
 .nav__tel {
@@ -3216,7 +3279,9 @@ a.info-card:hover { border-color: var(--brand-blue); }
   }
 }
 
-/* Botón scroll-to-top */
+/* Botón scroll-to-top — mismo estilo que el de la tienda (#site .totop en
+   tienda.html): flecha azul de marca, elevación con rebote y sombra azul al pasar
+   el mouse. Si tocas uno, toca el otro. */
 .scroll-top {
   position: fixed;
   bottom: 28px;
@@ -3227,18 +3292,19 @@ a.info-card:hover { border-color: var(--brand-blue); }
   border-radius: 50%;
   background: rgba(255,255,255,0.92);
   border: 1px solid var(--border-medium);
-  box-shadow: var(--shadow-md);
+  box-shadow: 0 10px 28px rgba(8,12,30,.22);
   display: grid;
   place-items: center;
   cursor: pointer;
-  color: var(--text-secondary);
+  color: var(--brand-blue);
   opacity: 0;
   pointer-events: none;
   transform: translateY(12px);
   transition:
-    opacity var(--transition-base),
-    transform var(--transition-base),
-    background var(--transition-fast);
+    opacity .22s ease,
+    transform .22s cubic-bezier(.34,1.56,.64,1),
+    background var(--transition-fast),
+    box-shadow var(--transition-fast);
   backdrop-filter: blur(8px);
 }
 
@@ -3248,12 +3314,27 @@ a.info-card:hover { border-color: var(--brand-blue); }
   transform: translateY(0);
 }
 
-.scroll-top:hover {
+/* El botón sube 3px al pasar el cursor: si el puntero estaba en el borde, se salía de
+   debajo, se perdía el :hover, bajaba, y parpadeaba sin parar. Un colchón invisible no
+   basta (se mueve con el botón y el parpadeo solo se recorre a su orilla): el colchón
+   lleva la MISMA animación AL REVÉS, así la zona sensible se queda clavada en su sitio
+   mientras el botón sube. Mismo arreglo que #site .totop en tienda.html. */
+.scroll-top::after {
+  content: "";
+  position: absolute;
+  inset: -6px;
+  border-radius: inherit;
+  transition: transform .22s cubic-bezier(.34,1.56,.64,1);
+}
+
+.scroll-top.is-visible:hover::after { transform: translateY(3px); }
+
+.scroll-top.is-visible:hover {
   background: var(--brand-blue);
   color: #fff;
   border-color: transparent;
-  box-shadow: var(--shadow-brand);
-  transform: translateY(-2px);
+  box-shadow: 0 16px 34px rgba(6,108,255,.42);
+  transform: translateY(-3px);
 }
 
 .scroll-top:focus-visible {
@@ -4580,13 +4661,28 @@ body {
   padding: 5px 10px 5px 6px;
   border: 1px solid var(--border-light); background: #fff;
   border-radius: var(--radius-full); cursor: pointer; font-family: inherit;
-  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast), background var(--transition-fast);
 }
 .acct__btn:hover { border-color: var(--border-medium); box-shadow: var(--shadow-sm); }
 .acct__btn:focus-visible { outline: 3px solid var(--brand-cyan); outline-offset: 2px; }
-.acct__avatar { width: 30px; height: 30px; border-radius: 50%; background: var(--grad-brand); color: #fff; display: grid; place-items: center; font-weight: 700; font-size: 0.8rem; flex-shrink: 0; }
-.acct__name { font-size: 0.85rem; font-weight: 600; color: var(--text-primary); }
-.acct__caret { width: 15px; height: 15px; color: var(--text-muted); }
+.acct__avatar { width: 30px; height: 30px; border-radius: 50%; background: var(--grad-brand); color: #fff; display: grid; place-items: center; font-weight: 700; font-size: 0.8rem; flex-shrink: 0; transition: background var(--transition-fast), color var(--transition-fast); }
+.acct__name { font-size: 0.85rem; font-weight: 600; color: var(--text-primary); transition: color var(--transition-fast); }
+.acct__caret { width: 15px; height: 15px; color: var(--text-muted); transition: transform .22s cubic-bezier(.34,1.56,.64,1), color var(--transition-fast); }
+
+/* ── Menú desplegado: el chip se pinta y la flecha gira ──
+   Mismo lenguaje que favoritos/carrito de la tienda: el botón se ve activo mientras
+   SU panel está abierto. Va colgado de aria-expanded, que ya se mantiene al día para
+   los lectores de pantalla: un solo estado, sin una clase paralela que se desincronice.
+   La flecha girando avisa que la lista está abierta (antes se quedaba igual). */
+.acct__btn[aria-expanded="true"] { background: var(--brand-blue); border-color: transparent; }
+.acct__btn[aria-expanded="true"] .acct__name { color: #fff; }
+.acct__btn[aria-expanded="true"] .acct__caret { color: #fff; transform: rotate(180deg); }
+/* Avatar en CIAN de marca (--brand-cyan #00C6FF) con la inicial en azul profundo: sobre
+   el chip azul, su degradado morado-cian se confundía, y el blanco puro "descuadraba"
+   (un hueco demasiado duro). El cian es del mismo degradado de la marca, así que se
+   siente de la casa; resalta sobre el azul del chip sin fundirse, y la inicial en azul
+   profundo se lee nítida. Al cerrar, el avatar vuelve solo a su degradado. */
+.acct__btn[aria-expanded="true"] .acct__avatar { background: var(--brand-cyan); color: #0A2A5E; }
 .acct__menu {
   position: absolute; right: 0; top: calc(100% + 8px);
   min-width: 220px; background: #fff;

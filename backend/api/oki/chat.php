@@ -1,43 +1,41 @@
 <?php
 declare(strict_types=1);
 /**
- * POST /backend/api/oki/chat.php — cerebro de OKi (chatbot con Claude).
- * --------------------------------------------------------------------
- * Recibe el historial de conversación y devuelve la respuesta de OKi.
- * La llave de Anthropic vive SOLO en el servidor (.env), nunca en el navegador.
+ * POST /backend/api/oki/chat.php — cerebro de OKi (por REGLAS, sin API ni costo).
+ * ------------------------------------------------------------------------------
+ * Recibe el mensaje del usuario y responde con los datos reales del negocio
+ * (ver backend/api/oki/brain.php). Si no reconoce la intención, deriva a
+ * WhatsApp — regla de oro: OKi no inventa.
  *
  * Cuerpo (JSON):
- *   { "messages": [ {"role":"user","content":"..."}, {"role":"assistant","content":"..."} ] }
+ *   { "messages": [ {"role":"user","content":"..."}, ... ] }   // se usa el último del usuario
  *   o, para un solo turno:  { "message": "hola" }
  *
  * Respuesta:  { "ok": true, "reply": "..." }
- * En cualquier falla (API caída, rehúso, timeout) responde con un mensaje
- * amable que deriva a WhatsApp — OKi nunca deja al cliente sin respuesta.
  */
 
 require __DIR__ . '/../_bootstrap.php';
-require __DIR__ . '/prompt.php';
+require __DIR__ . '/brain.php';
 only_method('POST');
 
-/* WhatsApp de respaldo (coincide con el prompt). */
-const OKI_WA      = 'https://wa.me/526647194117';
-const OKI_WA_TEXT = 'Con gusto te sigo ayudando por WhatsApp: 664 719 4117 (' . OKI_WA . ').';
-
-/* Respuesta de respaldo cuando algo falla del lado del servidor/IA. */
-function oki_fallback(string $motivo = ''): void
+/* ¿La pregunta pide OPINIÓN/CONSEJO/COMPATIBILIDAD? Entonces mejor que la conteste la IA
+   (respuesta útil y a la medida) y no una regla enlatada. Recibe el texto ya normalizado
+   (sin acentos, minúsculas). La navegación se resuelve ANTES, así que esto no rompe los
+   "llévame a…". */
+function oki_is_advice(string $t): bool
 {
-    if ($motivo !== '' && ($GLOBALS['CONFIG']['dev_mode'] ?? false)) {
-        error_log('[oki] fallback: ' . $motivo);
-    }
-    respond([
-        'ok'       => true,
-        'reply'    => 'Uy, justo ahora no pude procesar eso. ' . OKI_WA_TEXT,
-        'fallback' => true,
-    ]);
+    // Límite SOLO al inicio (no al final) para que "recomiendas", "conviene", etc. peguen con
+    // sus sufijos. Las frases son distintivas, así que no hace falta el límite final.
+    return (bool) preg_match(
+        '/\b(?:me conviene|conviene mas|recomiend|cual es mejor|cual me convien|sirve para|'
+        . 'funciona (?:con|para|en)|es compatible|compatible con|vale la pena|diferencia entre|'
+        . 'que opinas|opinas|crees que|es bueno|me sirve|deberia (?:usar|comprar|elegir)|'
+        . 'cual elijo|cual escojo|cual compro|que tan bueno|ayuda(?:ra|ria)? (?:para|con)|mejor opcion)/u',
+        $t
+    );
 }
 
-/* ── Límite de uso por IP (archivo, sin tocar la BD) ──
-   Ventana corta anti-abuso + tope diario para acotar el costo de la API. */
+/* ── Límite de uso por IP (archivo, sin tocar la BD) — anti-spam ── */
 function oki_rate_limit(string $ip): void
 {
     $base = ($GLOBALS['CONFIG']['storage_path'] ?? (__DIR__ . '/../../storage')) . '/oki_rl';
@@ -54,21 +52,19 @@ function oki_rate_limit(string $ip): void
     $raw = stream_get_contents($fh);
     if ($raw !== '' && ($j = json_decode($raw, true)) && is_array($j)) $data = $j + $data;
 
-    // Reinicio del contador diario.
     if (($data['day'] ?? '') !== date('Y-m-d', $now)) {
         $data['day'] = date('Y-m-d', $now);
         $data['day_count'] = 0;
     }
-    // Purga de la ventana de 60 s.
     $data['min'] = array_values(array_filter((array) ($data['min'] ?? []), fn($t) => $t > $now - 60));
 
-    $PER_MIN = 15;    // mensajes por minuto por IP
-    $PER_DAY = 200;   // tope diario por IP (protege el gasto de la API)
+    $PER_MIN = 30;    // mensajes por minuto por IP
+    $PER_DAY = 600;   // tope diario por IP
     $blocked = count($data['min']) >= $PER_MIN || (int) ($data['day_count'] ?? 0) >= $PER_DAY;
 
     if (!$blocked) {
-        $data['min'][]      = $now;
-        $data['day_count']  = (int) ($data['day_count'] ?? 0) + 1;
+        $data['min'][]     = $now;
+        $data['day_count'] = (int) ($data['day_count'] ?? 0) + 1;
     }
     ftruncate($fh, 0);
     rewind($fh);
@@ -85,93 +81,96 @@ function oki_rate_limit(string $ip): void
     }
 }
 
-/* ── Normaliza y acota el historial que llega del navegador ── */
-function oki_clean_messages(array $in): array
-{
-    $out = [];
-    foreach ($in as $m) {
-        if (!is_array($m)) continue;
-        $role = ($m['role'] ?? '') === 'assistant' ? 'assistant' : 'user';
-        $txt  = trim((string) ($m['content'] ?? ''));
-        if ($txt === '') continue;
-        if (mb_strlen($txt) > 2000) $txt = mb_substr($txt, 0, 2000); // acota el costo por turno
-        $out[] = ['role' => $role, 'content' => $txt];
-    }
-    // Nos quedamos con los últimos 12 turnos y garantizamos que arranque en 'user'.
-    if (count($out) > 12) $out = array_slice($out, -12);
-    while ($out && $out[0]['role'] !== 'user') array_shift($out);
-    // El último turno debe ser del usuario (es a lo que OKi va a responder).
-    while ($out && end($out)['role'] !== 'user') array_pop($out);
-    return $out;
-}
-
-/* ── 1) Entrada ── */
+/* ── 1) Entrada: sacar el último mensaje del usuario ── */
 $b = body();
-$messages = [];
+$text = '';
 if (isset($b['messages']) && is_array($b['messages'])) {
-    $messages = oki_clean_messages($b['messages']);
+    for ($i = count($b['messages']) - 1; $i >= 0; $i--) {
+        $m = $b['messages'][$i];
+        if (is_array($m) && ($m['role'] ?? '') !== 'assistant') {
+            $text = trim((string) ($m['content'] ?? ''));
+            if ($text !== '') break;
+        }
+    }
 } elseif (isset($b['message'])) {
-    $messages = oki_clean_messages([['role' => 'user', 'content' => (string) $b['message']]]);
+    $text = trim((string) $b['message']);
 }
-if (!$messages) fail('Falta el mensaje.', 400);
+if ($text === '') fail('Falta el mensaje.', 400);
+if (mb_strlen($text) > 2000) $text = mb_substr($text, 0, 2000);
+
+/* Último mensaje de OKi (da contexto a flujos como el acta por estado). */
+$prev = '';
+if (isset($b['messages']) && is_array($b['messages'])) {
+    for ($i = count($b['messages']) - 1; $i >= 0; $i--) {
+        $m = $b['messages'][$i];
+        if (is_array($m) && ($m['role'] ?? '') === 'assistant') {
+            $prev = trim((string) ($m['content'] ?? ''));
+            break;
+        }
+    }
+}
 
 /* ── 2) Límite de uso ── */
 $ip = $_SERVER['HTTP_X_FORWARDED_FOR'] ?? $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
 $ip = trim(explode(',', $ip)[0]);
 oki_rate_limit($ip);
 
-/* ── 3) Configuración de Anthropic ── */
-$cfg    = $GLOBALS['CONFIG']['anthropic'] ?? [];
-$apiKey = (string) ($cfg['api_key'] ?? '');
-$model  = (string) ($cfg['model'] ?? 'claude-opus-4-8');
-if ($apiKey === '') oki_fallback('ANTHROPIC_API_KEY vacío');
+/* ── 3) ¿Navegación directa? ("llévame a agendar mi cita…") ── */
+$nav = oki_navigate(oki_norm($text));
+if ($nav !== null) {
+    respond(['ok' => true, 'reply' => $nav['reply'], 'go' => $nav['go']]);
+}
 
-/* ── 4) Llamada a la API de Claude (Messages API, sin streaming) ── */
-$payload = [
-    'model'      => $model,
-    'max_tokens' => 700,                 // respuestas cortas de servicio al cliente
-    'system'     => oki_system_prompt(), // el cerebro de OKi (prompt.php)
-    'messages'   => $messages,
-];
+/* ── 4) Cerebro por reglas ── */
+$reply = oki_brain_reply($text, $prev);
 
-$ch = curl_init('https://api.anthropic.com/v1/messages');
-curl_setopt_array($ch, [
-    CURLOPT_POST           => true,
-    CURLOPT_RETURNTRANSFER => true,
-    CURLOPT_TIMEOUT        => 30,
-    CURLOPT_HTTPHEADER     => [
-        'content-type: application/json',
-        'x-api-key: ' . $apiKey,
-        'anthropic-version: 2023-06-01',
-    ],
-    CURLOPT_POSTFIELDS     => json_encode($payload, JSON_UNESCAPED_UNICODE),
-]);
-$res  = curl_exec($ch);
-$code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-$cerr = curl_error($ch);
-curl_close($ch);
+/* Si la pregunta es de CONSEJO/opinión (compatibilidad, recomendación, "¿me conviene…?"),
+   deja que la IA la conteste de verdad en vez de una regla enlatada. La navegación (paso 3)
+   ya se resolvió, así que esto no rompe los "llévame a…". */
+if ($reply !== null && oki_is_advice(oki_norm($text))) $reply = null;
 
-if ($res === false)      oki_fallback('cURL: ' . $cerr);
-if ($code < 200 || $code >= 300) oki_fallback('HTTP ' . $code . ': ' . substr((string) $res, 0, 300));
+/* ── 5) Respaldo con IA GRATIS (Gemini) — solo si las reglas no reconocieron ──
+   Mantiene la navegación y los datos del negocio en reglas (rápido y determinista);
+   Gemini solo atiende el "resto", así el consumo cabe en el tier gratuito. Si la
+   llave no está o la API falla, cae al respaldo de WhatsApp de abajo. */
+if ($reply === null) {
+    require_once __DIR__ . '/../lib/Gemini.php';
+    require_once __DIR__ . '/prompt.php';
+}
+if ($reply === null && Gemini::available()) {
+    /* Estrategia de AHORRO de cuota (tier gratis):
+       a) CACHÉ: preguntas frecuentes idénticas se responden sin gastar API. Solo
+          para preguntas "sueltas" (sin conversación previa), para no servir una
+          respuesta fuera de contexto en un chat de varios turnos.
+       b) PRESUPUESTO: topes global/min, global/día y por IP/día. Si se alcanzan,
+          NO se llama a Gemini y OKi cae a su respaldo de WhatsApp de abajo. */
+    $cacheable = ($prev === '');                 // sin turno previo de OKi = pregunta suelta
+    $qkey = 'v1|' . oki_norm($text);
 
-$data = json_decode((string) $res, true);
-if (!is_array($data)) oki_fallback('respuesta no-JSON');
+    if ($cacheable && ($hit = Gemini::cacheGet($qkey)) !== null) {
+        respond(['ok' => true, 'reply' => $hit, 'source' => 'gemini-cache']);
+    }
 
-/* Rehúso de seguridad del modelo: derivar a WhatsApp, no mostrar vacío. */
-if (($data['stop_reason'] ?? '') === 'refusal') {
+    if (Gemini::withinBudget($ip)) {
+        $history = (isset($b['messages']) && is_array($b['messages'])) ? $b['messages'] : [['role' => 'user', 'content' => $text]];
+        $sys = function_exists('oki_system_prompt') ? oki_system_prompt() : 'Eres OKi, el asistente astronauta de Ok.station (Tijuana). Responde breve, en español de México. Si no sabes algo con certeza, deriva a WhatsApp 664 719 4117.';
+        $ai = Gemini::reply($text, $history, $sys);
+        if ($ai !== null && trim($ai) !== '') {
+            if ($cacheable) Gemini::cacheSet($qkey, $ai);
+            respond(['ok' => true, 'reply' => $ai, 'source' => 'gemini']);
+        }
+    }
+    /* Sin cuota o Gemini no respondió → cae al respaldo de WhatsApp de abajo. */
+}
+
+/* ── 6) Regla de oro: si nada reconoce, deriva a WhatsApp (no inventa) ── */
+if ($reply === null) {
     respond([
-        'ok'      => true,
-        'reply'   => 'Eso mejor lo vemos directo con una persona. ' . OKI_WA_TEXT,
-        'refusal' => true,
+        'ok'       => true,
+        'reply'    => 'Mmm, eso no lo tengo con certeza 🤔. Te ayudan mejor por WhatsApp: 664 719 4117 (' . OKI_WA_URL . '). '
+                    . 'Yo te puedo decir precios, requisitos de trámites, horarios, ubicación y cómo agendar o imprimir.',
+        'fallback' => true,
     ]);
 }
-
-/* Extrae el texto de los bloques de contenido. */
-$reply = '';
-foreach (($data['content'] ?? []) as $block) {
-    if (($block['type'] ?? '') === 'text') $reply .= $block['text'];
-}
-$reply = trim($reply);
-if ($reply === '') oki_fallback('respuesta vacía');
 
 respond(['ok' => true, 'reply' => $reply]);

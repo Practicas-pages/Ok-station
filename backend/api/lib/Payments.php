@@ -30,6 +30,7 @@ final class Payments
     const TARGETS = [
         'order'       => ['table' => 'orders',       'amount' => 'total',        'fk' => 'order_id',       'hash' => 'pedidos', 'noun' => 'pedido'],
         'appointment' => ['table' => 'appointments', 'amount' => 'amount_total', 'fk' => 'appointment_id', 'hash' => 'citas',   'noun' => 'cita'],
+        'shop'        => ['table' => 'shop_orders',  'amount' => 'total',        'fk' => 'shop_order_id',  'hash' => 'tienda',  'noun' => 'compra'],
     ];
 
     private static function target(string $kind): array
@@ -100,7 +101,7 @@ final class Payments
         $amount    = round((float) ($entity[$t['amount']] ?? 0), 2);
         $reference = self::makeReference($entity);
         $provider  = self::provider();
-        $param     = ($kind === 'appointment') ? 'appt' : 'order';
+        $param     = ['appointment' => 'appt', 'shop' => 'shop'][$kind] ?? 'order';
         $payPage   = 'pago.html?ref=' . rawurlencode($reference) . '&' . $param . '=' . (int) $entity['id'];
 
         if ($provider === 'mercadopago') {
@@ -310,16 +311,24 @@ final class Payments
     {
         $orderId = ($kind === 'order')       ? $entityId : null;
         $apptId  = ($kind === 'appointment') ? $entityId : null;
+        $shopId  = ($kind === 'shop')        ? $entityId : null;
+        /* `shop_order_id` la agrega la migración 0027. Mientras no se haya aplicado,
+           se inserta SIN esa columna: si no, el INSERT falla y se perdería en silencio
+           la bitácora de pagos de pedidos de impresión y citas, que ya funcionan. */
+        $conShop = table_has_column('payment_logs', 'shop_order_id');
+        $cols    = $conShop
+            ? '(order_id, appointment_id, shop_order_id, previous_status, payment_status, provider, reference, transaction_id, amount, source, updated_by, meta_json, ip)'
+            : '(order_id, appointment_id, previous_status, payment_status, provider, reference, transaction_id, amount, source, updated_by, meta_json, ip)';
+        $args = $conShop ? [$orderId, $apptId, $shopId] : [$orderId, $apptId];
+        array_push(
+            $args, $prev, $status, $provider, $reference, $txnId, $amount, $source, $userId,
+            $meta ? json_encode($meta, JSON_UNESCAPED_UNICODE) : null,
+            $_SERVER['REMOTE_ADDR'] ?? null
+        );
         try {
             db()->prepare(
-                'INSERT INTO payment_logs
-                 (order_id, appointment_id, previous_status, payment_status, provider, reference, transaction_id, amount, source, updated_by, meta_json, ip)
-                 VALUES (?,?,?,?,?,?,?,?,?,?,?,?)'
-            )->execute([
-                $orderId, $apptId, $prev, $status, $provider, $reference, $txnId, $amount, $source, $userId,
-                $meta ? json_encode($meta, JSON_UNESCAPED_UNICODE) : null,
-                $_SERVER['REMOTE_ADDR'] ?? null,
-            ]);
+                'INSERT INTO payment_logs ' . $cols . ' VALUES (' . implode(',', array_fill(0, count($args), '?')) . ')'
+            )->execute($args);
         } catch (Throwable $e) { /* la auditoría no debe afectar la respuesta */ }
     }
 

@@ -31,6 +31,10 @@ if (!$entity) {
     $entity = Appointment::findBy('payment_reference', $ref);
     $kind   = 'appointment';
 }
+if (!$entity) {
+    $entity = ShopOrder::findBy('payment_reference', $ref);
+    $kind   = 'shop';
+}
 if (!$entity) fail('Pago no encontrado.', 404);
 if ((int) ($entity['user_id'] ?? 0) !== (int) $user['id']) fail('No autorizado.', 403);
 

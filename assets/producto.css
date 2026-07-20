@@ -1,0 +1,165 @@
+/* ─────────────────────────────────────────────────────────────────────────
+   Ok.station — Ficha de producto (producto.php)
+   Usa los tokens del design system (styles.css). Solo lo propio de la ficha.
+   ───────────────────────────────────────────────────────────────────────── */
+
+.pdp { padding: 18px 0 90px; background: var(--surface-page, #f7f9ff); }
+.pdp .wrap { max-width: 1200px; }
+
+/* ── Ruta de navegación ── */
+.pdp .breadcrumb { padding: 6px 0 14px; }
+.pdp .breadcrumb ol { list-style: none; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin: 0; padding: 0; font-size: .8125rem; color: var(--text-muted, #6B7280); }
+.pdp .breadcrumb li { display: inline-flex; align-items: center; gap: 6px; min-width: 0; }
+.pdp .breadcrumb li + li::before { content: "/"; opacity: .5; }
+.pdp .breadcrumb a { color: inherit; text-decoration: none; }
+.pdp .breadcrumb a:hover { color: var(--brand-blue, #066CFF); text-decoration: underline; }
+/* El nombre del producto puede ser larguísimo: se recorta en vez de romper la fila. */
+.pdp .breadcrumb [aria-current="page"] { color: var(--brand-blue, #066CFF); font-weight: 600; max-width: min(52vw, 420px); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* ── Bloque principal: galería + compra ── */
+.pdp__grid { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, .95fr); gap: clamp(18px, 3vw, 40px); align-items: start; }
+
+/* ── Galería ── */
+.pdp__gallery { position: relative; background: #fff; border: 1px solid var(--border-light, #e6eaf2); border-radius: var(--radius-lg, 18px); padding: clamp(14px, 2vw, 22px); box-shadow: 0 12px 40px rgba(4, 12, 40, .08); }
+.pdp__off { position: absolute; top: 14px; left: 14px; z-index: 3; background: linear-gradient(100deg, #FF8A00, #FF5E3A); color: #fff; font-size: .78rem; font-weight: 800; padding: 5px 10px; border-radius: 9px; box-shadow: 0 6px 16px rgba(255, 94, 58, .38); }
+.pdp__stage { position: relative; overflow: hidden; border-radius: var(--radius-md, 14px); background: linear-gradient(135deg, #f4f8ff, #eaf2fb); aspect-ratio: 1 / 1; }
+/* La imagen va ABSOLUTA contra su caja. Con `height:100%` a secas NO funciona: dentro de
+   un grid/flex de fila automática, el 100% no tiene una altura definida contra la cual
+   resolverse, el navegador lo trata como `auto` y la foto sale a su tamaño natural. Aquí
+   eso hacía que la imagen (742px) reventara su marco (521px) y saliera recortada. */
+.pdp__stage img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; padding: clamp(14px, 3vw, 32px); box-sizing: border-box; display: block; transition: transform .25s ease; }
+.pdp__stage--empty { font-size: 4rem; }
+/* Zoom tipo tienda grande: SOLO con mouse (con el dedo estorba y bloquea el scroll). */
+@media (hover: hover) and (pointer: fine) {
+  .pdp__stage { cursor: zoom-in; }
+  .pdp__stage.is-zoom img { transform: scale(2.1); padding: 0; }
+}
+.pdp__thumbs { display: flex; gap: 9px; margin-top: 12px; flex-wrap: wrap; }
+.pdp__thumb { width: 66px; height: 66px; padding: 3px; border-radius: 12px; border: 2px solid var(--border-light, #e6eaf2); background: #fff; cursor: pointer; transition: border-color .15s, transform .15s; }
+.pdp__thumb img { width: 100%; height: 100%; object-fit: contain; display: block; }
+.pdp__thumb:hover { transform: translateY(-2px); }
+.pdp__thumb.on { border-color: var(--brand-blue, #066CFF); }
+
+/* ── Buy box ── */
+.pdp__buy { position: relative; }
+@media (min-width: 981px) {
+  /* Se queda a la vista mientras lees la ficha larga (como Amazon). */
+  .pdp__buy { position: sticky; top: 96px; }
+}
+.pdp__meta { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: .78rem; color: var(--text-muted, #6B7280); text-transform: uppercase; letter-spacing: .04em; }
+.pdp__meta b { color: var(--brand-blue, #066CFF); font-weight: 800; }
+.pdp__meta span + span::before, .pdp__meta b + span::before { content: "·"; margin-right: 8px; opacity: .6; }
+.pdp__title { font-size: clamp(1.4rem, 2.6vw, 2rem); line-height: 1.22; margin: 8px 0 14px; color: var(--text-primary, #12141C); }
+
+.pdp__price { display: flex; align-items: baseline; flex-wrap: wrap; gap: 10px; }
+.pdp__now { font-size: clamp(1.7rem, 3.4vw, 2.4rem); font-weight: 800; color: var(--text-primary, #12141C); font-variant-numeric: tabular-nums; letter-spacing: -.02em; }
+.pdp__was { color: var(--text-muted, #6B7280); font-size: 1.05rem; font-variant-numeric: tabular-nums; }
+.pdp__save { background: #E9F9F0; color: #0E9F6E; font-weight: 700; font-size: .8rem; padding: 4px 10px; border-radius: 99px; }
+.pdp__iva { margin: 6px 0 14px; font-size: .78rem; color: var(--text-muted, #6B7280); }
+.pdp__stock { margin: 0 0 18px; font-weight: 700; font-size: .9rem; color: #0E9F6E; }
+.pdp__stock.is-low { color: #c2410c; }
+
+.pdp__actions { display: flex; align-items: stretch; gap: 10px; flex-wrap: wrap; }
+.pdp__qty { display: flex; align-items: center; border: 1.5px solid var(--border-light, #e6eaf2); border-radius: var(--radius-full, 9999px); background: #fff; padding: 3px; flex: none; }
+.pdp__qty button { width: 36px; height: 38px; border: none; background: none; font-size: 1.15rem; font-weight: 800; color: var(--brand-blue, #066CFF); cursor: pointer; border-radius: 99px; transition: background .15s; }
+.pdp__qty button:hover { background: var(--brand-blue-light, #eef4ff); }
+.pdp__qty input { width: 46px; border: none; text-align: center; font: inherit; font-weight: 700; font-size: .95rem; background: none; color: var(--text-primary, #12141C); -moz-appearance: textfield; }
+.pdp__qty input::-webkit-outer-spin-button, .pdp__qty input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+
+.pdp__add { flex: 1 1 200px; min-height: 46px; border: none; border-radius: var(--radius-full, 9999px); background: var(--grad-brand, linear-gradient(135deg, #9C1DFF, #066CFF 55%, #00C6FF)); color: #fff; font: inherit; font-weight: 700; font-size: .98rem; cursor: pointer; padding: 12px 20px; box-shadow: 0 14px 34px rgba(6, 108, 255, .32); transition: transform .18s cubic-bezier(.34, 1.56, .64, 1), box-shadow .18s, filter .15s; position: relative; text-decoration: none; display: inline-grid; place-items: center; text-align: center; }
+.pdp__add:hover { transform: translateY(-2px); box-shadow: 0 20px 44px rgba(6, 108, 255, .42); }
+/* Mismo colchón anti-parpadeo que en la tienda: el botón sube al pasar el cursor y, sin
+   esto, la zona sensible se movía con él y el hover entraba/salía en bucle en el borde. */
+.pdp__add::after, .pdp__wish::after { content: ""; position: absolute; inset: -5px; border-radius: inherit; transition: transform .18s cubic-bezier(.34, 1.56, .64, 1); }
+.pdp__add:hover::after, .pdp__wish:hover::after { transform: translateY(2px); }
+.pdp__add.is-done { filter: saturate(.6); }
+.pdp__add--wa { background: linear-gradient(135deg, #25D366, #0FB84F); box-shadow: 0 14px 34px rgba(37, 211, 102, .34); }
+
+.pdp__wish { position: relative; width: 46px; height: 46px; flex: none; border: 1.5px solid var(--border-light, #e6eaf2); background: #fff; border-radius: 50%; display: grid; place-items: center; cursor: pointer; color: var(--text-muted, #6B7280); transition: transform .18s cubic-bezier(.34, 1.56, .64, 1), border-color .15s, color .15s; }
+.pdp__wish svg { width: 21px; height: 21px; }
+.pdp__wish:hover { transform: translateY(-2px); border-color: #f3c6d0; color: #e11d48; }
+.pdp__wish[aria-pressed="true"] { color: #e11d48; border-color: #f3c6d0; background: #fff5f7; }
+.pdp__wish[aria-pressed="true"] svg { fill: #e11d48; }
+
+.pdp__perks { list-style: none; margin: 22px 0 0; padding: 18px 0 0; border-top: 1px solid var(--border-light, #e6eaf2); display: grid; gap: 11px; }
+.pdp__perks li { display: flex; gap: 10px; align-items: flex-start; font-size: .875rem; color: var(--text-secondary, #475569); line-height: 1.4; }
+.pdp__perks b { color: var(--text-primary, #12141C); }
+
+/* Puente con OKi: la ficha ya está en la página, así que puede responder sobre ELLA. */
+.pdp__oki { width: 100%; margin-top: 16px; display: flex; align-items: center; gap: 12px; text-align: left; padding: 13px 15px; border-radius: var(--radius-md, 14px); border: 1.5px dashed #c9d8f2; background: linear-gradient(135deg, #f7faff, #eef4ff); cursor: pointer; font: inherit; transition: border-color .15s, transform .15s, box-shadow .15s; }
+.pdp__oki:hover { border-color: var(--brand-blue, #066CFF); transform: translateY(-2px); box-shadow: 0 12px 26px rgba(6, 108, 255, .16); }
+.pdp__oki-ico { width: 34px; height: 34px; flex: none; border-radius: 50%; display: grid; place-items: center; background: var(--grad-brand, linear-gradient(135deg, #9C1DFF, #00C6FF)); font-size: 1rem; }
+.pdp__oki span span, .pdp__oki > span:last-child { display: flex; flex-direction: column; gap: 1px; }
+.pdp__oki b { font-size: .9rem; color: var(--text-primary, #12141C); }
+.pdp__oki small { font-size: .78rem; color: var(--text-muted, #6B7280); }
+
+/* ── Descripción y ficha ── */
+.pdp__info { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 380px), 1fr)); gap: clamp(16px, 2vw, 24px); margin-top: clamp(26px, 4vw, 44px); align-items: start; }
+.pdp__card { background: #fff; border: 1px solid var(--border-light, #e6eaf2); border-radius: var(--radius-lg, 18px); padding: clamp(18px, 2.4vw, 28px); box-shadow: 0 10px 34px rgba(4, 12, 40, .06); }
+.pdp__card h2 { font-size: 1.1rem; margin: 0 0 14px; color: var(--text-primary, #12141C); }
+.pdp__desc { color: var(--text-secondary, #475569); font-size: .92rem; line-height: 1.62; }
+.pdp__desc p { margin: 0; }
+/* Recorte por líneas: al abrir se quita la clase (nada de max-height a ojo). */
+.pdp__desc.is-clamp p { display: -webkit-box; -webkit-line-clamp: 8; -webkit-box-orient: vertical; overflow: hidden; }
+.pdp__empty { color: var(--text-muted, #6B7280); font-size: .9rem; line-height: 1.55; margin: 0; }
+
+.pdp__specs { margin: 0; display: grid; gap: 0; }
+.pdp__spec { display: grid; grid-template-columns: minmax(120px, .8fr) 1.2fr; gap: 14px; padding: 10px 0; border-bottom: 1px dashed var(--border-light, #e6eaf2); }
+.pdp__spec:last-child { border-bottom: none; }
+.pdp__spec dt { color: var(--text-muted, #6B7280); font-size: .84rem; margin: 0; }
+.pdp__spec dd { margin: 0; color: var(--text-primary, #12141C); font-size: .875rem; font-weight: 600; overflow-wrap: anywhere; }
+.pdp__specs:not(.is-open) .pdp__spec.is-extra { display: none; }
+
+.pdp__more { margin-top: 14px; border: 1.5px solid var(--border-light, #e6eaf2); background: #fff; color: var(--brand-blue, #066CFF); font: inherit; font-weight: 700; font-size: .84rem; padding: 9px 16px; border-radius: var(--radius-full, 9999px); cursor: pointer; transition: background .15s, border-color .15s; }
+.pdp__more:hover { background: var(--brand-blue-light, #eef4ff); border-color: #c9d8f2; }
+
+/* ── Relacionados ── */
+.pdp__related { margin-top: clamp(30px, 5vw, 56px); }
+.pdp__related-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
+.pdp__related-head h2 { font-size: 1.15rem; margin: 0; color: var(--text-primary, #12141C); }
+.pdp__seeall { font-size: .84rem; font-weight: 700; color: var(--brand-blue, #066CFF); text-decoration: none; white-space: nowrap; }
+.pdp__seeall:hover { text-decoration: underline; }
+.pdp__rel-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(155px, 1fr)); gap: 13px; }
+.pdp__rel { position: relative; background: #fff; border: 1px solid var(--border-light, #e6eaf2); border-radius: var(--radius-md, 14px); padding: 12px; text-decoration: none; display: flex; flex-direction: column; gap: 8px; transition: transform .15s, border-color .15s, box-shadow .15s; }
+.pdp__rel:hover { transform: translateY(-3px); border-color: #c9d8f2; box-shadow: 0 14px 30px rgba(4, 12, 40, .12); }
+.pdp__rel-off { position: absolute; top: 9px; left: 9px; z-index: 2; background: linear-gradient(100deg, #FF8A00, #FF5E3A); color: #fff; font-size: .64rem; font-weight: 800; padding: 3px 7px; border-radius: 8px; }
+/* Mismo caso que .pdp__stage: la imagen va absoluta contra la caja, porque `height:100%`
+   dentro de un grid de fila automática se resuelve como `auto` y la foto salía a tamaño
+   natural (150px en una caja de 104px), desbordándose y quedando DEBAJO del nombre. */
+.pdp__rel-img { position: relative; height: 104px; border-radius: 10px; background: linear-gradient(135deg, #f4f8ff, #eaf2fb); display: grid; place-items: center; font-size: 2rem; overflow: hidden; }
+.pdp__rel-img img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; padding: 9px; box-sizing: border-box; }
+.pdp__rel h3 { font-size: .85rem; line-height: 1.32; margin: 0; color: var(--text-primary, #12141C); font-weight: 600; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.pdp__rel-price { font-weight: 800; font-size: .95rem; color: var(--text-primary, #12141C); font-variant-numeric: tabular-nums; margin-top: auto; }
+.pdp__rel-price s { font-weight: 500; font-size: .78rem; color: var(--text-muted, #6B7280); }
+
+/* ── Aviso de "agregado" ── */
+.pdp__toast { position: fixed; left: 50%; bottom: 26px; transform: translateX(-50%) translateY(14px); z-index: 200; background: #12141C; color: #fff; font-size: .875rem; font-weight: 600; padding: 12px 20px; border-radius: var(--radius-full, 9999px); box-shadow: 0 18px 44px rgba(4, 12, 40, .34); opacity: 0; pointer-events: none; transition: opacity .2s, transform .2s cubic-bezier(.34, 1.56, .64, 1); max-width: min(92vw, 460px); text-align: center; }
+.pdp__toast.show { opacity: 1; transform: translateX(-50%) translateY(0); pointer-events: auto; }
+.pdp__toast a { color: #7FC4FF; font-weight: 700; text-decoration: none; margin-left: 8px; white-space: nowrap; }
+.pdp__toast a:hover { text-decoration: underline; }
+
+/* ── Barra de compra pegada abajo (móvil) ── */
+.pdp__bar { display: none; position: fixed; left: 0; right: 0; bottom: 0; z-index: 90; background: rgba(255, 255, 255, .97); backdrop-filter: blur(10px); border-top: 1px solid var(--border-light, #e6eaf2); padding: 10px clamp(12px, 4vw, 20px) calc(10px + env(safe-area-inset-bottom)); align-items: center; gap: 12px; transform: translateY(110%); transition: transform .26s cubic-bezier(.4, 0, .2, 1); }
+.pdp__bar.show { transform: none; }
+.pdp__bar-price { display: flex; flex-direction: column; line-height: 1.15; flex: none; }
+.pdp__bar-price b { font-size: 1.05rem; font-variant-numeric: tabular-nums; }
+.pdp__bar-price s { font-size: .74rem; color: var(--text-muted, #6B7280); }
+.pdp__bar .pdp__add { flex: 1; min-height: 44px; box-shadow: none; }
+
+/* ── Responsivo ── */
+@media (max-width: 980px) {
+  .pdp__grid { grid-template-columns: 1fr; }
+  .pdp__bar { display: flex; }
+  .pdp { padding-bottom: 96px; }   /* hueco para la barra de compra */
+}
+@media (max-width: 560px) {
+  .pdp__actions { gap: 8px; }
+  .pdp__add { flex: 1 1 100%; order: 3; }
+  .pdp__thumb { width: 56px; height: 56px; }
+  .pdp__spec { grid-template-columns: 1fr; gap: 2px; }
+  .pdp__rel-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pdp__stage img, .pdp__add, .pdp__wish, .pdp__rel, .pdp__toast, .pdp__bar { transition: none !important; }
+}

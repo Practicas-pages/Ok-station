@@ -37,13 +37,62 @@
     '</button>' +
     '<div class="acct__menu" id="acct-menu" role="menu" hidden>' +
       '<div class="acct__head"><b>' + esc(u.full_name || "") + '</b><span>' + esc(u.email || "") + '</span></div>' +
-      '<a role="menuitem" href="perfil.html">Mi perfil</a>' +
-      '<a role="menuitem" href="perfil.html#pedidos">Mis pedidos</a>' +
-      '<a role="menuitem" href="perfil.html#citas">Mis citas</a>' +
-      (isStaff ? '<a role="menuitem" href="admin.html" class="acct__admin">' + panelLabel + '</a>' : '') +
+      '<a role="menuitem" href="/perfil">Mi perfil</a>' +
+      '<a role="menuitem" href="/perfil#pedidos">Mis pedidos</a>' +
+      '<a role="menuitem" href="/perfil#citas">Mis citas</a>' +
+      (isStaff ? '<a role="menuitem" href="/admin" class="acct__admin">' + panelLabel + '</a>' : '') +
       '<button role="menuitem" id="acct-logout" type="button">Cerrar sesión</button>' +
     '</div>';
   acct.appendChild(wrap);
+
+  /* Topbar de la TIENDA (tienda.html): el botón .tb-cuenta no vive dentro de #acct.
+     Le damos el MISMO menú desplegable que el home (todo el sitio conectado), anclado
+     al chip. (En otras páginas no existe .tb-cuenta y esto es un no-op.) */
+  var tb = document.querySelector(".tb-cuenta");
+  if (tb && tb.parentNode && !tb.parentNode.querySelector(".tb-acctmenu")) {
+    tb.setAttribute("href", "/perfil");               // respaldo si el JS fallara (absoluto: sirve desde /producto/…)
+    /* MISMO chip que el home: avatar con tu inicial (degradado de marca) + nombre +
+       flecha. Antes era un ícono genérico de persona y SIN flecha, aunque igual
+       despliega el menú: ni se veía igual que el home ni avisaba que se abre. */
+    tb.classList.add("tb-cuenta--user");
+    tb.innerHTML =
+      '<span class="tb-avatar" aria-hidden="true">' + esc(initial) + '</span>' +
+      '<span class="tb-name">' + esc(first) + '</span>' +
+      '<svg class="tb-caret" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>';
+    tb.setAttribute("aria-label", "Cuenta de " + (u.full_name || first));
+
+    var host = tb.parentNode;                          // .tb-actions
+    host.style.position = "relative";
+    var tbMenu = document.createElement("div");
+    tbMenu.className = "tb-acctmenu"; tbMenu.hidden = true; tbMenu.setAttribute("role", "menu");
+    tbMenu.innerHTML =
+      '<div class="tb-accthead"><b>' + esc(u.full_name || "") + '</b><span>' + esc(u.email || "") + '</span></div>' +
+      '<a role="menuitem" href="/perfil">Mi perfil</a>' +
+      '<a role="menuitem" href="/perfil#pedidos">Mis pedidos</a>' +
+      '<a role="menuitem" href="/perfil#citas">Mis citas</a>' +
+      (isStaff ? '<a role="menuitem" href="/admin" class="tb-acctadmin">' + panelLabel + '</a>' : '') +
+      '<button role="menuitem" type="button" class="tb-acctlogout">Cerrar sesión</button>';
+    host.appendChild(tbMenu);
+
+    tb.setAttribute("aria-haspopup", "true"); tb.setAttribute("aria-expanded", "false");
+    function tbClose() { tbMenu.hidden = true; tb.setAttribute("aria-expanded", "false"); }
+    function tbToggle(e) { if (e) e.preventDefault(); var willOpen = tbMenu.hidden; tbMenu.hidden = !willOpen; tb.setAttribute("aria-expanded", String(willOpen)); }
+    tb.addEventListener("click", tbToggle);
+    /* .tb-cuenta es un <a role=button>: Enter dispara click solo; la barra ESPACIADORA no. */
+    tb.addEventListener("keydown", function (e) { if (e.key === " " || e.key === "Spacebar") tbToggle(e); });
+    document.addEventListener("click", function (e) {
+      if (!tbMenu.hidden && !tbMenu.contains(e.target) && !tb.contains(e.target)) tbClose();
+    });
+    /* Escape en CAPTURA: si el menú está abierto, ciérralo y NO dejes que el Escape
+       global de la tienda cierre además el carrito/drawers. */
+    document.addEventListener("keydown", function (e) {
+      if (e.key === "Escape" && !tbMenu.hidden) { e.stopPropagation(); tbClose(); }
+    }, true);
+    tbMenu.querySelector(".tb-acctlogout").addEventListener("click", function () {
+      try { localStorage.removeItem("okstation.token"); localStorage.removeItem("okstation.user"); } catch (e) {}
+      window.location.reload();
+    });
+  }
 
   var btn = wrap.querySelector("#acct-btn");
   var menu = wrap.querySelector("#acct-menu");

@@ -20,6 +20,10 @@
   align-items: center;
   justify-content: space-between;
   gap: var(--space-4);
+  /* En móvil el logo + los botones (Inicio · Tienda · Cerrar sesión) no caben en una
+     sola fila: se acomodan en dos en vez de desbordarse. */
+  flex-wrap: wrap;
+  row-gap: var(--space-3);
   padding: var(--space-4) clamp(16px, 4vw, 40px);
 }
 .auth-top .logo { font-size: 1.4rem; }
