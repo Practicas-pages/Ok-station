@@ -76,6 +76,15 @@ RewriteRule ^producto/([0-9]+)(?:-[^/]*)?/?$ producto.php?id=$1 [L,QSA]
 # /producto sin id → la tienda
 RewriteRule ^producto/?$ /tienda [R=301,L]
 
+# Página de categoría: /categoria/consumibles → categoria.php?slug=consumibles
+# OJO: producción (okstation.mx) corre en Nginx y NO lee este archivo — allá ya está
+# su equivalente en deploy/nginx-seguridad.conf (§1b). Esta regla es el espejo para
+# quien sirva el sitio con Apache en local (XAMPP), y va aquí por la misma razón que
+# la de producto: antes de las genéricas, o /categoria/... buscaría un .html.
+RewriteRule ^categoria/([a-z0-9-]+)/?$ categoria.php?slug=$1 [L,QSA]
+# /categoria sin slug → la tienda
+RewriteRule ^categoria/?$ /tienda [R=301,L]
+
 # No reescribir si el archivo existe literalmente
 RewriteCond %{REQUEST_FILENAME} -f [OR]
 RewriteCond %{REQUEST_FILENAME} -d

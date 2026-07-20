@@ -1,5 +1,14 @@
 # Para Oscar — trabajo de SEO y 2 cosas que necesitan tu visto bueno
 
+> **✅ ACTUALIZACIÓN 2026-07-20 — LOS DOS PENDIENTES QUEDARON RESUELTOS por Oscar:**
+> 1. `/categoria/…` **activado en producción** vía Nginx (commit `2663124`) — con razón:
+>    okstation.mx corre en Nginx y **no lee `.htaccess`**, así que las reglas Apache
+>    propuestas abajo no aplicaban allá. Se dejó su espejo en `.htaccess` solo para
+>    quien sirva con Apache en local (XAMPP).
+> 2. El arreglo del slug quedó revisado e integrado (commit `d42dd8a`).
+>
+> El resto del documento se conserva como registro de la propuesta original.
+
 Oscar: hice una auditoría de SEO del proyecto y subí varios arreglos a `desarrollo`.
 **Dos de ellos tocan terreno tuyo**, así que los dejo explicados aquí antes de que
 pasen a `main`. Si algo no te late, se revierte sin drama (ninguno rompe nada hoy).
