@@ -189,6 +189,10 @@
 #site .tb svg{color:var(--blue); flex:none}
 #site .tb b{display:block; font-size:.88rem; line-height:1.15}
 #site .tb span{font-size:.76rem; color:var(--muted)}
+/* Oculta (NO borra) los bloques con datos de relleno (+XXX clientes, X.X estrellas, XX% ...).
+   Cuando tengamos los numeros REALES, se quita la clase "sin-datos-reales" del HTML y vuelven a salir.
+   Nunca poner cifras inventadas aqui: es prueba social, inflarla seria enganar al cliente. */
+#site .sin-datos-reales{display:none !important}
 #site .proof{text-align:center}
 #site .proof .nums{display:flex; justify-content:center; gap:clamp(18px,5vw,60px); flex-wrap:wrap; margin-bottom:26px}
 #site .proof .nums .n{font-size:clamp(1.8rem,4vw,2.6rem); font-weight:800; color:var(--blue); line-height:1}
@@ -940,8 +944,8 @@ html.q-lock, html.q-lock body{overflow:hidden}
       <div class="tb"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="9"/></svg><div><b>Garantía real</b><span>Productos originales</span></div></div>
     </div></div>
 
-    <!-- 3) PRUEBA SOCIAL -->
-    <div class="wrap sec proof">
+    <!-- 3) PRUEBA SOCIAL — OCULTA hasta tener numeros REALES (quitar "sin-datos-reales" para mostrarla) -->
+    <div class="wrap sec proof sin-datos-reales">
       <span class="eyebrow">Nos recomiendan</span>
       <div class="nums" style="margin-top:14px">
         <div><div class="n">+XXX</div><small>clientes atendidos</small></div>
@@ -994,7 +998,7 @@ html.q-lock, html.q-lock body{overflow:hidden}
 
     <!-- Ofertas + urgencia -->
     <div class="wrap sec" style="padding-top:0"><div class="deal-band">
-      <div><span style="font-weight:800;font-size:.72rem;letter-spacing:.14em">SOLO HOY</span><h2>Ofertas del día</h2><p>Hasta XX% de descuento en productos seleccionados.</p>
+      <div><span style="font-weight:800;font-size:.72rem;letter-spacing:.14em">SOLO HOY</span><h2>Ofertas del día</h2><p class="sin-datos-reales">Hasta XX% de descuento en productos seleccionados.</p>
         <div class="countdown"><b id="cdH">05</b><b id="cdM">59</b><b id="cdS">30</b></div></div>
       <button class="btn-w" data-go-store data-cat="ofertas">Ver ofertas</button>
     </div></div>
