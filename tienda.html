@@ -1934,8 +1934,14 @@ html.q-lock, html.q-lock body{overflow:hidden}
     var cReq=fetch("/backend/api/shop/categories.php").then(function(r){return r.json();}).catch(function(){return null;});
     return Promise.all([pReq,cReq]).then(function(res){
       var pj=res[0], cj=res[1];
-      if(!pj||!pj.ok||!pj.items||!pj.items.length) return false;   // sin datos → se queda el respaldo
-      P=remember(pj.items.map(mapDbItem)); _sidx=null;
+      /* Si el API RESPONDIO, manda la base — aunque venga vacía. Antes, con 0 productos
+         se caía al catálogo de respaldo y la tienda mostraba los 18 de demostración como
+         si fueran comprables; el checkout ya los rechaza, así que el cliente los metía al
+         carrito para toparse con un error al pagar. Con la base vacía se ve el estado
+         "catálogo en preparación", que es la verdad. El respaldo solo queda para cuando
+         el API NO responde (caída de red), donde igual no se puede comprar. */
+      if(!pj||!pj.ok) return false;
+      P=remember((pj.items||[]).map(mapDbItem)); _sidx=null;
       dbMode=true; dbPage=pj.page||1; dbPages=pj.pages||1; dbTotal=pj.total||P.length;
       if(cj&&cj.ok&&cj.categories&&cj.categories.length){
         /* "Ofertas del día" no es una categoría de la BD: agrupa los productos con

@@ -94,18 +94,18 @@ final class ShopCatalog
                     'stock' => (int) $r['stock'],
                 ];
             }
-        } catch (Throwable $e) { /* si `products` aún no existe, se usa el demo */ }
+        } catch (Throwable $e) { /* la tabla `products` aún no existe: no hay nada que vender */ }
 
-        // 2) Catálogo de demostración (hardcodeado). base = costo × margen.
-        $p = self::find($id);
-        if (!$p) return null;
-        return [
-            'id'    => $id,
-            'sku'   => (string) $p['sku'],
-            'name'  => (string) $p['name'],
-            'base'  => self::baseFor((float) $p['cost']),
-            'stock' => null,   // el demo no controla inventario (siempre disponible)
-        ];
+        /* NO hay respaldo al catálogo de demostración, y es a propósito.
+           Antes se caía a PRODUCTS (18 productos inventados, con `stock => null`, o sea
+           sin control de inventario). Eso permitía crear un pedido REAL y cobrarlo por
+           Mercado Pago por mercancía que no existe: el cliente paga y no hay qué
+           entregarle. El demo sirve para ver la tienda en local, nunca para vender.
+
+           Mientras `products` esté vacía (hasta la primera carga de Exel), esto hace que
+           el checkout responda "No pudimos identificar los productos de tu carrito" en
+           vez de cobrar. Cuando el catálogo real entre, todo funciona solo. */
+        return null;
     }
 
     /** Desglose de precio de un producto (para el panel/auditoría del margen). */
