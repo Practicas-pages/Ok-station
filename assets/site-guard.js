@@ -45,8 +45,9 @@
     TIENDA_MANTENIMIENTO: true,
 
     /* Rutas que cuentan como "tienda" para TIENDA_MANTENIMIENTO.
-       Cubre la tienda, la compra rápida y las fichas (/producto/49-slug). */
-    TIENDA_PATHS: ['/tienda', '/tienda-dinamica', '/producto'],
+       Cubre la tienda, la compra rápida, las fichas (/producto/49-slug) y las
+       páginas de categoría (/categoria/tinta-y-toner), que también listan producto. */
+    TIENDA_PATHS: ['/tienda', '/tienda-dinamica', '/producto', '/categoria'],
 
     /* Claves del JWT en localStorage.
        JWT_KEY  = la que usa maintenance.html (gate de mantenimiento).

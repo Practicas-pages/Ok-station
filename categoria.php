@@ -135,6 +135,8 @@ function mxn($n): string { return '$' . number_format((float) $n, 2); }
 <html lang="es-MX">
 <head>
   <meta charset="UTF-8">
+  <!-- Puerta de mantenimiento: primero que nada, para redirigir antes de pintar. -->
+  <script src="/assets/site-guard.js?v=20260720a"></script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="robots" content="index, follow, max-image-preview:large">
   <title><?= e($title) ?></title>
