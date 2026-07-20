@@ -935,7 +935,16 @@ body.td-predrag .td-trash{display:flex}
       e.preventDefault(); e.stopPropagation(); trash.classList.remove("over");
       var d = e.dataTransfer.getData("text/plain") || "";
       if (d.indexOf("pre:") === 0){ var id = d.slice(4); if (pre[id]){ delete pre[id]; renderPre(); } }
+      /* renderPre() destruye la fila que se venia arrastrando, asi que su "dragend" ya no
+         llega al listener de arriba y la marca td-predrag se quedaba PEGADA. Con ella puesta,
+         allow() sale sin preventDefault() y el navegador deja de disparar "drop": despues de
+         borrar una vez, ya no se podia arrastrar nada al carrito hasta recargar. */
+      document.body.classList.remove("td-predrag");
+      trash.classList.remove("over");
     });
+    /* Red de seguridad: si un arrastre termina por cualquier otra via (soltar fuera, Escape,
+       o con el elemento ya destruido), la marca no se queda pegada. */
+    document.addEventListener("dragend", function(){ document.body.classList.remove("td-predrag"); });
   })();
 
   /* ═══ Carrito y Favoritos: paneles EN LA PÁGINA ═══
