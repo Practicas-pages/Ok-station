@@ -2,15 +2,27 @@
 /** POST /backend/api/shop/create.php — crea un pedido de la TIENDA (e-commerce). Requiere sesión.
  *  SEGURIDAD: el precio se toma del catálogo del SERVIDOR (ShopCatalog); se ignora
  *  cualquier monto/precio que mande el navegador. El costo de envío también es del servidor.
- *  Body: { items:[{id,qty}], ship_mode:'retiro'|'envio', ship_address?, contact_phone, comments? }
+ *  Body: { items:[{id,qty,seen_unit?}], ship_mode:'retiro'|'envio', ship_address?, contact_phone, comments? }
+ *  `seen_unit` (opcional): precio de LISTA que el carrito mostró; si el actual difiere
+ *  >3% (PRECIO_DERIVA_MAX) responde 409 {price_changed:[{id,name,seen,now}]}.
  */
 require __DIR__ . '/../_bootstrap.php';
 require __DIR__ . '/../lib/authz.php';
 require __DIR__ . '/../lib/Pricing.php';
 require __DIR__ . '/../lib/ShopCatalog.php';
+require __DIR__ . '/../lib/ShopProduct.php';  // IVA_LISTA: la MISMA convención del precio que ve el cliente
 require __DIR__ . '/../lib/Geo.php';
 require __DIR__ . '/../lib/Addresses.php';   // ESTADOS: lista válida para el IVA
 only_method('POST');
+
+/* ── Umbral de deriva de precio (junta 2026-07-14): si el precio actual difiere >3%
+   del que el cliente VIO en su carrito, el pedido se bloquea y el carrito se
+   actualiza. Protege en ambas direcciones: al cliente (no pagar más de lo que vio
+   tras un sync de Exel) y al negocio (no vender a un precio viejo más bajo).
+   La comparación es contra el precio de LISTA (base × IVA_LISTA 8%), que es la
+   convención con la que el carrito muestra los precios (products.php línea ~111);
+   compararla contra el precio del DESTINO daría falsa alarma en envíos al 16%. */
+const PRECIO_DERIVA_MAX = 0.03;
 
 $user  = current_user();
 $b     = body();
@@ -53,6 +65,7 @@ $ivaRate = ($shipMode === 'envio') ? Geo::ivaForState($state) : 0.08;
    resolve() usa el catálogo REAL (products) y, si el id no está, el demo hardcodeado. */
 $resolved  = [];
 $sinStock  = [];    // productos del catálogo real que ya no alcanzan → "se nos acabó"
+$precioCambio = []; // productos cuyo precio actual difiere >3% del que el cliente vio
 $totalIncl = 0.0;   // total con el IVA del destino ya aplicado
 foreach ($items as $it) {
     $pid = (int) ($it['id'] ?? 0);
@@ -63,6 +76,21 @@ foreach ($items as $it) {
     // NOTA: valida contra el stock del último sync; la revalidación EN VIVO contra Exel
     // (POST productos por almacenes) se añadirá cuando esté la API key.
     if ($p['stock'] !== null && $p['stock'] < $qty) { $sinStock[] = $p['name']; continue; }
+
+    /* ── Bloqueo por deriva de precio (>3%) ──
+       `seen_unit` es el precio de LISTA que el carrito mostraba al cliente. Es
+       OPCIONAL a propósito: un carrito viejo que no lo mande sigue funcionando
+       igual que antes (el precio autoritativo siempre fue el del servidor); solo
+       que sin la protección. Cuando la deriva rebasa el umbral, NO se cobra ni el
+       precio viejo ni el nuevo a ciegas: se devuelve 409 con los precios actuales
+       para que el carrito se repinte y el cliente decida con el total real. */
+    $listaNow = round($p['base'] * ShopProduct::IVA_LISTA, 2);
+    $seen = isset($it['seen_unit']) && is_numeric($it['seen_unit']) ? (float) $it['seen_unit'] : null;
+    if ($seen !== null && $seen > 0 && abs($listaNow - $seen) / $seen > PRECIO_DERIVA_MAX) {
+        $precioCambio[] = ['id' => $pid, 'name' => $p['name'], 'seen' => round($seen, 2), 'now' => $listaNow];
+        continue;
+    }
+
     $unit = round($p['base'] * (1 + $ivaRate), 2);   // base sin IVA → IVA del destino
     $line = round($unit * $qty, 2);
     $totalIncl += $line;
@@ -70,6 +98,14 @@ foreach ($items as $it) {
 }
 if ($sinStock) {
     fail('Ya no hay suficiente inventario de: ' . implode(', ', $sinStock) . '. Actualiza tu carrito y vuelve a intentar.', 409, ['out_of_stock' => $sinStock]);
+}
+if ($precioCambio) {
+    $nombres = implode(', ', array_column($precioCambio, 'name'));
+    /* Se registra SIEMPRE: si esto dispara seguido, el sync de Exel está corriendo
+       poco (o un precio se movió de más) y alguien debe enterarse. */
+    error_log('[shop.create] precio derivó >3% en: ' . $nombres);
+    fail('El precio de ' . $nombres . ' cambió desde que lo agregaste. Tu carrito se actualizó con el precio vigente: revisa el total y vuelve a intentar.',
+         409, ['price_changed' => $precioCambio]);
 }
 if (!$resolved) fail('No pudimos identificar los productos de tu carrito.', 422);
 

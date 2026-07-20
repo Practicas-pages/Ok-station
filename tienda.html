@@ -1805,7 +1805,9 @@ html.q-lock, html.q-lock body{overflow:hidden}
     var envio=shipMode==="envio", addr=($("coAddr")&&$("coAddr").value||"").trim();
     if(envio&&addr.length<10){flash("Ingresa la dirección de envío completa");return;}
     var estado=envio?(($("coState")&&$("coState").value)||okGeo.state||"Baja California"):"Baja California";
-    var items=Object.keys(cart).map(function(k){return {id:+cart[k].p.id,qty:cart[k].qty};});
+    /* seen_unit = el precio de LISTA que este carrito le mostró al cliente. El servidor
+       lo compara con el vigente y bloquea si difiere >3% (deriva por sync de Exel). */
+    var items=Object.keys(cart).map(function(k){return {id:+cart[k].p.id,qty:cart[k].qty,seen_unit:+cart[k].p.price||0};});
     if(!items.length){flash("Tu carrito está vacío");return;}
     var btn=document.querySelector("[data-copay]"); if(btn){btn.disabled=true;btn.textContent="Procesando…";}
     fetch("/backend/api/shop/create.php",{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+tok},
@@ -1813,6 +1815,14 @@ html.q-lock, html.q-lock body{overflow:hidden}
       .then(function(r){return r.json();})
       .then(function(j){
         if(j&&j.ok&&j.order){ saveCart&&(cart={}); try{localStorage.removeItem("okstation_cart");}catch(e){} location.href="pago.html?shop="+j.order.id; }
+        else if(j&&j.price_changed){
+          /* El precio derivó >3% desde que se agregó (sync de Exel). El servidor manda
+             los precios vigentes: se actualiza el carrito EN el momento y se repinta,
+             para que el cliente decida con el total real (nunca cobrar a ciegas). */
+          (j.price_changed||[]).forEach(function(c){ if(cart[c.id]&&cart[c.id].p) cart[c.id].p.price=c.now; });
+          saveCart&&saveCart(); renderCart(); flash((j&&j.error)||"Los precios cambiaron; tu carrito se actualizó");
+          if(btn){btn.disabled=false;paintCheckout();}
+        }
         else{ flash((j&&j.error)||"No se pudo crear el pedido"); if(btn){btn.disabled=false;paintCheckout();} }
       }).catch(function(){ flash("Error de conexión, intenta de nuevo"); if(btn){btn.disabled=false;paintCheckout();} });
   }
