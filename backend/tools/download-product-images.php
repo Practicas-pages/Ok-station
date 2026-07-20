@@ -10,8 +10,16 @@
  * Uso:
  *   php backend/tools/download-product-images.php            # todas las que falten
  *   php backend/tools/download-product-images.php 5          # solo el producto 5
+ *
+ * Solo CLI: descarga archivos remotos y escribe bajo el webroot. Por HTTP
+ * quedaría expuesto (el vhost no bloquea backend/tools/).
  */
 declare(strict_types=1);
+
+if (PHP_SAPI !== 'cli') {
+    http_response_code(403);
+    exit("Solo CLI.\n");
+}
 
 require __DIR__ . '/../api/lib/env.php';
 load_env(__DIR__ . '/../.env');

@@ -8,8 +8,17 @@
  *
  * El usuario debe EXISTIR (regístralo primero en la página, en "Cuenta").
  * Idempotente: correrlo de nuevo no duplica nada. Lee la conexión de backend/.env.
+ *
+ * Solo CLI: da rol de Administrador, así que NO debe poder llamarse por HTTP.
+ * El vhost sirve backend/ por PHP-FPM y no bloquea esta carpeta; con
+ * register_argc_argv activado, $argv se llena desde el query string.
  */
 declare(strict_types=1);
+
+if (PHP_SAPI !== 'cli') {
+    http_response_code(403);
+    exit("Solo CLI.\n");
+}
 
 require __DIR__ . '/../api/lib/env.php';
 load_env(__DIR__ . '/../.env');

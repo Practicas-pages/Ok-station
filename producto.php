@@ -98,7 +98,19 @@ $metaDesc = $desc !== ''
 $title    = $name . ($brand && stripos($name, $brand) === false ? " · $brand" : '') . ' | OK.station';
 $siteUrl  = 'https://okstation.mx';
 $canonUrl = $siteUrl . $canonPath;
-$ogImage  = $images ? $siteUrl . $images[0] : $siteUrl . '/assets/img/hero-okstation.webp';
+
+/* Las imágenes pueden venir de DOS lados: locales (/assets/img/products/…, cuando
+   ya corrió download-product-images.php) o del CDN de Icecat (URL absoluta, si
+   todavía no se han bajado). Anteponer el dominio a ciegas producía
+   "https://okstation.mxhttps://images.icecat.biz/…", lo que dejaba sin miniatura
+   al compartir en WhatsApp/Facebook y hacía que Google descartara la imagen del
+   bloque Product — justo lo que esta página existe para lograr. */
+function abs_url(string $path): string {
+    global $siteUrl;
+    return preg_match('~^https?://~i', $path) ? $path : $siteUrl . $path;
+}
+
+$ogImage  = abs_url($images ? $images[0] : '/assets/img/hero-okstation.webp');
 
 function e(?string $s): string { return htmlspecialchars((string) $s, ENT_QUOTES, 'UTF-8'); }
 function mxn(float $n): string { return '$' . number_format($n, 2); }
@@ -111,7 +123,7 @@ $ld = [
     'sku'         => $sku !== '' ? $sku : (string) $row['id'],
     'description' => $metaDesc,
     'url'         => $canonUrl,
-    'image'       => array_map(fn($i) => $siteUrl . $i, $images ?: ['/assets/img/hero-okstation.webp']),
+    'image'       => array_map('abs_url', $images ?: ['/assets/img/hero-okstation.webp']),
     'offers'      => [
         '@type'         => 'Offer',
         'url'           => $canonUrl,
