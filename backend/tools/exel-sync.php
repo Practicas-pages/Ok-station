@@ -67,8 +67,14 @@ function db(): PDO { global $PDO; return $PDO; }
 require __DIR__ . '/../api/lib/ShopCatalog.php';
 
 /* ── Args ── */
-$args   = array_slice($argv, 1);
-$dryRun = in_array('--dry-run', $args, true);
+$args    = array_slice($argv, 1);
+$dryRun  = in_array('--dry-run', $args, true);
+/* Censo detallado por SUBCATEGORÍA. Las categorías de Exel son muy amplias y mezclan:
+   "Impresión y Multifuncionales" trae videocámaras y computadoras de escritorio, y
+   "Consumibles" trae ruteadores. Filtrar por categoría deja entrar cómputo a una tienda
+   que debe ser de papelería, así que primero hay que VER las subcategorías reales. */
+$subcats = in_array('--subcats', $args, true);
+if ($subcats) $dryRun = true;   // nunca escribe
 $file   = null;
 $limit  = 0;
 foreach ($args as $a) {
@@ -101,7 +107,7 @@ foreach ($raw as $p) {
     if (!isset($censo[$k])) $censo[$k] = ['n' => 0, 'pasa' => $pasa, 'subs' => []];
     $censo[$k]['n']++;
     $sub = trim((string) ($p['subcategoria_nombre'] ?? ''));
-    if ($sub !== '') $censo[$k]['subs'][$sub] = true;
+    if ($sub !== '') $censo[$k]['subs'][$sub] = ($censo[$k]['subs'][$sub] ?? 0) + 1;
 
     if (!$pasa) { $descartados++; continue; }
 
@@ -143,6 +149,24 @@ if ($dryRun || !$rows) {
             $subs ? '(' . implode(', ', $subs) . (count($c['subs']) > 4 ? '…' : '') . ')' : '');
     }
     echo "  ──\n  Entran: {$entran}   ·   Se quedan fuera: {$fuera}   ·   Categorías distintas: " . count($censo) . "\n";
+
+    /* --subcats: el desglose que hace falta para armar la lista blanca fina. Solo de
+       las categorías que HOY entran: son las que hay que depurar. */
+    if ($subcats) {
+        echo "\n── Subcategorías de las categorías que ENTRAN ──\n";
+        echo "   (revisa una por una: lo que NO sea papelería hay que sacarlo)\n";
+        foreach ($censo as $nombre => $c) {
+            if (!$c['pasa']) continue;
+            arsort($c['subs']);
+            echo "\n  " . $nombre . "  (" . $c['n'] . " productos, " . count($c['subs']) . " subcategorías)\n";
+            foreach ($c['subs'] as $s => $n) {
+                echo sprintf("      %6d  %s\n", $n, $s);
+            }
+        }
+        echo "\n  Total de subcategorías a revisar: " .
+             array_sum(array_map(fn($c) => $c['pasa'] ? count($c['subs']) : 0, $censo)) . "\n";
+        exit(0);
+    }
     if (!$rows) {
         echo "\n  ⚠ NO entró NI UN producto. La lista blanca PAPELERIA_CATS (arriba en este\n";
         echo "    archivo) no empata con los nombres de Exel. Copia de la columna de arriba\n";
