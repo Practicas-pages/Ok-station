@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="es-MX">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, follow">
+  <title>Estamos teniendo un problema — Ok.station</title>
+  <meta name="theme-color" content="#066CFF">
+  <link rel="icon" href="/assets/img/OKD-Isotipo-Azul-96.png" type="image/png" sizes="96x96">
+  <!-- Estilos EN LA PAGINA, y aqui es lo mas importante de las tres: si el sitio
+       esta fallando, cualquier recurso externo puede fallar tambien. Esta pagina
+       tiene que verse bien SOLA. -->
+  <style>
+    *{box-sizing:border-box}
+    body{margin:0;min-height:100vh;display:grid;place-items:center;padding:24px;
+      font-family:"Poppins",system-ui,-apple-system,"Segoe UI",sans-serif;
+      background:#F5F8FD;color:#12141C}
+    .card{max-width:560px;width:100%;background:#fff;border:1px solid #E3E8F1;
+      border-radius:18px;padding:clamp(28px,5vw,48px);text-align:center;
+      box-shadow:0 10px 40px rgba(18,20,28,.07)}
+    .code{font-size:clamp(3.2rem,10vw,4.6rem);font-weight:800;line-height:1;
+      color:#066CFF;letter-spacing:-.03em;margin:0}
+    h1{font-size:clamp(1.25rem,3.5vw,1.6rem);margin:14px 0 10px;letter-spacing:-.02em}
+    p{color:#5b6474;margin:0 0 26px;line-height:1.6}
+    .btns{display:flex;flex-wrap:wrap;gap:10px;justify-content:center}
+    a.btn{display:inline-flex;align-items:center;gap:8px;padding:12px 22px;
+      border-radius:99px;font-weight:600;font-size:.95rem;text-decoration:none;
+      border:1.5px solid transparent;transition:.15s;cursor:pointer}
+    .primary{background:#066CFF;color:#fff}
+    .primary:hover{background:#0559d6}
+    .wa{background:#25D366;color:#fff}
+    .wa:hover{background:#1fbe59}
+    .brand{margin-top:26px;font-size:.82rem;color:#8b93a3}
+    .brand b{color:#066CFF}
+  </style>
+</head>
+<body>
+  <main class="card">
+    <p class="code">500</p>
+    <h1>Algo falló de nuestro lado</h1>
+    <p>No es tu conexión: tuvimos un problema en el servidor. Ya estamos al tanto.
+       Vuelve a intentar en un momento, o escríbenos y te atendemos directo.</p>
+    <div class="btns">
+      <a class="btn primary" href="/">Volver al inicio</a>
+      <a class="btn wa" href="https://wa.me/526647194117?text=Hola,%20la%20p%C3%A1gina%20me%20marc%C3%B3%20un%20error"
+         target="_blank" rel="noopener">Escríbenos por WhatsApp</a>
+    </div>
+    <p class="brand"><b>Ok.station</b> — Centro Comercial Otay, Tijuana</p>
+  </main>
+</body>
+</html>

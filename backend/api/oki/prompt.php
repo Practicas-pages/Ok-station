@@ -42,15 +42,169 @@ function oki_store_facts(): string
         $out .= implode("\n", $lineas) . "\n";
         $out .= "- \"Ofertas del día\": {$ofertas} productos con precio rebajado.\n";
         $out .= "- Si te piden una categoría que NO está en esta lista, dilo y ofrece las que sí hay.\n";
+
+        /* MARCAS. Es lo que más pregunta un cliente ("¿tienen HP?", "¿venden Sharpie?").
+           Sin esto OKi no sabía qué marcas maneja la tienda y mandaba a WhatsApp de más. */
+        $marcas = db()->query(
+            "SELECT brand, COUNT(*) n FROM products
+              WHERE is_active = 1 AND brand <> '' GROUP BY brand ORDER BY n DESC LIMIT 30"
+        )->fetchAll();
+        if ($marcas) {
+            $out .= "- MARCAS que manejamos (las 30 con más productos): "
+                  . implode(', ', array_column($marcas, 'brand')) . ".\n";
+            $out .= "  Si preguntan por una marca de ESTA lista, sí la tenemos. Si preguntan por otra,\n"
+                  . "  di que puedes buscarla y ofrece el buscador de la tienda; no afirmes que no existe.\n";
+        }
+
+        /* TIPOS de producto (la familia que manda Exel: TONERS, MARCADORES, CARPETAS…).
+           Es el vocabulario con el que la gente pide las cosas. */
+        $tipos = db()->query(
+            "SELECT subcategory t, COUNT(*) n FROM products
+              WHERE is_active = 1 AND subcategory <> '' GROUP BY subcategory
+              HAVING n >= 5 ORDER BY n DESC LIMIT 40"
+        )->fetchAll();
+        if ($tipos) {
+            $out .= "- TIPOS de producto con más existencia: "
+                  . implode(', ', array_map(fn($r) => $r['t'] . ' (' . $r['n'] . ')', $tipos)) . ".\n";
+        }
+
+        /* RANGOS DE PRECIO por categoría, con el IVA de mostrador ya puesto: así OKi puede
+           orientar ("los tóners van de X a Y") sin inventar un precio exacto. */
+        $rangos = db()->query(
+            "SELECT category c, ROUND(MIN(price) * 1.08) mn, ROUND(MAX(price) * 1.08) mx
+               FROM products WHERE is_active = 1 AND price > 0
+              GROUP BY category ORDER BY COUNT(*) DESC"
+        )->fetchAll();
+        if ($rangos) {
+            $out .= "- Rangos de precio (IVA 8% incluido, precio de lista):\n";
+            foreach ($rangos as $r) {
+                $out .= "  · {$r['c']}: desde \${$r['mn']} hasta \${$r['mx']}.\n";
+            }
+        }
         return $out;
     } catch (Throwable $e) {
         return '';   // sin BD, el prompt base ya trae lo esencial
     }
 }
 
-function oki_system_prompt(): string
+/**
+ * Quita de la pregunta las palabras que no describen un producto, para que quede solo
+ * lo buscable. "¿cuánto cuesta el tóner hp 85a?" → "toner hp 85a".
+ */
+function oki_terminos_de_busqueda(string $mensaje): string
 {
-    return oki_system_prompt_base() . oki_store_facts();
+    /* Preguntas, verbos de compra, artículos y preposiciones: nada de esto aparece en el
+       nombre de un producto, y el buscador exige que TODAS las palabras coincidan. */
+    static $relleno = [
+        'cuanto','cuanta','cuantos','cuantas','cuesta','cuestan','vale','valen','precio','precios',
+        'tienen','tienes','tiene','venden','vendes','vende','hay','manejan','manejas','consigo',
+        'necesito','necesita','quiero','quisiera','busco','buscar','buscas','ocupo','dame','dime',
+        'me','mi','te','se','le','lo','la','el','los','las','un','una','unos','unas',
+        'de','del','al','a','en','con','para','por','sobre','sin','y','o','u','que','qué',
+        'cual','cuál','cuales','cuáles','como','cómo','donde','dónde','es','son','esta','está',
+        'estan','están','hola','buenas','buenos','dias','días','tardes','noches','porfavor','porfa',
+        'favor','gracias','ayuda','ayudame','ayúdame','disponible','disponibles','existencia','stock',
+    ];
+
+    $s = mb_strtolower($mensaje, 'UTF-8');
+    $s = strtr($s, ['á'=>'a','é'=>'e','í'=>'i','ó'=>'o','ú'=>'u','ü'=>'u']);
+    $s = preg_replace('/[^\p{L}\p{N}\s]+/u', ' ', $s);      // fuera signos: ¿ ? , .
+    $palabras = array_filter(explode(' ', preg_replace('/\s+/', ' ', trim($s))));
+
+    $utiles = [];
+    foreach ($palabras as $w) {
+        if (mb_strlen($w) < 2) continue;
+        if (in_array($w, $relleno, true)) continue;
+        $utiles[] = $w;
+    }
+    /* Más de 6 palabras ya no es una búsqueda de producto, es una conversación. */
+    if (!$utiles || count($utiles) > 6) return '';
+    return implode(' ', $utiles);
+}
+
+/** Busca en el catálogo real con el mismo motor (y sinónimos) que usa la tienda. */
+function oki_buscar_productos(string $terminos): array
+{
+    [$sql, $params] = shop_search_clause($terminos);
+    if ($sql === '') return [];
+    $st = db()->prepare(
+        "SELECT name, brand, subcategory, price, old_price, stock
+           FROM products
+          WHERE is_active = 1 AND ({$sql})
+          ORDER BY (stock > 0) DESC, price ASC
+          LIMIT 8"
+    );
+    $st->execute($params);
+    return $st->fetchAll();
+}
+
+/**
+ * Productos REALES que coinciden con lo que acaba de preguntar el cliente.
+ *
+ * El catálogo tiene ~5500 productos: no caben en el prompt ni tendría sentido mandarlos
+ * todos en cada mensaje. En vez de eso se busca lo que la persona preguntó y se le pasan
+ * a OKi solo esas coincidencias, con su precio y existencia de verdad. Así puede
+ * contestar "el tóner HP 85A cuesta $1,684.80 y hay 9" en lugar de derivar a WhatsApp,
+ * y sigue cumpliendo la regla de oro: los datos salen de la base, no se inventan.
+ *
+ * Reutiliza el mismo buscador con sinónimos de la tienda (tinta↔cartucho, hojas↔papel),
+ * así OKi encuentra lo mismo que encontraría el cliente usando el buscador.
+ */
+function oki_product_context(string $mensaje): string
+{
+    $mensaje = trim($mensaje);
+    if (mb_strlen($mensaje) < 3) return '';
+
+    try {
+        require_once __DIR__ . '/../shop/_synonyms.php';
+        if (!function_exists('shop_search_clause')) return '';
+
+        /* La gente no escribe como en un buscador: dice "¿cuánto cuesta el tóner hp 85a?".
+           El buscador de la tienda exige que TODAS las palabras aparezcan en el producto,
+           así que "cuánto", "cuesta" y "el" lo dejaban sin resultados siempre. Se quitan
+           esas palabras de relleno y queda lo que de verdad describe el producto. */
+        $terminos = oki_terminos_de_busqueda($mensaje);
+        if ($terminos === '') return '';
+
+        $rows = oki_buscar_productos($terminos);
+        /* Segundo intento: si pidiendo TODAS las palabras no hubo nada, se prueba con la
+           más larga (suele ser la que identifica el producto: "engrapadora", "marcadores"). */
+        if (!$rows) {
+            $palabras = explode(' ', $terminos);
+            usort($palabras, fn($a, $b) => mb_strlen($b) <=> mb_strlen($a));
+            if (isset($palabras[0]) && mb_strlen($palabras[0]) >= 4) {
+                $rows = oki_buscar_productos($palabras[0]);
+            }
+        }
+        if (!$rows) return '';
+
+        $out = "\n\n# PRODUCTOS DE NUESTRO CATÁLOGO QUE COINCIDEN CON SU PREGUNTA\n"
+             . "(precios con IVA incluido, existencia real de hoy. Úsalos para responder;\n"
+             . " son datos de la base, NO los inventes ni los redondees.)\n";
+        foreach ($rows as $r) {
+            $precio = number_format((float) $r['price'] * 1.08, 2);
+            $linea  = '- ' . $r['name'] . ' — $' . $precio;
+            if ($r['brand'] !== '')  $linea .= ' · marca ' . $r['brand'];
+            $old = (float) ($r['old_price'] ?? 0);
+            if ($old > (float) $r['price']) $linea .= ' · EN OFERTA (antes $' . number_format($old * 1.08, 2) . ')';
+            $stock  = (int) $r['stock'];
+            $linea .= $stock > 0 ? ' · ' . $stock . ' disponibles' : ' · agotado';
+            $out .= $linea . "\n";
+        }
+        $out .= "Si ninguno es lo que buscaba, dilo e invítalo a usar el buscador de la tienda.\n";
+        return $out;
+    } catch (Throwable $e) {
+        return '';   // si la búsqueda falla, OKi responde con lo que ya sabe
+    }
+}
+
+/**
+ * El prompt completo. Si se le pasa el mensaje del cliente, además se le adjuntan los
+ * productos del catálogo que coinciden con lo que preguntó (ver oki_product_context).
+ */
+function oki_system_prompt(string $mensaje = ''): string
+{
+    return oki_system_prompt_base() . oki_store_facts() . oki_product_context($mensaje);
 }
 
 function oki_system_prompt_base(): string

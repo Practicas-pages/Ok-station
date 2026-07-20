@@ -153,7 +153,10 @@ if ($reply === null && Gemini::available()) {
 
     if (Gemini::withinBudget($ip)) {
         $history = (isset($b['messages']) && is_array($b['messages'])) ? $b['messages'] : [['role' => 'user', 'content' => $text]];
-        $sys = function_exists('oki_system_prompt') ? oki_system_prompt() : 'Eres OKi, el asistente astronauta de Ok.station (Tijuana). Responde breve, en español de México. Si no sabes algo con certeza, deriva a WhatsApp 664 719 4117.';
+        /* Se le pasa el mensaje para que el prompt incluya los productos del catálogo que
+           coinciden con lo que preguntó: así OKi contesta con el precio y la existencia
+           REALES en vez de derivar a WhatsApp. */
+        $sys = function_exists('oki_system_prompt') ? oki_system_prompt($text) : 'Eres OKi, el asistente astronauta de Ok.station (Tijuana). Responde breve, en español de México. Si no sabes algo con certeza, deriva a WhatsApp 664 719 4117.';
         $ai = Gemini::reply($text, $history, $sys);
         if ($ai !== null && trim($ai) !== '') {
             if ($cacheable) Gemini::cacheSet($qkey, $ai);
