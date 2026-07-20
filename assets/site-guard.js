@@ -60,7 +60,11 @@
     /* Roles con acceso durante mantenimiento.
        DEBE coincidir con ACCESS_ROLES de maintenance.html — si difieren,
        maintenance puede conceder acceso y el guard rebotar al usuario (bucle). */
+    /* La TIENDA es más restrictiva que el mantenimiento general: mientras no abra,
+       solo entran ADMINISTRADORES y DIRECTIVOS. El empleado queda fuera a propósito
+       (decisión del negocio); sigue entrando al panel, que usa su propio permiso. */
     ADMIN_ROLES: ['admin', 'administrador', 'administrator', 'superadmin', 'empleado', 'employee', 'staff', 'directivo'],
+    TIENDA_ROLES: ['admin', 'administrador', 'administrator', 'superadmin', 'directivo'],
 
     /* URL de la pantalla de mantenimiento */
     MAINTENANCE_URL: '/maintenance.html',
@@ -84,12 +88,81 @@
     return false;
   }
 
+  /* ── ¿Quién puede entrar a la tienda mientras está cerrada? ──
+     Solo administradores y directivos. El rol NO viene en el JWT de este backend
+     (solo sub/email/name), así que se lee de 'okstation.user', que es lo que guarda
+     el login y lo mismo que usa session-nav.js. */
+  function rolesGuardados() {
+    try {
+      var u = JSON.parse(localStorage.getItem('okstation.user') || 'null');
+      return (u && Array.isArray(u.roles)) ? u.roles : [];
+    } catch (_) { return []; }
+  }
+  function puedeEntrarALaTienda() {
+    return rolesGuardados().some(function (r) {
+      return GUARD.TIENDA_ROLES.indexOf(String(r || '').toLowerCase().trim()) !== -1;
+    });
+  }
+
+  /* ── Ocultar las ENTRADAS a la tienda mientras esté cerrada ──
+     Redirigir a quien entra no basta: si los botones siguen a la vista, el cliente
+     los pulsa, aterriza en la pantalla de mantenimiento y se lleva la impresión de
+     que el sitio falla. Se quitan en el origen —en TODAS las páginas— y solo para
+     quien no tiene acceso.
+
+     Se usa `remove()` y no `display:none` porque varios de estos elementos son
+     enlaces con estilos que reservan espacio; quitarlos deja la barra limpia.
+     El MutationObserver cubre lo que se pinta después (OKi inyecta su propia
+     interfaz en las 27 páginas). */
+  var SELECTORES_TIENDA = [
+    '.nav__tienda', '.nav__rapida',        // botones de la barra
+    '.okpromo', '.okpromo-sec',            // banner de la portada
+    'a[href*="tienda.html"]', 'a[href*="tienda-dinamica"]',
+    'a[href^="/tienda"]', 'a[href^="/producto/"]', 'a[href^="/categoria/"]'
+  ].join(',');
+
+  function ocultarEntradasATienda() {
+    var n = document.querySelectorAll(SELECTORES_TIENDA);
+    for (var i = 0; i < n.length; i++) {
+      /* El banner vive dentro de una sección con su propio espaciado: se quita la
+         sección entera para no dejar un hueco en blanco en la portada. */
+      var sec = n[i].closest ? n[i].closest('.okpromo-sec') : null;
+      var obj = sec || n[i];
+      if (obj && obj.parentNode) { obj.parentNode.removeChild(obj); }
+    }
+  }
+
+  if (GUARD.TIENDA_MANTENIMIENTO && !puedeEntrarALaTienda()) {
+    var arranca = function () {
+      ocultarEntradasATienda();
+      try {
+        new MutationObserver(ocultarEntradasATienda)
+          .observe(document.body, { childList: true, subtree: true });
+      } catch (_) {}
+    };
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', arranca);
+    } else {
+      arranca();
+    }
+  }
+
   /* Decide si esta carga debe pasar por el gate:
        - MAINTENANCE_MODE     → todo el sitio
        - TIENDA_MANTENIMIENTO → solo las rutas de tienda
      Si ninguno aplica, el guard no hace nada (sitio público como siempre). */
   var gatear = GUARD.MAINTENANCE_MODE || (GUARD.TIENDA_MANTENIMIENTO && esRutaDeTienda(currentPath));
   if (!gatear) { return; }
+
+  /* Entrada directa a la tienda (enlace, favorito, Google): si no es admin ni
+     directivo, a mantenimiento sin más. Esto va ANTES de la lógica de JWT de abajo,
+     que es la del mantenimiento general y admite también a empleados. */
+  if (GUARD.TIENDA_MANTENIMIENTO && !GUARD.MAINTENANCE_MODE) {
+    if (puedeEntrarALaTienda()) { return; }
+    try { sessionStorage.setItem('oks_intended', window.location.href); } catch (_) {}
+    window.location.replace(GUARD.MAINTENANCE_URL);
+    return;
+  }
 
   /* No aplicar en la propia pantalla de mantenimiento */
   if (currentPath === '/maintenance.html' || currentPath === '/maintenance') {
