@@ -105,11 +105,22 @@ final class ShopProduct
      */
     public static function slug(string $name): string
     {
-        $s = $name;
-        if (function_exists('iconv')) {
-            $t = @iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $s);
-            if ($t !== false) $s = $t;
-        }
+        /* Mapa explicito en vez de iconv('ASCII//TRANSLIT'): TRANSLIT depende de la
+           libreria del sistema y NO da el mismo resultado en todas partes. En Windows
+           devuelve "T'oner" y "Ni~no" (mete apostrofo/virgulilla), que el limpiador de
+           abajo convierte en guion: quedaba "t-oner", "ni-no". En Linux suele salir
+           limpio, asi que la MISMA ficha tendria una URL distinta segun donde se
+           calcule. Con el mapa el resultado es identico en local y en el servidor.
+           Se arregla ahora que el catalogo real (nombres en espanol, llenos de
+           acentos) todavia no esta indexado: mas adelante cambiar los slugs
+           romperia enlaces ya publicados. */
+        $s = strtr($name, [
+            'á'=>'a','é'=>'e','í'=>'i','ó'=>'o','ú'=>'u','ü'=>'u','ñ'=>'n',
+            'Á'=>'a','É'=>'e','Í'=>'i','Ó'=>'o','Ú'=>'u','Ü'=>'u','Ñ'=>'n',
+            'à'=>'a','è'=>'e','ì'=>'i','ò'=>'o','ù'=>'u',
+            'â'=>'a','ê'=>'e','î'=>'i','ô'=>'o','û'=>'u',
+            'ç'=>'c','Ç'=>'c','º'=>'','ª'=>'','°'=>'',
+        ]);
         $s = strtolower($s);
         $s = preg_replace('/[^a-z0-9]+/', '-', $s);
         $s = trim((string) $s, '-');
