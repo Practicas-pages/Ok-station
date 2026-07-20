@@ -75,6 +75,9 @@ $dryRun  = in_array('--dry-run', $args, true);
    que debe ser de papelería, así que primero hay que VER las subcategorías reales. */
 $subcats = in_array('--subcats', $args, true);
 if ($subcats) $dryRun = true;   // nunca escribe
+/* Salta la salvaguarda de "feed incompleto" (ver más abajo). Úsalo solo cuando SABES
+   que el catálogo se encogió de verdad (p. ej. Exel depuró su línea). */
+$force   = in_array('--force', $args, true);
 $file   = null;
 $limit  = 0;
 foreach ($args as $a) {
@@ -193,6 +196,29 @@ if ($dryRun) {
 $cols = ['supplier','supplier_ref','supplier_id','sku','barcode','sat_code','name','description',
          'brand','category','subcategory','currency','cost','price','stock','warehouse_id','last_synced_at'];
 // prev_cost = cost (el VIEJO, antes de pisarlo) → base para la regla del 3%.
+/* ── SALVAGUARDA: no vaciar la tienda por un feed incompleto ──
+   El paso 4 apaga TODO lo que no vino en esta corrida. Si Exel responde a medias
+   (corte de red, su API degradada, una categoría que ese día no manda), eso deja la
+   tienda vacía de golpe, en silencio y de madrugada. Antes de escribir nada se
+   compara lo que llegó contra lo que hay publicado: si el feed trae mucho menos, se
+   aborta SIN tocar la visibilidad y se sale con código 1 para que el cron lo reporte.
+   El catálogo anterior se queda intacto, que es lo correcto: mejor un día con precios
+   viejos que una tienda sin productos. */
+const FEED_MINIMO = 0.70;   // el feed debe traer al menos el 70% de lo que hay activo
+$activosAntes = (int) $PDO->query(
+    "SELECT COUNT(*) FROM products WHERE supplier='exel' AND is_active = 1"
+)->fetchColumn();
+if (!$force && $activosAntes > 0 && count($rows) < $activosAntes * FEED_MINIMO) {
+    $pct = round(count($rows) / $activosAntes * 100);
+    fwrite(STDERR,
+        "\n✗ ABORTADO: el feed trae " . count($rows) . " productos de papelería, " .
+        "solo el {$pct}% de los {$activosAntes} que hay publicados.\n" .
+        "  Se esperaba al menos el " . (int) (FEED_MINIMO * 100) . "%. NO se escribió nada y el\n" .
+        "  catálogo sigue como estaba.\n" .
+        "  Revisa la API de Exel. Si el catálogo de verdad se encogió, repite con --force.\n");
+    exit(1);
+}
+
 $updates = ['prev_cost = cost'];
 foreach ($cols as $c) {
     if ($c === 'supplier' || $c === 'supplier_ref') continue;
