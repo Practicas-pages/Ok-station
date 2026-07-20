@@ -9,6 +9,7 @@ require __DIR__ . '/../lib/authz.php';
 require __DIR__ . '/../lib/Pricing.php';
 require __DIR__ . '/../lib/ShopCatalog.php';
 require __DIR__ . '/../lib/Geo.php';
+require __DIR__ . '/../lib/Addresses.php';   // ESTADOS: lista válida para el IVA
 only_method('POST');
 
 $user  = current_user();
@@ -31,12 +32,22 @@ if (mb_strlen($comments) > 1000) fail('Los comentarios son demasiado largos.');
 if (strlen($phone) !== 10) fail('Ingresa un teléfono válido (10 dígitos) para poder contactarte.');
 if ($shipMode === 'envio' && mb_strlen($shipAddress) < 10) fail('Ingresa la dirección de envío completa.');
 if (mb_strlen($shipAddress) > 400) fail('La dirección es demasiado larga.');
+/* El ESTADO decide la tasa de IVA (8% frontera vs 16% nacional), así que es un dato
+   FISCAL, no cosmético. Se valida contra la MISMA lista que usa la libreta de
+   direcciones (Addresses::ESTADOS) por dos razones:
+     1. Sin tope, un estado largo revienta `ship_state VARCHAR(60)` y el pedido
+        muere con un 500 opaco ("No se pudo crear el pedido").
+     2. Con envío y estado vacío se caía al 8% de frontera para TODO el país.
+        Ahora el estado es obligatorio cuando hay envío. */
+if ($shipMode === 'envio' && !in_array($state, Addresses::ESTADOS, true)) {
+    fail('Selecciona el estado de entrega para calcular el IVA correcto.');
+}
 
 /* IVA por GEOLOCALIZACIÓN (autoritativo en el servidor):
    - RECOGER en tienda = Tijuana (Baja California) → 8%.
    - ENVÍO = según el ESTADO de entrega (BC 8% / resto del país 16%).
    ShopCatalog::resolve() devuelve la base SIN IVA; aquí se le aplica el IVA del destino. */
-$ivaRate = ($shipMode === 'envio' && $state !== '') ? Geo::ivaForState($state) : 0.08;
+$ivaRate = ($shipMode === 'envio') ? Geo::ivaForState($state) : 0.08;
 
 /* Resolver cada ítem contra el catálogo del SERVIDOR (precio autoritativo).
    resolve() usa el catálogo REAL (products) y, si el id no está, el demo hardcodeado. */
@@ -67,7 +78,7 @@ $totalIncl = round($totalIncl, 2);
 $subtotal  = round($totalIncl / (1 + $ivaRate), 2);   // base sin IVA
 $tax       = round($totalIncl - $subtotal, 2);        // IVA desglosado (a la tasa del destino)
 $total     = round($totalIncl + $shipCost, 2);        // IVA incluido + envío
-$ivaState  = ($shipMode === 'envio' && $state !== '') ? $state : 'Baja California';
+$ivaState  = ($shipMode === 'envio') ? $state : 'Baja California';   // ya validado contra ESTADOS
 
 $pdo = db();
 $pdo->beginTransaction();

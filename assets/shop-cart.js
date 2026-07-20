@@ -41,33 +41,51 @@
     rd(WISH, []).forEach(function (i) { ids[+i] = 1; });
     return Object.keys(ids).map(Number).filter(function (id) { return !CACHE[id]; });
   }
+  /* products.php topa `per_page` en 60 (shop/products.php). Pedir más NO trae más:
+     simplemente no vuelven, y la poda de abajo los borraría del carrito creyendo
+     que ya no existen. Por eso se pide en tandas de 60. */
+  var MAX_POR_TANDA = 60;
+
   function hydrate(done) {
     var need = missingIds();
     if (!need.length) { if (done) done(false); return; }
-    fetch("/backend/api/shop/products.php?per_page=100&page=1&ids=" + need.join(","))
-      .then(function (r) { return r.json(); })
-      .then(function (j) {
-        if (j && j.ok && Array.isArray(j.items)) {
-          var got = {};
-          j.items.forEach(function (p) {
-            got[+p.id] = 1;
-            seed({ id: p.id, name: p.name, price: p.price, old: p.old, stock: p.stock, image: p.image, brand: p.brand, cat: p.category, url: "/producto/" + p.id });
-          });
+
+    var tandas = [];
+    for (var i = 0; i < need.length; i += MAX_POR_TANDA) tandas.push(need.slice(i, i + MAX_POR_TANDA));
+
+    var got = {}, todoOk = true, pendientes = tandas.length;
+
+    tandas.forEach(function (tanda) {
+      fetch("/backend/api/shop/products.php?per_page=" + MAX_POR_TANDA + "&page=1&ids=" + tanda.join(","))
+        .then(function (r) { return r.json(); })
+        .then(function (j) {
+          if (j && j.ok && Array.isArray(j.items)) {
+            j.items.forEach(function (p) {
+              got[+p.id] = 1;
+              seed({ id: p.id, name: p.name, price: p.price, old: p.old, stock: p.stock, image: p.image, brand: p.brand, cat: p.category, url: "/producto/" + p.id });
+            });
+          } else { todoOk = false; }
+        })
+        .catch(function () { todoOk = false; })
+        .then(function () {
+          if (--pendientes > 0) return;
           /* Poda de fantasmas: si el API RESPONDIÓ ok y un id que pedimos NO volvió, ese
              producto ya no está activo (lo dio de baja el sync de Exel) o no existe. Se
              saca del carrito/deseados para que el contador no lo cuente eternamente ni se
-             re-pida en cada cambio. Solo se poda con respuesta OK (un fallo de red no
-             borra items válidos). */
-          var c = rd(CART, {}), w = rd(WISH, []), changed = false;
-          need.forEach(function (id) {
-            if (got[id]) return;
-            if (c[id] != null) { delete c[id]; changed = true; }
-            var wi = w.indexOf(id); if (wi >= 0) { w.splice(wi, 1); changed = true; }
-          });
-          if (changed) { wr(CART, c); wr(WISH, w); }
-        }
-        if (done) done(true);
-      }).catch(function () { if (done) done(false); });
+             re-pida en cada cambio. Solo se poda si TODAS las tandas respondieron OK: un
+             fallo de red (o una tanda incompleta) no debe borrar items válidos. */
+          if (todoOk) {
+            var c = rd(CART, {}), w = rd(WISH, []), changed = false;
+            need.forEach(function (id) {
+              if (got[id]) return;
+              if (c[id] != null) { delete c[id]; changed = true; }
+              var wi = w.indexOf(id); if (wi >= 0) { w.splice(wi, 1); changed = true; }
+            });
+            if (changed) { wr(CART, c); wr(WISH, w); }
+          }
+          if (done) done(todoOk);
+        });
+    });
   }
 
   function prod(id) { return CACHE[+id] || null; }
