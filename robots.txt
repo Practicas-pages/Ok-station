@@ -3,11 +3,18 @@ User-agent: *
 Allow: /
 
 # Áreas privadas / no indexables (también llevan <meta robots noindex>)
+# Se listan las DOS formas: el .htaccess redirige /cuenta.html -> /cuenta, y una
+# regla que solo diga ".html" no bloquea la URL limpia, que es la que se indexa.
 Disallow: /cuenta.html
+Disallow: /cuenta
 Disallow: /recuperar.html
+Disallow: /recuperar
 Disallow: /restablecer.html
+Disallow: /restablecer
 Disallow: /perfil.html
+Disallow: /perfil
 Disallow: /admin.html
+Disallow: /admin
 
 # Backend (API y código): no debe rastrearse
 Disallow: /backend/
@@ -17,3 +24,6 @@ Allow: /styles.css
 Allow: /assets/
 
 Sitemap: https://okstation.mx/sitemap.xml
+# Fichas de producto: se genera solo desde la BD, así no hay que mantenerlo a mano
+# cuando el catálogo de Exel crezca.
+Sitemap: https://okstation.mx/sitemap-productos.php
