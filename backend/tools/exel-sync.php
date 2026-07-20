@@ -99,6 +99,7 @@ echo "  Recibidos: " . count($raw) . " productos del origen\n";
 $whitelist = array_map('norm', PAPELERIA_CATS);
 $rows = [];
 $descartados = 0;
+$ofertas = 0;      // productos que Exel marca en oferta (alimenta "Ofertas del día")
 /* Censo de las categorías REALES que manda Exel, para el informe del --dry-run.
    Nuestra lista blanca se escribió a mano SIN ver el catálogo real: si los nombres no
    empatan, esto se importaría vacío y sin saber por qué. Aquí queda a la vista. */
@@ -123,6 +124,26 @@ foreach ($raw as $p) {
     if (!$pasa) { $descartados++; continue; }
 
     $cost = (float) ($p['precio'] ?? 0);
+
+    /* "Tipo" del producto. Se usa `familia_nombre` y NO `subcategoria_nombre`: las
+       subcategorías de Exel están mal etiquetadas de forma sistemática (los tóners
+       salen como "Ruteador", los tambores como "Marcas", los marcadores como
+       "Ribbon"), así que el cliente vería un filtro sin sentido. La familia sí
+       describe el producto: TONERS, MARCADORES, TINTAS, CARPETAS, CUADERNO.
+       Si un producto no trae familia, se cae a la subcategoría para no perder el dato. */
+    $familia = trim((string) ($p['familia_nombre'] ?? ''));
+    $tipo    = $familia !== '' ? $familia : trim((string) ($p['subcategoria_nombre'] ?? ''));
+
+    /* Ofertas REALES del proveedor: Exel marca `oferta` y manda el precio de lista en
+       `precio_sin_oferta`. `precio` ya viene con el descuento aplicado, así que ese es
+       el costo. old_price se guarda con el margen puesto, igual que `price`, para que
+       la tienda tache un precio comparable. Si Exel no marca oferta se deja en NULL: el
+       UPSERT de abajo NO pisa un old_price puesto a mano desde el panel. */
+    $enOferta   = !empty($p['oferta']);
+    $sinOferta  = (float) ($p['precio_sin_oferta'] ?? 0);
+    $oldPrice   = ($enOferta && $sinOferta > $cost) ? round($sinOferta * $margin, 2) : null;
+    if ($oldPrice !== null) $ofertas++;
+
     $rows[] = [
         'supplier'       => 'exel',
         'supplier_ref'   => trim((string) ($p['referencia'] ?? '')),
@@ -134,10 +155,11 @@ foreach ($raw as $p) {
         'description'    => $p['descripcion_extendida'] ?? null,
         'brand'          => trim((string) ($p['marca_nombre'] ?? '')),
         'category'       => trim($cat),
-        'subcategory'    => trim((string) ($p['subcategoria_nombre'] ?? '')),
+        'subcategory'    => $tipo,
         'currency'       => (string) ($p['moneda'] ?? 'MXN'),
         'cost'           => $cost,
         'price'          => round($cost * $margin, 2),   // = ShopCatalog::baseFor($cost), sin IVA
+        'old_price'      => $oldPrice,
         'stock'          => (int) ($p['stock'] ?? 0),
         'warehouse_id'   => $warehouse,
         'last_synced_at' => $runStamp,
@@ -194,7 +216,7 @@ if ($dryRun) {
 
 /* ── 3. UPSERT masivo (por chunks) ── */
 $cols = ['supplier','supplier_ref','supplier_id','sku','barcode','sat_code','name','description',
-         'brand','category','subcategory','currency','cost','price','stock','warehouse_id','last_synced_at'];
+         'brand','category','subcategory','currency','cost','price','old_price','stock','warehouse_id','last_synced_at'];
 // prev_cost = cost (el VIEJO, antes de pisarlo) → base para la regla del 3%.
 /* ── SALVAGUARDA: no vaciar la tienda por un feed incompleto ──
    El paso 4 apaga TODO lo que no vino en esta corrida. Si Exel responde a medias
@@ -226,9 +248,17 @@ foreach ($cols as $c) {
        `descripcion_extendida`, y quien la llena es Icecat (ProductEnricher). Sin esto,
        cada corrida del runner BORRABA la ficha que Icecat ya había traído y la tienda
        se quedaba sin descripción. Si Exel SÍ manda descripción, esa manda. */
-    $updates[] = $c === 'description'
-        ? "description = IF(VALUES(description) IS NULL OR VALUES(description) = '', description, VALUES(description))"
-        : "$c = VALUES($c)";
+    if ($c === 'description') {
+        $updates[] = "description = IF(VALUES(description) IS NULL OR VALUES(description) = '', description, VALUES(description))";
+    } elseif ($c === 'old_price') {
+        /* Solo se pisa cuando Exel manda una oferta REAL. Si Exel no trae oferta
+           (NULL) se conserva lo que haya: así una promoción puesta a mano desde el
+           panel sobrevive al sync nocturno, que es como estaba pensado en la
+           migración 0031. */
+        $updates[] = "old_price = IF(VALUES(old_price) IS NULL, old_price, VALUES(old_price))";
+    } else {
+        $updates[] = "$c = VALUES($c)";
+    }
 }
 $onDup = implode(",\n  ", $updates);
 
@@ -258,10 +288,91 @@ $st = $PDO->prepare("UPDATE products SET is_active = 0
 $st->execute([$runStamp]);
 $descont = $st->rowCount();
 
+/* ── 4b. IMÁGENES de Exel ──
+   Exel las expone en /imagenes (ojo: responde HTTP 201 y la clave es `DATA` en
+   MAYÚSCULAS, distinto de /productos que usa `datos`). Se guardan con source='exel'.
+   Las imágenes del PROVEEDOR mandan: son la foto del producto que de verdad vas a
+   vender. Icecat solo rellena después los que se queden sin ninguna, y su runner
+   nunca toca las de Exel (ProductEnricher borra e inserta solo source='icecat').
+
+   No se descarga nada aquí: se guarda la URL y la tienda ya la sirve
+   (COALESCE(stored_path, url)), así las fotos aparecen al terminar el sync. Bajarlas
+   al servidor es opcional y va aparte, con download-product-images.php. */
+$imgTotal = $imgProds = 0;
+if (!$file) {   // con --file no hay API que consultar
+    $mapa = fetch_images_from_api();
+    echo "  Imágenes de Exel: " . count($mapa) . " referencias con foto\n";
+
+    if ($mapa) {
+        /* Qué producto es cada referencia (solo los que acabamos de sincronizar). */
+        $mios = $PDO->prepare("SELECT id, supplier_ref FROM products WHERE supplier='exel' AND last_synced_at = ?");
+        $mios->execute([$runStamp]);
+        $porRef = [];
+        foreach ($mios->fetchAll() as $r) { $porRef[(string) $r['supplier_ref']] = (int) $r['id']; }
+
+        /* Se conserva la copia local ya descargada de cada URL: si no, volver a
+           sincronizar dejaría la tienda sirviendo el CDN de Exel hasta que alguien
+           corriera otra vez el descargador. */
+        $previas = [];
+        foreach ($PDO->query("SELECT product_id, url, stored_path FROM product_images
+                               WHERE source='exel' AND stored_path IS NOT NULL AND stored_path <> ''")->fetchAll() as $r) {
+            $previas[$r['product_id'] . '|' . $r['url']] = $r['stored_path'];
+        }
+
+        $filas = [];
+        foreach ($mapa as $ref => $urls) {
+            if (!isset($porRef[$ref])) continue;          // esa referencia no es de papelería
+            $pid = $porRef[$ref];
+            $orden = 0;
+            foreach ($urls as $u) {
+                $u = trim((string) $u);
+                if ($u === '' || !preg_match('~^https?://~i', $u)) continue;
+                $filas[] = [$pid, $u, $previas[$pid . '|' . $u] ?? null, 'exel', $orden, $orden === 0 ? 1 : 0];
+                $orden++;
+            }
+            if ($orden > 0) $imgProds++;
+        }
+
+        if ($filas) {
+            $PDO->beginTransaction();
+            try {
+                /* Se reemplazan SOLO las de Exel de los productos que traen foto ahora. */
+                $ids = array_values(array_unique(array_column($filas, 0)));
+                foreach (array_chunk($ids, 500) as $lote) {
+                    $PDO->prepare("DELETE FROM product_images WHERE source='exel' AND product_id IN ("
+                        . implode(',', array_fill(0, count($lote), '?')) . ")")->execute($lote);
+                }
+                $ph6 = '(?,?,?,?,?,?)';
+                foreach (array_chunk($filas, 500) as $lote) {
+                    $sql = "INSERT INTO product_images (product_id, url, stored_path, source, sort_order, is_primary) VALUES "
+                         . implode(',', array_fill(0, count($lote), $ph6));
+                    $args = []; foreach ($lote as $f) foreach ($f as $v) $args[] = $v;
+                    $PDO->prepare($sql)->execute($args);
+                    $imgTotal += count($lote);
+                    echo "  · imágenes " . $imgTotal . "/" . count($filas) . "\n";
+                }
+                $PDO->commit();
+            } catch (Throwable $e) {
+                $PDO->rollBack();
+                fwrite(STDERR, "  ⚠ No se pudieron guardar las imágenes: " . $e->getMessage() . "\n");
+                fwrite(STDERR, "    El catálogo quedó bien; solo faltan las fotos.\n");
+                $imgTotal = $imgProds = 0;
+            }
+        }
+    }
+}
+
 /* ── 5. Regla del 3%: cuántos costos se movieron > 3% respecto a la corrida anterior ── */
 $cambios = (int) $PDO->query(
     "SELECT COUNT(*) FROM products
       WHERE supplier='exel' AND prev_cost > 0 AND ABS(cost - prev_cost) / prev_cost > 0.03"
+)->fetchColumn();
+
+/* Cuántos quedan SIN foto: es lo que tendría que rellenar Icecat después. */
+$sinFoto = (int) $PDO->query(
+    "SELECT COUNT(*) FROM products p
+      WHERE p.supplier='exel' AND p.is_active = 1
+        AND NOT EXISTS (SELECT 1 FROM product_images i WHERE i.product_id = p.id)"
 )->fetchColumn();
 
 echo "── Listo ──\n";
@@ -269,6 +380,9 @@ echo "  Upsert:        {$total}\n";
 echo "  Con stock:     activos; sin stock ocultos (tocados: {$tocados})\n";
 echo "  Descontinuados ocultados: {$descont}\n";
 echo "  Costos con cambio > 3%:   {$cambios}\n";
+echo "  Ofertas del proveedor:    {$ofertas}\n";
+echo "  Imágenes de Exel:         {$imgTotal} en {$imgProds} producto(s)\n";
+echo "  Activos AÚN sin foto:     {$sinFoto}" . ($sinFoto > 0 ? "  → para eso corre icecat-enrich.php" : "") . "\n";
 
 /* ═══════════════════ Helpers ═══════════════════ */
 
@@ -303,6 +417,53 @@ function fetch_from_api(): array {
         exit(1);
     }
     return $json['datos'] ?? [];
+}
+
+/**
+ * Imágenes del proveedor: GET /imagenes → ['referencia' => ['url', 'url', …]].
+ *
+ * OJO con dos rarezas de ese endpoint, distintas de /productos:
+ *   · responde HTTP 201 (no 200)
+ *   · la clave es 'DATA' en MAYÚSCULAS (no 'datos')
+ * Si Exel las unifica algún día, aquí se aceptan las dos formas.
+ *
+ * Un fallo aquí NO aborta el sync: el catálogo ya quedó bien y lo único que falta
+ * son las fotos. Devuelve [] y el runner lo reporta.
+ */
+function fetch_images_from_api(): array {
+    $base = rtrim((string) env('EXEL_API_BASE', 'https://api01.exeldelnorte.com.mx'), '/');
+    $key  = (string) env('EXEL_API_KEY', '');
+    if ($key === '') return [];
+
+    $ch = curl_init("$base/imagenes");
+    curl_setopt_array($ch, [
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_TIMEOUT        => 120,
+        CURLOPT_HTTPHEADER     => ['Authorization: ' . $key],
+    ]);
+    $resp = curl_exec($ch);
+    $code = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $err  = curl_error($ch);
+    curl_close($ch);
+
+    if ($resp === false)               { fwrite(STDERR, "  ⚠ Sin imágenes: error de red ({$err}).\n"); return []; }
+    if ($code < 200 || $code >= 300)   { fwrite(STDERR, "  ⚠ Sin imágenes: /imagenes respondió HTTP {$code}.\n"); return []; }
+
+    $json = json_decode((string) $resp, true);
+    if (!is_array($json)) { fwrite(STDERR, "  ⚠ Sin imágenes: respuesta no es JSON.\n"); return []; }
+    $lista = $json['DATA'] ?? $json['datos'] ?? $json['data'] ?? [];
+    if (!is_array($lista)) return [];
+
+    $out = [];
+    foreach ($lista as $r) {
+        $ref = trim((string) ($r['referencia'] ?? ''));
+        if ($ref === '') continue;
+        $urls = $r['imagenes'] ?? [];
+        if (is_string($urls)) $urls = [$urls];          // por si mandan una sola
+        if (!is_array($urls) || !$urls) continue;
+        $out[$ref] = array_values(array_filter(array_map('strval', $urls), fn($u) => trim($u) !== ''));
+    }
+    return $out;
 }
 
 /** Lee un feed local: acepta {datos:[...]}, un arreglo JSON, o JSONL (una línea por producto). */
