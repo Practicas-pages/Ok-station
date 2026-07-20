@@ -47,11 +47,36 @@ final class ShopProduct
     }
 
     /** Ficha técnica normalizada. specs_json puede venir como {source,specs:[…]} o como lista. */
+    /**
+     * Ficha técnica del producto, en formato [['name'=>, 'value'=>], …].
+     *
+     * Prioridad: la ficha de Icecat si existe. Si no, se arma una BÁSICA con los datos
+     * que sí manda Exel del Norte (marca, tipo, claves, código de barras, clave SAT).
+     * Exel no expone especificaciones técnicas en su API —lo único cercano es
+     * `descripcion_extendida`, y solo la trae el 22% del catálogo—, así que sin este
+     * respaldo la mayoría de las fichas saldrían sin ningún dato del producto.
+     * Cuando Icecat enriquezca ese producto, su ficha completa toma el lugar de ésta.
+     */
     public static function specs(array $row): array
     {
         $s = !empty($row['specs_json']) ? json_decode((string) $row['specs_json'], true) : null;
         if (is_array($s) && isset($s['specs'])) $s = $s['specs'];
-        return is_array($s) ? $s : [];
+        if (is_array($s) && $s) return $s;
+
+        /* Respaldo con datos del proveedor. Solo se listan los que traen valor. */
+        $basica = [
+            'Marca'            => trim((string) ($row['brand'] ?? '')),
+            'Tipo'             => trim((string) ($row['subcategory'] ?? '')),
+            'Categoría'        => trim((string) ($row['category'] ?? '')),
+            'Clave'            => trim((string) ($row['sku'] ?? '')),
+            'Código de barras' => trim((string) ($row['barcode'] ?? '')),
+            'Clave SAT'        => trim((string) ($row['sat_code'] ?? '')),
+        ];
+        $out = [];
+        foreach ($basica as $name => $value) {
+            if ($value !== '') $out[] = ['name' => $name, 'value' => $value];
+        }
+        return $out;
     }
 
     /** Precio de lista (con IVA incluido) y precio tachado si está en oferta. */
