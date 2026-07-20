@@ -120,7 +120,7 @@ que estaban anotados ya los cerró el equipo:
 |---|---|---|---|
 | 1 | 🔴 Bloqueo >3% de precio en `create.php` | Oscar/equipo | medio — es LA brecha de negocio |
 | 2 | 🔴 Subir las imágenes pendientes (lista abajo) | sixseven | solo subirlas, ya está todo conectado |
-| 3 | 🟡 2 líneas de `.htaccess` para `/categoria/…` | Oscar (listas en `PARA-OSCAR-seo.md`) | 10 s |
+| 3 | ~~2 líneas para `/categoria/…`~~ | ✅ **HECHO por Oscar** (Nginx `2663124`; espejo Apache en `.htaccess`) | — |
 | 4 | 🟡 `defer` en catalogo.js (confirmar repintado) | Oscar | 1 palabra |
 | 5 | 🟡 `preload` del hero cuando existan las imágenes | cualquiera | 1 línea |
 | 6 | 🟡 `aria-describedby` en errores de formularios | equipo | chico |
