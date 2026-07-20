@@ -30,6 +30,21 @@
   box-shadow:0 1px 2px rgba(16,24,40,.04);transition:border-color .15s,box-shadow .15s}
 .td-search input:focus{outline:none;border-color:var(--brand-blue,#066CFF);box-shadow:0 0 0 4px rgba(6,108,255,.12)}
 .td-search svg{position:absolute;left:17px;top:50%;transform:translateY(-50%);color:var(--muted,#667085);pointer-events:none}
+/* ── Autocompletado: sugerencias bajo el buscador ── */
+.td-ac{display:none;position:absolute;top:calc(100% + 8px);left:0;right:0;z-index:40;
+  background:#fff;border:1px solid var(--line,#e3e6ee);border-radius:16px;overflow:hidden;
+  box-shadow:0 16px 42px rgba(16,24,40,.16);max-height:min(60vh,420px);overflow-y:auto}
+.td-ac.show{display:block}
+.td-ac__h{padding:9px 16px 6px;font-size:.7rem;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--muted,#667085)}
+.td-ac__i{display:grid;grid-template-columns:38px 1fr auto;gap:11px;align-items:center;width:100%;
+  padding:9px 14px;border:0;background:none;font:inherit;text-align:left;cursor:pointer;color:var(--ink,#111)}
+.td-ac__i:hover,.td-ac__i.sel{background:var(--brand-blue-light,#EAF1FF)}
+.td-ac__im{width:38px;height:38px;border-radius:8px;background:#f4f6fa center/contain no-repeat;border:1px solid var(--line,#e3e6ee)}
+.td-ac__nm{font-size:.88rem;font-weight:600;line-height:1.25}
+.td-ac__nm mark{background:#fde68a;color:inherit;padding:0 1px;border-radius:3px}
+.td-ac__mt{font-size:.75rem;color:var(--muted,#667085)}
+.td-ac__pr{font-size:.85rem;font-weight:700;white-space:nowrap}
+.td-ac__none{padding:16px;text-align:center;font-size:.86rem;color:var(--muted,#667085)}
 .td-catbtn{
   height:52px;padding:0 20px;border-radius:999px;border:0;cursor:pointer;
   background:var(--grad-brand);color:#fff;font:inherit;font-weight:700;font-size:.92rem;
@@ -318,7 +333,8 @@ body.td-predrag .td-trash{display:flex}
   <div class="td-top">
     <div class="td-search">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
-      <input id="tdQ" type="search" placeholder="Busca papel, tinta, plumas, folders…" autocomplete="off" aria-label="Buscar productos">
+      <input id="tdQ" type="search" placeholder="Busca papel, tinta, plumas, folders…" autocomplete="off" role="combobox" aria-expanded="false" aria-autocomplete="list" aria-controls="tdAc" aria-label="Buscar productos">
+      <div class="td-ac" id="tdAc" role="listbox" aria-label="Sugerencias"></div>
     </div>
     <button class="td-catbtn" id="tdCatBtn" type="button" aria-expanded="false">
       Categorías
@@ -391,7 +407,7 @@ body.td-predrag .td-trash{display:flex}
   "use strict";
   /* ═══ Estado ═══ */
   var PER = 24;                 // productos por página (scroll infinito)
-  var page = 1, pages = 1, loading = false, done = false;
+  var page = 1, pages = 1, loading = false, done = false, loadToken = 0;
   var q = "", cat = "";
   /* Estado del panel de filtros. fSort="name" es el orden por defecto del API (no se
      manda mientras esté así). fBrands: marcas elegidas. */
@@ -431,9 +447,13 @@ body.td-predrag .td-trash{display:flex}
 
   /* ═══ Carga de productos (paginada) ═══ */
   function load(reset){
-    if (loading) return;
+    /* Una búsqueda/filtro NUEVO (reset) nunca se descarta: antes, si había una carga en
+       vuelo, el `if (loading) return` se comía el reset y las filas viejas se quedaban
+       (y el scroll seguía APILANDO encima los resultados de la búsqueda nueva). Las
+       cargas de "más" (reset=false) sí respetan el candado. */
     if (reset){ page=1; done=false; $("tdRows").innerHTML=""; }
-    if (done) return;
+    else if (loading || done) return;
+    var myToken = ++loadToken;   // invalida las respuestas que aún vengan en camino
     loading = true;
     $("tdState").textContent = page===1 ? "Cargando productos…" : "Cargando más…";
     $("tdState").style.display = "";
@@ -446,6 +466,7 @@ body.td-predrag .td-trash{display:flex}
           + (fSort !== "name" ? "&sort="+encodeURIComponent(fSort) : "");
 
     fetch(u).then(function(r){ return r.json(); }).then(function(j){
+      if (myToken !== loadToken) return;   // llegó tarde: ya hay una búsqueda más nueva
       loading = false;
       if (!j || !j.ok){ $("tdState").textContent = "No se pudo cargar el catálogo."; return; }
       pages = j.pages || 1;
@@ -466,6 +487,7 @@ body.td-predrag .td-trash{display:flex}
          avisar y el scroll se queda mudo. Por eso re-comprobamos al terminar. */
       setTimeout(maybeMore, 0);
     }).catch(function(){
+      if (myToken !== loadToken) return;
       loading = false;
       $("tdState").textContent = "Error de conexión. Reintenta.";
     });
@@ -692,12 +714,84 @@ body.td-predrag .td-trash{display:flex}
     filtCount(); load(true);
   });
 
-  /* ═══ Buscador (con retardo para no pegarle a la API en cada tecla) ═══ */
-  var tmr = null;
+  /* ═══ Buscador + autocompletado ═══
+     Al escribir: (a) se filtra la tabla y (b) salen sugerencias abajo. Ambas usan el
+     mismo endpoint, así que heredan la búsqueda con SINÓNIMOS del servidor
+     (tinta↔cartucho, hojas↔papel…). Elegir una sugerencia filtra la tabla a ese producto. */
+  var tmr = null, acTmr = null, acItems = [], acSel = -1, acToken = 0;
+
+  function acClose(){
+    var b = $("tdAc"); b.classList.remove("show"); b.innerHTML = "";
+    acItems = []; acSel = -1; $("tdQ").setAttribute("aria-expanded", "false");
+  }
+  /* Resalta en el nombre lo que se tecleó (sin acentos, por término). */
+  function acNorm(s){ return String(s==null?"":s).toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,""); }
+  function acHi(name, term){
+    var terms = acNorm(term).split(/\s+/).filter(function(t){ return t.length >= 2; });
+    for (var i=0;i<terms.length;i++){
+      try{
+        var re = new RegExp(terms[i].replace(/[.*+?^${}()|[\]\\]/g,"\\$&"), "i");
+        var m = acNorm(name).match(re);
+        if (m && m.index != null){
+          return esc(name.slice(0,m.index)) + "<mark>" + esc(name.slice(m.index, m.index+m[0].length)) + "</mark>" + esc(name.slice(m.index+m[0].length));
+        }
+      }catch(e){}
+    }
+    return esc(name);
+  }
+  function acRender(term){
+    var t = (term||"").trim();
+    if (t.length < 2){ acClose(); return; }
+    var token = ++acToken;
+    fetch("backend/api/shop/products.php?per_page=7&page=1&q=" + encodeURIComponent(t))
+      .then(function(r){ return r.json(); })
+      .then(function(j){
+        if (token !== acToken) return;                 // llegó tarde: ya se tecleó otra cosa
+        var items = (j && j.ok && j.items) ? j.items : [];
+        var box = $("tdAc");
+        if (!items.length){
+          box.innerHTML = '<div class="td-ac__none">No encontramos «' + esc(t) + '».<br>Prueba con otra palabra (marca o tipo).</div>';
+          acItems = []; acSel = -1; box.classList.add("show"); return;
+        }
+        box.innerHTML = '<div class="td-ac__h">Sugerencias</div>' + items.map(function(p){
+          var im = p.image ? '<span class="td-ac__im" style="background-image:url('+encodeURI(p.image)+')"></span>' : '<span class="td-ac__im"></span>';
+          return '<button type="button" class="td-ac__i" role="option" data-ac="'+esc(p.name)+'">'+im+
+            '<span><span class="td-ac__nm">'+acHi(p.name,t)+'</span><br><span class="td-ac__mt">'+esc((p.brand?p.brand+" · ":"")+(p.category||""))+'</span></span>'+
+            '<span class="td-ac__pr">'+mxn(p.price)+'</span></button>';
+        }).join("");
+        acItems = [].slice.call(box.querySelectorAll(".td-ac__i"));
+        acSel = -1; box.classList.add("show"); $("tdQ").setAttribute("aria-expanded","true");
+      }).catch(function(){});
+  }
+  /* Elegir una sugerencia: pone ese nombre en el buscador y filtra la tabla. */
+  function acPick(nombre){
+    $("tdQ").value = nombre; acClose();
+    clearTimeout(tmr); q = nombre.trim(); load(true);
+  }
+
   $("tdQ").addEventListener("input", function(){
+    var v = $("tdQ").value;
     clearTimeout(tmr);
-    tmr = setTimeout(function(){ q = $("tdQ").value.trim(); load(true); }, 320);
+    tmr = setTimeout(function(){ q = v.trim(); load(true); }, 320);   // filtra la tabla
+    clearTimeout(acTmr);
+    acTmr = setTimeout(function(){ acRender(v); }, 180);              // sugerencias (más ágil)
   });
+  $("tdQ").addEventListener("keydown", function(e){
+    if (e.key === "ArrowDown" || e.key === "ArrowUp"){
+      if (!acItems.length) return;
+      e.preventDefault();
+      acSel = (acSel + (e.key === "ArrowDown" ? 1 : -1) + acItems.length) % acItems.length;
+      acItems.forEach(function(el,i){ el.classList.toggle("sel", i===acSel); if (i===acSel) el.scrollIntoView({block:"nearest"}); });
+    } else if (e.key === "Enter"){
+      if (acSel >= 0 && acItems[acSel]){ e.preventDefault(); acPick(acItems[acSel].dataset.ac); }
+      else acClose();
+    } else if (e.key === "Escape"){ acClose(); }
+  });
+  $("tdAc").addEventListener("click", function(e){
+    var it = e.target.closest("[data-ac]"); if (it) acPick(it.dataset.ac);
+  });
+  /* Clic fuera del buscador → cerrar sugerencias. */
+  document.addEventListener("click", function(e){ if (!e.target.closest(".td-search")) acClose(); });
 
   /* ═══ Scroll infinito ═══
      ¿El centinela del fondo está a la vista (o casi)? → carga la siguiente página. */
