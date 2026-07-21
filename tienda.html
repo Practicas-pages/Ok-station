@@ -1865,9 +1865,9 @@ html.q-lock, html.q-lock body{overflow:hidden}
   function okLoadLeaflet(cb){
     if(window.L){cb();return;}
     if(!document.getElementById("leafCss")){
-      var l=document.createElement("link"); l.id="leafCss"; l.rel="stylesheet"; l.href="assets/vendor/leaflet/leaflet.css"; document.head.appendChild(l);
+      var l=document.createElement("link"); l.id="leafCss"; l.rel="stylesheet"; l.href="/assets/vendor/leaflet/leaflet.css"; document.head.appendChild(l);
     }
-    var s=document.createElement("script"); s.src="assets/vendor/leaflet/leaflet.js";
+    var s=document.createElement("script"); s.src="/assets/vendor/leaflet/leaflet.js";
     s.onload=function(){cb();}; s.onerror=function(){flash("No se pudo cargar el mapa; escribe tu dirección");};
     document.head.appendChild(s);
   }
