@@ -118,7 +118,7 @@ ErrorDocument 500 /500.html
     # Referrer Policy
     Header always set Referrer-Policy "strict-origin-when-cross-origin"
     # Permissions Policy
-    Header always set Permissions-Policy "camera=(), microphone=(), geolocation=()"
+    Header always set Permissions-Policy "camera=(), microphone=(), geolocation=(self)"
     # HSTS (solo activa cuando tengas SSL estable)
     # Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
     # CSP básico (ajusta según tus fuentes)

@@ -24,4 +24,19 @@ foreach ($rows as $r) {
     }
 }
 
+/* Imagen de muestra por categoría (un producto activo de esa categoría que SÍ tenga foto),
+   para las tarjetas de "Compra por categoría". Sin esto, el frontend solo tenía cargados
+   los primeros productos y casi todas las categorías salían con la caja gris "Imagen".
+   MIN() solo sirve para elegir una de forma determinista; cualquier foto de la categoría
+   vale como miniatura. */
+$imgs = db()->query(
+    "SELECT p.category AS c, MIN(COALESCE(pi.stored_path, pi.url)) AS img
+       FROM products p
+       JOIN product_images pi ON pi.product_id = p.id
+      WHERE p.is_active = 1 AND p.category IS NOT NULL AND p.category <> ''
+      GROUP BY p.category"
+)->fetchAll(PDO::FETCH_KEY_PAIR);
+foreach ($tree as $c => &$node) { $node['image'] = $imgs[$c] ?? null; }
+unset($node);
+
 respond(['ok' => true, 'categories' => array_values($tree)]);

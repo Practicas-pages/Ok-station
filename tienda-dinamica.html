@@ -81,6 +81,10 @@
 .td-fopt input{accent-color:var(--brand-blue,#066CFF);margin:0}
 .td-fopt:hover{border-color:var(--brand-blue,#066CFF)}
 .td-fopt .n{opacity:.6;font-weight:500;font-size:.78rem}
+.td-fopt.is-hidden{display:none}
+.td-fsearch{display:block;width:min(340px,100%);margin:0 0 8px;padding:8px 12px;border:1.5px solid var(--line,#e3e6ee);border-radius:10px;font:inherit;font-size:.85rem}
+.td-fsearch:focus{outline:none;border-color:var(--brand-blue,#066CFF)}
+.td-fmore{display:inline-block;margin:2px 0 0;padding:6px 10px;border:0;background:none;color:var(--brand-blue,#066CFF);font:inherit;font-size:.83rem;font-weight:700;cursor:pointer}
 /* ── Paneles de carrito / favoritos (cajón derecho, en la página) ── */
 .td-scrim{position:fixed;inset:0;background:rgba(16,24,40,.42);z-index:70}
 .td-drawer{position:fixed;top:0;right:0;height:100%;width:min(380px,92vw);background:#fff;z-index:71;
@@ -90,12 +94,33 @@
 /* Favoritos y Dirección: MODAL CENTRADO (como la tienda normal), no cajón lateral.
    Solo cambia el posicionamiento; su estructura (encabezado + cuerpo) y su JS no cambian.
    El carrito se queda como cajón (lleva el checkout, mejor a lo alto). */
-#tdWishDrawer,#tdLocDrawer{
+#tdWishDrawer,#tdLocDrawer,#tdPrevDrawer{
   top:50%;left:50%;right:auto;bottom:auto;height:auto;max-height:88vh;width:min(460px,92vw);
   border-radius:22px;overflow:hidden;box-shadow:0 26px 74px rgba(16,24,40,.28);
   transform:translate(-50%,-50%) scale(.96);opacity:0;visibility:hidden;
   transition:transform .2s cubic-bezier(.34,1.56,.64,1),opacity .18s,visibility .2s}
-#tdWishDrawer.open,#tdLocDrawer.open{transform:translate(-50%,-50%) scale(1);opacity:1;visibility:visible}
+#tdWishDrawer.open,#tdLocDrawer.open,#tdPrevDrawer.open{transform:translate(-50%,-50%) scale(1);opacity:1;visibility:visible}
+/* ── Vista previa de producto (misma info que la de la tienda) ── */
+#tdPrevDrawer{width:min(520px,94vw)}
+.tdpv-body{overflow:auto;padding:0 18px 18px}
+.tdpv-img{height:210px;background:#f4f6fa;border-radius:14px;margin:14px 0 4px;background-size:contain;background-position:center;background-repeat:no-repeat}
+.tdpv-thumbs{display:flex;gap:8px;margin:8px 0 2px}
+.tdpv-thumbs button{width:52px;height:52px;border:1.5px solid var(--line,#e3e6ee);border-radius:10px;background:#fff center/cover no-repeat;cursor:pointer;padding:0}
+.tdpv-thumbs button.on{border-color:#066CFF}
+.tdpv-meta{font-size:.78rem;color:var(--muted,#667085);margin-top:10px;text-transform:uppercase;letter-spacing:.03em}
+.tdpv-name{font-size:1.06rem;font-weight:800;margin:4px 0 8px;line-height:1.3}
+.tdpv-price{font-size:1.3rem;font-weight:800}
+.tdpv-price s{color:var(--muted,#667085);font-weight:500;font-size:.8em;margin-left:6px}
+.tdpv-save{display:inline-block;margin-left:8px;font-size:.74rem;font-weight:800;color:#B4530A;background:#FFF3E8;border-radius:8px;padding:3px 8px}
+.tdpv-stock{font-size:.8rem;font-weight:700;margin:6px 0 10px}
+.tdpv-desc{font-size:.86rem;color:#3d4a5c;margin:0 0 10px;display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden}
+.tdpv-specs{list-style:none;margin:0 0 12px;padding:0;font-size:.82rem}
+.tdpv-specs li{display:flex;justify-content:space-between;gap:14px;padding:7px 0;border-bottom:1px solid var(--line,#e3e6ee)}
+.tdpv-specs .sk{color:var(--muted,#667085)}
+.tdpv-specs .sv{text-align:right;font-weight:600}
+.tdpv-full{display:block;text-align:center;font-size:.85rem;font-weight:700;color:#066CFF;text-decoration:none;padding:9px;margin-bottom:8px}
+.tdpv-add{width:100%;border:0;border-radius:999px;background:#066CFF;color:#fff;font:inherit;font-weight:700;padding:13px;cursor:pointer}
+.tdpv-add:disabled{opacity:.5;cursor:default}
 .td-dh{display:flex;align-items:center;justify-content:space-between;padding:16px 18px;border-bottom:1px solid var(--line,#e3e6ee);font-size:1.05rem}
 .td-dx{width:34px;height:34px;border:0;background:var(--paper,#f4f6fa);border-radius:50%;font-size:1.2rem;line-height:1;cursor:pointer;color:var(--muted,#667085)}
 .td-dx:hover{background:#e9edf5}
@@ -438,6 +463,14 @@ body.td-predrag .td-trash{display:flex}
   <div class="td-dbody" id="tdLocBody"></div>
 </aside>
 
+<!-- Vista previa de producto: la MISMA información que la vista previa de la tienda
+     (foto, precio, stock, descripción y ficha técnica de product.php), al tocar
+     cualquier renglón de la tabla. -->
+<aside class="td-drawer" id="tdPrevDrawer" aria-label="Vista previa del producto" aria-hidden="true">
+  <div class="td-dh"><b>Vista previa</b><button type="button" class="td-dx" data-dclose aria-label="Cerrar">×</button></div>
+  <div class="tdpv-body" id="tdPrevBody"></div>
+</aside>
+
 <script>
 (function(){
   "use strict";
@@ -563,6 +596,12 @@ body.td-predrag .td-trash{display:flex}
       '<div style="text-align:right"><button class="td-add" data-add="'+p.id+'">+ Agregar</button></div>' +
       '<button class="td-wish'+(isWished(p.id)?' on':'')+'" data-wish="'+p.id+'" aria-pressed="'+(isWished(p.id)?'true':'false')+'" aria-label="Guardar en favoritos" title="'+(isWished(p.id)?'Quitar de favoritos':'Guardar en favoritos')+'">'+HEART+'</button>';
     row.querySelector("[data-add]").addEventListener("click", function(){ addToPre(p); });
+    /* Tocar el RENGLÓN (imagen/nombre/precio) abre la vista previa — la misma
+       información que en la tienda. Los botones (+ Agregar, ♥) siguen siendo suyos. */
+    row.addEventListener("click", function(e){
+      if (e.target.closest("[data-add],[data-wish]")) return;
+      openPreview(p);
+    });
     /* Favoritos: usa OKtienda.toggleDeseado (emite 'deseados', así el contador de la
        navbar y el panel se enteran). Si aún no cargó, cae a localStorage directo. */
     row.querySelector("[data-wish]").addEventListener("click", function(e){
@@ -675,7 +714,13 @@ body.td-predrag .td-trash{display:flex}
        'storage' solo dispara entre pestañas). Un cambiar(id,0) lo obliga a re-hidratar
        el carrito desde el API y emitir 'carrito' → el panel se pinta completo. */
     var o = OK(); if (o && ids.length) o.cambiar(+ids[0], 0);
-    renderCart(); openDrawer($("tdCartDrawer"));
+    renderCart();
+    /* La lista del ASTRONAUTA va primero (decisión 21-jul): OKi detecta que el carrito
+       creció y abre su lista solo; desde su "Ir a pagar →" se abre este panel del
+       carrito. Antes se abrían LOS DOS a la vez y quedaban encimados. Si OKi no cargó
+       (bloqueado/error), se abre el carrito directo como antes para no dejar el flujo
+       sin salida. */
+    if (!document.getElementById("oki-dock")) openDrawer($("tdCartDrawer"));
   });
 
   /* Fusiona el pre-carrito en el carrito COMPARTIDO, SUMANDO a lo que ya hubiera y sin
@@ -745,10 +790,36 @@ body.td-predrag .td-trash{display:flex}
             }).join("")
           : '<span class="n" style="color:var(--muted)">No hay marcas en esta categoría.</span>')
       : '<span class="n" style="color:var(--muted)">Cargando marcas…</span>';
+    /* Con ~80 tipos la lista era una pared: buscador + top 15 (el backend ya los manda
+       ordenados por conteo) + "Ver todos". Se oculta con una CLASE (no re-render al
+       teclear: se perdería el foco del buscador). */
+    if (fSubcatsLoaded && fSubcatList.length > 15){
+      tipos = '<input type="search" class="td-fsearch" placeholder="Buscar tipo… (tóner, papel, pluma)" aria-label="Buscar tipo">' +
+              tipos + '<button type="button" class="td-fmore"></button>';
+    }
     $("tdFilts").innerHTML =
       '<div class="td-fgroup"><h4>Ordenar por</h4>'+orden+'</div>'+
-      '<div class="td-fgroup"><h4>Tipo</h4>'+tipos+'</div>'+
+      '<div class="td-fgroup td-fgroup--subs"><h4>Tipo</h4>'+tipos+'</div>'+
       '<div class="td-fgroup"><h4>Marca</h4>'+marcas+'</div>';
+    tdApplySubcatView();
+  }
+  var tdSubQuery = "", tdSubMore = false;
+  function tdNorm(s){ return String(s||"").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/\s+/g," ").trim(); }
+  function tdApplySubcatView(){
+    var box = $("tdFilts").querySelector(".td-fgroup--subs"); if (!box) return;
+    var inp = box.querySelector(".td-fsearch");
+    if (inp && inp.value !== tdSubQuery) inp.value = tdSubQuery;
+    var q = tdNorm(tdSubQuery), TOP = 15, n = 0, total = 0;
+    [].forEach.call(box.querySelectorAll(".td-fopt"), function(lb){
+      var c = lb.querySelector(".tdsubcat"); if (!c) return;
+      total++;
+      var match = !q || tdNorm(c.value).indexOf(q) >= 0;
+      var vis = match && (q ? true : (tdSubMore || n < TOP || c.checked));
+      if (match) n++;
+      lb.classList.toggle("is-hidden", !vis);
+    });
+    var more = box.querySelector(".td-fmore");
+    if (more){ more.hidden = (!!q) || total <= TOP; more.textContent = tdSubMore ? "− Ver menos" : "+ Ver todos ("+total+")"; }
   }
   function filtOpen(){
     $("tdCats").classList.remove("open"); $("tdCatBtn").classList.remove("on"); $("tdCatBtn").setAttribute("aria-expanded","false");
@@ -770,6 +841,13 @@ body.td-predrag .td-trash{display:flex}
     }
   }
   $("tdFiltBtn").addEventListener("click", filtOpen);
+  /* Buscador y "ver todos" de tipos (delegados: el panel se repinta al llegar datos). */
+  $("tdFilts").addEventListener("input", function(e){
+    if (e.target.classList.contains("td-fsearch")){ tdSubQuery = e.target.value; tdApplySubcatView(); }
+  });
+  $("tdFilts").addEventListener("click", function(e){
+    if (e.target.closest(".td-fmore")){ tdSubMore = !tdSubMore; tdApplySubcatView(); }
+  });
   /* Aplica al instante: cambiar orden o marca recarga la tabla. */
   $("tdFilts").addEventListener("change", function(e){
     if (e.target.name === "tdsort") fSort = e.target.value;
@@ -968,13 +1046,73 @@ body.td-predrag .td-trash{display:flex}
      detalle y actuamos (cambiar cantidad, quitar, agregar a carrito). Para PAGAR se va al
      carrito de la tienda (ahí vive el checkout: sesión, dirección, IVA y pasarela). */
   function OK(){ return window.OKtienda || null; }   // shop-cart.js lo define (carga con defer)
-  function anyDrawerOpen(){ return $("tdCartDrawer").classList.contains("open") || $("tdWishDrawer").classList.contains("open") || $("tdLocDrawer").classList.contains("open"); }
+  function anyDrawerOpen(){ return $("tdCartDrawer").classList.contains("open") || $("tdWishDrawer").classList.contains("open") || $("tdLocDrawer").classList.contains("open") || $("tdPrevDrawer").classList.contains("open"); }
   function closeDrawers(){
-    $("tdCartDrawer").classList.remove("open"); $("tdCartDrawer").setAttribute("aria-hidden","true");
-    $("tdWishDrawer").classList.remove("open"); $("tdWishDrawer").setAttribute("aria-hidden","true");
-    $("tdLocDrawer").classList.remove("open"); $("tdLocDrawer").setAttribute("aria-hidden","true");
+    ["tdCartDrawer","tdWishDrawer","tdLocDrawer","tdPrevDrawer"].forEach(function(id){
+      $(id).classList.remove("open"); $(id).setAttribute("aria-hidden","true");
+    });
     $("tdScrim").hidden = true;
     document.body.style.overflow = "";
+  }
+
+  /* ═══ Vista previa de producto (la misma información que la de la tienda) ═══
+     Se abre al tocar el renglón. Pinta al instante con lo que ya hay en la fila y
+     luego ENRIQUECE con product.php: galería, descripción, ficha técnica y —clave—
+     el precio/stock/descuento FRESCOS de la BD (verificación al abrir). */
+  function slugify(s){ return String(s||"").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"").slice(0,80)||"producto"; }
+  function pvStock(stock){
+    var low=stock<=5;
+    return '<div class="tdpv-stock" style="color:'+(stock<=0?"#c2410c":(low?"#c2410c":"#0E9F6E"))+'">'+
+      (stock<=0?"Agotado por ahora":(low?"🔥 ¡Últimas "+stock+"!":stock+" disponibles")+" · Recoge en Otay o a domicilio")+'</div>';
+  }
+  function openPreview(p){
+    var body=$("tdPrevBody");
+    body.innerHTML=
+      '<div class="tdpv-img" id="tdpvImg"'+(p.image?' style="background-image:url('+encodeURI(p.image)+')"':'')+'></div>'+
+      '<div class="tdpv-thumbs" id="tdpvThumbs"></div>'+
+      '<div class="tdpv-meta">'+esc(p.brand||"")+(p.sku?' · SKU '+esc(p.sku):'')+(p.category?' · '+esc(p.category):'')+'</div>'+
+      '<div class="tdpv-name">'+esc(p.name)+'</div>'+
+      '<div class="tdpv-price" id="tdpvPrice">'+mxn(p.price)+(p.old?' <s>'+mxn(p.old)+'</s><span class="tdpv-save">Ahorras '+mxn(p.old-p.price)+'</span>':'')+'</div>'+
+      '<div id="tdpvStock">'+pvStock(p.stock)+'</div>'+
+      '<p class="tdpv-desc" id="tdpvDesc" hidden></p>'+
+      '<ul class="tdpv-specs" id="tdpvSpecs"></ul>'+
+      '<a class="tdpv-full" href="/producto/'+p.id+'-'+slugify(p.name)+'">Ver ficha técnica completa →</a>'+
+      '<button class="tdpv-add" id="tdpvAdd"'+(p.stock<=0?' disabled':'')+'>'+(p.stock<=0?'Agotado':'Agregar al carrito · '+mxn(p.price))+'</button>';
+    $("tdpvAdd").addEventListener("click",function(){ if(p.stock>0){ addToPre(p); closeDrawers(); } });
+    openDrawer($("tdPrevDrawer"));
+
+    fetch("/backend/api/shop/product.php?id="+encodeURIComponent(p.id))
+      .then(function(r){return r.json();})
+      .then(function(j){
+        if(!j||!j.ok||!j.product) return;
+        var d=j.product;
+        /* Galería (la primera imagen grande + miniaturas). */
+        if(d.images&&d.images.length){
+          var im=$("tdpvImg"); if(im) im.style.backgroundImage='url('+encodeURI(d.images[0])+')';
+          if(d.images.length>1){
+            var th=$("tdpvThumbs");
+            if(th){ th.innerHTML=d.images.slice(0,5).map(function(u,i){
+              return '<button type="button"'+(i===0?' class="on"':'')+' style="background-image:url('+encodeURI(u)+')" data-src="'+esc(u)+'" aria-label="Foto '+(i+1)+'"></button>';
+            }).join("");
+            th.addEventListener("click",function(e){ var b=e.target.closest("[data-src]"); if(!b)return;
+              var im2=$("tdpvImg"); if(im2) im2.style.backgroundImage='url('+encodeURI(b.dataset.src)+')';
+              [].forEach.call(th.querySelectorAll("button"),function(x){x.classList.toggle("on",x===b);}); }); }
+          }
+        }
+        if(d.description){ var de=$("tdpvDesc"); if(de){ de.textContent=String(d.description).replace(/<[^>]*>/g," ").replace(/\s+/g," ").trim(); de.hidden=false; } }
+        if(d.specs&&d.specs.length){ var ul=$("tdpvSpecs"); if(ul) ul.innerHTML=d.specs.slice(0,8).map(function(s){
+          var n=(s&&s.name)||"", v=(s&&s.value)||"";
+          return (n||v)?'<li><span class="sk">'+esc(n)+'</span><span class="sv">'+esc(v)+'</span></li>':""; }).join(""); }
+        /* Precio/stock/descuento frescos (la fila pudo envejecer). También se corrige
+           la fila en memoria para que "+ Agregar" respete el stock real. */
+        if(typeof d.price==="number"){
+          var fOld=(d.old&&d.old>d.price)?d.old:null;
+          p.price=d.price; p.stock=d.stock; p.old=fOld;
+          var pr=$("tdpvPrice"); if(pr) pr.innerHTML=mxn(d.price)+(fOld?' <s>'+mxn(fOld)+'</s><span class="tdpv-save">Ahorras '+mxn(fOld-d.price)+'</span>':'');
+          var stk=$("tdpvStock"); if(stk) stk.innerHTML=pvStock(d.stock);
+          var ab=$("tdpvAdd"); if(ab){ ab.disabled=d.stock<=0; ab.textContent=d.stock<=0?"Agotado":"Agregar al carrito · "+mxn(d.price); }
+        }
+      }).catch(function(){});
   }
   function openDrawer(el){
     closeDrawers();

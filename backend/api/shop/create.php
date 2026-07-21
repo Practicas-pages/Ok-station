@@ -38,6 +38,16 @@ $comments = trim((string) ($b['comments'] ?? ''));
 $phone = preg_replace('/\D/', '', (string) ($b['contact_phone'] ?? ''));
 if (strlen($phone) === 12 && substr($phone, 0, 2) === '52') $phone = substr($phone, 2);  // vino con lada +52
 
+/* Correo de contacto OPCIONAL: si el cliente quiere los avisos de ESTA compra en otro
+   correo (no el de su cuenta). Vacío o igual al de la cuenta → NULL (comportamiento
+   de siempre: se avisa al correo de la cuenta). */
+$contactEmail = strtolower(trim((string) ($b['contact_email'] ?? '')));
+if ($contactEmail !== '' && !filter_var($contactEmail, FILTER_VALIDATE_EMAIL)) {
+    fail('El correo para avisos no es válido.');
+}
+if (mb_strlen($contactEmail) > 190) fail('El correo para avisos es demasiado largo.');
+if ($contactEmail === strtolower(trim((string) ($user['email'] ?? '')))) $contactEmail = '';
+
 if (!is_array($items) || count($items) === 0) fail('Tu carrito está vacío.');
 if (count($items) > 50) fail('Demasiados productos en un solo pedido (máximo 50).');
 if (mb_strlen($comments) > 1000) fail('Los comentarios son demasiado largos.');
@@ -119,13 +129,14 @@ $ivaState  = ($shipMode === 'envio') ? $state : 'Baja California';   // ya valid
 $pdo = db();
 $pdo->beginTransaction();
 try {
-    $pdo->prepare('INSERT INTO shop_orders (user_id, code, ship_mode, ship_cost, ship_address, ship_state, subtotal, tax, iva_rate, total, contact_phone, comments)
-                   VALUES (?,?,?,?,?,?,?,?,?,?,?,?)')
+    $pdo->prepare('INSERT INTO shop_orders (user_id, code, ship_mode, ship_cost, ship_address, ship_state, subtotal, tax, iva_rate, total, contact_phone, contact_email, comments)
+                   VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)')
         ->execute([
             (int) $user['id'], 'TMP', $shipMode, $shipCost,
             $shipMode === 'envio' ? $shipAddress : null,
             $ivaState,
             $subtotal, $tax, $ivaRate, $total, $phone,
+            $contactEmail !== '' ? $contactEmail : null,
             $comments !== '' ? $comments : null,
         ]);
     $shopId = (int) $pdo->lastInsertId();
@@ -184,7 +195,9 @@ try {
 try {
     require_once __DIR__ . '/../lib/Mail.php';
     require_once __DIR__ . '/../lib/Emails.php';
-    $to = (string) ($user['email'] ?? '');
+    /* Los avisos van al correo que ELIGIÓ el cliente para esta compra; si no eligió
+       otro, al de su cuenta (como siempre). */
+    $to = $contactEmail !== '' ? $contactEmail : (string) ($user['email'] ?? '');
     if ($to !== '') {
         $mailItems = array_map(function ($r) { return ['name' => $r['name'], 'qty' => $r['qty'], 'line' => $r['line']]; }, $resolved);
         $html = Emails::tiendaPedidoHtml([

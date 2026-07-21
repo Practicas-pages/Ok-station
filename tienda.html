@@ -237,7 +237,16 @@
 #site .countdown b{background:rgba(255,255,255,.2); border-radius:8px; padding:6px 10px; font-variant-numeric:tabular-nums; font-size:1.05rem; min-width:42px; text-align:center}
 #site .btn-w{background:#fff; color:#FF5E3A; border:none; font-weight:800; padding:14px 26px; border-radius:999px; white-space:nowrap; align-self:center; transition:transform .15s, box-shadow .15s}
 #site .btn-w:hover{transform:translateY(-2px); box-shadow:var(--sh-md,0 12px 32px rgba(12,20,50,.12))}
-#site .feat{display:grid; grid-template-columns:repeat(auto-fill,minmax(180px,1fr)); gap:14px}
+#site .feat-wrap{position:relative}
+#site .feat{display:flex; gap:14px; overflow-x:auto; overflow-y:hidden; scroll-behavior:smooth; scrollbar-width:none; -ms-overflow-style:none; -webkit-overflow-scrolling:touch; overscroll-behavior-x:contain; padding:6px 2px; scroll-snap-type:x proximity}
+#site .feat::-webkit-scrollbar{display:none}
+#site .feat>.fcard{flex:0 0 clamp(166px,44vw,196px); scroll-snap-align:start}
+#site .featnav{position:absolute; top:calc(50% + 4px); transform:translateY(-50%); width:38px; height:38px; border-radius:50%; border:1px solid var(--line); background:#fff; color:#0b1220; box-shadow:0 6px 20px rgba(9,14,34,.16); display:none; place-items:center; cursor:pointer; z-index:6; transition:transform .15s}
+#site .featnav:hover{transform:translateY(-50%) scale(1.08)}
+#site .featnav.prev{left:-8px} #site .featnav.next{right:-8px}
+#site .feat-wrap.can-prev .featnav.prev{display:grid}
+#site .feat-wrap.can-next .featnav.next{display:grid}
+@media(max-width:820px){ #site .featnav{display:none !important} }
 #site .fcard{position:relative; background:#fff; border:1px solid var(--line); border-radius:16px; padding:12px; box-shadow:var(--sh); cursor:pointer; transition:transform .12s; display:flex; flex-direction:column}
 #site .fcard:hover{transform:translateY(-2px)}
 #site .fcard .ph{height:118px; margin-bottom:10px}
@@ -440,6 +449,10 @@ html.store-view .header-bar, html.store-view .site-header{display:none}
 #site .fgroup:last-child{border-bottom:0}
 #site .fgroup h4{margin:0 0 9px; font-size:.82rem; font-weight:800; text-transform:uppercase; letter-spacing:.04em; color:var(--muted)}
 #site .fopt{display:flex; align-items:center; gap:9px; padding:7px 0; font-size:.9rem; cursor:pointer}
+#site .fopt.is-hidden{display:none}
+#site .fsubsearch{width:100%; margin:0 0 8px; padding:9px 12px; border:1.5px solid var(--line); border-radius:10px; font:inherit; font-size:.88rem}
+#site .fsubsearch:focus{outline:none; border-color:var(--blue)}
+#site .fmore{display:block; width:100%; margin-top:6px; padding:8px; border:0; background:none; color:var(--blue); font:inherit; font-size:.85rem; font-weight:700; cursor:pointer; text-align:left}
 #site .fopt input{width:auto; margin:0; accent-color:var(--blue); flex:none}
 #site .fopt .fn{color:var(--muted); font-size:.78rem; margin-left:auto}
 #site .fdfoot{flex:none; display:flex; gap:9px; padding:14px 18px; border-top:1px solid var(--line)}
@@ -756,6 +769,15 @@ html.q-lock, html.q-lock body{overflow:hidden}
 #site .afchk{display:flex; align-items:center; gap:8px; margin-top:10px; font-size:.83rem; cursor:pointer}
 #site .afchk input{width:auto; margin:0}
 #site .afback{display:block; width:100%; margin-top:10px; padding:9px; border:0; background:none; color:var(--blue); font:inherit; font-size:.85rem; font-weight:600; cursor:pointer}
+/* Geolocalización + mapa del alta de dirección */
+#site .afgeo{display:flex; width:100%; align-items:center; justify-content:center; gap:8px; margin:0 0 12px; padding:11px; border:1.5px solid var(--blue); border-radius:12px; background:#eef5ff; color:var(--blue); font:inherit; font-size:.88rem; font-weight:700; cursor:pointer; transition:background .15s}
+#site .afgeo:hover:not(:disabled){background:#e2eeff}
+#site .afgeo:disabled{opacity:.6; cursor:default}
+#site #afMap{height:230px; border-radius:12px; border:1px solid var(--line); z-index:1}
+/* Chips del correo de avisos (checkout, paso Contacto) */
+#site .comail{display:flex; gap:8px; flex-wrap:wrap}
+#site .comail-opt{max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; padding:9px 14px; border:1.5px solid var(--line); border-radius:999px; background:#fff; font:inherit; font-size:.84rem; font-weight:600; cursor:pointer; transition:border-color .15s, background .15s}
+#site .comail-opt.on{border-color:var(--blue); background:#eef5ff; color:var(--blue)}
 #site #locModal{max-height:86vh; overflow-y:auto}
 @media(max-width:480px){ #site .afrow{grid-template-columns:1fr} }
 #site .paybadges{display:flex; gap:6px; flex-wrap:wrap; margin:10px 0 4px}
@@ -1028,7 +1050,11 @@ html.q-lock, html.q-lock body{overflow:hidden}
     <!-- Productos (buy box: anclaje + escasez) -->
     <div class="wrap sec" style="padding-top:0">
       <div class="head-row"><div><span class="eyebrow">Los más buscados</span><h2>Productos populares</h2></div><a href="#" class="see-all" data-go-store>Ver todos →</a></div>
-      <div class="feat" id="landFeat"></div>
+      <div class="feat-wrap" id="featWrap">
+        <div class="feat" id="landFeat"></div>
+        <button type="button" class="featnav prev" id="featPrev" aria-label="Ver anteriores"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>
+        <button type="button" class="featnav next" id="featNext" aria-label="Ver más"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></button>
+      </div>
     </div>
 
     <!-- CTA final -->
@@ -1130,6 +1156,10 @@ html.q-lock, html.q-lock body{overflow:hidden}
      (las que ya bajo Icecat) y reusa pimg(). Si esa categoria aun no tiene ninguna foto,
      cae en la caja gris de siempre: nunca se rompe ni se inventa una imagen. */
   function catImg(catId){
+    /* 1º la imagen de muestra que manda el backend por categoría (categories.php);
+       2º una de los productos ya cargados; si ninguna, la caja gris de siempre. */
+    var c=CATS.filter(function(x){return x.id===catId;})[0];
+    if(c && c.image) return pimg({image:c.image});
     var conFoto=P.filter(function(x){return x.cat===catId && x.image;});
     return conFoto.length ? pimg(conFoto[0]) : ph();
   }
@@ -1229,10 +1259,29 @@ html.q-lock, html.q-lock body{overflow:hidden}
   function renderLandFeat(){
     /* Destacados: primero las ofertas, luego lo demás; siempre con existencia. */
     var pool=P.filter(function(p){return p.stock>0;});
-    var list=pool.filter(function(p){return !!p.old;}).concat(pool.filter(function(p){return !p.old;})).slice(0,6);
+    var list=pool.filter(function(p){return !!p.old;}).concat(pool.filter(function(p){return !p.old;})).slice(0,12);
     $("landFeat").innerHTML=list.map(function(p){var low=p.stock<=6;
       return '<div class="fcard" data-open-feat="'+p.id+'">'+(p.old?'<span class="off">−'+Math.round((1-p.price/p.old)*100)+'%</span>':'')+pimg(p)+'<h4>'+okEsc(p.name)+'</h4><div class="fp">'+mxn(p.price)+(p.old?' <s>'+mxn(p.old)+'</s>':'')+'</div>'+(low?'<div class="scarce">🔥 Solo quedan '+p.stock+'</div>':'')+'<button class="fadd" data-go-store data-cat="'+okEsc(p.cat)+'">Ver en tienda</button></div>';}).join("");
+    featSync();
   }
+  /* Flechas del carrusel "Productos populares": mismas mecánicas que el carril de
+     categorías (popSync/nudge). Solo aparecen si hay overflow; si el JS fallara, el
+     carrusel sigue siendo desplazable a mano. */
+  function featSync(){
+    var wrap=$("featWrap"), bar=$("landFeat"); if(!wrap||!bar) return;
+    var max=bar.scrollWidth-bar.clientWidth;
+    wrap.classList.toggle("can-prev", bar.scrollLeft>4);
+    wrap.classList.toggle("can-next", max>4 && bar.scrollLeft<max-4);
+  }
+  (function(){
+    var bar=$("landFeat"); if(!bar) return;
+    function nudge(d){ bar.scrollBy({left:d*Math.max(200,Math.round(bar.clientWidth*.85)), behavior:"smooth"}); }
+    var pv=$("featPrev"), nx=$("featNext");
+    if(pv) pv.addEventListener("click",function(){nudge(-1);});
+    if(nx) nx.addEventListener("click",function(){nudge(1);});
+    bar.addEventListener("scroll", featSync, {passive:true});
+    window.addEventListener("resize", featSync, {passive:true});
+  })();
   $("landFeat").addEventListener("click",function(e){var c=e.target.closest("[data-open-feat]"); if(c && !e.target.closest(".fadd")){var p=prod(+c.dataset.openFeat); showView("store"); if(p) selectCat(p.cat);}});
 
   // Tienda interactiva
@@ -1500,6 +1549,14 @@ html.q-lock, html.q-lock body{overflow:hidden}
             }).join("")
           : '<p class="fn">No hay tipos en esta categoría.</p>')
       : '<p class="fn">Cargando tipos…</p>';
+    /* Con ~80 tipos la lista era una pared: buscador + top 15 (ya vienen ordenados por
+       conteo del backend) + "Ver todos". El buscador OCULTA con una clase, nunca
+       reconstruye el HTML: reconstruir perdería los checks a medio marcar. */
+    var muchosTipos=fSubcatsLoaded&&fSubcatList.length>15;
+    if(muchosTipos){
+      tipos='<input type="search" class="fsubsearch" placeholder="Buscar tipo… (tóner, papel, pluma)" aria-label="Buscar tipo">'+tipos+
+            '<button type="button" class="fmore"></button>';
+    }
     var marcas=fBrandsLoaded
       ? (fBrandList.length
           ? fBrandList.map(function(b){
@@ -1509,8 +1566,34 @@ html.q-lock, html.q-lock body{overflow:hidden}
       : '<p class="fn">Cargando marcas…</p>';
     $("fdrawBody").innerHTML=
       '<div class="fgroup"><h4>Ordenar por</h4>'+orden+'</div>'+
-      '<div class="fgroup"><h4>Tipo</h4>'+tipos+'</div>'+
+      '<div class="fgroup fgroup--subs"><h4>Tipo</h4>'+tipos+'</div>'+
       '<div class="fgroup"><h4>Marca</h4>'+marcas+'</div>';
+    applySubcatView();
+  }
+  /* Vista de la lista de tipos: aplica búsqueda y el recorte top-15 SIN tocar el HTML
+     (solo clases). Sobrevive a los re-render de filtRender (que corre al llegar tipos
+     y marcas) porque fSubQuery/fSubMore viven fuera. */
+  var fSubQuery="", fSubMore=false;
+  function applySubcatView(){
+    var box=$("fdrawBody").querySelector(".fgroup--subs"); if(!box) return;
+    var inp=box.querySelector(".fsubsearch");
+    if(inp&&inp.value!==fSubQuery) inp.value=fSubQuery;
+    var q=okNorm(fSubQuery), TOP=15, n=0, total=0;
+    [].forEach.call(box.querySelectorAll(".fopt"),function(lb){
+      var c=lb.querySelector(".fsubcat"); if(!c) return;
+      total++;
+      var match=!q || okNorm(c.value).indexOf(q)>=0;
+      /* Sin búsqueda: los primeros 15 (más los marcados, que nunca se esconden).
+         Con búsqueda: todo lo que empate. */
+      var vis=match && (q ? true : (fSubMore || n<TOP || c.checked));
+      if(match) n++;
+      lb.classList.toggle("is-hidden",!vis);
+    });
+    var more=box.querySelector(".fmore");
+    if(more){
+      more.hidden=(!!q)||total<=TOP;
+      more.textContent=fSubMore?"− Ver menos":"+ Ver todos ("+total+")";
+    }
   }
   function filtApply(){
     fSort=($("fdrawBody").querySelector('input[name="fsort"]:checked')||{}).value||"name";
@@ -1528,6 +1611,13 @@ html.q-lock, html.q-lock body{overflow:hidden}
   $("fdrawClose").addEventListener("click",filtClose);
   $("fApply").addEventListener("click",filtApply);
   $("fClear").addEventListener("click",filtClear);
+  /* Buscador y "ver todos" de tipos: delegados (el panel se repinta al llegar datos). */
+  $("fdrawBody").addEventListener("input",function(e){
+    if(e.target.classList.contains("fsubsearch")){ fSubQuery=e.target.value; applySubcatView(); }
+  });
+  $("fdrawBody").addEventListener("click",function(e){
+    if(e.target.closest(".fmore")){ fSubMore=!fSubMore; applySubcatView(); }
+  });
   /* Esc cierra, como se espera de cualquier panel. */
   document.addEventListener("keydown",function(e){ if(e.key==="Escape"&&$("app").classList.contains("filt-open")) filtClose(); });
   $("cartBtn").addEventListener("click",function(){var open=$("app").classList.toggle("cart-open"); okiEmit(open?"carrito-abierto":"carrito-cerrado");});
@@ -1585,6 +1675,17 @@ html.q-lock, html.q-lock body{overflow:hidden}
         var ul=mid.querySelector(".specs"); if(ul){ ul.classList.add("specs-kv"); ul.innerHTML=rows.slice(0,5).join(""); }
         if(d.specs.length>5){ var ms=mid.querySelector(".pvmore-specs"); if(ms){ ms.hidden=false; var b=ms.querySelector(".specsmore"); if(b) b.textContent="Ver ficha técnica completa ("+d.specs.length+") →"; } }
         var rb=$("pvSpecs").querySelector(".pvbody"); if(rb) rb.innerHTML='<ul class="specs specs-kv">'+rows.join("")+'</ul>';
+      }
+      /* Precio / stock / descuento FRESCOS de la BD (product.php) — "verificar al abrir".
+         NO se llama a Exel en vivo (latencia en página pública); la BD ya se refresca cada
+         hora y el checkout revalida deriva >3%. Se repinta lo mostrado y se sincroniza la
+         cache para que el grid y el carrito reflejen lo mismo. */
+      if(typeof d.price==="number"){
+        var fLow=d.stock<=5, fOld=(d.old&&d.old>d.price)?d.old:null, fSave=fOld?Math.round(fOld-d.price):0;
+        var mp=mid.querySelector(".mprice"); if(mp) mp.innerHTML='<span class="p">'+mxn(d.price)+(fOld?' <s>'+mxn(fOld)+'</s>':'')+'</span>'+(fSave?'<span class="msave">Ahorras '+mxn(fSave)+'</span>':'');
+        var mk=mid.querySelector(".mstock"); if(mk){ mk.style.color=(d.stock<=0||fLow)?"#c2410c":"#0E9F6E"; mk.textContent=(d.stock<=0?"Agotado por ahora":((fLow?"🔥 ¡Últimas "+d.stock+"!":d.stock+" disponibles")+" · Recoge en Otay o a domicilio")); }
+        var mab=mid.querySelector(".maddbtn"); if(mab){ if(d.stock<=0){ mab.disabled=true; mab.textContent="Agotado"; } else { mab.disabled=false; mab.textContent="Agregar al carrito · "+mxn(d.price); } }
+        var pc=prod(dbId); if(pc){ pc.price=d.price; pc.stock=d.stock; pc.old=fOld; }
       }
     }).catch(function(){ mid.classList.remove("pv-loading"); });
   }
@@ -1692,6 +1793,13 @@ html.q-lock, html.q-lock body{overflow:hidden}
     var hayPrevias=(okAddr||[]).length>0;
     $("locModal").innerHTML=locShell(
       '<div class="auth-alert" id="locErr" role="alert" hidden style="margin:0 0 12px;padding:10px 12px;border-radius:10px;background:#fdeaea;color:#8a1c1c;font-size:.85rem"></div>'+
+      /* Geolocalización: llena el formulario con la dirección donde está el teléfono y
+         muestra el mapa con un pin AJUSTABLE (arrástralo a tu casa y los campos se
+         rellenan solos; siempre puedes corregirlos a mano). */
+      '<button type="button" class="afgeo" id="afGeo">📍 Usar mi ubicación actual</button>'+
+      '<div id="afMapWrap" hidden><div id="afMap"></div>'+
+        '<p class="desc" style="font-size:.78rem;margin:6px 0 10px">Arrastra el pin a tu puerta para afinar la dirección.</p></div>'+
+      '<input type="hidden" id="afLat"><input type="hidden" id="afLon">'+
       '<div class="field"><label for="afRec">¿Quién recibe?</label><input id="afRec" type="text" maxlength="160" autocomplete="name" placeholder="Nombre y apellido" value="'+esc(u.full_name||"")+'"></div>'+
       '<div class="field"><label for="afPhone">Teléfono</label><input id="afPhone" type="tel" maxlength="40" inputmode="tel" autocomplete="tel" placeholder="664 719 4117" value="'+esc(u.phone||"")+'"></div>'+
       '<div class="field"><label for="afStreet">Calle</label><input id="afStreet" type="text" maxlength="200" autocomplete="address-line1" placeholder="Blvd. Insurgentes"></div>'+
@@ -1710,12 +1818,74 @@ html.q-lock, html.q-lock body{overflow:hidden}
     setTimeout(function(){var f=$("afRec"); if(f)f.focus();},50);
   }
 
+  /* ── Geolocalización + mapa del alta de dirección ──
+     Leaflet SELF-HOSTED (assets/vendor/leaflet): el CSP del sitio (style-src 'self')
+     no deja traer su CSS de un CDN. La geocodificación inversa va por NUESTRO backend
+     (geo-reverse.php) porque connect-src 'self' bloquea llamar a Nominatim directo. */
+  var afMapObj=null, afPin=null;
+  function okLoadLeaflet(cb){
+    if(window.L){cb();return;}
+    if(!document.getElementById("leafCss")){
+      var l=document.createElement("link"); l.id="leafCss"; l.rel="stylesheet"; l.href="assets/vendor/leaflet/leaflet.css"; document.head.appendChild(l);
+    }
+    var s=document.createElement("script"); s.src="assets/vendor/leaflet/leaflet.js";
+    s.onload=function(){cb();}; s.onerror=function(){flash("No se pudo cargar el mapa; escribe tu dirección");};
+    document.head.appendChild(s);
+  }
+  function afGeoStart(){
+    var b=$("afGeo");
+    if(!navigator.geolocation){flash("Tu navegador no comparte la ubicación; escribe tu dirección");return;}
+    if(b){b.disabled=true; b.textContent="Obteniendo tu ubicación…";}
+    navigator.geolocation.getCurrentPosition(function(pos){
+      if(b){b.disabled=false; b.textContent="📍 Usar mi ubicación actual";}
+      afShowMap(pos.coords.latitude,pos.coords.longitude);
+      afReverse(pos.coords.latitude,pos.coords.longitude);
+    },function(){
+      if(b){b.disabled=false; b.textContent="📍 Usar mi ubicación actual";}
+      flash("No pudimos leer tu ubicación; escribe tu dirección");
+    },{enableHighAccuracy:true,timeout:10000,maximumAge:60000});
+  }
+  function afShowMap(lat,lon){
+    var la=$("afLat"), lo=$("afLon"); if(la)la.value=lat; if(lo)lo.value=lon;
+    okLoadLeaflet(function(){
+      var wrap=$("afMapWrap"), cont=$("afMap"); if(!wrap||!cont) return;
+      wrap.hidden=false;
+      /* El modal se repinta entre vistas: si el mapa anterior quedó en DOM muerto, se recrea. */
+      if(afMapObj && !document.body.contains(afMapObj.getContainer())){ try{afMapObj.remove();}catch(e){} afMapObj=null; afPin=null; }
+      if(!afMapObj){
+        afMapObj=L.map(cont).setView([lat,lon],17);
+        L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19,attribution:"© OpenStreetMap"}).addTo(afMapObj);
+        afPin=L.marker([lat,lon],{draggable:true,title:"Arrástrame a tu puerta"}).addTo(afMapObj);
+        /* Al soltar el pin: se guarda la coordenada fina y se rellenan los campos. */
+        afPin.on("dragend",function(){ var p=afPin.getLatLng(); if(la)la.value=p.lat; if(lo)lo.value=p.lng; afReverse(p.lat,p.lng); });
+      } else { afMapObj.setView([lat,lon],17); afPin.setLatLng([lat,lon]); }
+      setTimeout(function(){ try{afMapObj.invalidateSize();}catch(e){} },80);
+    });
+  }
+  function afReverse(lat,lon){
+    authFetch("/backend/api/shop/geo-reverse.php?lat="+(+lat).toFixed(6)+"&lon="+(+lon).toFixed(6)).then(function(j){
+      if(!j||!j.ok||!j.address) return;
+      var a=j.address, set=function(id,v){var el=$(id); if(el&&v)el.value=v;};
+      set("afStreet",a.street); set("afExt",a.ext_num); set("afCol",a.colonia);
+      set("afCp",a.zip); set("afCity",a.city);
+      if(a.state){ var sel=$("afState"); if(sel){ for(var i=0;i<sel.options.length;i++){ if(sel.options[i].text.toLowerCase()===a.state.toLowerCase()){sel.selectedIndex=i;break;} } } }
+    }).catch(function(){});
+  }
+
   function saveAddr(){
     var err=$("locErr"); function bad(m){ err.textContent=m; err.hidden=false; err.scrollIntoView({block:"nearest"}); }
     var v=function(id){return ($(id).value||"").trim();};
     var body={recipient:v("afRec"),phone:v("afPhone"),street:v("afStreet"),ext_num:v("afExt"),
               int_num:v("afInt"),neighborhood:v("afCol"),city:v("afCity"),state:v("afState"),
               postal_code:v("afCp"),notes:v("afNotes"),is_default:$("afDef").checked};
+    /* Si el cliente afinó el pin del mapa, la coordenada viaja en las referencias:
+       es ORO para el repartidor (la colonia puede repetir calles). */
+    var gLat=($("afLat")&&$("afLat").value)||"", gLon=($("afLon")&&$("afLon").value)||"";
+    if(gLat&&gLon&&body.notes.indexOf("GPS ")<0){
+      var gps="GPS "+(+gLat).toFixed(6)+","+(+gLon).toFixed(6);
+      body.notes=(body.notes?body.notes+" · ":"")+gps;
+      if(body.notes.length>255) body.notes=body.notes.slice(0,255);
+    }
     /* Validación mínima en cliente (rapidez); el SERVIDOR revalida todo. */
     if(body.recipient.length<3)                 return bad("Escribe el nombre de quien recibe.");
     if((body.phone.match(/\d/g)||[]).length<10) return bad("El teléfono debe tener al menos 10 dígitos.");
@@ -1730,6 +1900,13 @@ html.q-lock, html.q-lock body{overflow:hidden}
       .then(function(j){
         if(!j||!j.ok){ btn.disabled=false; btn.textContent="Agregar dirección"; return bad((j&&j.error)||"No se pudo guardar."); }
         okAddr=j.addresses||[]; renderLoc(); hide("locOv"); flash("Dirección agregada");
+        /* Si se llegó desde el CHECKOUT (paso Entrega), la recién creada queda elegida
+           y el checkout se repinta con ella (la más nueva es el id más alto). */
+        if($("coOv").classList.contains("show") && coStep===2){
+          var nueva=okAddr.reduce(function(m,a){return a.id>m.id?a:m;},okAddr[0]||{id:0});
+          if(nueva&&nueva.id) coAddrId=nueva.id;
+          renderCheckout();
+        }
       }).catch(function(){ btn.disabled=false; btn.textContent="Agregar dirección"; bad("Sin conexión con el servidor."); });
   }
 
@@ -1746,6 +1923,7 @@ html.q-lock, html.q-lock body{overflow:hidden}
     if(e.target.id==="locOv"||e.target.closest("[data-close]")){hide("locOv"); return;}
     if(e.target.closest("#addrNew")) return locForm();
     if(e.target.closest("#afBack"))  return locList(okAddr||[]);
+    if(e.target.closest("#afGeo"))   return afGeoStart();
     if(e.target.closest("#afSave"))  return saveAddr();
     var a=e.target.closest("[data-addr]"); if(a) return pickAddr(+a.dataset.addr);
   });
@@ -1758,7 +1936,14 @@ html.q-lock, html.q-lock body{overflow:hidden}
     if(j&&j.ok){ okAddr=j.addresses||[]; renderLoc(); }
   }).catch(function(){});
   renderLoc();
-  function renderCheckout(){var tt=totals(),head='<div class="mb" style="padding-top:22px"><button class="x" data-close style="position:static;float:right;background:var(--paper)">×</button><div style="clear:both"></div>';
+  /* ── Checkout en DOS pasos (junta 21-jul): 1) contacto  2) entrega ──
+     Paso 1: WhatsApp + correo de avisos (el de la cuenta con un clic, u otro).
+     Paso 2: retiro (como siempre) o envío eligiendo una dirección GUARDADA de la
+     libreta; "Agregar dirección" abre la libreta (con geolocalización y mapa). */
+  var coPhoneVal="", coEmailOther=false, coEmailVal="";
+  function coAddrSel(){ return (okAddr||[]).filter(function(a){return a.id===coAddrId;})[0]||null; }
+  var coAddrId=0;
+  function renderCheckout(){var head='<div class="mb" style="padding-top:22px"><button class="x" data-close style="position:static;float:right;background:var(--paper)">×</button><div style="clear:both"></div>';
     /* Comprar REQUIERE cuenta (para pagar en línea y darle seguimiento al pedido). */
     if(!shopToken()){
       $("coModal").innerHTML=head+'<h3 style="margin:0 0 8px;font-size:1.2rem">Inicia sesión para comprar</h3>'+
@@ -1766,25 +1951,58 @@ html.q-lock, html.q-lock body{overflow:hidden}
         '<button class="maddbtn" style="margin-top:16px" data-cologin>Iniciar sesión o crear cuenta</button></div>';
       return;
     }
-    var envio=shipMode==="envio";
-    /* Estado de entrega: solo para ENVÍO decide el IVA. Al RECOGER en Tijuana = BC 8%. */
-    var estadoDef=envio?(okGeo.state||"Baja California"):"Baja California";
-    var stateSel=envio
-      ? '<div class="field"><label>Estado de entrega</label><select id="coState">'+MX_ESTADOS.map(function(s){return '<option'+(s.toLowerCase()===estadoDef.toLowerCase()?' selected':'')+'>'+esc(s)+'</option>';}).join("")+'</select></div>'
-      : '<p class="desc" style="font-size:.82rem;margin:2px 0 8px">Recoges en OK.station (Tijuana, Baja California) · IVA 8%.</p>';
-    var body='<h3 style="margin:0 0 12px;font-size:1.2rem">Finaliza tu compra</h3>'+
-      '<div class="field"><label>WhatsApp para avisarte</label><input id="coPhone" inputmode="numeric" autocomplete="tel-national" maxlength="10" placeholder="6640000000" value="'+esc(soloTel((shopUser()&&shopUser().phone)||""))+'"></div>'+
-      (envio?'<div class="field"><label>Dirección de envío</label><input id="coAddr" placeholder="Calle y número, colonia, C.P., ciudad"></div>':'')+
-      stateSel+
+    var envio=shipMode==="envio", u=shopUser()||{};
+    if(coStep!==2) coStep=1;
+    if(coStep===1){
+      /* ── Paso 1: contacto ── */
+      var mail=String(u.email||"");
+      /* Prellenar el WhatsApp con el de la CUENTA (mejora de ZequiDev integrada al
+         rediseño de 2 pasos): si aún no se ha tecleado nada, se ofrece el guardado. */
+      if(!coPhoneVal) coPhoneVal=soloTel(u.phone||"");
+      var body='<h3 style="margin:0 0 4px;font-size:1.2rem">Finaliza tu compra</h3>'+
+        '<p class="desc" style="max-width:none;font-size:.82rem;margin:0 0 12px;color:var(--muted)">Paso 1 de 2 · Contacto</p>'+
+        '<div class="field"><label>WhatsApp para avisarte</label><input id="coPhone" inputmode="numeric" autocomplete="tel-national" maxlength="10" placeholder="6640000000" value="'+esc(coPhoneVal)+'"></div>'+
+        '<div class="field"><label>Correo para tus avisos y recibo</label>'+
+          '<div class="comail">'+
+            '<button type="button" class="comail-opt'+(coEmailOther?'':' on')+'" data-comail="mio" title="Usar el correo de tu cuenta">✉ '+esc(mail||"El de mi cuenta")+'</button>'+
+            '<button type="button" class="comail-opt'+(coEmailOther?' on':'')+'" data-comail="otro">Otro correo</button>'+
+          '</div>'+
+          (coEmailOther?'<input id="coEmail" type="email" autocomplete="email" maxlength="190" placeholder="correo@ejemplo.com" value="'+esc(coEmailVal)+'" style="margin-top:8px">':'')+
+        '</div>'+
+        '<button class="maddbtn" style="margin-top:16px" data-conext>Continuar →</button>';
+      $("coModal").innerHTML=head+body+'</div>';
+      setTimeout(function(){var f=$("coPhone"); if(f&&!f.value)f.focus();},50);
+      return;
+    }
+    /* ── Paso 2: entrega ── */
+    var entrega;
+    if(!envio){
+      entrega='<p class="desc" style="font-size:.82rem;margin:2px 0 8px">Recoges en OK.station (Tijuana, Baja California) · IVA 8%.</p>';
+    } else {
+      var list=okAddr||[];
+      if(list.length && !coAddrSel()){ var d0=list.filter(function(a){return a.is_default;})[0]||list[0]; coAddrId=d0.id; }
+      entrega=(list.length
+          ? '<p class="desc" style="max-width:none;font-size:.88rem;margin:0 0 8px">¿A dónde enviamos tu pedido?</p>'+
+            '<div class="addrs">'+list.map(function(a){
+              return '<button type="button" class="addr'+(a.id===coAddrId?" addr--on":"")+'" data-coaddr="'+a.id+'">'+
+                '<b>'+esc(a.recipient)+(a.is_default?' <span class="addr__tag">Predeterminada</span>':'')+'</b>'+
+                '<span>'+esc(a.label)+' · '+esc(a.state||"")+'</span></button>';
+            }).join("")+'</div>'
+          : '<p class="desc" style="max-width:none;font-size:.88rem;margin:0 0 8px">Aún no tienes direcciones guardadas.</p>')+
+        '<button type="button" class="addr addr--new" data-conewaddr style="width:100%"><span class="addr__plus">+</span><b>Agregar dirección</b> <span class="afopt">· con tu ubicación y mapa</span></button>';
+    }
+    var body2='<h3 style="margin:0 0 4px;font-size:1.2rem">Finaliza tu compra</h3>'+
+      '<p class="desc" style="max-width:none;font-size:.82rem;margin:0 0 12px;color:var(--muted)">Paso 2 de 2 · Entrega</p>'+
+      entrega+
       '<div id="coSummary"></div>'+
       '<button class="maddbtn" style="margin-top:16px" data-copay>Pagar</button>'+
+      '<button type="button" class="afback" data-coback>← Volver al contacto</button>'+
       '<p class="desc" style="font-size:.8rem;text-align:center;margin-top:8px">Pago seguro con Mercado Pago 🔒</p>';
-    $("coModal").innerHTML=head+body+'</div>';
-    var ss=$("coState"); if(ss) ss.addEventListener("change",paintCheckout);
+    $("coModal").innerHTML=head+body2+'</div>';
     paintCheckout();
   }
-  /* IVA aplicable en el checkout: retiro→BC 8%; envío→según el estado elegido. */
-  function checkoutRate(){ if(shipMode!=="envio") return 0.08; var ss=$("coState"); return ss?ivaForEstado(ss.value):(okGeo.iva_rate||0.08); }
+  /* IVA aplicable en el checkout: retiro→BC 8%; envío→según el estado de la dirección elegida. */
+  function checkoutRate(){ if(shipMode!=="envio") return 0.08; var a=coAddrSel(); return a?ivaForEstado(a.state||""):(okGeo.iva_rate||0.08); }
   function checkoutTotals(){
     var tt=totals(), r=checkoutRate();
     var base=tt.sub/1.08;            // el catálogo trae IVA 8% incluido → sacamos la base
@@ -1804,18 +2022,24 @@ html.q-lock, html.q-lock body{overflow:hidden}
   }
   function submitShop(){
     var tok=shopToken(); if(!tok){renderCheckout();return;}
-    var phone=soloTel($("coPhone")&&$("coPhone").value);
-    if(phone.length!==10){flash("Ingresa un WhatsApp válido (10 dígitos)");return;}
-    var envio=shipMode==="envio", addr=($("coAddr")&&$("coAddr").value||"").trim();
-    if(envio&&addr.length<10){flash("Ingresa la dirección de envío completa");return;}
-    var estado=envio?(($("coState")&&$("coState").value)||okGeo.state||"Baja California"):"Baja California";
+    /* El teléfono/correo se capturaron en el PASO 1 (ya no hay input en el paso 2). */
+    var phone=soloTel(coPhoneVal);
+    if(phone.length!==10){coStep=1; renderCheckout(); flash("Ingresa un WhatsApp válido (10 dígitos)"); return;}
+    var envio=shipMode==="envio", addr="", estado="Baja California";
+    if(envio){
+      var a=coAddrSel();
+      if(!a){flash("Elige o agrega una dirección de envío");return;}
+      addr=a.recipient+" · "+a.label+(a.notes?" · "+a.notes:"");
+      estado=a.state||okGeo.state||"Baja California";
+    }
     /* seen_unit = el precio de LISTA que este carrito le mostró al cliente. El servidor
        lo compara con el vigente y bloquea si difiere >3% (deriva por sync de Exel). */
     var items=Object.keys(cart).map(function(k){return {id:+cart[k].p.id,qty:cart[k].qty,seen_unit:+cart[k].p.price||0};});
     if(!items.length){flash("Tu carrito está vacío");return;}
     var btn=document.querySelector("[data-copay]"); if(btn){btn.disabled=true;btn.textContent="Procesando…";}
     fetch("/backend/api/shop/create.php",{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+tok},
-      body:JSON.stringify({items:items,ship_mode:shipMode,ship_address:addr,contact_phone:phone,state:estado})})
+      body:JSON.stringify({items:items,ship_mode:shipMode,ship_address:addr,contact_phone:phone,state:estado,
+        contact_email:(coEmailOther?coEmailVal.trim():"")})})   /* vacío = avisos al correo de la cuenta */
       .then(function(r){return r.json();})
       .then(function(j){
         if(j&&j.ok&&j.order){ saveCart&&(cart={}); try{localStorage.removeItem("okstation_cart");}catch(e){} location.href="pago.html?shop="+j.order.id; }
@@ -1830,11 +2054,30 @@ html.q-lock, html.q-lock body{overflow:hidden}
         else{ flash((j&&j.error)||"No se pudo crear el pedido"); if(btn){btn.disabled=false;paintCheckout();} }
       }).catch(function(){ flash("Error de conexión, intenta de nuevo"); if(btn){btn.disabled=false;paintCheckout();} });
   }
-  $("checkoutBtn").addEventListener("click",function(){$("app").classList.remove("cart-open"); renderCheckout(); show("coOv");});
+  $("checkoutBtn").addEventListener("click",function(){$("app").classList.remove("cart-open"); coStep=1; renderCheckout(); show("coOv");});
   $("coOv").addEventListener("click",function(e){
     if(e.target.id==="coOv"||e.target.closest("[data-close]")){hide("coOv"); return;}
     if(e.target.closest("[data-cologin]")){location.href="cuenta.html?next=tienda.html%23store"; return;}
     if(e.target.closest("[data-copay]")){submitShop(); return;}
+    /* Paso 1 → 2: valida contacto y avanza. */
+    if(e.target.closest("[data-conext]")){
+      coPhoneVal=soloTel($("coPhone")&&$("coPhone").value);
+      if(coPhoneVal.length!==10){flash("Ingresa un WhatsApp válido (10 dígitos)");return;}
+      if(coEmailOther){
+        coEmailVal=(($("coEmail")&&$("coEmail").value)||"").trim();
+        if(!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(coEmailVal)){flash("Escribe un correo válido para tus avisos");return;}
+      }
+      coStep=2; renderCheckout(); return;
+    }
+    if(e.target.closest("[data-coback]")){coStep=1; renderCheckout(); return;}
+    /* Correo de avisos: el de la cuenta (un clic) u otro que escriba. */
+    var cm=e.target.closest("[data-comail]");
+    if(cm){ coEmailOther=(cm.dataset.comail==="otro"); renderCheckout(); if(coEmailOther)setTimeout(function(){var f=$("coEmail");if(f)f.focus();},50); return; }
+    /* Dirección de envío elegida (de la libreta). */
+    var ca=e.target.closest("[data-coaddr]");
+    if(ca){ coAddrId=+ca.dataset.coaddr; renderCheckout(); return; }
+    /* Alta de dirección: abre la LIBRETA (con geolocalización y mapa) encima. */
+    if(e.target.closest("[data-conewaddr]")){ locForm(); show("locOv"); return; }
   });
   /* WhatsApp: SOLO 10 dígitos. maxlength e inputmode no bastan (en escritorio se
      teclean letras igual; inputmode solo sugiere el teclado en móvil), así que se
@@ -1848,9 +2091,12 @@ html.q-lock, html.q-lock body{overflow:hidden}
     return d.slice(0,10);
   }
   $("coOv").addEventListener("input",function(e){
+    /* Se persisten en variables porque el modal se REPINTA entre pasos y los inputs se pierden. */
+    if(e.target.id==="coEmail"){ coEmailVal=e.target.value; return; }
     if(e.target.id!=="coPhone") return;
     var limpio=soloTel(e.target.value);
     if(e.target.value!==limpio) e.target.value=limpio;   // solo si cambió: no mueve el cursor de más
+    coPhoneVal=limpio;
   });
 
   function anyOvOpen(){return !!document.querySelector(".ov.show");}
@@ -1986,7 +2232,7 @@ html.q-lock, html.q-lock body{overflow:hidden}
         CATS=[{id:"ofertas",name:"Ofertas del día",hot:true},{id:"all",name:"Todos",color:"#66748a"}]
           .concat(cj.categories.map(function(c,i){
             return {id:c.name, name:c.name, color:CATCOLORS[i%CATCOLORS.length],
-                    count:c.count||0, subs:c.subcategories||[]};
+                    count:c.count||0, image:c.image||null, subs:c.subcategories||[]};
           }));
         if(activeCat!=="all" && activeCat!=="ofertas" && !CATS.some(function(c){return c.id===activeCat;})){ activeCat="all"; activeSub=""; }
       }

@@ -373,15 +373,17 @@
   /* ¿Hay algún panel/cajón abierto que OKi taparía (o que taparía a OKi)? Se aparta cuando:
      - Tienda: carrito (#app.cart-open) o filtros (#app.filt-open).
      - Ficha: carrito (.sb-panel.show de shop-header.js).
-     - Compra rápida: cajones (.td-drawer.open) o filtros (#tdFilts.open).
-     Así OKi "se hace a un lado" igual que en el e-commerce, en toda la tienda. */
+     - Compra rápida: SOLO el carrito lateral derecho (#tdCartDrawer), que sí tapa a OKi.
+     Antes se apartaba también por el panel de FILTROS (#tdFilts) —que va en el flujo, arriba,
+     y nunca tapa a OKi— y por FAVORITOS/UBICACIÓN (#tdWishDrawer/#tdLocDrawer), que comparten
+     la clase base .td-drawer pero son MODALES CENTRADOS con velo: OKi se deslizaba 430px a la
+     izquierda flotando sobre el velo. Por eso "se movía y se buggeaba". */
   function okiShouldDodge() {
     var a = document.getElementById("app");
     if (a && (a.classList.contains("cart-open") || a.classList.contains("filt-open"))) return true;
     if (document.querySelector(".sb-panel.show")) return true;   // carrito de la ficha
-    if (document.querySelector(".td-drawer.open")) return true;  // cajones de la compra rápida
-    var tf = document.getElementById("tdFilts");                 // filtros de la compra rápida
-    if (tf && tf.classList.contains("open")) return true;
+    var cart = document.getElementById("tdCartDrawer");          // SOLO el carrito lateral de compra rápida
+    if (cart && cart.classList.contains("open")) return true;
     return false;
   }
   function okiUpdatePosition() {

@@ -76,6 +76,8 @@ respond(['ok' => true, 'product' => [
     'subcategory' => $p['subcategory'],
     'specs'       => $specs,
     'price'       => round((float) $p['price'] * 1.08, 2),  // lista con IVA 8% incl. (el checkout ajusta por geo)
+    // Precio anterior (tachado) → descuento, misma convención que products.php: solo si de verdad es mayor.
+    'old'         => ((float) $p['old_price'] > (float) $p['price']) ? round((float) $p['old_price'] * 1.08, 2) : null,
     'stock'       => (int) $p['stock'],
     'available'   => ((int) $p['stock'] > 0),
     'images'      => $images,

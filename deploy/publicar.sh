@@ -21,6 +21,17 @@ echo "▶ 1/4  Bajando últimos cambios de GitHub..."
 git checkout -- '*.html' 2>/dev/null || true
 git pull --ff-only
 
+echo "▶ 1b/4 Aplicando migraciones de base de datos pendientes..."
+# Idempotente: si no hay nada nuevo dice "ya está al día". Va ANTES de servir el
+# código nuevo: un endpoint que espera una columna que aún no existe tira 500 en
+# todos los pedidos (pasó con contact_email/0034).
+if php backend/database/migrate.php; then
+  echo "   ✓ Base de datos al día"
+else
+  echo "   ✗ Las migraciones fallaron — REVISA antes de continuar (el código nuevo"
+  echo "     puede requerir columnas que aún no existen)."
+fi
+
 echo "▶ 2/4  Versionando assets con el commit publicado (cache-busting)..."
 HASH=$(git rev-parse --short HEAD)
 sed -i -E "s/\?v=[0-9A-Za-z]+/?v=${HASH}/g" ./*.html
