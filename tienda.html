@@ -1888,6 +1888,18 @@ html.q-lock, html.q-lock body{overflow:hidden}
       (hayPrevias?'<button type="button" class="afback" id="afBack">← Volver a mis direcciones</button>':''),
       "Agregar una nueva dirección");
     setTimeout(function(){var f=$("afRec"); if(f)f.focus();},50);
+    /* Permiso DIRECTO: si el cliente YA le dio permiso de ubicación a la página
+       (lo otorga él mismo la primera vez, con el botón), las siguientes veces el
+       formulario se llena solo al abrirse — sin volver a picar nada y sin prompt.
+       Si el permiso está en "prompt" o "denied", no se hace nada solo: el botón
+       sigue siendo la vía y el navegador pregunta ahí. */
+    try {
+      if (navigator.permissions && navigator.permissions.query) {
+        navigator.permissions.query({name:"geolocation"}).then(function(st){
+          if (st.state === "granted" && $("afGeo")) afGeoStart();
+        }).catch(function(){});
+      }
+    } catch (e) {}
   }
 
   /* ── Geolocalización + mapa del alta de dirección ──

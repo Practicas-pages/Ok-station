@@ -17,7 +17,11 @@ desktop.ini
 .claude/
 
 # ── Dependencias ──
-vendor/
+# OJO: solo el vendor de Composer (raíz y backend). NO usar "vendor/" a secas:
+# también excluía assets/vendor/ (Leaflet self-hosted) y el mapa daba 404 en
+# producción porque sus archivos nunca entraban al repo.
+/vendor/
+backend/vendor/
 node_modules/
 
 # ── SECRETOS Y CONFIGURACIÓN (NUNCA al repositorio) ──
