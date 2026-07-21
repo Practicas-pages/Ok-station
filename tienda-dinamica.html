@@ -758,6 +758,7 @@ body.td-predrag .td-trash{display:flex}
         fBrandsLoaded = false;   // las marcas se acotan a la categoría → recargar al reabrir filtros
         /* El "Tipo" es propio de cada categoría: recargar y limpiar lo elegido. */
         fSubcatsLoaded = false; fSubcats = []; filtCount();
+        tdSubQuery = ""; tdSubMore = false;   // búsqueda de tipos: de cero en cada categoría
         load(true);
       });
     });
@@ -1065,7 +1066,9 @@ body.td-predrag .td-trash{display:flex}
     return '<div class="tdpv-stock" style="color:'+(stock<=0?"#c2410c":(low?"#c2410c":"#0E9F6E"))+'">'+
       (stock<=0?"Agotado por ahora":(low?"🔥 ¡Últimas "+stock+"!":stock+" disponibles")+" · Recoge en Otay o a domicilio")+'</div>';
   }
+  var pvSeq=0;   // token anti-carrera: si abren A y luego B rápido, la respuesta tardía de A se descarta
   function openPreview(p){
+    var myPv=++pvSeq;
     var body=$("tdPrevBody");
     body.innerHTML=
       '<div class="tdpv-img" id="tdpvImg"'+(p.image?' style="background-image:url('+encodeURI(p.image)+')"':'')+'></div>'+
@@ -1084,6 +1087,7 @@ body.td-predrag .td-trash{display:flex}
     fetch("/backend/api/shop/product.php?id="+encodeURIComponent(p.id))
       .then(function(r){return r.json();})
       .then(function(j){
+        if(myPv!==pvSeq) return;                 // ya se abrió otra vista previa
         if(!j||!j.ok||!j.product) return;
         var d=j.product;
         /* Galería (la primera imagen grande + miniaturas). */

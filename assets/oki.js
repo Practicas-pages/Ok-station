@@ -819,7 +819,10 @@
     document.addEventListener("click", function (e) {
       if (!panel.classList.contains("on")) return;
       if (e.target.closest("#oki-panel") || e.target.closest("#oki-dock")) return;
-      if (storeReady() && e.target.closest("[data-add],[data-wish],[data-madd],#wishBtn")) return;
+      /* #tdGo (Enviar al carrito, compra rápida): su emit puede abrir esta lista DURANTE
+         el mismo clic (hidratación síncrona); sin la excepción, este handler la cerraba
+         al instante y el CTA parecía muerto. */
+      if (storeReady() && e.target.closest("[data-add],[data-wish],[data-madd],#wishBtn,#tdGo")) return;
       close();
     });
 
