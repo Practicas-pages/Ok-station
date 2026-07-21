@@ -181,4 +181,46 @@
       try { sessionStorage.setItem("okstation_ir_cat", a.dataset.irCat); } catch (e) {}
     });
   });
+
+  /* ── "Avísame por correo cuando llegue" (producto agotado) ──
+     El aviso lo manda el sync de Exel al recuperar existencia (stock_alerts).
+     Aquí solo se elige el correo (el de la cuenta con un clic, u otro) y se
+     registra vía stock-alert.php. Requiere sesión. */
+  var alertBtn = $("pdpAlert");
+  if (alertBtn) (function () {
+    function lsUser(){ try { return JSON.parse(localStorage.getItem("okstation.user")||"null"); } catch(e){ return null; } }
+    function lsTok(){ try { return localStorage.getItem("okstation.token")||""; } catch(e){ return ""; } }
+    var box=$("pdpAlertBox"), mio=$("paMio"), otro=$("paOtro"), inp=$("paEmail"), go=$("paGo"), msg=$("paMsg");
+    var usarOtro=false;
+    function pinta(){
+      var u=lsUser()||{};
+      mio.textContent="✉ "+(u.email||"El de mi cuenta");
+      mio.style.borderColor=usarOtro?"#e3e6ee":"#066CFF"; mio.style.background=usarOtro?"#fff":"#eef5ff"; mio.style.color=usarOtro?"inherit":"#066CFF";
+      otro.style.borderColor=usarOtro?"#066CFF":"#e3e6ee"; otro.style.background=usarOtro?"#eef5ff":"#fff"; otro.style.color=usarOtro?"#066CFF":"inherit";
+      inp.hidden=!usarOtro;
+    }
+    alertBtn.addEventListener("click", function () {
+      if (!lsTok()) { location.href="/cuenta.html?next="+encodeURIComponent(location.pathname); return; }
+      box.hidden=!box.hidden;
+      if(!box.hidden){ pinta(); }
+    });
+    mio.addEventListener("click", function(){ usarOtro=false; pinta(); });
+    otro.addEventListener("click", function(){ usarOtro=true; pinta(); inp.focus(); });
+    go.addEventListener("click", function () {
+      var email = usarOtro ? (inp.value||"").trim() : "";
+      if (usarOtro && !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) { msg.hidden=false; msg.style.color="#8a1c1c"; msg.textContent="Escribe un correo válido."; return; }
+      go.disabled=true; go.textContent="Guardando…";
+      fetch("/backend/api/shop/stock-alert.php", { method:"POST",
+        headers:{ "Content-Type":"application/json", "Authorization":"Bearer "+lsTok() },
+        body: JSON.stringify({ product_id:+alertBtn.dataset.id, email:email }) })
+        .then(function(r){ return r.json(); })
+        .then(function(j){
+          go.disabled=false; go.textContent="Avisarme";
+          msg.hidden=false;
+          if (j && j.ok) { msg.style.color="#0E9F6E"; msg.textContent=j.message||"Listo: te avisamos en cuanto llegue."; go.hidden=true; mio.disabled=otro.disabled=true; inp.disabled=true; }
+          else { msg.style.color="#8a1c1c"; msg.textContent=(j&&j.error)||"No se pudo guardar tu aviso."; }
+        })
+        .catch(function(){ go.disabled=false; go.textContent="Avisarme"; msg.hidden=false; msg.style.color="#8a1c1c"; msg.textContent="Sin conexión, intenta de nuevo."; });
+    });
+  })();
 })();

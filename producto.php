@@ -306,7 +306,19 @@ $ldCrumbs = [
           </button>
         </div>
         <?php else: ?>
-          <a class="pdp__add pdp__add--wa" href="https://wa.me/526647194117?text=<?= rawurlencode('Hola, ¿cuándo tendrán ' . $name . '?') ?>" target="_blank" rel="noopener">Avísame por WhatsApp cuando llegue</a>
+          <!-- Agotado: el SISTEMA avisa por correo cuando el sync de Exel le devuelva
+               existencia (stock_alerts + exel-sync). Ya no depende de WhatsApp manual. -->
+          <button type="button" class="pdp__add pdp__add--wa" id="pdpAlert" data-id="<?= (int) $row['id'] ?>">🔔 Avísame por correo cuando llegue</button>
+          <div id="pdpAlertBox" hidden style="margin-top:10px;padding:14px;border:1.5px solid #e3e6ee;border-radius:14px;background:#fff">
+            <p style="margin:0 0 8px;font-size:.86rem;font-weight:700">¿A qué correo te avisamos?</p>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px">
+              <button type="button" class="pdp-alert-opt" id="paMio" style="max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:8px 14px;border:1.5px solid #066CFF;border-radius:999px;background:#eef5ff;color:#066CFF;font:inherit;font-size:.83rem;font-weight:600;cursor:pointer"></button>
+              <button type="button" class="pdp-alert-opt" id="paOtro" style="padding:8px 14px;border:1.5px solid #e3e6ee;border-radius:999px;background:#fff;font:inherit;font-size:.83rem;font-weight:600;cursor:pointer">Otro correo</button>
+            </div>
+            <input id="paEmail" type="email" maxlength="190" placeholder="correo@ejemplo.com" hidden style="width:100%;padding:9px 12px;border:1.5px solid #e3e6ee;border-radius:10px;font:inherit;font-size:.86rem;margin-bottom:8px">
+            <button type="button" id="paGo" style="width:100%;padding:11px;border:0;border-radius:999px;background:#066CFF;color:#fff;font:inherit;font-weight:700;cursor:pointer">Avisarme</button>
+            <p id="paMsg" style="margin:8px 0 0;font-size:.8rem" hidden></p>
+          </div>
         <?php endif; ?>
 
         <ul class="pdp__perks">

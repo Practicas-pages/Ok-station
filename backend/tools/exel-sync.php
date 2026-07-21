@@ -299,6 +299,42 @@ $st = $PDO->prepare("UPDATE products SET is_active = 0
 $st->execute([$runStamp]);
 $descont = $st->rowCount();
 
+/* ── 4a-bis. "Avísame cuando llegue": productos que RECUPERARON existencia ──
+   Corre en el sync completo Y en el --solo-precios (cada hora), así el cliente se
+   entera pronto. Best-effort: un fallo de correo no detiene el sync. */
+try {
+    $alertas = $PDO->query(
+        "SELECT a.id, a.email, p.name, p.id AS pid, p.stock
+           FROM stock_alerts a JOIN products p ON p.id = a.product_id
+          WHERE a.notified_at IS NULL AND p.is_active = 1 AND p.stock > 0
+          LIMIT 500"
+    )->fetchAll();
+    if ($alertas) {
+        require_once __DIR__ . '/../api/lib/Mail.php';
+        $marca = $PDO->prepare('UPDATE stock_alerts SET notified_at = NOW() WHERE id = ?');
+        $avisados = 0;
+        foreach ($alertas as $al) {
+            $nombre = (string) $al['name'];
+            $url = 'https://okstation.mx/producto/' . (int) $al['pid'];
+            $html = '<p>¡Buenas noticias! 🎉</p>'
+                  . '<p><b>' . htmlspecialchars($nombre, ENT_QUOTES, 'UTF-8') . '</b> ya está disponible otra vez en la tienda de Ok.station'
+                  . ' (' . (int) $al['stock'] . ' en existencia).</p>'
+                  . '<p><a href="' . $url . '">Ver el producto y comprarlo →</a></p>'
+                  . '<p style="color:#667085;font-size:13px">Te llegó este aviso porque lo pediste en la página del producto. Es un aviso único.</p>';
+            try {
+                if (Mail::sendHtml((string) $al['email'], 'Ya llegó: ' . $nombre . ' · Ok.station', $html,
+                                   $nombre . ' ya está disponible: ' . $url)) {
+                    $marca->execute([(int) $al['id']]);
+                    $avisados++;
+                }
+            } catch (Throwable $e) { /* siguiente; se reintenta en la próxima corrida */ }
+        }
+        echo "  Avisos 'ya llegó' enviados: {$avisados} de " . count($alertas) . "\n";
+    }
+} catch (Throwable $e) {
+    /* La tabla puede no existir aún (migración 0035 sin correr): no es fatal. */
+}
+
 /* ── 4b. IMÁGENES de Exel ──
    Exel las expone en /imagenes (ojo: responde HTTP 201 y la clave es `DATA` en
    MAYÚSCULAS, distinto de /productos que usa `datos`). Se guardan con source='exel'.

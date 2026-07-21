@@ -102,7 +102,24 @@
 #tdWishDrawer.open,#tdLocDrawer.open,#tdPrevDrawer.open{transform:translate(-50%,-50%) scale(1);opacity:1;visibility:visible}
 /* ── Vista previa de producto (misma info que la de la tienda) ── */
 #tdPrevDrawer{width:min(520px,94vw)}
-.tdpv-body{overflow:auto;padding:0 18px 18px}
+/* Con un panel lateral abierto (descripción/ficha) el modal crece a 3 columnas,
+   igual que la vista previa de la tienda (pv-3col). */
+#tdPrevDrawer.pv3{width:min(1080px,96vw)}
+.tdpv-grid{display:flex;align-items:stretch;max-height:calc(88vh - 62px)}
+.tdpv-side{flex:0 0 270px;display:flex;flex-direction:column;border-right:1px solid var(--line,#e3e6ee);min-width:0}
+.tdpv-side:last-child{border-right:0;border-left:1px solid var(--line,#e3e6ee)}
+.tdpv-sideh{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-bottom:1px solid var(--line,#e3e6ee);font-size:.95rem}
+.tdpv-sideb{overflow:auto;padding:12px 14px;font-size:.84rem;color:#3d4a5c}
+.tdpv-sideb .mfaq{margin-top:10px;padding-top:10px;border-top:1px solid var(--line,#e3e6ee)}
+.tdpv-sideb .mfaq b{display:block;font-size:.8rem}
+.tdpv-sideb .mfaq span{font-size:.8rem;color:var(--muted,#667085)}
+@media(max-width:900px){
+  #tdPrevDrawer.pv3{width:min(520px,94vw)}
+  .tdpv-grid{flex-direction:column}
+  .tdpv-side{flex:none;max-height:220px;border:0;border-top:1px solid var(--line,#e3e6ee)}
+  .tdpv-side:last-child{border-left:0}
+}
+.tdpv-body{flex:1 1 auto;min-width:0;overflow:auto;padding:0 18px 18px}
 .tdpv-img{height:210px;background:#f4f6fa;border-radius:14px;margin:14px 0 4px;background-size:contain;background-position:center;background-repeat:no-repeat}
 .tdpv-thumbs{display:flex;gap:8px;margin:8px 0 2px}
 .tdpv-thumbs button{width:52px;height:52px;border:1.5px solid var(--line,#e3e6ee);border-radius:10px;background:#fff center/cover no-repeat;cursor:pointer;padding:0}
@@ -473,7 +490,17 @@ body.td-predrag .td-trash{display:flex}
      cualquier renglón de la tabla. -->
 <aside class="td-drawer" id="tdPrevDrawer" aria-label="Vista previa del producto" aria-hidden="true">
   <div class="td-dh"><b>Vista previa</b><button type="button" class="td-dx" data-dclose aria-label="Cerrar">×</button></div>
-  <div class="tdpv-body" id="tdPrevBody"></div>
+  <div class="tdpv-grid">
+    <div class="tdpv-side" id="tdpvDescP" hidden>
+      <div class="tdpv-sideh"><b>Descripción</b><button type="button" class="td-dx" data-pvside="tdpvDescP" aria-label="Cerrar descripción">×</button></div>
+      <div class="tdpv-sideb" id="tdpvDescB"></div>
+    </div>
+    <div class="tdpv-body" id="tdPrevBody"></div>
+    <div class="tdpv-side" id="tdpvSpecsP" hidden>
+      <div class="tdpv-sideh"><b>Ficha técnica</b><button type="button" class="td-dx" data-pvside="tdpvSpecsP" aria-label="Cerrar ficha">×</button></div>
+      <div class="tdpv-sideb" id="tdpvSpecsB"></div>
+    </div>
+  </div>
 </aside>
 
 <script>
@@ -1098,6 +1125,15 @@ body.td-predrag .td-trash{display:flex}
     return '<div class="tdpv-stock" style="color:'+(stock<=0?"#c2410c":(low?"#c2410c":"#0E9F6E"))+'">'+
       (stock<=0?"Agotado por ahora":(low?"🔥 ¡Últimas "+stock+"!":stock+" disponibles")+" · Recoge en Otay o a domicilio")+'</div>';
   }
+  /* El modal crece a 3 columnas cuando hay un panel lateral abierto (como la tienda). */
+  function pv3Sync(){ $("tdPrevDrawer").classList.toggle("pv3", !$("tdpvDescP").hidden || !$("tdpvSpecsP").hidden); }
+  $("tdPrevDrawer").addEventListener("click", function(e){
+    var t=e.target.closest("[data-tdpv]");
+    if(t){ $(t.dataset.tdpv==="specs"?"tdpvSpecsP":"tdpvDescP").hidden=false; pv3Sync(); return; }
+    var c=e.target.closest("[data-pvside]");
+    if(c){ $(c.dataset.pvside).hidden=true; pv3Sync(); }
+  });
+
   var pvSeq=0;   // token anti-carrera: si abren A y luego B rápido, la respuesta tardía de A se descarta
   function openPreview(p){
     var myPv=++pvSeq;
@@ -1110,10 +1146,13 @@ body.td-predrag .td-trash{display:flex}
       '<div class="tdpv-price" id="tdpvPrice">'+mxn(p.price)+(p.old?' <s>'+mxn(p.old)+'</s><span class="tdpv-save">Ahorras '+mxn(p.old-p.price)+'</span>':'')+'</div>'+
       '<div id="tdpvStock">'+pvStock(p.stock)+'</div>'+
       '<p class="tdpv-desc" id="tdpvDesc" hidden></p>'+
+      '<button type="button" class="tdpv-full" id="tdpvDescBtn" data-tdpv="desc" hidden>Ver descripción completa →</button>'+
       '<ul class="tdpv-specs" id="tdpvSpecs"></ul>'+
-      '<a class="tdpv-full" href="/producto/'+p.id+'-'+slugify(p.name)+'">Ver ficha técnica completa →</a>'+
+      '<button type="button" class="tdpv-full" id="tdpvSpecsBtn" data-tdpv="specs" hidden>Ver ficha técnica completa →</button>'+
       '<button class="tdpv-add" id="tdpvAdd"'+(p.stock<=0?' disabled':'')+'>'+(p.stock<=0?'Agotado':'Agregar al carrito · '+mxn(p.price))+'</button>';
     $("tdpvAdd").addEventListener("click",function(){ if(p.stock>0){ addToPre(p); closeDrawers(); } });
+    /* Paneles laterales (descripción/ficha) cerrados en cada apertura, como en la tienda. */
+    $("tdpvDescP").hidden=true; $("tdpvSpecsP").hidden=true; pv3Sync();
     openDrawer($("tdPrevDrawer"));
 
     fetch("/backend/api/shop/product.php?id="+encodeURIComponent(p.id))
@@ -1135,10 +1174,24 @@ body.td-predrag .td-trash{display:flex}
               [].forEach.call(th.querySelectorAll("button"),function(x){x.classList.toggle("on",x===b);}); }); }
           }
         }
-        if(d.description){ var de=$("tdpvDesc"); if(de){ de.textContent=String(d.description).replace(/<[^>]*>/g," ").replace(/\s+/g," ").trim(); de.hidden=false; } }
-        if(d.specs&&d.specs.length){ var ul=$("tdpvSpecs"); if(ul) ul.innerHTML=d.specs.slice(0,8).map(function(s){
-          var n=(s&&s.name)||"", v=(s&&s.value)||"";
-          return (n||v)?'<li><span class="sk">'+esc(n)+'</span><span class="sv">'+esc(v)+'</span></li>':""; }).join(""); }
+        if(d.description){
+          var full=String(d.description).replace(/<[^>]*>/g," ").replace(/\s+/g," ").trim();
+          var de=$("tdpvDesc"); if(de){ de.textContent=full; de.hidden=false; }
+          /* Panel IZQUIERDO: descripción completa + preguntas frecuentes (como la tienda). */
+          var db2=$("tdpvDescB"); if(db2) db2.innerHTML='<p style="margin:0">'+esc(full)+'</p>'+
+            '<div class="mfaq"><b>¿Incluye factura?</b><span>Sí, solicítala al pagar y te llega a tu correo.</span></div>'+
+            '<div class="mfaq"><b>¿Cómo lo recibo?</b><span>Recógelo gratis en OK.station (Otay) o recíbelo a domicilio en todo México.</span></div>';
+          var dbt=$("tdpvDescBtn"); if(dbt) dbt.hidden=false;
+        }
+        if(d.specs&&d.specs.length){
+          var rows=d.specs.map(function(s){
+            var n=(s&&s.name)||"", v=(s&&s.value)||"";
+            return (n||v)?'<li><span class="sk">'+esc(n)+'</span><span class="sv">'+esc(v)+'</span></li>':""; });
+          var ul=$("tdpvSpecs"); if(ul) ul.innerHTML=rows.slice(0,5).join("");
+          /* Panel DERECHO: la ficha completa. El botón muestra cuántas specs hay. */
+          var sb=$("tdpvSpecsB"); if(sb) sb.innerHTML='<ul class="tdpv-specs" style="margin:0">'+rows.join("")+'</ul>';
+          var sbt=$("tdpvSpecsBtn"); if(sbt){ sbt.hidden=false; sbt.textContent="Ver ficha técnica completa ("+d.specs.length+") →"; }
+        }
         /* Precio/stock/descuento frescos (la fila pudo envejecer). También se corrige
            la fila en memoria para que "+ Agregar" respete el stock real. */
         if(typeof d.price==="number"){
