@@ -217,6 +217,10 @@
     },
     setShopStatus: function (id, status) { return apiPost("/admin/shop-order-status.php", { id: id, status: status }); },
     setShopPaid: function (id, status) { return apiPost("/admin/shop-order-payment.php", { id: id, status: status || "pagado" }); },
+    /* Detalle de una compra CON sus productos. Reusa /shop/get.php, que ya resuelve
+       permisos (staff con shop.view ve cualquiera) y le oculta los importes al
+       empleado — no hay que repetir esas reglas aquí. */
+    shopOrderDetail: function (id) { return apiGet("/shop/get.php?id=" + encodeURIComponent(id)); },
     orderDetail: function (id) {
       if (DEMO) { var o = (MOCK.orders || []).find(function (x) { return String(x.id || x.code) === String(id); }); return Promise.resolve(o ? { ok: true, order: o } : { ok: false }); }
       return apiGet("/orders/get.php?id=" + encodeURIComponent(id));
@@ -1030,6 +1034,102 @@
   /* ── Pedidos de la TIENDA (e-commerce) ── */
   var SHOP_STATUS = { recibido: "Recibido", en_preparacion: "En preparación", listo: "Listo", entregado: "Entregado", cancelado: "Cancelado" };
   var shopCanSeeMoney = true, shopStatus = "", shopPayment = "", shopSearch = "";
+
+  /* ── Detalle de una compra: QUÉ pidió el cliente ──
+     La tabla solo mostraba CUÁNTOS productos ("1"), no cuáles: para surtir un pedido
+     había que ir a la base. Aquí se listan con su cantidad e importe.
+     Los renglones son el SNAPSHOT guardado al comprar (shop_order_items), no el
+     catálogo de hoy: si mañana cambia el precio o el nombre, este pedido sigue
+     mostrando lo que el cliente realmente compró.
+     Reusa el overlay y closeOrderModal() del modal de pedidos de impresión. */
+  function openShopModal(o) {
+    closeOrderModal();
+    var items = o.items || [];
+    var money = shopCanSeeMoney;
+    var c = o.client || {};
+    var envio = (o.ship_mode === "envio");
+
+    var filas = items.map(function (it) {
+      var qty = +it.qty || 1;
+      return '<tr>' +
+          '<td style="padding:9px 10px;border-bottom:1px solid #eef0f4">' +
+            '<b style="font-size:.9rem">' + esc(it.product_name || "Producto") + '</b>' +
+            (it.product_sku ? '<div style="color:var(--text-muted,#6b7280);font-size:.78rem;margin-top:2px">' + esc(it.product_sku) + '</div>' : '') +
+          '</td>' +
+          '<td style="padding:9px 10px;border-bottom:1px solid #eef0f4;text-align:center;white-space:nowrap"><b>' + qty + '</b></td>' +
+          (money ? '<td class="mono" style="padding:9px 10px;border-bottom:1px solid #eef0f4;text-align:right;white-space:nowrap">' + mxn(+it.unit_price || 0) + '</td>' +
+                   '<td class="mono" style="padding:9px 10px;border-bottom:1px solid #eef0f4;text-align:right;white-space:nowrap"><b>' + mxn(+it.line_total || 0) + '</b></td>' : '') +
+        '</tr>';
+    }).join("") || '<tr><td colspan="' + (money ? 4 : 2) + '" style="padding:18px;text-align:center;color:var(--text-muted,#6b7280)">Este pedido no tiene renglones.</td></tr>';
+
+    /* El IVA se guarda por pedido (8% frontera / 16% nacional según destino), así que
+       la etiqueta se arma con la tasa real de ESTE pedido, no con una fija. */
+    var ivaPct = o.iva_rate ? Math.round(+o.iva_rate * 100) : null;
+
+    var ov = document.createElement("div");
+    ov.id = "order-modal";
+    ov.setAttribute("role", "dialog");
+    ov.setAttribute("aria-modal", "true");
+    ov.style.cssText = "position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;padding:18px;background:rgba(15,23,42,.5);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px)";
+    ov.innerHTML =
+      '<div style="background:#fff;border-radius:16px;max-width:720px;width:100%;max-height:92vh;overflow:auto;box-shadow:0 20px 60px rgba(0,0,0,.3)">' +
+        '<div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:18px 20px;border-bottom:1px solid #eef0f4">' +
+          '<div><div style="font-weight:700;font-size:1.05rem">' + esc(o.code || "") + '</div>' +
+          '<div style="font-size:.8rem;color:var(--text-muted,#6b7280)">' + esc(String(o.created_at || o.date || "").slice(0, 10)) + '</div></div>' +
+          '<button type="button" class="btn btn--light btn--sm" data-shop-close>Cerrar</button>' +
+        '</div>' +
+        '<div style="padding:18px 20px">' +
+          '<h4 style="margin:0 0 6px;font-size:.95rem">Cliente</h4>' +
+          '<p style="margin:0 0 16px;font-size:.9rem;line-height:1.5">' + esc(c.name || o.client_name || "—") +
+            (c.email ? '<br><a href="mailto:' + esc(c.email) + '">' + esc(c.email) + '</a>' : '') +
+            (o.contact_phone ? '<br><a href="tel:' + esc(o.contact_phone) + '">' + esc(o.contact_phone) + '</a>' : '') +
+          '</p>' +
+
+          '<h4 style="margin:0 0 6px;font-size:.95rem">Productos</h4>' +
+          '<div style="border:1px solid #eef0f4;border-radius:12px;overflow:hidden;margin:0 0 16px">' +
+            '<table style="width:100%;border-collapse:collapse;font-size:.9rem">' +
+              '<thead><tr style="background:#f8fafc">' +
+                '<th style="padding:9px 10px;text-align:left;font-size:.76rem;color:var(--text-muted,#6b7280);text-transform:uppercase;letter-spacing:.04em">Producto</th>' +
+                '<th style="padding:9px 10px;text-align:center;font-size:.76rem;color:var(--text-muted,#6b7280);text-transform:uppercase;letter-spacing:.04em">Cant.</th>' +
+                (money ? '<th style="padding:9px 10px;text-align:right;font-size:.76rem;color:var(--text-muted,#6b7280);text-transform:uppercase;letter-spacing:.04em">P. unit.</th>' +
+                         '<th style="padding:9px 10px;text-align:right;font-size:.76rem;color:var(--text-muted,#6b7280);text-transform:uppercase;letter-spacing:.04em">Importe</th>' : '') +
+              '</tr></thead><tbody>' + filas + '</tbody>' +
+            '</table>' +
+          '</div>' +
+
+          '<h4 style="margin:0 0 6px;font-size:.95rem">Entrega</h4>' +
+          '<p style="margin:0 0 16px;font-size:.9rem;line-height:1.5">' +
+            (envio ? 'Envío a domicilio' : 'Recoge en tienda (OK.station, Otay)') +
+            (envio && o.ship_address ? '<br><span style="color:var(--text-muted,#6b7280)">' + esc(o.ship_address) + '</span>' : '') +
+          '</p>' +
+
+          (o.comments ? '<h4 style="margin:0 0 6px;font-size:.95rem">Comentarios del cliente</h4><p style="margin:0 0 16px;font-size:.9rem;white-space:pre-wrap;background:#f8fafc;border-radius:8px;padding:10px 12px">' + esc(o.comments) + '</p>' : '') +
+
+          (money ?
+          '<h4 style="margin:0 0 6px;font-size:.95rem">Importe</h4>' +
+          '<div style="display:flex;flex-direction:column;gap:6px;font-size:.9rem;background:#f8fafc;border-radius:8px;padding:12px 14px">' +
+            '<div style="display:flex;justify-content:space-between"><span style="color:var(--text-muted,#6b7280)">Subtotal</span><b class="mono">' + mxn(+o.subtotal || 0) + '</b></div>' +
+            '<div style="display:flex;justify-content:space-between"><span style="color:var(--text-muted,#6b7280)">IVA' + (ivaPct !== null ? ' (' + ivaPct + '%)' : '') + '</span><b class="mono">' + mxn(+o.tax || 0) + '</b></div>' +
+            (envio ? '<div style="display:flex;justify-content:space-between"><span style="color:var(--text-muted,#6b7280)">Envío</span><b class="mono">' + mxn(+o.ship_cost || 0) + '</b></div>' : '') +
+            '<div style="display:flex;justify-content:space-between;border-top:1px solid #e5e7eb;padding-top:6px"><span>Total</span><b class="mono">' + mxn(+o.total || 0) + '</b></div>' +
+          '</div>' : '') +
+        '</div>' +
+      '</div>';
+
+    ov.addEventListener("click", function (e) {
+      if (e.target === ov || e.target.closest("[data-shop-close]")) closeOrderModal();
+    });
+    document.body.appendChild(ov);
+    document.body.style.overflow = "hidden";
+    document.addEventListener("keydown", escClose);
+  }
+
+  function viewShopOrder(id) {
+    DataSource.shopOrderDetail(id).then(function (res) {
+      if (!res || !res.ok || !res.order) { window.alert((res && res.error) || "No se pudo cargar el detalle de la compra."); return; }
+      openShopModal(res.order);
+    }).catch(function () { window.alert("Sin conexión al cargar la compra."); });
+  }
   function renderShopTable() {
     var q = (shopSearch || "").trim();
     DataSource.shopOrders(shopStatus || "", shopPayment || "", q).then(function (list) {
@@ -1052,12 +1152,21 @@
           ((o.payment_status !== "pagado")
             ? ' <button class="admin-btn-sm shop-paid" data-id="' + (o.id || o.code) + '">Marcar pagado</button>' : '');
         var entrega = (o.ship_mode === "envio") ? "Envío a domicilio" : "Recoge en tienda";
-        return '<tr><td class="mono">' + esc(o.code) + '</td><td>' + clientCell(o.user_id, o.client) + '</td>' +
-          '<td>' + esc(o.items) + '</td>' + (money ? '<td class="mono">' + mxn(o.total) + '</td>' : '') +
+        /* Folio y nº de productos abren el detalle (QUÉ pidió). Es un <button> y no un
+           <a href>: no navega a ningún lado, abre un modal — y así se enfoca con Tab
+           y responde a Enter sin trabajo extra. */
+        var verId = (o.id || o.code);
+        var folioCell = '<button type="button" class="folio-link mono" data-shop-view="' + esc(String(verId)) + '" title="Ver qué pidió">' + esc(o.code) + '</button>';
+        var itemsCell = '<button type="button" class="folio-link" data-shop-view="' + esc(String(verId)) + '" title="Ver qué pidió">' + esc(o.items) + '</button>';
+        return '<tr><td>' + folioCell + '</td><td>' + clientCell(o.user_id, o.client) + '</td>' +
+          '<td>' + itemsCell + '</td>' + (money ? '<td class="mono">' + mxn(o.total) + '</td>' : '') +
           '<td>' + statusSel + '</td><td>' + payCell + '</td><td>' + esc(entrega) + '</td><td>' + esc(o.date) + '</td></tr>';
       }).join("");
       t.innerHTML = head + '<tbody>' + body + '</tbody>';
       bindClientLinks(t);
+      $$("[data-shop-view]", t).forEach(function (b) {
+        b.addEventListener("click", function () { viewShopOrder(b.dataset.shopView); });
+      });
       $$(".shop-status-select", t).forEach(function (sel) {
         var prev = sel.value;
         sel.addEventListener("change", function () {
