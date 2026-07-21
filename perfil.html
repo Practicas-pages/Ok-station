@@ -17,7 +17,7 @@
   <!-- Mascota/chatbot OKi -->
   <link rel="stylesheet" href="assets/oki.css?v=20260714d">
   <link rel="stylesheet" href="assets/auth.css?v=20260707b">
-  <link rel="stylesheet" href="assets/order.css?v=20260626t">
+  <link rel="stylesheet" href="assets/order.css?v=20260721a">
 </head>
 <body class="auth-page" data-requires-auth>
 
@@ -50,6 +50,7 @@
           <p data-user-email>—</p>
           <nav class="profile-nav" aria-label="Navegación de la cuenta">
             <a href="#pedidos">Mis pedidos</a>
+            <a href="#tienda">Mis compras</a>
             <a href="#citas">Mis citas</a>
             <!-- Solo visible para empleado/administrador (lo activa auth.js según el rol) -->
             <a href="admin.html" id="profile-admin-link" hidden style="margin-top:8px;background:var(--brand-blue-light);color:var(--brand-blue);font-weight:600">
@@ -72,6 +73,16 @@
             <h3>Mis pedidos</h3>
             <a class="btn btn--primary btn--sm" href="pedido.html" style="margin-bottom:16px">+ Haz un pedido nuevo</a>
             <div class="orders-list" id="orders-history"></div>
+          </section>
+
+          <!-- Compras de la TIENDA en línea (historial + recibo PDF descargable).
+               Oculto por defecto: se muestra al tocar "Mis compras" en la barra.
+               pago.html regresa aquí (#tienda) tras un pago exitoso y shop-history.js
+               genera el recibo, lo deja descargable y el servidor lo manda por correo. -->
+          <section class="profile-panel" id="tienda" hidden>
+            <h3>Mis compras de la tienda</h3>
+            <a class="btn btn--primary btn--sm" href="tienda.html#store" style="margin-bottom:16px">+ Ir a la tienda</a>
+            <div class="orders-list" id="shop-history"></div>
           </section>
 
           <!-- Citas registradas (historial). Oculto por defecto: se muestra al
@@ -145,16 +156,18 @@
   </main>
 
   <script src="assets/phone-cc.js?v=20260702a" defer></script>
-  <script src="assets/auth.js?v=20260715a" defer></script>
+  <script src="assets/auth.js?v=20260721a" defer></script>
   <script src="assets/address-book.js?v=20260717a" defer></script>
   <!-- Librerías para regenerar el comprobante PDF de cita -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" defer></script>
   <script src="assets/cita-ticket.js?v=20260707d" defer></script>
+  <script src="assets/shop-ticket.js?v=20260721a" defer></script>
   <script src="assets/orders-history.js?v=20260630" defer></script>
+  <script src="assets/shop-history.js?v=20260721a" defer></script>
   <script src="assets/appointments-history.js?v=20260707c" defer></script>
   <!-- Aviso al volver del checkout de pago (Mercado Pago / pasarela) -->
-  <script src="assets/pago-return.js?v=20260630" defer></script>
+  <script src="assets/pago-return.js?v=20260721a" defer></script>
 <!-- Mascota/chatbot OKi (astronauta) -->
 <script src="assets/catalogo.js?v=20260714a" defer></script>
 <script src="assets/oki.js?v=20260714d" defer></script>

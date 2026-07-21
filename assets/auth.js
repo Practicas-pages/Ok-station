@@ -313,9 +313,10 @@
          Mis pedidos → #pedidos · Mis citas → #citas · Datos personales → #account-settings
        Al abrir el perfil, la vista por defecto es "Mis pedidos" (o la que pida el
        enlace directo #citas / #datos / #info / #password). */
-    var views = { pedidos: qs("#pedidos"), citas: qs("#citas"), datos: qs("#account-settings") };
+    var views = { pedidos: qs("#pedidos"), tienda: qs("#tienda"), citas: qs("#citas"), datos: qs("#account-settings") };
     var tabs  = {
       pedidos: qs('.profile-nav a[href="#pedidos"]'),
+      tienda:  qs('.profile-nav a[href="#tienda"]'),
       citas:   qs('.profile-nav a[href="#citas"]'),
       datos:   qs("#toggle-datos")
     };
@@ -333,6 +334,7 @@
     });
     var h = location.hash;
     showView(h === "#citas" ? "citas"
+      : h === "#tienda" ? "tienda"
       : (h === "#datos" || h === "#info" || h === "#password") ? "datos"
       : "pedidos");
   }

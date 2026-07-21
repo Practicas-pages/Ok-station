@@ -385,10 +385,10 @@ final class Emails
         return self::layout('Tu compra ' . (string) ($p['code'] ?? '') . ' — ' . $label, $inner);
     }
 
-    /** Correo con el COMPROBANTE PDF adjunto (pedido o cita). $kind = 'pedido'|'cita'. */
+    /** Correo con el COMPROBANTE PDF adjunto. $kind = 'pedido'|'cita'|'compra' (tienda). */
     public static function comprobanteHtml(string $kind, string $code, string $name): string
     {
-        $noun = ($kind === 'cita') ? 'tu cita' : 'tu pedido';
+        $noun = ($kind === 'cita') ? 'tu cita' : (($kind === 'compra') ? 'tu compra de la tienda' : 'tu pedido');
         $inner =
             '<h1 style="margin:0 0 6px;font-size:20px;color:#12141c">¡Gracias' . ($name !== '' ? ', ' . self::e($name) : '') . '!</h1>'
             . '<p style="margin:0 0 14px;font-size:15px;line-height:1.6;color:#4a5068">'

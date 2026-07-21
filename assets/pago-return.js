@@ -33,7 +33,7 @@
 
   function show() {
     var hash = (location.hash || "").replace("#", "");
-    var host = document.getElementById(hash === "citas" ? "citas" : "pedidos") ||
+    var host = document.getElementById(hash === "citas" ? "citas" : (hash === "tienda" ? "tienda" : "pedidos")) ||
                document.querySelector(".profile-panel") || document.body;
     var box = document.createElement("div");
     box.setAttribute("role", "status");

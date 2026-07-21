@@ -124,6 +124,7 @@
 .ostatus--recibido { background: #EEF2FF; color: #4338CA; }
 .ostatus--en_revision { background: #FEF3C7; color: #B45309; }
 .ostatus--en_produccion { background: #E0F2FE; color: #0369A1; }
+.ostatus--en_preparacion { background: #E0F2FE; color: #0369A1; } /* tienda */
 .ostatus--listo { background: #DCFCE7; color: #15803D; }
 .ostatus--entregado { background: #ECFDF5; color: #047857; }
 .ostatus--cancelado { background: #FEE2E2; color: #B91C1C; }
