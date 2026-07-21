@@ -1051,10 +1051,17 @@
 
     var filas = items.map(function (it) {
       var qty = +it.qty || 1;
+      /* Miniatura: la foto principal del catálogo (get.php la anexa por renglón).
+         Si el producto ya no tiene foto, cajita gris — el modal nunca se rompe. */
+      var thumb = it.image
+        ? '<img src="' + esc(it.image) + '" alt="" loading="lazy" style="width:44px;height:44px;object-fit:contain;border-radius:8px;background:#f8fafc;border:1px solid #eef0f4;flex:none">'
+        : '<span style="width:44px;height:44px;border-radius:8px;background:#f8fafc;border:1px solid #eef0f4;flex:none"></span>';
       return '<tr>' +
           '<td style="padding:9px 10px;border-bottom:1px solid #eef0f4">' +
-            '<b style="font-size:.9rem">' + esc(it.product_name || "Producto") + '</b>' +
+            '<div style="display:flex;align-items:center;gap:10px">' + thumb +
+            '<div style="min-width:0"><b style="font-size:.9rem">' + esc(it.product_name || "Producto") + '</b>' +
             (it.product_sku ? '<div style="color:var(--text-muted,#6b7280);font-size:.78rem;margin-top:2px">' + esc(it.product_sku) + '</div>' : '') +
+            '</div></div>' +
           '</td>' +
           '<td style="padding:9px 10px;border-bottom:1px solid #eef0f4;text-align:center;white-space:nowrap"><b>' + qty + '</b></td>' +
           (money ? '<td class="mono" style="padding:9px 10px;border-bottom:1px solid #eef0f4;text-align:right;white-space:nowrap">' + mxn(+it.unit_price || 0) + '</td>' +
