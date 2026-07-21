@@ -1771,7 +1771,7 @@ html.q-lock, html.q-lock body{overflow:hidden}
       ? '<div class="field"><label>Estado de entrega</label><select id="coState">'+MX_ESTADOS.map(function(s){return '<option'+(s.toLowerCase()===estadoDef.toLowerCase()?' selected':'')+'>'+esc(s)+'</option>';}).join("")+'</select></div>'
       : '<p class="desc" style="font-size:.82rem;margin:2px 0 8px">Recoges en OK.station (Tijuana, Baja California) · IVA 8%.</p>';
     var body='<h3 style="margin:0 0 12px;font-size:1.2rem">Finaliza tu compra</h3>'+
-      '<div class="field"><label>WhatsApp para avisarte</label><input id="coPhone" inputmode="numeric" autocomplete="tel-national" maxlength="10" placeholder="6640000000"></div>'+
+      '<div class="field"><label>WhatsApp para avisarte</label><input id="coPhone" inputmode="numeric" autocomplete="tel-national" maxlength="10" placeholder="6640000000" value="'+esc(soloTel((shopUser()&&shopUser().phone)||""))+'"></div>'+
       (envio?'<div class="field"><label>Dirección de envío</label><input id="coAddr" placeholder="Calle y número, colonia, C.P., ciudad"></div>':'')+
       stateSel+
       '<div id="coSummary"></div>'+

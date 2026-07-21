@@ -113,7 +113,9 @@
                   </div>
                   <div class="auth-field">
                     <label for="pf-phone">Teléfono / WhatsApp</label>
-                    <input type="tel" id="pf-phone" name="phone" autocomplete="tel" inputmode="tel" required>
+                    <!-- data-prefill-phone: el formulario cargaba VACÍO aunque el teléfono ya
+                         está registrado; phone-cc.js lo llena desde la sesión (editable). -->
+                    <input type="tel" id="pf-phone" name="phone" autocomplete="tel" inputmode="tel" required data-prefill-phone>
                   </div>
                 </div>
                 <button type="submit" class="btn btn--primary">Guardar cambios</button>

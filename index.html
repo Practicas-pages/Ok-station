@@ -830,7 +830,9 @@
               <label for="cita-tel">Teléfono / WhatsApp <span aria-hidden="true" style="color:#ff7c8a">*</span></label>
               <div class="input-prefix">
                 <span class="input-prefix__tag"><svg class="input-prefix__wa" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M.057 24l1.687-6.163a11.867 11.867 0 01-1.587-5.945C.16 5.335 5.495 0 12.05 0a11.82 11.82 0 018.413 3.488 11.82 11.82 0 013.48 8.414c-.003 6.557-5.338 11.892-11.893 11.892a11.9 11.9 0 01-5.688-1.448L.057 24z"/></svg> +52</span>
-                <input type="tel" id="cita-tel" name="cita-tel" autocomplete="tel" inputmode="tel" placeholder="664 000 0000" required aria-required="true">
+                <!-- data-prefill-phone: si hay sesión, phone-cc.js lo llena con el teléfono
+                     registrado (editable; solo si está vacío) para no pedirlo otra vez. -->
+                <input type="tel" id="cita-tel" name="cita-tel" autocomplete="tel" inputmode="tel" placeholder="664 000 0000" required aria-required="true" data-prefill-phone>
               </div>
               <span class="field-error" id="cita-tel-error" role="alert" hidden></span>
             </div>
@@ -985,7 +987,8 @@
               <label for="order-phone" class="order-note">Tu teléfono / WhatsApp <span aria-hidden="true" style="color:#ff7c8a">*</span></label>
               <div class="input-prefix">
                 <span class="input-prefix__tag"><svg class="input-prefix__wa" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M.057 24l1.687-6.163a11.867 11.867 0 01-1.587-5.945C.16 5.335 5.495 0 12.05 0a11.82 11.82 0 018.413 3.488 11.82 11.82 0 013.48 8.414c-.003 6.557-5.338 11.892-11.893 11.892a11.9 11.9 0 01-5.688-1.448L.057 24z"/></svg> +52</span>
-                <input type="tel" id="order-phone" inputmode="tel" autocomplete="tel" placeholder="664 000 0000" required>
+                <!-- data-prefill-phone: mismo prellenado del teléfono registrado (phone-cc.js). -->
+                <input type="tel" id="order-phone" inputmode="tel" autocomplete="tel" placeholder="664 000 0000" required data-prefill-phone>
               </div>
               <span class="field-error" id="order-phone-error" role="alert" hidden></span>
               <label for="order-comments" class="order-note">Indicaciones especiales (opcional)</label>

@@ -101,14 +101,43 @@
     }
     bindDigitFilter(input);
   }
+  /* ── Prellenado con el teléfono REGISTRADO (opt-in) ──
+     El sitio pedía el mismo número una y otra vez (citas, fotos, perfil…) aunque
+     el usuario ya lo dio al registrarse y el login lo deja en localStorage
+     ("okstation.user", lo guarda auth.js con lo que devuelve user_public, que
+     incluye phone). Los campos que quieran ese valor por defecto se marcan con
+     data-prefill-phone. Reglas:
+       · solo si el campo está VACÍO (jamás pisa lo que el usuario tecleó),
+       · sigue siendo 100% editable,
+       · sin sesión (o sin teléfono guardado) no hace nada.
+     Es el mismo patrón que YA usan la libreta de direcciones (address-book.js)
+     y el checkout de la compra rápida (me.phone): aquí solo se centraliza. */
+  function userPhone() {
+    try {
+      var u = JSON.parse(localStorage.getItem("okstation.user") || "null");
+      return (u && u.phone) ? String(u.phone) : "";
+    } catch (e) { return ""; }
+  }
+  function prefill(root) {
+    var tel = userPhone();
+    if (!tel) return;
+    var r = root || document;
+    if (!r.querySelectorAll) return;
+    var list = r.querySelectorAll('input[type="tel"][data-prefill-phone]');
+    for (var i = 0; i < list.length; i++) {
+      if (!onlyDigits(list[i].value)) set(list[i], tel);   // set() reparte lada + 10 dígitos
+    }
+  }
+
   function init(root) {
     var r = root || document;
     if (!r.querySelectorAll) return;
     var list = r.querySelectorAll('input[type="tel"]');
     for (var i = 0; i < list.length; i++) enhance(list[i]);
+    prefill(r);
   }
 
-  window.OKPhone = { full: full, cc: cc, set: set, digits: onlyDigits, enhance: enhance, init: init };
+  window.OKPhone = { full: full, cc: cc, set: set, digits: onlyDigits, enhance: enhance, init: init, prefill: prefill };
 
   if (document.readyState !== "loading") init();
   else document.addEventListener("DOMContentLoaded", function () { init(); });
