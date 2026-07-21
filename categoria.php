@@ -215,7 +215,8 @@ function mxn($n): string { return '$' . number_format((float) $n, 2); }
           $hay = ((int) $p['stock']) > 0; ?>
           <a class="card" href="<?= e($url) ?>">
             <span class="thumb">
-              <?php if ($img): ?><img src="<?= e($img) ?>" alt="<?= e($p['name']) ?>" loading="lazy" width="180" height="140"><?php endif; ?>
+              <?php if ($img): ?><img src="<?= e($img) ?>" alt="<?= e($p['name']) ?>" loading="lazy" width="180" height="140">
+              <?php else: /* sin foto → wordmark Ok.station (fondo transparente) */ ?><img src="/assets/img/placeholder-producto.svg" alt="" loading="lazy" width="180" height="140" style="object-fit:contain;padding:14px;box-sizing:border-box"><?php endif; ?>
             </span>
             <?php if ($p['brand']): ?><span class="brand"><?= e($p['brand']) ?></span><?php endif; ?>
             <span class="name"><?= e($p['name']) ?></span>

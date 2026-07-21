@@ -214,6 +214,8 @@ body.td-predrag .td-trash{display:flex}
 .td-ci.dragging{opacity:.5;cursor:grabbing}
 .td-img{width:64px;height:64px;border-radius:10px;background:#f4f6fa center/contain no-repeat;
   border:1px solid var(--line,#e3e6ee);flex:none}
+/* Producto SIN foto: wordmark Ok.station (fondo transparente) en lugar de la caja vacía. */
+.td-noimg{background-image:url('assets/img/placeholder-producto.svg');background-size:82% auto}
 .td-name{font-weight:600;font-size:.9rem;color:var(--ink,#111);line-height:1.35;
   display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
   overflow-wrap:anywhere}   /* nombres largos sin espacios no ensanchan la fila */
@@ -552,7 +554,7 @@ body.td-predrag .td-trash{display:flex}
     row.className = "td-row";
     row.draggable = true;                       // arrastrable al pre-carrito
     row.dataset.pid = p.id;
-    var img = p.image ? '<div class="td-img" style="background-image:url('+encodeURI(p.image)+')"></div>' : '<div class="td-img"></div>';
+    var img = p.image ? '<div class="td-img" style="background-image:url('+encodeURI(p.image)+')"></div>' : '<div class="td-img td-noimg"></div>';
     var old = p.old ? '<span class="old">'+mxn(p.old)+'</span>' : '';
     row.innerHTML =
       img +
@@ -638,7 +640,7 @@ body.td-predrag .td-trash{display:flex}
     } else {
       box.innerHTML = keys.map(function(id){
         var it = pre[id];
-        var th = it.p.image ? '<div class="th" style="background-image:url('+encodeURI(it.p.image)+')"></div>' : '<div class="th"></div>';
+        var th = it.p.image ? '<div class="th" style="background-image:url('+encodeURI(it.p.image)+')"></div>' : '<div class="th td-noimg"></div>';
         return '<div class="td-ci" draggable="true" data-id="'+id+'">'+th+'<div><div class="nm">'+esc(it.p.name)+'</div>'+
                '<div class="pu">'+mxn(it.p.price)+' c/u</div></div>'+
                '<div class="td-qty"><button data-d="'+id+'" aria-label="Quitar uno">−</button>'+
@@ -826,7 +828,7 @@ body.td-predrag .td-trash{display:flex}
           acItems = []; acSel = -1; box.classList.add("show"); return;
         }
         box.innerHTML = '<div class="td-ac__h">Sugerencias</div>' + items.map(function(p){
-          var im = p.image ? '<span class="td-ac__im" style="background-image:url('+encodeURI(p.image)+')"></span>' : '<span class="td-ac__im"></span>';
+          var im = p.image ? '<span class="td-ac__im" style="background-image:url('+encodeURI(p.image)+')"></span>' : '<span class="td-ac__im td-noimg"></span>';
           return '<button type="button" class="td-ac__i" role="option" data-ac="'+esc(p.name)+'">'+im+
             '<span><span class="td-ac__nm">'+acHi(p.name,t)+'</span><br><span class="td-ac__mt">'+esc((p.brand?p.brand+" · ":"")+(p.category||""))+'</span></span>'+
             '<span class="td-ac__pr">'+mxn(p.price)+'</span></button>';
@@ -982,7 +984,7 @@ body.td-predrag .td-trash{display:flex}
   }
 
   function cartRow(it){
-    var img = it.image ? '<span class="im" style="background-image:url('+encodeURI(it.image)+')"></span>' : '<span class="im"></span>';
+    var img = it.image ? '<span class="im" style="background-image:url('+encodeURI(it.image)+')"></span>' : '<span class="im td-noimg"></span>';
     return '<div class="td-di" data-id="'+it.id+'">'+img+
       '<div><div class="nm">'+esc(it.name)+'</div><div class="pu">'+mxn(it.price)+' c/u</div>'+
         '<div class="qty"><button data-cd="'+it.id+'" aria-label="Quitar uno">−</button><span>'+it.qty+'</span><button data-ci="'+it.id+'" aria-label="Agregar uno">+</button></div></div>'+
@@ -1067,7 +1069,7 @@ body.td-predrag .td-trash{display:flex}
       }).catch(function(){ if (btn){ btn.disabled = false; } bad("Error de conexión. Reintenta."); });
   }
   function wishRow(it){
-    var img = it.image ? '<span class="im" style="background-image:url('+encodeURI(it.image)+')"></span>' : '<span class="im"></span>';
+    var img = it.image ? '<span class="im" style="background-image:url('+encodeURI(it.image)+')"></span>' : '<span class="im td-noimg"></span>';
     return '<div class="td-di" data-id="'+it.id+'">'+img+
       '<div><div class="nm">'+esc(it.name)+'</div><div class="pu">'+mxn(it.price)+'</div></div>'+
       '<div class="rgt"><button class="lnk" data-wadd="'+it.id+'">Agregar</button><button class="lnk del" data-wrm="'+it.id+'">Quitar</button></div></div>';

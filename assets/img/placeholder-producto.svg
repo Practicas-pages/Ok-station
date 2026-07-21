@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" role="img" aria-label="Ok.station">
+  <!-- Placeholder de producto SIN imagen: wordmark Ok.station apilado, fondo
+       TRANSPARENTE (se ve bien sobre blanco o gris). Mismos colores de marca
+       que el sitio: azul #066CFF y punto morado #9C1DFF. -->
+  <g font-family="Poppins, 'Segoe UI', Arial, sans-serif" font-weight="800" text-anchor="middle" fill="#066CFF">
+    <text x="120" y="118" font-size="58" letter-spacing="1">OK<tspan fill="#9C1DFF">.</tspan></text>
+    <text x="120" y="156" font-size="33" letter-spacing="2">STATION</text>
+  </g>
+</svg>
