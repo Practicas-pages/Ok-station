@@ -1110,6 +1110,17 @@
             (envio && o.ship_address ? '<br><span style="color:var(--text-muted,#6b7280)">' + esc(o.ship_address) + '</span>' : '') +
           '</p>' +
 
+          /* Pago: se puede cobrar SIN cerrar el detalle. Misma acción y mismo
+             endpoint que el botón de la tabla (permiso shop.update_status), para
+             que no haya dos formas distintas de marcar pagado. */
+          '<h4 style="margin:0 0 6px;font-size:.95rem">Pago</h4>' +
+          '<div id="shop-pay-box" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:0 0 16px">' +
+            payBadge(o.payment_status) +
+            (o.payment_status !== "pagado"
+              ? '<button type="button" class="btn btn--primary btn--sm" data-shop-pay="' + esc(String(o.id || o.code)) + '">Marcar pagado</button>'
+              : (o.payment_date ? '<span style="color:var(--text-muted,#6b7280);font-size:.82rem">' + esc(String(o.payment_date).slice(0, 10)) + '</span>' : '')) +
+          '</div>' +
+
           (o.comments ? '<h4 style="margin:0 0 6px;font-size:.95rem">Comentarios del cliente</h4><p style="margin:0 0 16px;font-size:.9rem;white-space:pre-wrap;background:#f8fafc;border-radius:8px;padding:10px 12px">' + esc(o.comments) + '</p>' : '') +
 
           (money ?
@@ -1126,6 +1137,34 @@
     ov.addEventListener("click", function (e) {
       if (e.target === ov || e.target.closest("[data-shop-close]")) closeOrderModal();
     });
+
+    /* Marcar pagado desde el detalle. Mismo aviso y mismo DataSource que la tabla.
+       Al terminar NO se cierra el modal: se actualiza la insignia en su lugar (quien
+       cobra sigue viendo el pedido) y se repinta la tabla de atrás. */
+    var payBtn = ov.querySelector("[data-shop-pay]");
+    if (payBtn) {
+      payBtn.addEventListener("click", function () {
+        if (!window.confirm("¿Marcar esta compra como PAGADA? Se enviará el correo de confirmación al cliente.")) return;
+        payBtn.disabled = true;
+        payBtn.textContent = "Guardando…";
+        DataSource.setShopPaid(payBtn.dataset.shopPay, "pagado").then(function (res) {
+          if (res && res.payment_status === "pagado") {
+            var box = ov.querySelector("#shop-pay-box");
+            if (box) box.innerHTML = payBadge("pagado");
+            renderShopTable();
+          } else {
+            payBtn.disabled = false;
+            payBtn.textContent = "Marcar pagado";
+            window.alert((res && res.error) || "No se pudo marcar como pagado.");
+          }
+        }).catch(function () {
+          payBtn.disabled = false;
+          payBtn.textContent = "Marcar pagado";
+          window.alert("Sin conexión al marcar el pago.");
+        });
+      });
+    }
+
     document.body.appendChild(ov);
     document.body.style.overflow = "hidden";
     document.addEventListener("keydown", escClose);
