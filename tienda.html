@@ -453,6 +453,7 @@ html.store-view .header-bar, html.store-view .site-header{display:none}
 #site .fsubsearch,#site .fbrandsearch{width:100%; margin:0 0 8px; padding:9px 12px; border:1.5px solid var(--line); border-radius:10px; font:inherit; font-size:.88rem}
 #site .fsubsearch:focus,#site .fbrandsearch:focus{outline:none; border-color:var(--blue)}
 #site .fmore,#site .fbmore{display:block; width:100%; margin-top:6px; padding:8px; border:0; background:none; color:var(--blue); font:inherit; font-size:.85rem; font-weight:700; cursor:pointer; text-align:left}
+#site .fmore[hidden],#site .fbmore[hidden]{display:none}   /* el atributo hidden debe ganar al display de arriba */
 #site .fopt input{width:auto; margin:0; accent-color:var(--blue); flex:none}
 #site .fopt .fn{color:var(--muted); font-size:.78rem; margin-left:auto}
 #site .fdfoot{flex:none; display:flex; gap:9px; padding:14px 18px; border-top:1px solid var(--line)}
