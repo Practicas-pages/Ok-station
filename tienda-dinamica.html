@@ -782,7 +782,13 @@ body.td-predrag .td-trash{display:flex}
   /* ═══ Buscador + autocompletado ═══
      Al escribir: (a) se filtra la tabla y (b) salen sugerencias abajo. Ambas usan el
      mismo endpoint, así que heredan la búsqueda con SINÓNIMOS del servidor
-     (tinta↔cartucho, hojas↔papel…). Elegir una sugerencia filtra la tabla a ese producto. */
+     (tinta↔cartucho, hojas↔papel…). Elegir una sugerencia filtra la tabla a ese producto.
+
+     2026-07-21 — El desplegable de sugerencias queda APAGADO (TD_SUGERENCIAS=false):
+     la tabla YA filtra en vivo con los mismos sinónimos, así que eran dos búsquedas a
+     la vez y el menú tapaba justo los resultados que la tabla mostraba filtrados.
+     El código se conserva completo: para revivirlo basta poner el flag en true. */
+  var TD_SUGERENCIAS = false;
   var tmr = null, acTmr = null, acItems = [], acSel = -1, acToken = 0;
 
   function acClose(){
@@ -805,6 +811,7 @@ body.td-predrag .td-trash{display:flex}
     return esc(name);
   }
   function acRender(term){
+    if (!TD_SUGERENCIAS) return;   // desplegable apagado: la tabla es la única búsqueda
     var t = (term||"").trim();
     if (t.length < 2){ acClose(); return; }
     var token = ++acToken;
@@ -837,9 +844,13 @@ body.td-predrag .td-trash{display:flex}
   $("tdQ").addEventListener("input", function(){
     var v = $("tdQ").value;
     clearTimeout(tmr);
-    tmr = setTimeout(function(){ q = v.trim(); load(true); }, 320);   // filtra la tabla
-    clearTimeout(acTmr);
-    acTmr = setTimeout(function(){ acRender(v); }, 180);              // sugerencias (más ágil)
+    /* 200 ms (antes 320): sin desplegable, la tabla es LA búsqueda y toma el papel
+       ágil que tenían las sugerencias. load(true) ya maneja la carrera entre teclas. */
+    tmr = setTimeout(function(){ q = v.trim(); load(true); }, 200);   // filtra la tabla
+    if (TD_SUGERENCIAS){
+      clearTimeout(acTmr);
+      acTmr = setTimeout(function(){ acRender(v); }, 180);            // sugerencias (más ágil)
+    }
   });
   $("tdQ").addEventListener("keydown", function(e){
     if (e.key === "ArrowDown" || e.key === "ArrowUp"){
