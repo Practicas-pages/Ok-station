@@ -2110,6 +2110,51 @@ html.q-lock, html.q-lock body{overflow:hidden}
   }
   routeHash();
   window.addEventListener("hashchange", routeHash);
+
+  /* ── Auto-refresco de precios y stock SIN recargar la página ──
+     Exel maneja el catálogo y el servidor lo refresca cada hora (además del sync
+     nocturno). Para que el cliente no tenga que recargar, aquí se vuelven a pedir los
+     precios/existencias de lo que tiene EN EL CARRITO y ARRIBA del grid: al regresar a
+     la pestaña y cada pocos minutos mientras la ve. Los objetos se MUTAN EN SITIO porque
+     el carrito guarda una REFERENCIA a PALL (reemplazar el objeto rompería el carrito).
+     El checkout ya revalida por su cuenta (bloqueo por deriva >3%); esto es la capa
+     visible para que la tienda se sienta al día. */
+  var LIVE_MS = 5*60*1000;   // cada 5 minutos mientras la pestaña esté a la vista
+  function refreshLive(){
+    if(document.hidden || !dbMode || !catalogReady) return;
+    var ids={};
+    for(var k in cart) ids[+k]=1;
+    wishlist.forEach(function(i){ ids[+i]=1; });
+    P.slice(0,60).forEach(function(p){ ids[p.id]=1; });   // lo visible arriba del grid
+    var list=Object.keys(ids).map(Number).filter(function(n){return n>0;}).slice(0,60);
+    if(!list.length) return;
+    fetch("/backend/api/shop/products.php?per_page=60&page=1&ids="+list.join(","))
+      .then(function(r){return r.json();})
+      .then(function(j){
+        if(!j||!j.ok||!Array.isArray(j.items)) return;
+        var changed=false, cartChanged=false, seen={};
+        j.items.forEach(function(it){
+          seen[it.id]=1;
+          var cur=PALL[it.id];
+          if(cur){
+            if(cur.price!==(it.price||0) || cur.stock!==(it.stock||0) || (cur.old||null)!==(it.old||null)){
+              changed=true; if(cart[it.id]) cartChanged=true;
+            }
+            cur.price=it.price||0; cur.old=it.old||null; cur.stock=it.stock||0;
+            if(it.name) cur.name=it.name; if(it.image) cur.image=it.image;
+          } else { PALL[it.id]=mapDbItem(it); }
+        });
+        /* Un producto del carrito que pedimos y NO volvió = se descatalogó → sin stock. */
+        for(var c in cart){ if(list.indexOf(+c)>=0 && !seen[+c] && cart[c].p){ cart[c].p.stock=0; changed=true; cartChanged=true; } }
+        if(!changed) return;
+        /* Recorta lo que ya no alcanza y saca del carrito lo agotado. */
+        for(var d in cart){ if(cart[d].p){ if(cart[d].p.stock<=0){ delete cart[d]; } else if(cart[d].qty>cart[d].p.stock){ cart[d].qty=cart[d].p.stock; } } }
+        saveCart(); renderCart(); renderGrid(); renderLandFeat();
+        if(cartChanged) flash("Actualizamos los precios y existencias de tu carrito");
+      }).catch(function(){});
+  }
+  document.addEventListener("visibilitychange", function(){ if(!document.hidden) refreshLive(); });
+  setInterval(refreshLive, LIVE_MS);
 })();
 </script>
 <script>(function(){var t=document.querySelector(".nav__toggle"),n=document.getElementById("nav-menu");if(t&&n){t.addEventListener("click",function(){var o=n.classList.toggle("is-open");t.setAttribute("aria-expanded",o?"true":"false");});}})();</script>

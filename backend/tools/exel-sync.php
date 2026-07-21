@@ -10,6 +10,9 @@
  *   php backend/tools/exel-sync.php --dry-run       # no escribe, solo reporta
  *   php backend/tools/exel-sync.php --file=feed.json# lee de un archivo local (pruebas)
  *   php backend/tools/exel-sync.php --limit=100     # procesa a lo más N productos
+ *   php backend/tools/exel-sync.php --solo-precios  # refresco LIGERO: precio+stock, SIN
+ *                                                   # imágenes (para el cron por HORA; ver
+ *                                                   # deploy/actualizar-precios.sh)
  *
  * Requiere en backend/.env:
  *   EXEL_API_BASE=https://api01.exeldelnorte.com.mx   (opcional; este es el default)
@@ -78,6 +81,11 @@ if ($subcats) $dryRun = true;   // nunca escribe
 /* Salta la salvaguarda de "feed incompleto" (ver más abajo). Úsalo solo cuando SABES
    que el catálogo se encogió de verdad (p. ej. Exel depuró su línea). */
 $force   = in_array('--force', $args, true);
+/* Refresco LIGERO (cron por hora): actualiza precio, stock y visibilidad, pero se salta
+   las imágenes (fetch + reemplazo de /imagenes) e Icecat es un runner aparte que aquí no
+   se toca. Deja el catálogo fresco en minutos, sin la churn de fotos ni carga de más a
+   Exel. El pipeline completo (con fotos) sigue corriendo de noche. */
+$soloPrecios = in_array('--solo-precios', $args, true);
 $file   = null;
 $limit  = 0;
 foreach ($args as $a) {
@@ -89,7 +97,7 @@ $warehouse = (string) env('EXEL_WAREHOUSE', '4');
 $margin    = ShopCatalog::margin();                 // reusa la lógica del 30% (settings.shop_margin)
 $runStamp  = date('Y-m-d H:i:s');
 
-echo "── Exel sync ──  " . ($dryRun ? "[DRY-RUN] " : "") . "almacén={$warehouse}  margen={$margin}\n";
+echo "── Exel sync ──  " . ($dryRun ? "[DRY-RUN] " : "") . ($soloPrecios ? "[SOLO-PRECIOS] " : "") . "almacén={$warehouse}  margen={$margin}\n";
 
 /* ── 1. Obtener el catálogo (API o archivo local) ── */
 $raw = $file ? read_feed_file($file) : fetch_from_api();
@@ -241,7 +249,10 @@ if (!$force && $activosAntes > 0 && count($rows) < $activosAntes * FEED_MINIMO) 
     exit(1);
 }
 
-$updates = ['prev_cost = cost'];
+/* prev_cost = snapshot del costo ANTERIOR (base de la "regla del 3%"). Solo lo mueve el
+   sync NOCTURNO: si el refresco por hora lo pisara, "cambió >3% desde ayer" se volvería
+   "desde hace una hora" y ocultaría la deriva del día. En --solo-precios no se toca. */
+$updates = $soloPrecios ? [] : ['prev_cost = cost'];
 foreach ($cols as $c) {
     if ($c === 'supplier' || $c === 'supplier_ref') continue;
     /* `description` NO se pisa con un valor vacío: Exel casi nunca manda
@@ -299,7 +310,7 @@ $descont = $st->rowCount();
    (COALESCE(stored_path, url)), así las fotos aparecen al terminar el sync. Bajarlas
    al servidor es opcional y va aparte, con download-product-images.php. */
 $imgTotal = $imgProds = 0;
-if (!$file) {   // con --file no hay API que consultar
+if (!$file && !$soloPrecios) {   // con --file no hay API; en --solo-precios las fotos se dejan al sync nocturno
     $mapa = fetch_images_from_api();
     echo "  Imágenes de Exel: " . count($mapa) . " referencias con foto\n";
 
@@ -381,8 +392,12 @@ echo "  Con stock:     activos; sin stock ocultos (tocados: {$tocados})\n";
 echo "  Descontinuados ocultados: {$descont}\n";
 echo "  Costos con cambio > 3%:   {$cambios}\n";
 echo "  Ofertas del proveedor:    {$ofertas}\n";
-echo "  Imágenes de Exel:         {$imgTotal} en {$imgProds} producto(s)\n";
-echo "  Activos AÚN sin foto:     {$sinFoto}" . ($sinFoto > 0 ? "  → para eso corre icecat-enrich.php" : "") . "\n";
+if ($soloPrecios) {
+    echo "  Imágenes:                 (omitidas — refresco solo precio/stock)\n";
+} else {
+    echo "  Imágenes de Exel:         {$imgTotal} en {$imgProds} producto(s)\n";
+    echo "  Activos AÚN sin foto:     {$sinFoto}" . ($sinFoto > 0 ? "  → para eso corre icecat-enrich.php" : "") . "\n";
+}
 
 /* ═══════════════════ Helpers ═══════════════════ */
 

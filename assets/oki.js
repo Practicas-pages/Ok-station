@@ -74,13 +74,51 @@
   // usa un adaptador respaldado por assets/catalogo.js (window.OK_PRODUCTS) + el carrito
   // guardado en localStorage. Así OKi muestra tu lista de compras en todo el sitio.
   function okiCatalog() { return (window.OK_PRODUCTS && window.OK_PRODUCTS.length) ? window.OK_PRODUCTS : []; }
-  function okiHasStore() { return storeReady() || okiCatalog().length > 0; } // ¿hay lista de compras disponible?
+  function okiHasStore() { return storeReady() || okiCatalog().length > 0 || okiHasSaved(); } // ¿hay lista de compras que mostrar?
   function okiCatById(id) { id = +id; var a = okiCatalog().filter(function (p) { return p.id === id; }); return a[0] || null; }
   function okiLsCart() { try { return JSON.parse(localStorage.getItem("okstation_cart") || "{}") || {}; } catch (e) { return {}; } }
   function okiLsCartSave(o) { try { localStorage.setItem("okstation_cart", JSON.stringify(o)); } catch (e) {} }
   function okiLsWish() { try { var w = JSON.parse(localStorage.getItem("okstation_wishlist") || "[]"); return Array.isArray(w) ? w : []; } catch (e) { return []; } }
   function okiLsWishSave(a) { try { localStorage.setItem("okstation_wishlist", JSON.stringify(a)); } catch (e) {} }
   function okiGoTienda() { location.href = "tienda.html"; }
+
+  /* ¿El cliente ya tiene algo guardado (carrito o deseados) en ESTE navegador?
+     Permite mostrar su lista aunque el catálogo aún no haya cargado: fuera de la
+     tienda, window.OK_PRODUCTS lo llena catalogo.js de forma ASÍNCRONA. */
+  function okiHasSaved() { var c = okiLsCart(); for (var k in c) { if ((+c[k]) > 0) return true; } return okiLsWish().length > 0; }
+
+  /* Del formato del API (shop/products.php) al de OKi. Igual que catalogo.js::mapear. */
+  function okiMapDb(p) {
+    return { id: +p.id, name: p.name || "", price: +p.price || 0,
+      old: (p.old != null && +p.old > +p.price) ? +p.old : null,
+      stock: (p.stock == null ? null : +p.stock), cat: p.category || "",
+      sub: p.subcategory || "", brand: p.brand || "", sku: p.sku || "", image: p.image || null };
+  }
+
+  /* Resuelve el carrito/deseados guardados contra el catálogo REAL (BD) por si
+     catalogo.js aún no llegó (o no está en esta página). Fusiona en window.OK_PRODUCTS
+     —la misma fuente que lee okiCatById— sin pisar lo que ya haya. */
+  var okiHydrating = false;
+  function okiHydrateSaved(done) {
+    var have = {}; okiCatalog().forEach(function (p) { have[+p.id] = 1; });
+    var ids = [], c = okiLsCart();
+    for (var k in c) { if ((+c[k]) > 0 && !have[+k]) ids.push(+k); }
+    okiLsWish().forEach(function (i) { if (!have[+i] && ids.indexOf(+i) < 0) ids.push(+i); });
+    if (!ids.length) { if (done) done(false); return; }
+    okiHydrating = true;
+    fetch("/backend/api/shop/products.php?per_page=60&page=1&ids=" + ids.slice(0, 60).join(","))
+      .then(function (r) { return r.json(); })
+      .then(function (j) {
+        if (j && j.ok && Array.isArray(j.items)) {
+          var cur = (window.OK_PRODUCTS || []).slice(), seen = {};
+          cur.forEach(function (p) { seen[+p.id] = 1; });
+          j.items.map(okiMapDb).forEach(function (p) { if (p.id && !seen[p.id]) { cur.push(p); seen[p.id] = 1; } });
+          window.OK_PRODUCTS = cur;
+        }
+        okiHydrating = false; if (done) done(true);
+      })
+      .catch(function () { okiHydrating = false; if (done) done(false); });
+  }
 
   // Adaptador de localStorage (fuera de la tienda): mismo "contrato" que window.OKtienda.
   var okiShim = null;
@@ -110,7 +148,7 @@
   // Devuelve el "contrato": la tienda en vivo si existe; si no, el adaptador de localStorage.
   function okiStore() {
     if (storeReady()) return window.OKtienda;
-    if (!okiCatalog().length) return null;
+    if (!okiCatalog().length && !okiHasSaved()) return null;
     if (!okiShim) okiShim = okiMakeShim();
     return okiShim;
   }
@@ -174,9 +212,17 @@
       foot.innerHTML = '<div class="olv-tot"><span>Total</span><b>' + okiMxn(okiTotal()) + '</b></div>' +
         '<button class="olv-pay" data-oki-pay="1">' + (off ? 'Ir a la tienda a pagar →' : 'Ir a pagar →') + '</button>';
     } else {
-      cartBox.innerHTML = off
-        ? '<div class="olv-empty">Aún no tienes productos 🛒<br>Entra a la tienda y arma tu pedido; aquí te lo guardo.</div>'
-        : '<div class="olv-empty">Aún no eliges productos 🛒<br>Toca <b>＋</b> en el catálogo y aquí te los muestro.</div>';
+      /* Fuera de la tienda con carrito/deseados guardados pero aún sin resolver:
+         distinguir "cargando" (el catálogo viene en camino) de "no se pudo" (ya llegó
+         y aun así no están: descatalogados o API caída). */
+      var savedPend = off && okiHasSaved();
+      cartBox.innerHTML = !off
+        ? '<div class="olv-empty">Aún no eliges productos 🛒<br>Toca <b>＋</b> en el catálogo y aquí te los muestro.</div>'
+        : savedPend
+          ? ((okiHydrating || !okiCatalog().length)
+              ? '<div class="olv-empty">Cargando tu lista…</div>'
+              : '<div class="olv-empty">No pude cargar tu lista 😕<br>Escríbenos por WhatsApp: 664 719 4117.</div>')
+          : '<div class="olv-empty">Aún no tienes productos 🛒<br>Entra a la tienda y arma tu pedido; aquí te lo guardo.</div>';
       foot.innerHTML = "";
     }
     var recs = okiRecommendList(3);
@@ -555,7 +601,7 @@
 
   function showList() {
     panel.setAttribute("data-view", "list");
-    if (okiHasStore()) renderStoreList();
+    renderStoreList();   // la estructura siempre existe; renderStoreList maneja vacío/cargando
   }
   function showChat() { panel.setAttribute("data-view", "chat"); }
 
@@ -671,8 +717,12 @@
       '</form></div>' +
       // Vista LISTA = tu lista de compras (carrito + recomendaciones + deseados).
       // Es la MISMA lista funcional en todo el sitio (dentro y fuera de la tienda).
-      (okiHasStore()
-        ? '<div class="oki-view oki-view--list oki-view--store">' +
+      /* Se arma SIEMPRE la estructura de la lista, aunque el catálogo aún no haya llegado:
+         fuera de la tienda, catalogo.js llena window.OK_PRODUCTS async y dispara
+         'ok-catalogo-listo'. Si aquí se armara el fallback "No pude cargar", el panel se
+         quedaría clavado en él sin re-renderizar cuando el catálogo sí llega. Los estados
+         vacío / cargando / error los resuelve renderStoreList(). */
+      ('<div class="oki-view oki-view--list oki-view--store">' +
           '<div class="olv-sec">🛒 Tu lista de compras</div>' +
           '<div class="olv-cart" id="oki-olv-cart"></div>' +
           '<div class="olv-foot" id="oki-olv-foot"></div>' +
@@ -682,9 +732,6 @@
           '<div class="olv-wish" id="oki-olv-wish"></div>' +
           (storeReady() ? '' : '<button class="olv-store" id="oki-olv-store" type="button">🛒 Entrar a la tienda</button>') +
           '<button class="olv-chat" id="oki-olv-chat" type="button">💬 Chatear con OKi</button>' +
-          '</div>'
-        : '<div class="oki-view oki-view--list">' +   // respaldo si catalogo.js no cargó
-          '<div class="olv-empty" style="padding:22px 6px">No pude cargar el catálogo 😕<br>Escríbenos por WhatsApp: 664 719 4117.</div>' +
           '</div>') +
       '</div>'
     );
@@ -726,10 +773,12 @@
       panel.getAttribute("data-view") === "list" ? showChat() : showList();
     });
 
-    if (okiHasStore()) {
-      // ── Tu lista de compras: acciones sobre el carrito/deseados vía el contrato ──
-      // Dentro de la tienda actúa sobre el carrito EN VIVO; fuera, sobre el guardado
-      // (localStorage) para que al entrar a la tienda ya lo tengas armado.
+    // ── Tu lista de compras: acciones sobre el carrito/deseados vía el contrato ──
+    // Dentro de la tienda actúa sobre el carrito EN VIVO; fuera, sobre el guardado
+    // (localStorage) para que al entrar a la tienda ya lo tengas armado.
+    // La estructura .oki-view--store SIEMPRE existe, así que el manejador se engancha
+    // aunque el catálogo aún no haya cargado (fuera de la tienda llega async).
+    {
       panel.querySelector(".oki-view--store").addEventListener("click", function (e) {
         // El clic está DENTRO del panel: no debe llegar al "clic-fuera" del document
         // (al re-renderizar la lista el botón se desconecta y closest() fallaría → cerraría).
@@ -750,6 +799,17 @@
       renderStoreList();
       okiUpdateBadge();  // el globito del carrito refleja lo guardado en cualquier página
     }
+
+    // Fuera de la tienda, window.OK_PRODUCTS lo llena catalogo.js de forma ASÍNCRONA y
+    // avisa con 'ok-catalogo-listo'. OKi también resuelve por su cuenta el carrito/deseados
+    // guardados (por si catalogo.js no está en esta página). Al llegar los datos se refresca
+    // el globito del carrito y la lista si está abierta.
+    function okiOnCatalogReady() {
+      okiUpdateBadge();
+      if (panel && panel.getAttribute("data-view") === "list") renderStoreList();
+    }
+    window.addEventListener("ok-catalogo-listo", okiOnCatalogReady);
+    if (!storeReady()) okiHydrateSaved(function () { okiOnCatalogReady(); });
 
     // Cerrar al hacer clic fuera del panel. En la tienda TAMBIÉN cierra la lista,
     // EXCEPTO al agregar/marcar deseado (para que la lista refleje el cambio) o al
