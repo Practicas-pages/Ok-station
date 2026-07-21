@@ -327,6 +327,11 @@ body.td-predrag .td-trash{display:flex}
 
 @media(max-width:980px){
   .td-grid{grid-template-columns:1fr}
+  /* En celular el orden correcto es: PRODUCTOS arriba, pre-carrito abajo (primero
+     eliges, luego revisas). Se fija con order explícito para que no dependa del
+     orden del HTML (que ya se ha reacomodado varias veces). */
+  .td-grid > section{order:1}
+  .td-grid > .td-cart{order:2}
   .td-cart{position:static}
   .td-head,.td-row{grid-template-columns:52px minmax(0,1fr) 80px 92px 34px;gap:8px}
   .td-wish{width:30px;height:30px}
