@@ -450,9 +450,9 @@ html.store-view .header-bar, html.store-view .site-header{display:none}
 #site .fgroup h4{margin:0 0 9px; font-size:.82rem; font-weight:800; text-transform:uppercase; letter-spacing:.04em; color:var(--muted)}
 #site .fopt{display:flex; align-items:center; gap:9px; padding:7px 0; font-size:.9rem; cursor:pointer}
 #site .fopt.is-hidden{display:none}
-#site .fsubsearch{width:100%; margin:0 0 8px; padding:9px 12px; border:1.5px solid var(--line); border-radius:10px; font:inherit; font-size:.88rem}
-#site .fsubsearch:focus{outline:none; border-color:var(--blue)}
-#site .fmore{display:block; width:100%; margin-top:6px; padding:8px; border:0; background:none; color:var(--blue); font:inherit; font-size:.85rem; font-weight:700; cursor:pointer; text-align:left}
+#site .fsubsearch,#site .fbrandsearch{width:100%; margin:0 0 8px; padding:9px 12px; border:1.5px solid var(--line); border-radius:10px; font:inherit; font-size:.88rem}
+#site .fsubsearch:focus,#site .fbrandsearch:focus{outline:none; border-color:var(--blue)}
+#site .fmore,#site .fbmore{display:block; width:100%; margin-top:6px; padding:8px; border:0; background:none; color:var(--blue); font:inherit; font-size:.85rem; font-weight:700; cursor:pointer; text-align:left}
 #site .fopt input{width:auto; margin:0; accent-color:var(--blue); flex:none}
 #site .fopt .fn{color:var(--muted); font-size:.78rem; margin-left:auto}
 #site .fdfoot{flex:none; display:flex; gap:9px; padding:14px 18px; border-top:1px solid var(--line)}
@@ -1376,6 +1376,9 @@ html.q-lock, html.q-lock body{overflow:hidden}
     /* El "Tipo" (subcategoría) es propio de cada categoría: al cambiar de categoría se
        recarga la lista y se limpia lo elegido (si no, quedaría un filtro imposible → grid vacío). */
     fSubcatsLoaded=false; fSubcats=[]; if(typeof filtCountUpdate==="function") filtCountUpdate();
+    /* Los buscadores del panel arrancan de cero en cada categoría (una query vieja
+       podría dejar el grupo aparentemente vacío en listas cortas, sin buscador visible). */
+    fSubQuery=""; fSubMore=false; fBrandQuery=""; fBrandMore=false;
     renderCats(); reloadFromDB(); $("app").classList.remove("drawer-open");}
   document.addEventListener("click",function(e){var b=e.target.closest("[data-cat]"); if(b){selectCat(b.dataset.cat, b.dataset.sub||"");}});
 
@@ -1603,11 +1606,39 @@ html.q-lock, html.q-lock body{overflow:hidden}
             }).join("")
           : '<p class="fn">No hay marcas en esta categoría.</p>')
       : '<p class="fn">Cargando marcas…</p>';
+    /* Marca: mismo tratamiento que Tipo (son ~70): buscador + top 15 + "Ver todas". */
+    if(fBrandsLoaded&&fBrandList.length>15){
+      marcas='<input type="search" class="fbrandsearch" placeholder="Buscar marca… (HP, BIC, Crayola)" aria-label="Buscar marca">'+marcas+
+             '<button type="button" class="fbmore"></button>';
+    }
     $("fdrawBody").innerHTML=
       '<div class="fgroup"><h4>Ordenar por</h4>'+orden+'</div>'+
       '<div class="fgroup fgroup--subs"><h4>Tipo</h4>'+tipos+'</div>'+
-      '<div class="fgroup"><h4>Marca</h4>'+marcas+'</div>';
+      '<div class="fgroup fgroup--brands"><h4>Marca</h4>'+marcas+'</div>';
     applySubcatView();
+    applyBrandView();
+  }
+  /* Vista de la lista de MARCAS: espejo de applySubcatView (buscador + top 15 por
+     conteo + "Ver todas"), ocultando por clase para no perder los checks. */
+  var fBrandQuery="", fBrandMore=false;
+  function applyBrandView(){
+    var box=$("fdrawBody").querySelector(".fgroup--brands"); if(!box) return;
+    var inp=box.querySelector(".fbrandsearch");
+    if(inp&&inp.value!==fBrandQuery) inp.value=fBrandQuery;
+    var q=okNorm(fBrandQuery), TOP=15, n=0, total=0;
+    [].forEach.call(box.querySelectorAll(".fopt"),function(lb){
+      var c=lb.querySelector(".fbrand"); if(!c) return;
+      total++;
+      var match=!q || okNorm(c.value).indexOf(q)>=0;
+      var vis=match && (q ? true : (fBrandMore || n<TOP || c.checked));
+      if(match) n++;
+      lb.classList.toggle("is-hidden",!vis);
+    });
+    var more=box.querySelector(".fbmore");
+    if(more){
+      more.hidden=(!!q)||total<=TOP;
+      more.textContent=fBrandMore?"− Ver menos":"+ Ver todas ("+total+")";
+    }
   }
   /* Vista de la lista de tipos: aplica búsqueda y el recorte top-15 SIN tocar el HTML
      (solo clases). Sobrevive a los re-render de filtRender (que corre al llegar tipos
@@ -1650,12 +1681,14 @@ html.q-lock, html.q-lock body{overflow:hidden}
   $("fdrawClose").addEventListener("click",filtClose);
   $("fApply").addEventListener("click",filtApply);
   $("fClear").addEventListener("click",filtClear);
-  /* Buscador y "ver todos" de tipos: delegados (el panel se repinta al llegar datos). */
+  /* Buscadores y "ver todos" de tipos y marcas: delegados (el panel se repinta al llegar datos). */
   $("fdrawBody").addEventListener("input",function(e){
     if(e.target.classList.contains("fsubsearch")){ fSubQuery=e.target.value; applySubcatView(); }
+    if(e.target.classList.contains("fbrandsearch")){ fBrandQuery=e.target.value; applyBrandView(); }
   });
   $("fdrawBody").addEventListener("click",function(e){
     if(e.target.closest(".fmore")){ fSubMore=!fSubMore; applySubcatView(); }
+    if(e.target.closest(".fbmore")){ fBrandMore=!fBrandMore; applyBrandView(); }
   });
   /* Esc cierra, como se espera de cualquier panel. */
   document.addEventListener("keydown",function(e){ if(e.key==="Escape"&&$("app").classList.contains("filt-open")) filtClose(); });

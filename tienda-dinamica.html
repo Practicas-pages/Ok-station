@@ -82,9 +82,9 @@
 .td-fopt:hover{border-color:var(--brand-blue,#066CFF)}
 .td-fopt .n{opacity:.6;font-weight:500;font-size:.78rem}
 .td-fopt.is-hidden{display:none}
-.td-fsearch{display:block;width:min(340px,100%);margin:0 0 8px;padding:8px 12px;border:1.5px solid var(--line,#e3e6ee);border-radius:10px;font:inherit;font-size:.85rem}
-.td-fsearch:focus{outline:none;border-color:var(--brand-blue,#066CFF)}
-.td-fmore{display:inline-block;margin:2px 0 0;padding:6px 10px;border:0;background:none;color:var(--brand-blue,#066CFF);font:inherit;font-size:.83rem;font-weight:700;cursor:pointer}
+.td-fsearch,.td-fbsearch{display:block;width:min(340px,100%);margin:0 0 8px;padding:8px 12px;border:1.5px solid var(--line,#e3e6ee);border-radius:10px;font:inherit;font-size:.85rem}
+.td-fsearch:focus,.td-fbsearch:focus{outline:none;border-color:var(--brand-blue,#066CFF)}
+.td-fmore,.td-fbmore{display:inline-block;margin:2px 0 0;padding:6px 10px;border:0;background:none;color:var(--brand-blue,#066CFF);font:inherit;font-size:.83rem;font-weight:700;cursor:pointer}
 /* ── Paneles de carrito / favoritos (cajón derecho, en la página) ── */
 .td-scrim{position:fixed;inset:0;background:rgba(16,24,40,.42);z-index:70}
 .td-drawer{position:fixed;top:0;right:0;height:100%;width:min(380px,92vw);background:#fff;z-index:71;
@@ -763,7 +763,8 @@ body.td-predrag .td-trash{display:flex}
         fBrandsLoaded = false;   // las marcas se acotan a la categoría → recargar al reabrir filtros
         /* El "Tipo" es propio de cada categoría: recargar y limpiar lo elegido. */
         fSubcatsLoaded = false; fSubcats = []; filtCount();
-        tdSubQuery = ""; tdSubMore = false;   // búsqueda de tipos: de cero en cada categoría
+        tdSubQuery = ""; tdSubMore = false;   // búsquedas del panel: de cero en cada categoría
+        tdBrandQuery = ""; tdBrandMore = false;
         load(true);
       });
     });
@@ -803,11 +804,17 @@ body.td-predrag .td-trash{display:flex}
       tipos = '<input type="search" class="td-fsearch" placeholder="Buscar tipo… (tóner, papel, pluma)" aria-label="Buscar tipo">' +
               tipos + '<button type="button" class="td-fmore"></button>';
     }
+    /* Marca: mismo tratamiento que Tipo (son ~70). */
+    if (fBrandsLoaded && fBrandList.length > 15){
+      marcas = '<input type="search" class="td-fbsearch" placeholder="Buscar marca… (HP, BIC, Crayola)" aria-label="Buscar marca">' +
+               marcas + '<button type="button" class="td-fbmore"></button>';
+    }
     $("tdFilts").innerHTML =
       '<div class="td-fgroup"><h4>Ordenar por</h4>'+orden+'</div>'+
       '<div class="td-fgroup td-fgroup--subs"><h4>Tipo</h4>'+tipos+'</div>'+
-      '<div class="td-fgroup"><h4>Marca</h4>'+marcas+'</div>';
+      '<div class="td-fgroup td-fgroup--brands"><h4>Marca</h4>'+marcas+'</div>';
     tdApplySubcatView();
+    tdApplyBrandView();
   }
   var tdSubQuery = "", tdSubMore = false;
   function tdNorm(s){ return String(s||"").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/\s+/g," ").trim(); }
@@ -826,6 +833,24 @@ body.td-predrag .td-trash{display:flex}
     });
     var more = box.querySelector(".td-fmore");
     if (more){ more.hidden = (!!q) || total <= TOP; more.textContent = tdSubMore ? "− Ver menos" : "+ Ver todos ("+total+")"; }
+  }
+  /* Marca: espejo de tdApplySubcatView. */
+  var tdBrandQuery = "", tdBrandMore = false;
+  function tdApplyBrandView(){
+    var box = $("tdFilts").querySelector(".td-fgroup--brands"); if (!box) return;
+    var inp = box.querySelector(".td-fbsearch");
+    if (inp && inp.value !== tdBrandQuery) inp.value = tdBrandQuery;
+    var q = tdNorm(tdBrandQuery), TOP = 15, n = 0, total = 0;
+    [].forEach.call(box.querySelectorAll(".td-fopt"), function(lb){
+      var c = lb.querySelector(".tdbrand"); if (!c) return;
+      total++;
+      var match = !q || tdNorm(c.value).indexOf(q) >= 0;
+      var vis = match && (q ? true : (tdBrandMore || n < TOP || c.checked));
+      if (match) n++;
+      lb.classList.toggle("is-hidden", !vis);
+    });
+    var more = box.querySelector(".td-fbmore");
+    if (more){ more.hidden = (!!q) || total <= TOP; more.textContent = tdBrandMore ? "− Ver menos" : "+ Ver todas ("+total+")"; }
   }
   function filtOpen(){
     $("tdCats").classList.remove("open"); $("tdCatBtn").classList.remove("on"); $("tdCatBtn").setAttribute("aria-expanded","false");
@@ -847,12 +872,14 @@ body.td-predrag .td-trash{display:flex}
     }
   }
   $("tdFiltBtn").addEventListener("click", filtOpen);
-  /* Buscador y "ver todos" de tipos (delegados: el panel se repinta al llegar datos). */
+  /* Buscadores y "ver todos" de tipos y marcas (delegados: el panel se repinta al llegar datos). */
   $("tdFilts").addEventListener("input", function(e){
     if (e.target.classList.contains("td-fsearch")){ tdSubQuery = e.target.value; tdApplySubcatView(); }
+    if (e.target.classList.contains("td-fbsearch")){ tdBrandQuery = e.target.value; tdApplyBrandView(); }
   });
   $("tdFilts").addEventListener("click", function(e){
     if (e.target.closest(".td-fmore")){ tdSubMore = !tdSubMore; tdApplySubcatView(); }
+    if (e.target.closest(".td-fbmore")){ tdBrandMore = !tdBrandMore; tdApplyBrandView(); }
   });
   /* Aplica al instante: cambiar orden o marca recarga la tabla. */
   $("tdFilts").addEventListener("change", function(e){
