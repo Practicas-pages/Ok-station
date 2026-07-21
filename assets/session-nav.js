@@ -39,6 +39,7 @@
       '<div class="acct__head"><b>' + esc(u.full_name || "") + '</b><span>' + esc(u.email || "") + '</span></div>' +
       '<a role="menuitem" href="/perfil">Mi perfil</a>' +
       '<a role="menuitem" href="/perfil#pedidos">Mis pedidos</a>' +
+      '<a role="menuitem" href="/perfil#tienda">Mis compras</a>' +
       '<a role="menuitem" href="/perfil#citas">Mis citas</a>' +
       (isStaff ? '<a role="menuitem" href="/admin" class="acct__admin">' + panelLabel + '</a>' : '') +
       '<button role="menuitem" id="acct-logout" type="button">Cerrar sesión</button>' +
@@ -69,6 +70,7 @@
       '<div class="tb-accthead"><b>' + esc(u.full_name || "") + '</b><span>' + esc(u.email || "") + '</span></div>' +
       '<a role="menuitem" href="/perfil">Mi perfil</a>' +
       '<a role="menuitem" href="/perfil#pedidos">Mis pedidos</a>' +
+      '<a role="menuitem" href="/perfil#tienda">Mis compras</a>' +
       '<a role="menuitem" href="/perfil#citas">Mis citas</a>' +
       (isStaff ? '<a role="menuitem" href="/admin" class="tb-acctadmin">' + panelLabel + '</a>' : '') +
       '<button role="menuitem" type="button" class="tb-acctlogout">Cerrar sesión</button>';
