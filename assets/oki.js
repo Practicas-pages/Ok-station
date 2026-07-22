@@ -191,9 +191,22 @@
     return '<span class="olv-th" data-oki-open="' + p.id + '" title="Ver producto" style="background:' + (f.grad || p.grad || 'var(--blue)') + ';cursor:pointer">' + (f.emoji || p.emoji || '📦') + '</span>';
   }
   function okiOlvItem(it) {
-    return '<div class="olv-it">' + okiOlvThumb(it) +
-      '<div class="olv-nm" data-oki-open="' + it.id + '" style="cursor:pointer"><b>' + esc(it.name) + '</b><small>' + okiMxn(it.price) + ' c/u</small></div>' +
-      '<span class="olv-q"><button data-oki-dec="' + it.id + '" aria-label="Quitar uno">−</button><span>' + it.qty + '</span><button data-oki-inc="' + it.id + '" aria-label="Agregar uno">+</button></span>' +
+    /* AGOTADO en la lista. Las recomendaciones ya filtran lo que no hay, pero un
+       producto que se guardó en el carrito y DESPUÉS se acabó seguía viéndose igual
+       que cualquier otro: el cliente se enteraba hasta el checkout, que es el peor
+       momento para descubrirlo. El stock sale del catálogo hidratado o del propio
+       renglón, el que exista. OJO: stock == null significa "no lo sabemos" (catálogo
+       de demostración), y eso NO es agotado — en la duda no se marca nada. */
+    var f  = okiFindProd(it.id) || {};
+    var st = (it.stock != null) ? +it.stock : (f.stock != null ? +f.stock : null);
+    var agotado = (st != null && st <= 0);
+    return '<div class="olv-it' + (agotado ? ' olv-it--out' : '') + '">' + okiOlvThumb(it) +
+      '<div class="olv-nm" data-oki-open="' + it.id + '" style="cursor:pointer"><b>' + esc(it.name) + '</b><small>' +
+        okiMxn(it.price) + ' c/u' + (agotado ? ' · <b class="olv-out">agotado</b>' : '') + '</small></div>' +
+      /* Sumar más de algo que no hay no tiene sentido; restar y quitar sí, que es
+         justo lo que la persona va a querer hacer. */
+      '<span class="olv-q"><button data-oki-dec="' + it.id + '" aria-label="Quitar uno">−</button><span>' + it.qty + '</span>' +
+        '<button data-oki-inc="' + it.id + '"' + (agotado ? ' disabled aria-disabled="true" title="Agotado"' : '') + ' aria-label="Agregar uno">+</button></span>' +
       '<button class="olv-x" data-oki-rm="' + it.id + '" aria-label="Quitar del carrito">✕</button></div>';
   }
   function okiOlvRec(p) {

@@ -234,8 +234,8 @@
       return apiGet("/admin/catalog.php" + (p.length ? "?" + p.join("&") : ""));
     },
     productDetail:    function (id) { return apiGet("/admin/product-detail.php?id=" + encodeURIComponent(id)); },
-    imageCandidates:  function (id) { return apiGet("/admin/image-candidates.php?id=" + encodeURIComponent(id)); },
-    /* Guarda la elección del administrador. `action`: add | primary | remove. */
+    /* Solo `primary` y `remove`: PONER una foto es trabajo de admin-fotos.js +
+       image-set.php, que además la descargan a nuestro servidor. */
     productImage:     function (payload) { return apiPost("/admin/product-image.php", payload); },
     orderDetail: function (id) {
       if (DEMO) { var o = (MOCK.orders || []).find(function (x) { return String(x.id || x.code) === String(id); }); return Promise.resolve(o ? { ok: true, order: o } : { ok: false }); }
@@ -1689,9 +1689,19 @@
     var tone = n === 0 ? "cancelado" : (n < 3 ? "pendiente" : "listo");
     var note = n === 0 ? "sin fotos"
              : (local === 0 ? "ninguna local" : (local < n ? local + " locales" : "todas locales"));
+    /* El botón abre el selector de fotos (assets/admin-fotos.js, archivo aparte).
+       Solo se engancha por atributos: si ese archivo no cargara, esta celda sigue
+       mostrando el conteo igual que antes. */
     return '<td><span class="badge badge--' + tone + '">' + n + '/5</span>' +
-      '<div class="catalog-note' + (n > 0 && local === 0 ? " is-warn" : "") + '">' + note + '</div></td>';
+      '<div class="catalog-note' + (n > 0 && local === 0 ? " is-warn" : "") + '">' + note + '</div>' +
+      '<button type="button" class="catalog-foto" data-foto="' + p.id +
+        '" data-foto-nombre="' + esc(p.name) + '" data-foto-marca="' + esc(p.brand || "") + '">' +
+        (n === 0 ? "Poner foto" : "Cambiar") + '</button></td>';
   }
+
+  /* Se expone para que admin-fotos.js pueda refrescar la tabla tras guardar una
+     foto, sin recargar la página entera (van a ser ~282 productos de corrido). */
+  window.okAdminRecargarCatalogo = function () { renderCatalog(); };
 
   function renderCatalog() {
     var head = '<thead><tr><th>Producto</th><th>Marca</th><th>Categoría</th><th>Imágenes</th>' +
@@ -1773,8 +1783,16 @@
         t.innerHTML = head + '<tbody>' + body + capped + '</tbody>';
 
         $$("tr[data-pid]", t).forEach(function (tr) {
-          tr.addEventListener("click", function () { openProductModal(+tr.dataset.pid); });
+          tr.addEventListener("click", function (e) {
+            /* El renglón entero abre la ficha, PERO trae dentro el botón de foto
+               (admin-fotos.js). Sin esta guarda, pedir la foto abriría además la
+               ficha encima y se elegiría a ciegas. Cualquier control propio dentro
+               del renglón queda cubierto por el mismo cierre. */
+            if (e.target.closest("button, a, input, select")) return;
+            openProductModal(+tr.dataset.pid);
+          });
           tr.addEventListener("keydown", function (e) {
+            if (e.target !== tr) return;
             if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openProductModal(+tr.dataset.pid); }
           });
         });
@@ -1850,57 +1868,6 @@
     }).join("") + '</tbody></table>';
   }
 
-  /* Candidatas: lo que proponen las fuentes. Se pintan para ELEGIR, nunca se
-     publican solas. Mientras Oscar no conecte la búsqueda en vivo, esto llega
-     vacío y se explica por qué en vez de dejar un hueco mudo. */
-  function renderCandidates(id) {
-    var box = $("#prod-candidates");
-    if (!box) return;
-    box.innerHTML = '<p class="prod-hint">Buscando imágenes…</p>';
-    DataSource.imageCandidates(id).then(function (j) {
-      var list = (j && j.candidates) || [];
-      if (!list.length) {
-        box.innerHTML = '<p class="prod-hint">Ninguna fuente propone imágenes para este producto todavía.' +
-          ((j && j.pending && j.pending.live_search)
-            ? ' <b>La búsqueda en vivo (Icecat y fabricantes) está pendiente de conectar.</b>' : '') +
-          '</p>';
-        return;
-      }
-      box.innerHTML = '<div class="prod-gallery">' + list.map(function (c, i) {
-        return '<figure class="prod-img">' +
-          '<img src="' + esc(c.thumb || c.url) + '" alt="" loading="lazy">' +
-          '<figcaption>' + esc(c.source) +
-            (c.confidence != null ? '<span>' + esc(c.confidence) + '%</span>' : '') +
-          '</figcaption>' +
-          '<div class="prod-img__acts">' +
-            '<button class="admin-btn-sm" data-usecand="' + i + '">Usar esta</button>' +
-            (c.source_url ? '<a class="admin-btn-sm" href="' + esc(c.source_url) + '" target="_blank" rel="noopener noreferrer">Ver origen</a>' : '') +
-          '</div>' +
-        '</figure>';
-      }).join("") + '</div>';
-      $$("[data-usecand]", box).forEach(function (b) {
-        b.addEventListener("click", function () {
-          var c = list[+b.dataset.usecand];
-          b.disabled = true;
-          addProductImage(id, c.url, c.source);
-        });
-      });
-    }).catch(function () {
-      box.innerHTML = '<p class="prod-hint">No se pudieron consultar las fuentes de imágenes.</p>';
-    });
-  }
-
-  function addProductImage(id, url, source) {
-    DataSource.productImage({ action: "add", product_id: id, url: url, source: source || "manual" })
-      .then(function (j) {
-        if (!j || !j.ok) { window.alert((j && (j.error || j.message)) || "No se pudo agregar la imagen."); return; }
-        openProductModal(id);      // recarga la ficha con la imagen ya puesta
-        rendered.catalogo = false; // el conteo del listado cambió
-        renderCatalog();
-      })
-      .catch(function () { window.alert("Sin conexión al agregar la imagen."); });
-  }
-
   function productModalHtml(d) {
     var p = d.product || {};
     var ref = p.sku || p.supplier_ref || "";
@@ -1913,12 +1880,14 @@
       '</div>' +
       '<div class="prod-modal__body">' +
         '<h4 class="prod-subtitle">Imágenes</h4>' + prodImagesHtml(d) +
-        '<h4 class="prod-subtitle">Agregar una imagen</h4>' +
-        '<div id="prod-candidates"></div>' +
+        /* PONER una foto lo resuelve admin-fotos.js: busca candidatas, permite
+           subir un archivo o pegar con Ctrl+V, y la descarga a nuestro servidor.
+           Aquí solo se dispara con su mismo enganche [data-foto] — un solo camino
+           para poner fotos en todo el panel. */
         '<div class="prod-addurl">' +
-          '<input type="url" id="prod-url" class="admin-search" placeholder="…o pega la dirección de una imagen (https://)" aria-label="Dirección de la imagen">' +
-          '<input type="text" id="prod-url-source" class="catalog-select" value="manual" aria-label="Origen de la imagen" title="De dónde salió: manual, fabricante:3m…">' +
-          '<button class="btn btn--primary btn--sm" id="prod-url-add">Agregar</button>' +
+          '<button type="button" class="btn btn--primary btn--sm" data-foto="' + p.id +
+            '" data-foto-nombre="' + esc(p.name || "") + '" data-foto-marca="' + esc(p.brand || "") + '">' +
+            ((d.images || []).length ? "Cambiar foto" : "Poner foto") + '</button>' +
         '</div>' +
         '<h4 class="prod-subtitle">Datos del catálogo</h4>' +
         '<div class="prod-fields">' +
@@ -1972,14 +1941,12 @@
             .then(function () { openProductModal(id); renderCatalog(); });
         });
       });
-      var addBtn = $("#prod-url-add", ov);
-      if (addBtn) addBtn.addEventListener("click", function () {
-        var u = ($("#prod-url", ov).value || "").trim();
-        if (!u) { window.alert("Pega la dirección de la imagen."); return; }
-        addProductImage(id, u, ($("#prod-url-source", ov).value || "manual").trim());
+      /* El selector de fotos de admin-fotos.js se monta sobre <body>. Si la ficha
+         siguiera abierta encima, el usuario elegiría a ciegas: se cierra al pasar
+         el control. Al volver, la tabla se refresca sola con el conteo nuevo. */
+      $$("[data-foto]", ov).forEach(function (b) {
+        b.addEventListener("click", function () { closeProductModal(); });
       });
-
-      renderCandidates(id);
     }).catch(function () { window.alert("Sin conexión al abrir el producto."); });
   }
 
