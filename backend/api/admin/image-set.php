@@ -54,8 +54,13 @@ if ($subido) {
 } elseif ($url !== '') {
     [$data, $motivo] = ImagenSegura::descargar($url);
     if ($data === null) fail($motivo, 422);
-    $origen = 'exel';   // product_images.source solo admite 'icecat'|'exel'; ver nota abajo
-    if (stripos($url, 'icecat') !== false || stripos($url, 'iceimg') !== false) $origen = 'icecat';
+    /* Se deduce del dominio real de donde salió, no de lo que diga el cliente.
+       Tras la 0037 el valor se guarda tal cual, así que 'fabricante:3m' queda
+       registrado como 'fabricante:3m' y no disfrazado de otra cosa. */
+    $host   = strtolower((string) parse_url($url, PHP_URL_HOST));
+    $origen = 'exel';
+    if (str_contains($host, 'icecat') || str_contains($host, 'iceimg'))            $origen = 'icecat';
+    elseif (!str_contains($host, 'exeldelnorte'))                                  $origen = 'fabricante:' . preg_replace('/^www\./', '', $host);
     $urlOrigen = $url;
 } else {
     fail('Manda una imagen o la dirección de una.', 422);
@@ -76,13 +81,15 @@ try {
     if ($principal) {
         $pdo->prepare('UPDATE product_images SET is_primary = 0 WHERE product_id = ?')->execute([$productId]);
     }
-    /* 'manual' no cabe en el ENUM de product_images.source (icecat|exel) y ampliar
-       ese ENUM tocaría una tabla viva. La procedencia REAL queda en la bitácora de
-       enriquecimiento, que para eso se hizo y sí distingue el origen. */
+    /* La procedencia REAL, ahora que se puede. Antes source era ENUM('icecat','exel')
+       y una foto subida a mano había que guardarla como 'exel', mintiendo sobre su
+       origen — justo el dato que hay que poder auditar después. La 0037 de ZequiDev
+       lo pasó a VARCHAR(32) con el mismo criterio que product_enrichment.source,
+       así que ambas tablas ya hablan el mismo idioma y se pueden cruzar. */
     $pdo->prepare(
         'INSERT INTO product_images (product_id, url, stored_path, source, sort_order, is_primary)
          VALUES (?, ?, ?, ?, 0, ?)'
-    )->execute([$productId, $urlOrigen, $ruta, $origen === 'icecat' ? 'icecat' : 'exel', $principal ? 1 : 0]);
+    )->execute([$productId, $urlOrigen, $ruta, $origen, $principal ? 1 : 0]);
 
     $pdo->commit();
 } catch (Throwable $e) {
