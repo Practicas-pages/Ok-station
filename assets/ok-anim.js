@@ -57,10 +57,15 @@
     var to = cartTarget(); if (!to) return;
     var a = from.getBoundingClientRect(), b = to.getBoundingClientRect();
 
+    /* Es OKi quien se lleva el producto al carrito, no un punto anónimo: el gesto
+       queda en el mundo de OK.station y de paso refuerza a la mascota. Va como
+       texto (emoji) y no como imagen para no pedir otra descarga en cada clic. */
     var dot = document.createElement("span");
     dot.className = "ok-fly";
-    dot.style.left = (a.left + a.width / 2 - 11) + "px";
-    dot.style.top  = (a.top + a.height / 2 - 11) + "px";
+    dot.textContent = "🚀";
+    dot.setAttribute("aria-hidden", "true");
+    dot.style.left = (a.left + a.width / 2 - 16) + "px";
+    dot.style.top  = (a.top + a.height / 2 - 16) + "px";
     document.body.appendChild(dot);
 
     var dx = (b.left + b.width / 2) - (a.left + a.width / 2);
@@ -72,11 +77,14 @@
     setTimeout(quitar, 1100);
 
     try {
+      /* Despega inclinándose, sube en arco y aterriza encogiendo en el carrito:
+         la rotación es lo que lo hace leer como un cohete y no como algo que cae. */
       var an = dot.animate([
-        { transform: "translate(0,0) scale(1)", opacity: 1 },
-        { transform: "translate(" + (dx * 0.5) + "px," + (dy * 0.5 - 52) + "px) scale(.82)", opacity: 1, offset: 0.55 },
-        { transform: "translate(" + dx + "px," + dy + "px) scale(.24)", opacity: 0 }
-      ], { duration: 640, easing: "cubic-bezier(.4,0,.2,1)" });
+        { transform: "translate(0,0) scale(.7) rotate(-18deg)", opacity: 0 },
+        { transform: "translate(" + (dx * 0.18) + "px," + (dy * 0.18 - 26) + "px) scale(1.15) rotate(-8deg)", opacity: 1, offset: 0.22 },
+        { transform: "translate(" + (dx * 0.55) + "px," + (dy * 0.55 - 58) + "px) scale(1) rotate(6deg)", opacity: 1, offset: 0.6 },
+        { transform: "translate(" + dx + "px," + dy + "px) scale(.3) rotate(22deg)", opacity: 0 }
+      ], { duration: 760, easing: "cubic-bezier(.35,0,.25,1)" });
       an.onfinish = function () { quitar(); bump(to); };
     } catch (e) { quitar(); }
   }

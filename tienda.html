@@ -1564,7 +1564,7 @@ html[data-theme="dark"] #site :is(.tb-cuenta,.tb-fav,.tb-cart,.tb-filt):hover{ba
   function cardsHTML(list){return list.map(function(p){var low=p.stock<=5; var url=prodUrl(p);
       return '<div class="prod">'+(p.old?'<span class="deal-badge">−'+Math.round((1-p.price/p.old)*100)+'%</span>':'')+pimg(p)+heartBtn(p.id,'position:absolute;top:10px;right:10px;z-index:4;width:36px;height:36px;padding:0;')+
         '<div class="pinfo"><div class="pnametext"><div class="cat">'+catName(p.cat)+'</div><h3>'+p.name+'</h3><div class="pdesc">'+(p.brand?p.brand+' · ':'')+(p.desc||'')+'</div></div>'+
-        '<div class="row"><div><div class="price">'+mxn(p.price)+(p.old?' <s>'+mxn(p.old)+'</s>':'')+'</div><div class="stock'+(low?' low':'')+'">'+(low?"¡Últimas "+p.stock+"!":p.stock+" en stock")+'</div></div>'+
+        '<div class="row"><div><div class="price">'+mxn(p.price)+(p.old?' <s>'+mxn(p.old)+'</s>':'')+'</div><div class="stock'+(low?' low':'')+'">'+(p.stock<=0?"Agotado":(low?"¡Últimas "+p.stock+"!":p.stock+" en stock"))+'</div></div>'+
         '<div class="pacts"><button class="quick" data-open="'+p.id+'" title="Vista rápida" aria-label="Vista rápida de '+okEsc(p.name)+'">'+EYE+'</button><button class="add" data-add="'+p.id+'">+</button></div></div></div>'+
         /* La tarjeta entera es un ENLACE a la ficha (clic normal, abrir en pestaña nueva,
            y Google la sigue). La vista rápida quedó en su propio botón. */
@@ -1927,7 +1927,7 @@ html[data-theme="dark"] #site :is(.tb-cuenta,.tb-fav,.tb-cart,.tb-filt):hover{ba
       '<div class="mmeta">'+(p.brand?'<b>'+p.brand+'</b> · ':'')+(p.sku?'SKU '+p.sku+' · ':'')+catName(p.cat)+'</div>'+
       '<h3>'+p.name+'</h3>'+
       '<div class="mprice"><span class="p">'+mxn(p.price)+(p.old?' <s>'+mxn(p.old)+'</s>':'')+'</span>'+(save?'<span class="msave">Ahorras '+mxn(save)+'</span>':'')+'</div>'+
-      '<div class="mstock" style="color:'+(low?"#c2410c":"#0E9F6E")+'">'+(low?"🔥 ¡Últimas "+p.stock+"!":p.stock+" disponibles")+' · Recoge en Otay o a domicilio</div>'+
+      '<div class="mstock" style="color:'+(low?"#c2410c":"#0E9F6E")+'">'+(p.stock<=0?"Agotado por ahora":(low?"🔥 ¡Últimas "+p.stock+"!":p.stock+" disponibles"))+' · Recoge enOtay o a domicilio</div>'+
       '<p class="desc">'+p.desc+'</p>'+
       '<div class="pvmore-desc" hidden><button class="descmore" type="button" data-descmore>Ver descripción completa →</button></div>'+
       '<ul class="specs">'+p.specs.map(function(s){return '<li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>'+s+'</li>';}).join("")+'</ul>'+

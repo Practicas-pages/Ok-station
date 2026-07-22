@@ -6733,10 +6733,13 @@ html[data-theme="dark"] .citas-section .okcal__day:not(.is-selected):not(.is-emp
 
 /* ── 2. Vuela al carrito ───────────────────────────────────────────────────
    El punto lo crea y lo destruye ok-anim.js; aquí solo su aspecto. */
+/* Es OKi (el cohete de la mascota) quien lleva el producto al carrito. Sin fondo
+   ni borde: se lee como el personaje, no como una pastilla. */
 .ok-fly {
   position: fixed; z-index: 9999; pointer-events: none;
-  width: 22px; height: 22px; border-radius: 50%;
-  background: var(--brand-blue); box-shadow: var(--shadow-brand);
+  width: 32px; height: 32px; line-height: 32px; text-align: center;
+  font-size: 26px;
+  filter: drop-shadow(0 6px 10px rgba(6, 108, 255, .45));
   will-change: transform, opacity;
 }
 

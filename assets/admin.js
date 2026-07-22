@@ -599,7 +599,7 @@
     ov.style.cssText = "position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;padding:18px;background:rgba(15,23,42,.5);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px)";
     ov.innerHTML =
       '<div style="background:#fff;border-radius:16px;max-width:680px;width:100%;max-height:92vh;overflow:auto;box-shadow:0 20px 60px rgba(0,0,0,.3)">' +
-        '<div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:18px 20px;border-bottom:1px solid #eef0f4">' +
+        '<div class="shopmodal__head">' +
           '<div><div class="mono" style="font-weight:700;font-size:1.05rem">' + esc(a.code) + '</div>' +
           '<div style="font-size:.8rem;color:var(--text-muted,#6b7280)">Cita · ' + esc(a.date || "") + ' ' + esc(a.time || "") + '</div></div>' +
           badge(a.status, APPT_STATUS) +
@@ -835,7 +835,7 @@
     ov.style.cssText = "position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;padding:18px;background:rgba(15,23,42,.5);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px)";
     ov.innerHTML =
       '<div style="background:#fff;border-radius:16px;max-width:780px;width:100%;max-height:92vh;overflow:auto;box-shadow:0 20px 60px rgba(0,0,0,.3)">' +
-        '<div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:18px 20px;border-bottom:1px solid #eef0f4">' +
+        '<div class="shopmodal__head">' +
           '<div><div style="font-weight:700;font-size:1.05rem">' + esc(o.code) + '</div>' +
           '<div style="font-size:.8rem;color:var(--text-muted,#6b7280)">' + esc(String(o.created_at || o.date || "").slice(0, 10)) + '</div></div>' +
           badge(o.status) +
@@ -1053,19 +1053,30 @@
       var qty = +it.qty || 1;
       /* Miniatura: la foto principal del catálogo (get.php la anexa por renglón).
          Si el producto ya no tiene foto, cajita gris — el modal nunca se rompe. */
+      /* Colores por TOKEN, no fijos: antes iban #eef0f4/#f8fafc en línea y por eso el
+         detalle se quedaba blanco en modo oscuro (un style inline le gana a cualquier
+         regla CSS). */
       var thumb = it.image
-        ? '<img src="' + esc(it.image) + '" alt="" loading="lazy" style="width:44px;height:44px;object-fit:contain;border-radius:8px;background:#f8fafc;border:1px solid #eef0f4;flex:none">'
-        : '<span style="width:44px;height:44px;border-radius:8px;background:#f8fafc;border:1px solid #eef0f4;flex:none"></span>';
-      return '<tr>' +
-          '<td style="padding:9px 10px;border-bottom:1px solid #eef0f4">' +
-            '<div style="display:flex;align-items:center;gap:10px">' + thumb +
-            '<div style="min-width:0"><b style="font-size:.9rem">' + esc(it.product_name || "Producto") + '</b>' +
-            (it.product_sku ? '<div style="color:var(--text-muted,#6b7280);font-size:.78rem;margin-top:2px">' + esc(it.product_sku) + '</div>' : '') +
+        ? '<img src="' + esc(it.image) + '" alt="" loading="lazy" class="shopit__img">'
+        : '<span class="shopit__img shopit__img--none"></span>';
+      /* El nombre lleva a la FICHA del producto (pestaña nueva, para no perder el
+         detalle del pedido). Así quien surte puede ver EXACTAMENTE cuál es cuando el
+         nombre del proveedor no se lo dice. */
+      var pid = +it.product_id || 0;
+      var nombre = esc(it.product_name || "Producto");
+      var titulo = pid
+        ? '<a class="shopit__link" href="/producto/' + pid + '" target="_blank" rel="noopener" title="Ver la ficha de este producto">' + nombre + ' <span aria-hidden="true">↗</span></a>'
+        : '<b>' + nombre + '</b>';
+      return '<tr class="shopit">' +
+          '<td>' +
+            '<div class="shopit__cell">' + thumb +
+            '<div class="shopit__txt">' + titulo +
+            (it.product_sku ? '<div class="shopit__sku">' + esc(it.product_sku) + '</div>' : '') +
             '</div></div>' +
           '</td>' +
-          '<td style="padding:9px 10px;border-bottom:1px solid #eef0f4;text-align:center;white-space:nowrap"><b>' + qty + '</b></td>' +
-          (money ? '<td class="mono" style="padding:9px 10px;border-bottom:1px solid #eef0f4;text-align:right;white-space:nowrap">' + mxn(+it.unit_price || 0) + '</td>' +
-                   '<td class="mono" style="padding:9px 10px;border-bottom:1px solid #eef0f4;text-align:right;white-space:nowrap"><b>' + mxn(+it.line_total || 0) + '</b></td>' : '') +
+          '<td class="shopit__qty"><b>' + qty + '</b></td>' +
+          (money ? '<td class="mono shopit__num">' + mxn(+it.unit_price || 0) + '</td>' +
+                   '<td class="mono shopit__num"><b>' + mxn(+it.line_total || 0) + '</b></td>' : '') +
         '</tr>';
     }).join("") || '<tr><td colspan="' + (money ? 4 : 2) + '" style="padding:18px;text-align:center;color:var(--text-muted,#6b7280)">Este pedido no tiene renglones.</td></tr>';
 
@@ -1079,8 +1090,8 @@
     ov.setAttribute("aria-modal", "true");
     ov.style.cssText = "position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;padding:18px;background:rgba(15,23,42,.5);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px)";
     ov.innerHTML =
-      '<div style="background:#fff;border-radius:16px;max-width:720px;width:100%;max-height:92vh;overflow:auto;box-shadow:0 20px 60px rgba(0,0,0,.3)">' +
-        '<div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:18px 20px;border-bottom:1px solid #eef0f4">' +
+      '<div class="shopmodal">' +
+        '<div class="shopmodal__head">' +
           '<div><div style="font-weight:700;font-size:1.05rem">' + esc(o.code || "") + '</div>' +
           '<div style="font-size:.8rem;color:var(--text-muted,#6b7280)">' + esc(String(o.created_at || o.date || "").slice(0, 10)) + '</div></div>' +
           '<button type="button" class="btn btn--light btn--sm" data-shop-close>Cerrar</button>' +
@@ -1093,9 +1104,9 @@
           '</p>' +
 
           '<h4 style="margin:0 0 6px;font-size:.95rem">Productos</h4>' +
-          '<div style="border:1px solid #eef0f4;border-radius:12px;overflow:hidden;margin:0 0 16px">' +
+          '<div class="shopmodal__box">' +
             '<table style="width:100%;border-collapse:collapse;font-size:.9rem">' +
-              '<thead><tr style="background:#f8fafc">' +
+              '<thead><tr class="shopmodal__thead">' +
                 '<th style="padding:9px 10px;text-align:left;font-size:.76rem;color:var(--text-muted,#6b7280);text-transform:uppercase;letter-spacing:.04em">Producto</th>' +
                 '<th style="padding:9px 10px;text-align:center;font-size:.76rem;color:var(--text-muted,#6b7280);text-transform:uppercase;letter-spacing:.04em">Cant.</th>' +
                 (money ? '<th style="padding:9px 10px;text-align:right;font-size:.76rem;color:var(--text-muted,#6b7280);text-transform:uppercase;letter-spacing:.04em">P. unit.</th>' +

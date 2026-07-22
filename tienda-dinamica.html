@@ -737,7 +737,7 @@ html[data-theme="dark"] .td-go:disabled{ background:#232D46; color:#67708A }
     var old = p.old ? '<span class="old">'+mxn(p.old)+'</span>' : '';
     row.innerHTML =
       img +
-      '<div><div class="td-name">'+esc(p.name)+'</div><div class="td-meta">'+esc(p.brand||"")+(p.stock<=5?' · <b>solo '+p.stock+'</b>':'')+'</div></div>' +
+      '<div><div class="td-name">'+esc(p.name)+'</div><div class="td-meta">'+esc(p.brand||"")+(p.stock<=0?' · <b>agotado</b>':(p.stock<=5?' · <b>solo '+p.stock+'</b>':''))+'</div></div>' +
       '<div class="td-price">'+old+mxn(p.price)+'</div>' +
       '<div style="text-align:right"><button class="td-add" data-add="'+p.id+'">+ Agregar</button></div>' +
       '<button class="td-wish'+(isWished(p.id)?' on':'')+'" data-wish="'+p.id+'" aria-pressed="'+(isWished(p.id)?'true':'false')+'" aria-label="Guardar en favoritos" title="'+(isWished(p.id)?'Quitar de favoritos':'Guardar en favoritos')+'">'+HEART+'</button>';
