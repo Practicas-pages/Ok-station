@@ -6736,3 +6736,28 @@ html[data-theme="dark"] .ok-toast { background: #E9EDF6; color: #12141C }
   .ok-toast.on { animation: none; opacity: 1; transform: translate(-50%, 0) }
   .ok-lift:hover { transform: none }
 }
+
+/* ── Variables "de la tienda" con respaldo claro (var(--ink,#111), var(--line,#e3e6ee)…):
+   compra rápida, barra de e-commerce y ficha las usan SIN definirlas, así que en
+   oscuro caían al respaldo claro (nombres apagados, bordes claros). Definirlas
+   globalmente en oscuro arregla toda la cadena; #site (tienda.html) tiene las
+   suyas propias y no se ve afectado. ── */
+html[data-theme="dark"] {
+  --ink:#E9EDF6; --muted:#8A94AB; --line:#26314A; --card:#171F31; --paper:#0F1524;
+}
+
+/* ── Barra e-commerce (fichas): menús y paneles que traían blanco a mano ── */
+html[data-theme="dark"] :is(.sb-modal, .sb-panel, .sb-wi__t) {
+  background: var(--surface-card) !important; color: var(--text-primary);
+}
+
+/* ── Ficha de producto (.pdp__*): tarjetas a noche. La GALERÍA y las miniaturas
+   se quedan claras a propósito: ahí vive la foto del producto. ── */
+html[data-theme="dark"] :is(.pdp__card, .pdp__more, .pdp__oki, .pdp__rel) {
+  background: var(--surface-card) !important; color: var(--text-primary); border-color: var(--border-light);
+}
+html[data-theme="dark"] .pdp__qty { background:#101827 !important; color: var(--text-primary); border-color: var(--border-light); }
+
+/* ── OKi: además de re-fijar sus tokens, color EXPLÍCITO. Su globo heredaba el
+   color del body (claro en oscuro) sobre su fondo blanco: texto invisible. ── */
+html[data-theme="dark"] [class*="oki"] { color: #12141C; }

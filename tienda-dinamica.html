@@ -407,6 +407,16 @@ html[data-theme="dark"] :is(.td-panel,.td-drawer,.td-ci,.td-di,.td-ship,.td-filt
 html[data-theme="dark"] :is(.co-phone,.co-ship button,.td-q input,#tdQ){background:#101827; color:var(--text-primary,#E9EDF6); border-color:var(--border-light,#26314A)}
 html[data-theme="dark"] .td-head{background:var(--surface-card,#171F31); color:var(--text-muted,#8A94AB)}
 html[data-theme="dark"] .td-row{border-color:var(--border-light,#26314A)}
+/* ── Paneles que traían blanco a mano (detectados en capturas reales):
+   categorías/filtros (.td-cats hace de contenedor de ambos), chips, el botón de
+   Filtros (usa !important, se responde igual), y la VISTA PREVIA (.tdpv-*).
+   La imagen y las miniaturas de la vista previa se quedan claras: ahí va la foto. ── */
+html[data-theme="dark"] .td-cats{background:var(--surface-card,#171F31); border-color:var(--border-light,#26314A)}
+html[data-theme="dark"] .td-chip:not(.on){background:#101827; color:var(--text-primary,#E9EDF6); border-color:var(--border-light,#26314A)}
+html[data-theme="dark"] :is(.td-fopt,.td-fsearch,.td-fbsearch){background:#101827; color:var(--text-primary,#E9EDF6); border-color:var(--border-light,#26314A)}
+html[data-theme="dark"] .td-filtbtn{background:var(--surface-card,#171F31) !important; color:var(--text-primary,#E9EDF6) !important; border-color:var(--border-light,#26314A) !important}
+html[data-theme="dark"] :is(.tdpv-card,.tdpv-save,.tdpv-sideh){background:var(--surface-card,#171F31); color:var(--text-primary,#E9EDF6)}
+html[data-theme="dark"] .tdpv-specs{border-color:var(--border-light,#26314A)}
 </style>
 </head>
 <body>
