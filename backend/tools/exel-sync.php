@@ -494,6 +494,43 @@ function norm(string $s): string {
     return mb_strtolower(trim($s), 'UTF-8');
 }
 
+/**
+ * Termina la corrida explicando QUÉ falló, no solo con qué número.
+ *
+ * Exel devuelve 401 para dos cosas muy distintas y confundirlas cuesta caro:
+ *   · "Numero de peticiones diarias excedidas" → la llave está BIEN, se acabó la
+ *     cuota del día. No hay nada que arreglar: se reanuda solo cuando reinicie.
+ *     Salir con código 2 para que el cron no lo trate como avería.
+ *   · "Token invalido o inactivo" → la llave NO sirve. Eso sí requiere a una
+ *     persona: pedirle una nueva a Exel o restaurar el .env.
+ * Antes ambos casos imprimían "✗ Exel respondió HTTP 401" y mandaban a revisar la
+ * llave, que en el caso de la cuota es perseguir un problema que no existe.
+ */
+function exel_falla(int $code, string $cuerpo): void
+{
+    $json = json_decode($cuerpo, true);
+    $msg  = is_array($json) ? (string) ($json['message'] ?? $json['mensaje'] ?? '') : '';
+
+    if ($msg !== '' && preg_match('/peticion|cuota|excedid|limit/i', $msg)) {
+        fwrite(STDERR,
+            "\n⏳ CUOTA AGOTADA en Exel: «{$msg}»\n" .
+            "   La llave está bien; se acabaron las peticiones del día. NO se escribió\n" .
+            "   nada y el catálogo sigue como estaba.\n" .
+            "   Cada corrida de este script gasta UNA petición y baja el catálogo completo,\n" .
+            "   así que conviene revisar cuántas veces al día se está llamando (crons de\n" .
+            "   deploy/actualizar-precios.sh y deploy/actualizar-catalogo.sh).\n");
+        exit(2);   // 2 = esperado y temporal; 1 = avería que necesita a alguien
+    }
+
+    fwrite(STDERR,
+        "\n✗ Exel respondió HTTP {$code}" . ($msg !== '' ? ": «{$msg}»" : '.') . "\n" .
+        ($code === 401
+            ? "   La llave fue rechazada. Corre  php backend/tools/exel-diagnostico.php\n" .
+              "   para ver si se corrompió en el .env o si Exel la revocó.\n"
+            : "   NO se escribió nada; el catálogo sigue como estaba.\n"));
+    exit(1);
+}
+
 /** Trae el catálogo desde la API de Exel. Envelope: {resultado, mensaje, datos:[...]}. */
 function fetch_from_api(): array {
     $base = rtrim((string) env('EXEL_API_BASE', 'https://api01.exeldelnorte.com.mx'), '/');
@@ -512,7 +549,7 @@ function fetch_from_api(): array {
     $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
     if ($resp === false) { fwrite(STDERR, "✗ Error de red con Exel: " . curl_error($ch) . "\n"); exit(1); }
     curl_close($ch);
-    if ($code !== 200) { fwrite(STDERR, "✗ Exel respondió HTTP {$code}.\n"); exit(1); }
+    if ($code !== 200) { exel_falla($code, (string) $resp); }
 
     $json = json_decode($resp, true);
     if (!is_array($json) || empty($json['resultado'])) {
@@ -550,7 +587,17 @@ function fetch_images_from_api(): array {
     curl_close($ch);
 
     if ($resp === false)               { fwrite(STDERR, "  ⚠ Sin imágenes: error de red ({$err}).\n"); return []; }
-    if ($code < 200 || $code >= 300)   { fwrite(STDERR, "  ⚠ Sin imágenes: /imagenes respondió HTTP {$code}.\n"); return []; }
+    /* Las imágenes NO abortan la corrida: quedarse sin fotos nuevas es molesto,
+       quedarse sin precios es grave. Se avisa y se sigue. Eso sí, se nombra el caso
+       de cuota para no mandar a nadie a revisar una llave que está sana. */
+    if ($code < 200 || $code >= 300) {
+        $j   = json_decode((string) $resp, true);
+        $msg = is_array($j) ? (string) ($j['message'] ?? $j['mensaje'] ?? '') : '';
+        fwrite(STDERR, preg_match('/peticion|cuota|excedid|limit/i', $msg)
+            ? "  ⚠ Sin imágenes: cuota diaria de Exel agotada («{$msg}»). Los precios sí se actualizaron.\n"
+            : "  ⚠ Sin imágenes: /imagenes respondió HTTP {$code}" . ($msg !== '' ? " («{$msg}»)" : '') . ".\n");
+        return [];
+    }
 
     $json = json_decode((string) $resp, true);
     if (!is_array($json)) { fwrite(STDERR, "  ⚠ Sin imágenes: respuesta no es JSON.\n"); return []; }
