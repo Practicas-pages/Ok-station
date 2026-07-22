@@ -209,7 +209,9 @@ final class Payments
      * El estado y el monto son los del SERVIDOR; ignora cualquier dato del cliente.
      * Idempotente: si ya está 'pagado', no hace nada y devuelve true.
      */
-    public static function finalize(int $entityId, string $newStatus, ?string $transactionId, string $source, ?int $userId, string $kind = 'order'): bool
+    /* $paidAmount: importe que el PROVEEDOR dice haber cobrado. Cuando viene, se exige
+       que cuadre con lo que se pidió cobrar antes de marcar 'pagado'. */
+    public static function finalize(int $entityId, string $newStatus, ?string $transactionId, string $source, ?int $userId, string $kind = 'order', ?float $paidAmount = null): bool
     {
         if (!in_array($newStatus, self::STATUSES, true)) return false;
 
@@ -240,6 +242,23 @@ final class Payments
                 'payment_status'         => $newStatus,
                 'payment_transaction_id' => $transactionId ?: $row['payment_transaction_id'],
             ];
+            /* ── Verificación de IMPORTE (es dinero: no basta el estado) ──
+               Se compara lo que el proveedor dice haber cobrado contra lo que se pidió
+               cobrar (el importe congelado en la intención; si no hay, el total actual).
+               Si NO cuadra, la compra NO se da por pagada: se registra como anomalía para
+               revisarla a mano. Tolerancia de 1 centavo por redondeos del proveedor. */
+            if ($newStatus === 'pagado' && $paidAmount !== null) {
+                $esperado = round((float) ($row['payment_amount'] ?? 0), 2);
+                if ($esperado <= 0) $esperado = round((float) $row[$amountCol], 2);
+                if ($esperado > 0 && abs($esperado - round($paidAmount, 2)) > 0.01) {
+                    $pdo->rollBack();
+                    self::log($entityId, $prev, 'error', self::provider(), $transactionId, null,
+                        round($paidAmount, 2), $source, $userId,
+                        ['motivo' => 'importe_no_coincide', 'esperado' => $esperado, 'cobrado' => round($paidAmount, 2)],
+                        $kind);
+                    return false;
+                }
+            }
             if ($newStatus === 'pagado') {
                 $data['payment_date'] = date('Y-m-d H:i:s');
                 // Congela el importe REALMENTE cobrado (el de la intención, guardado en
@@ -530,6 +549,11 @@ final class Payments
             'id'            => (string) ($json['id'] ?? ''),
             'status'        => (string) $json['status'],
             'status_detail' => (string) ($json['status_detail'] ?? ''),
+            /* Lo que MP dice haber cobrado: finalize() lo cuadra contra lo que se pidió.
+               Debería coincidir siempre (el importe lo mandamos nosotros desde la BD),
+               y justo por eso una diferencia significa que algo anda mal y no debe
+               darse por pagado en silencio. */
+            'amount'        => isset($json['transaction_amount']) ? round((float) $json['transaction_amount'], 2) : null,
         ];
     }
 
@@ -705,6 +729,10 @@ final class Payments
             'order_ref'      => (string) ($pay['external_reference'] ?? ''),
             'transaction_id' => (string) ($pay['id'] ?? $payId),
             'status'         => self::mpMapStatus((string) $pay['status']),
+            /* Lo REALMENTE cobrado, según la API del proveedor. finalize() lo compara
+               contra lo que se pidió cobrar antes de dar por pagado el pedido: es dinero,
+               y confirmar por el estado sin mirar el importe es confiar de más. */
+            'amount'         => isset($pay['transaction_amount']) ? round((float) $pay['transaction_amount'], 2) : null,
         ];
     }
 

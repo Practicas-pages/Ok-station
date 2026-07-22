@@ -263,3 +263,18 @@ html[data-theme="dark"] :is(.tb-acctmenu a:hover, .tb-acctmenu button:hover, .sh
 .shopbar__ac-img .ph-logo,
 .sb-ci__t .ph-logo,
 .sb-wi__t .ph-logo { padding: 8px; opacity: .9; }
+
+/* Los tokens propios de la barra (--sb-ink, --sb-muted, --sb-line, --sb-paper) se
+   declaran en .shopbar con valores CLAROS fijos, así que en oscuro el nombre del
+   cliente y los enlaces del menú quedaban casi invisibles. Redefinirlos aquí
+   arregla de una vez el encabezado, los enlaces y sus separadores.
+   La MARCA (azul, cian, ámbar y los degradados) no se toca: ya funciona en oscuro. */
+html[data-theme="dark"] .shopbar {
+  --sb-line: #26314A;
+  --sb-muted: #8A94AB;
+  --sb-paper: #1B2338;
+  --sb-ink: #E9EDF6;
+}
+/* "Cerrar sesión" en rojo, igual que en el menú del home. */
+html[data-theme="dark"] .shopbar .tb-acctlogout,
+.shopbar .tb-acctlogout { color: var(--color-error, #DC2626); font-weight: 600; }

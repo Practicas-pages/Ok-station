@@ -133,7 +133,9 @@ try {
 }
 
 $status = Payments::mpMapStatus($pay['status']);
-Payments::finalize((int) $entity['id'], $status, $pay['id'] ?: null, 'cliente', (int) $user['id'], $kind);
+Payments::finalize((int) $entity['id'], $status, $pay['id'] ?: null, 'cliente', (int) $user['id'], $kind,
+    // Importe que MP reporta haber cobrado: si no cuadra con lo pedido, no se da por pagado.
+    isset($pay['amount']) ? $pay['amount'] : null);
 
 /* Anti card-testing: un rechazo suma intento fallido; SOLO un pago APROBADO limpia el
    contador. Un 'procesando'/3DS no debe servir para resetear (evita amortizar pruebas

@@ -54,7 +54,10 @@ $ok = Payments::finalize(
     $event['transaction_id'] ?? null,
     'webhook',
     null,
-    $kind
+    $kind,
+    // Importe realmente cobrado según el proveedor: finalize() no da por pagado
+    // un pedido si no cuadra con lo que se pidió cobrar.
+    isset($event['amount']) ? $event['amount'] : null
 );
 
 respond(['ok' => (bool) $ok]);

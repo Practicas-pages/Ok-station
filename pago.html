@@ -344,7 +344,14 @@
           var builder = mp.bricks();
           builder.create("cardPayment", "mp-brick", {
             initialization: { amount: S.amount },
-            customization: { paymentMethods: { maxInstallments: 12 } },
+            /* El interior del Brick lo pinta el SDK de Mercado Pago, no nuestro CSS:
+               por eso se le pasa SU tema. Sin esto quedaba una tarjeta blanca con
+               algunos campos en oscuro (los que MP renderiza como DOM normal y sí
+               alcanzaba nuestra regla global de inputs) — se veía a medio pintar. */
+            customization: {
+              paymentMethods: { maxInstallments: 12 },
+              visual: { theme: document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "default" }
+            },
             callbacks: {
               onReady: function () { var l = $("mp-brick-loader"); if (l) l.remove(); },
               onSubmit: function (formData) {

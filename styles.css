@@ -6890,3 +6890,15 @@ html[data-theme="dark"] #faq .faq-item { background: var(--surface-card) !import
 html[data-theme="dark"] .citas-section .qty-btn {
   background: #101827 !important; border: 1px solid var(--border-light) !important; color: var(--text-primary) !important;
 }
+
+/* El formulario de pago de Mercado Pago (#mp-brick) lo pinta SU SDK con su propio
+   tema (ver pago.html). Se le devuelven los estilos nativos para que no quede a
+   medio pintar: media tarjeta blanca con los campos en oscuro.
+   Va como regla APARTE y no como :not() dentro del selector global: un :not() con
+   selector complejo que un navegador no entienda descartaría TODA la regla y
+   dejaría sin tema oscuro a los inputs de TODO el sitio. */
+html[data-theme="dark"] #mp-brick :is(input, select, textarea) {
+  background: revert;
+  color: revert;
+  border-color: revert;
+}
