@@ -177,6 +177,20 @@ img, video, svg {
   display: block;
 }
 
+/* Red de seguridad para los íconos SVG en línea.
+   Un <svg> sin atributos width/height no mide 24px: mide 300x150 por defecto y,
+   con el max-width:100% de arriba, se estira hasta el ancho de su contenedor
+   (así salía el sobre del correo ocupando toda la pantalla). Aquí se le da una
+   medida sensata por si su regla propia no llega a aplicarse.
+   Va dentro de :where() para que su especificidad sea 0: cualquier regla con
+   clase (.btn svg, .header-bar__social svg, etc.) la sigue ganando, así que no
+   altera ningún tamaño intencional. */
+svg:where(:not([width]):not([height])) {
+  width: 1.25em;
+  height: 1.25em;
+  flex-shrink: 0;
+}
+
 a {
   color: inherit;
   text-decoration: none;
@@ -759,15 +773,30 @@ h1, h2, h3, h4, h5, h6 {
   box-shadow: 0 3px 8px rgba(255, 124, 25, .4);
 }
 
+/* Justo por encima del menú hamburguesa (1201-1320px) el nav completo va muy
+   justo: se recorta la separación y se quita el globo "Nuevo" para que entre
+   sin desbordarse. */
+@media (max-width: 1320px) {
+  .nav { gap: var(--space-4); }
+  .nav__tienda-badge { display: none; }
+}
+
 /* En móvil el header oculta WhatsApp (hay botón flotante), así que sí cabe Tienda.
-   Se ahorra ancho ocultando el badge; en pantallas muy chicas queda solo el ícono. */
+   Se ahorra ancho ocultando el badge; en pantallas chicas queda solo el ícono. */
 @media (max-width: 768px) {
   .nav__tienda { padding: 9px 12px; }
   .nav__tienda-badge { display: none; }
 }
-@media (max-width: 380px) {
+
+/* La barra se desbordaba en celular: hasta 380px se ocultaba la etiqueta, pero un
+   teléfono normal mide 390-430px, así que "Compra rápida" y "Tienda" salían con
+   texto completo y, junto al logo + Cuenta + hamburguesa, empujaban el contenido
+   ~63px fuera de la pantalla. Debajo de 560px los dos botones quedan solo con su
+   ícono, que es lo que sí cabe. */
+@media (max-width: 560px) {
   .nav__tienda-label { display: none; }
-  .nav__tienda { padding: 9px 10px; }
+  .nav__tienda,
+  .nav__rapida { padding: 9px 10px; }
 }
 
 .nav__tel {
@@ -3520,54 +3549,8 @@ a.info-card:hover { border-color: var(--brand-blue); }
     --header-height: 68px;
   }
 
-  /* Nav móvil */
-  .nav__links {
-    position: fixed;
-    top: var(--header-height);
-    left: 0;
-    right: 0;
-    background: rgba(255,255,255,0.97);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    flex-direction: column;
-    align-items: stretch;
-    /* Sin padding-top: el primer link queda pegado al borde inferior del
-       header, evitando la banda blanca ("vacío") arriba del menú. */
-    padding: var(--space-1) var(--space-5) var(--space-6);
-    gap: var(--space-1);
-    border-bottom: 1px solid var(--border-light);
-    box-shadow: var(--shadow-lg);
-    transform: translateY(-8px);
-    opacity: 0;
-    pointer-events: none;
-    transition:
-      transform var(--transition-base),
-      opacity var(--transition-base);
-    z-index: 99;
-  }
-
-  .nav__links.is-open {
-    transform: translateY(0);
-    opacity: 1;
-    pointer-events: auto;
-  }
-
-  .nav__link {
-    padding: 13px 16px;
-    border-radius: var(--radius-sm);
-    font-size: 0.9375rem;
-  }
-
-  .nav__toggle {
-    display: flex;
-  }
-
-  /* En celular: ocultar tel y el botón WhatsApp del header (ya existe el botón
-     flotante verde). Así la hamburguesa queda despejada y sin amontonarse. */
-  .nav__tel,
-  .nav__actions .btn--wa {
-    display: none;
-  }
+  /* El nav móvil (panel + hamburguesa) ya no vive aquí: pasó a su propio bloque
+     de 1024px, porque en tablet tampoco cabía. Ver "NAV: menú hamburguesa". */
 
   /* ── Barra superior en celular ──
      Se oculta el lema largo y se muestran accesos rápidos (izquierda) + redes
@@ -3621,6 +3604,22 @@ a.info-card:hover { border-color: var(--brand-blue); }
   .nav { gap: var(--space-3); }
   .logo { font-size: 1.25rem; }
   .nav__actions { gap: var(--space-2); }
+
+  /* Ninguna de las tres zonas puede crecer más que su contenido ni negarse a
+     encogerse: sin min-width:0 un hijo flex nunca baja de su tamaño natural y
+     es lo que terminaba empujando la barra fuera de la pantalla. */
+  .nav { flex-wrap: nowrap; min-width: 0; }
+  .nav__actions { flex: 0 0 auto; min-width: 0; }
+
+  /* El logo cede ancho antes que los botones (son los que se pueden tocar). */
+  .logo { flex: 0 1 auto; min-width: 0; }
+  .logo__img { width: auto; max-width: 100%; height: 22px; }
+
+  /* "Cuenta" queda solo con su ícono; el botón sigue midiendo ≥44px de alto. */
+  .acct__label { display: none; }
+  .acct .btn--sm { padding: 9px 11px; }
+  /* Sesión iniciada: basta el avatar, el nombre se va (ahorra ~70px). */
+  .acct__name { display: none; }
 
   /* Área táctil mínima recomendada (≥44px) en enlaces de texto de las tarjetas. */
   .service-link { min-height: 44px; }
@@ -3738,6 +3737,62 @@ a.info-card:hover { border-color: var(--brand-blue); }
 }
 
 /* ── LG: 1024px ── */
+/* ── NAV: menú hamburguesa ──
+   Antes la hamburguesa aparecía solo por debajo de 768px, pero el nav de
+   escritorio (logo + 4 enlaces + Compra rápida + Tienda + Cuenta + WhatsApp)
+   necesita ~1230px para caber. Todo el rango intermedio se salía de la pantalla:
+   ~475px de desborde en una tablet de 800px y ~193px en una de 1045px. El cambio
+   a menú ocurre ahora en 1200px, que es donde el nav completo deja de caber. */
+@media (max-width: 1200px) {
+  .nav__links {
+    position: fixed;
+    top: var(--header-height);
+    left: 0;
+    right: 0;
+    background: rgba(255,255,255,0.97);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    flex-direction: column;
+    align-items: stretch;
+    /* Sin padding-top: el primer link queda pegado al borde inferior del
+       header, evitando la banda blanca ("vacío") arriba del menú. */
+    padding: var(--space-1) var(--space-5) var(--space-6);
+    gap: var(--space-1);
+    border-bottom: 1px solid var(--border-light);
+    box-shadow: var(--shadow-lg);
+    transform: translateY(-8px);
+    opacity: 0;
+    pointer-events: none;
+    transition:
+      transform var(--transition-base),
+      opacity var(--transition-base);
+    z-index: 99;
+  }
+
+  .nav__links.is-open {
+    transform: translateY(0);
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .nav__link {
+    padding: 13px 16px;
+    border-radius: var(--radius-sm);
+    font-size: 0.9375rem;
+  }
+
+  .nav__toggle {
+    display: flex;
+  }
+
+  /* Se ocultan tel y WhatsApp del header (ya existe el botón flotante verde).
+     Así la hamburguesa queda despejada y sin amontonarse. */
+  .nav__tel,
+  .nav__actions .btn--wa {
+    display: none;
+  }
+}
+
 @media (max-width: 1024px) {
   .services-grid {
     grid-template-columns: repeat(2, 1fr);
