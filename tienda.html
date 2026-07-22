@@ -956,6 +956,12 @@ html[data-theme="dark"] #site :is(.field input,.field select,.field textarea,.mo
 /* El botón de tema en el topbar de degradado: fantasma blanco, como sus vecinos. */
 #site .tb-actions .theme-toggle{width:40px; height:40px; border:1.5px solid rgba(255,255,255,.55); background:transparent; color:#fff}
 #site .tb-actions .theme-toggle:hover{background:rgba(255,255,255,.14); border-color:#fff; color:#fff}
+/* Corazones de las tarjetas: en oscuro pasan a fantasma noche (60 circulitos
+   blancos gritaban en el censo). Con !important porque heartBtn() los pinta con
+   ESTILO EN LÍNEA (style="background:#fff…") y ningún selector normal le gana. */
+html[data-theme="dark"] #site .wishbtn{background:#101827 !important; border-color:var(--line) !important}
+/* Botón ACTIVO del selector lista/cuadros: tinte azul-noche en vez de blanco. */
+html[data-theme="dark"] #site .viewtoggle button.on{background:#10233E; color:#3E8BFF}
 </style>
 
 <div class="header-bar">
