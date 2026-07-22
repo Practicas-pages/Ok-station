@@ -435,6 +435,28 @@ html[data-theme="dark"] :is(.td-fopt,.td-fsearch,.td-fbsearch){background:#10182
 html[data-theme="dark"] .td-filtbtn{background:var(--surface-card,#171F31) !important; color:var(--text-primary,#E9EDF6) !important; border-color:var(--border-light,#26314A) !important}
 html[data-theme="dark"] :is(.tdpv-card,.tdpv-save,.tdpv-sideh){background:var(--surface-card,#171F31); color:var(--text-primary,#E9EDF6)}
 html[data-theme="dark"] .tdpv-specs{border-color:var(--border-light,#26314A)}
+
+/* ── Ronda 3: lo que quedaba ilegible ──────────────────────────────────────
+   1) --ink y --muted NUNCA se declaran en esta hoja: sus 11 y 25 usos caían
+      siempre al fallback CLARO (#111), así que en oscuro el nombre y el precio
+      de cada producto quedaban texto oscuro sobre fila oscura. Definirlas aquí
+      arregla los 36 usos de una sola vez. */
+html[data-theme="dark"] body{ --ink:#E9EDF6; --muted:#8A94AB; --line:#26314A }
+
+/* 2) Los paneles laterales de la vista previa (los agregué con #fff a mano). */
+html[data-theme="dark"] .tdpv-side{ background:var(--surface-card,#171F31); box-shadow:0 26px 74px rgba(0,0,0,.6) }
+html[data-theme="dark"] .tdpv-sideb{ color:var(--text-secondary,#B6BFD3) }
+html[data-theme="dark"] .tdpv-sideh{ border-bottom-color:var(--border-light,#26314A) }
+/* Las cajas de preguntas frecuentes eran un gris casi blanco. */
+html[data-theme="dark"] .tdpv-sideb .mfaq{ background:#101827; border-color:var(--border-light,#26314A) }
+html[data-theme="dark"] .tdpv-sideb .mfaq b{ color:var(--text-primary,#E9EDF6) }
+html[data-theme="dark"] .tdpv-sideb .mfaq span{ color:var(--text-secondary,#B6BFD3) }
+
+/* 3) El botón de enviar al carrito cuando está deshabilitado se veía gris claro. */
+html[data-theme="dark"] .td-go:disabled{ background:#232D46; color:#67708A }
+
+/* La MINIATURA del producto conserva su fondo claro a propósito: las fotos
+   vienen recortadas sobre blanco y sobre oscuro salen con un halo. */
 </style>
 </head>
 <body>

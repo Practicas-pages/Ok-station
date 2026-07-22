@@ -237,3 +237,21 @@
 .sb-wi__heart svg { width: 18px; height: 18px; fill: #e11d48; stroke: #e11d48; }
 
 html.sb-lock, html.sb-lock body { overflow: hidden; }
+
+
+/* ══ MODO OSCURO — html[data-theme="dark"] ══════════════════════════════════
+   Mismo defecto que el resto: superficies con #fff a mano y texto por token.
+   El menú de la cuenta (.tb-acctmenu) era el más visible: se veía como una
+   tarjeta blanca con los enlaces casi borrados. */
+html[data-theme="dark"] :is(.sb-panel, .sb-modal, .shopbar__ac, .tb-acctmenu) {
+  background: var(--surface-card);
+  border-color: var(--border-light);
+  color: var(--text-primary);
+}
+html[data-theme="dark"] .sb-panel   { box-shadow: -18px 0 50px rgba(0,0,0,.55); }
+html[data-theme="dark"] :is(.sb-modal, .shopbar__ac, .tb-acctmenu) { box-shadow: 0 22px 60px rgba(0,0,0,.55); }
+/* Enlaces del menú de cuenta y filas del autocompletado. */
+html[data-theme="dark"] :is(.tb-acctmenu a, .tb-acctmenu button) { color: var(--text-primary); }
+html[data-theme="dark"] :is(.tb-acctmenu a:hover, .tb-acctmenu button:hover, .shopbar__ac-item:hover) {
+  background: var(--brand-blue-light);
+}

@@ -937,7 +937,18 @@ html.q-lock, html.q-lock body{overflow:hidden}
    degradado es el mismo en los dos temas. */
 html[data-theme="dark"] #site{
   --paper:#0F1524; --card:#171F31; --ink:#E9EDF6; --muted:#8A94AB; --line:#26314A;
+  /* --soft alimenta las cajas de preguntas (.mfaq) y varios fondos suaves; sin
+     declararlo aquí caía a su fallback CLARO (#F4F6FD) y quedaban parches blancos. */
+  --soft:#101827;
 }
+/* El encabezado PEGAJOSO de los paneles laterales de la vista previa traía #fff a
+   mano (no entra por --card), así que "Descripción" y "Ficha técnica" quedaban
+   como una franja blanca con el título encima, ilegible. */
+html[data-theme="dark"] #site .pvside .pvhead{background:var(--card); border-bottom-color:var(--line)}
+html[data-theme="dark"] #site .mfaq b{color:var(--ink)}
+html[data-theme="dark"] #site .mfaq span{color:var(--muted)}
+/* Barra de scroll de los paneles: el pulgar claro resaltaba como una línea blanca. */
+html[data-theme="dark"] #site :is(.pvside,#prodModal)::-webkit-scrollbar-thumb{background:#2E3A55; border-color:var(--card)}
 html[data-theme="dark"] #site :is(.modal,.drawer,.fdraw,.tb-acctmenu,.tb-filt,.ac,.mh,.dlist,.addr,.ci,.comail-opt,.descmore,.pvside,.field,.faq,.trustbar,.paincard,.fcard,.ctile,.featnav,.viewtoggle,.quick,.siteheader){background:var(--card); color:var(--ink)}
 html[data-theme="dark"] #site :is(.btn-w,.btnlight,.hb-ghost,.fclear){background:var(--card); color:var(--ink); border-color:var(--line)}
 /* Inputs de formularios (checkout/dirección): fondo noche, texto claro. */

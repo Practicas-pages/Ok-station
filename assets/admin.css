@@ -335,3 +335,37 @@
 .pwd-modal__panel input:focus { outline: none; border-color: var(--brand-blue, #066CFF); }
 .pwd-modal__msg { min-height: 18px; font-size: 0.82rem; font-weight: 600; margin: 8px 0 0; }
 .pwd-modal__actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 14px; }
+
+
+/* ══════════════════════════════════════════════════════════════════════════
+   MODO OSCURO — html[data-theme="dark"] (assets/theme.js)
+   --------------------------------------------------------------------------
+   El panel era el peor caso del sitio: los TÍTULOS usan var(--text-primary)
+   (que en oscuro se vuelve claro) pero las TARJETAS traían background:#fff a
+   mano. Resultado: texto claro sobre blanco = títulos invisibles.
+   Aquí se oscurecen esas superficies para que el token de texto vuelva a tener
+   contraste. Los colores de estado (verde/ámbar/rojo) no se tocan: ya se leen.
+   ══════════════════════════════════════════════════════════════════════════ */
+html[data-theme="dark"] :is(.admin-card, .stat-card, .admin-sidebar, .pwd-modal__panel) {
+  background: var(--surface-card);
+  border-color: var(--border-light);
+}
+html[data-theme="dark"] .admin-sidebar { border-right-color: var(--border-light); }
+html[data-theme="dark"] :is(.admin-card, .stat-card) { box-shadow: 0 10px 30px rgba(0,0,0,.42); }
+html[data-theme="dark"] .pwd-modal__panel { box-shadow: 0 30px 80px rgba(0,0,0,.62); }
+
+/* Encabezado de tabla y celdas: el gris casi-blanco quedaba como una franja clara. */
+html[data-theme="dark"] .admin-table th { background: var(--surface-page); color: var(--text-secondary); }
+html[data-theme="dark"] .admin-table td { background: transparent; border-bottom-color: var(--border-light); }
+html[data-theme="dark"] .admin-table tr:hover td { background: rgba(255,255,255,.03); }
+
+/* Controles de la barra: buscador, fecha y botones chicos. */
+html[data-theme="dark"] :is(.admin-search, .admin-date, .admin-btn-sm, .admin-burger) {
+  background: var(--surface-page);
+  border-color: var(--border-medium);
+  color: var(--text-primary);
+}
+html[data-theme="dark"] .admin-search::placeholder { color: var(--text-faint); }
+
+/* La vista previa de documentos se queda CLARA a propósito: son escaneos y actas
+   sobre papel blanco; invertirlos los haría ilegibles. */

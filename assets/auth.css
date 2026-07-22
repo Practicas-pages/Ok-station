@@ -223,3 +223,7 @@
      .auth-field input ganaba en especificidad al arreglo global de styles.css. */
   .auth-field input, .auth-field select, .auth-field textarea { font-size: 16px; }
 }
+
+
+/* ══ MODO OSCURO — html[data-theme="dark"] ══════════════════════════════════ */
+html[data-theme="dark"] .auth-alert--error { background: rgba(220,38,38,.14); border-color: #7A2233; color: #FCA5A5; }
