@@ -221,6 +221,18 @@
        permisos (staff con shop.view ve cualquiera) y le oculta los importes al
        empleado — no hay que repetir esas reglas aquí. */
     shopOrderDetail: function (id) { return apiGet("/shop/get.php?id=" + encodeURIComponent(id)); },
+    /* ── Catálogo de productos (SOLO LECTURA) ──
+       Devuelve el JSON completo, no solo `products`: la vista también necesita el
+       resumen del catálogo (stats) y las categorías reales para el filtro. */
+    catalog: function (f) {
+      f = f || {};
+      if (DEMO) return Promise.resolve({ ok: true, products: [], stats: {}, categories: [] });
+      var p = [];
+      if (f.q)        p.push("q=" + encodeURIComponent(f.q));
+      if (f.category) p.push("category=" + encodeURIComponent(f.category));
+      if (f.images)   p.push("images=" + encodeURIComponent(f.images));
+      return apiGet("/admin/catalog.php" + (p.length ? "?" + p.join("&") : ""));
+    },
     orderDetail: function (id) {
       if (DEMO) { var o = (MOCK.orders || []).find(function (x) { return String(x.id || x.code) === String(id); }); return Promise.resolve(o ? { ok: true, order: o } : { ok: false }); }
       return apiGet("/orders/get.php?id=" + encodeURIComponent(id));
@@ -1658,9 +1670,110 @@
   }
 
   /* ============================================================
+     CATÁLOGO — productos de la tienda y estado de sus imágenes
+     ============================================================ */
+  var catalogSearch = "", catalogImages = "", catalogCategory = "", catalogCatsLoaded = false;
+
+  /* Semáforo de fotos. Se muestran DOS datos porque NO son lo mismo:
+       images        → fotos registradas
+       images_stored → fotos ya descargadas a nuestro servidor
+     La tienda resuelve la foto con COALESCE(stored_path, url) (ver ShopProduct.php),
+     así que un producto con 0 descargadas se ve bien HOY pero se sirve desde Icecat:
+     si Icecat bloquea el enlace directo o se cae, ese producto queda sin foto. */
+  function catalogImagesCell(p) {
+    var n = p.images, local = p.images_stored;
+    var tone = n === 0 ? "cancelado" : (n < 3 ? "pendiente" : "listo");
+    var note = n === 0 ? "sin fotos"
+             : (local === 0 ? "ninguna local" : (local < n ? local + " locales" : "todas locales"));
+    return '<td><span class="badge badge--' + tone + '">' + n + '/5</span>' +
+      '<div class="catalog-note' + (n > 0 && local === 0 ? " is-warn" : "") + '">' + note + '</div></td>';
+  }
+
+  function renderCatalog() {
+    var head = '<thead><tr><th>Producto</th><th>Marca</th><th>Categoría</th><th>Imágenes</th>' +
+      '<th>Stock</th><th>Precio</th><th>Estado</th></tr></thead>';
+    var t = $("#catalog-table");
+    if (!t) return;
+    t.innerHTML = head + '<tbody><tr><td colspan="7" class="catalog-empty">Cargando catálogo…</td></tr></tbody>';
+
+    DataSource.catalog({ q: catalogSearch.trim(), category: catalogCategory, images: catalogImages })
+      .then(function (j) {
+        var list = (j && j.products) || [];
+        var s = (j && j.stats) || {};
+
+        /* El resumen es del catálogo COMPLETO, no del filtro: si cambiara al buscar,
+           dejaría de servir como termómetro general. */
+        var stats = $("#catalog-stats");
+        if (stats) stats.innerHTML =
+          reportStat("Productos", s.total || 0) +
+          reportStat("Sin fotos", s.sin_imagenes || 0) +
+          reportStat("Pocas (1-2)", s.pocas || 0) +
+          reportStat("Completas (3+)", s.ok || 0) +
+          reportStat("Sin descargar", s.sin_descargar || 0);
+
+        /* Aviso en el menú lateral: productos que todavía necesitan fotos. */
+        var navBadge = $("#nav-catalogo-count");
+        if (navBadge) {
+          var pend = (s.sin_imagenes || 0) + (s.pocas || 0);
+          navBadge.textContent = pend;
+          navBadge.hidden = !pend;
+        }
+
+        /* Las categorías se llenan UNA sola vez: vienen del catálogo entero. Si se
+           recargaran en cada filtro, al elegir una categoría el select se quedaría
+           solo con esa y ya no podrías volver a las demás. */
+        if (!catalogCatsLoaded && j && j.categories && j.categories.length) {
+          var sel = $("#catalog-category");
+          if (sel) {
+            sel.innerHTML = '<option value="">Todas</option>' + j.categories.map(function (c) {
+              return '<option value="' + esc(c.category) + '">' + esc(c.category) + " (" + c.n + ")</option>";
+            }).join("");
+            catalogCatsLoaded = true;
+          }
+        }
+
+        if (!list.length) {
+          t.innerHTML = head + '<tbody><tr><td colspan="7" class="catalog-empty">No hay productos que coincidan con el filtro.</td></tr></tbody>';
+          return;
+        }
+
+        var body = list.map(function (p) {
+          var thumb = p.thumb
+            ? '<img class="catalog-thumb" src="' + esc(p.thumb) + '" alt="" loading="lazy">'
+            : '<span class="catalog-thumb catalog-thumb--empty" aria-hidden="true"></span>';
+          var ref = p.sku || p.supplier_ref || "";
+          return '<tr>' +
+            '<td><div class="catalog-prod">' + thumb + '<div><b>' + esc(p.name) + '</b>' +
+              (ref ? '<div class="catalog-note">' + esc(ref) + '</div>' : '') + '</div></div></td>' +
+            '<td>' + esc(p.brand || "—") + '</td>' +
+            '<td>' + esc(p.category || "—") +
+              (p.subcategory ? '<div class="catalog-note">' + esc(p.subcategory) + '</div>' : '') + '</td>' +
+            catalogImagesCell(p) +
+            '<td>' + p.stock + '</td>' +
+            '<td>' + mxn(Number(p.price) || 0) + '</td>' +
+            '<td><span class="badge badge--' + (p.is_active ? "listo" : "oculta") + '">' +
+              (p.is_active ? "Publicado" : "Oculto") + '</span></td>' +
+            '</tr>';
+        }).join("");
+
+        /* Se avisa cuando la lista viene topada: sin esto, el panel se vería
+           "completo" mostrando solo una parte del catálogo. */
+        var capped = (j.count && j.limit && j.count >= j.limit)
+          ? '<tr><td colspan="7" class="catalog-empty">Mostrando los primeros ' + j.limit +
+            ' productos. Acota con la búsqueda o los filtros para ver el resto.</td></tr>'
+          : '';
+
+        t.innerHTML = head + '<tbody>' + body + capped + '</tbody>';
+      })
+      .catch(function () {
+        t.innerHTML = head + '<tbody><tr><td colspan="7" class="catalog-empty">No se pudo cargar el catálogo.</td></tr></tbody>';
+      });
+  }
+
+  /* ============================================================
      NAVEGACIÓN ENTRE VISTAS
      ============================================================ */
-  var TITLES = { dashboard: "Dashboard", pedidos: "Pedidos", tienda: "Tienda", citas: "Citas", usuarios: "Usuarios", resenas: "Reseñas", reportes: "Reportes", precios: "Precios" };
+  var TITLES = { dashboard: "Dashboard", pedidos: "Pedidos", tienda: "Tienda", catalogo: "Catálogo", citas: "Citas", usuarios: "Usuarios", resenas: "Reseñas", reportes: "Reportes", precios: "Precios" };
   var rendered = {};
   function showView(view) {
     /* Blindaje: el empleado puro no entra a Usuarios ni Reportes aunque fuerce la URL/nav. */
@@ -1673,6 +1786,7 @@
     if (!rendered[view]) {
       if (view === "pedidos") renderOrdersTable();
       if (view === "tienda") renderShopTable();
+      if (view === "catalogo") renderCatalog();
       if (view === "citas") renderAppointments("");
       if (view === "usuarios") renderUsers();
       if (view === "resenas") renderReviews();
@@ -1840,6 +1954,33 @@
     if (shopSearchEl) shopSearchEl.addEventListener("input", function () {
       shopSearch = shopSearchEl.value;
       renderShopTable();
+    });
+
+    /* Filtros del CATÁLOGO */
+    $$("#catalog-filters .chip").forEach(function (c) {
+      c.addEventListener("click", function () {
+        $$("#catalog-filters .chip").forEach(function (x) { x.classList.remove("is-selected"); });
+        c.classList.add("is-selected");
+        catalogImages = c.dataset.images || "";
+        renderCatalog();
+      });
+    });
+    var catalogSearchEl = $("#catalog-search");
+    if (catalogSearchEl) {
+      /* El catálogo filtra en el SERVIDOR (puede crecer a miles de productos, no se
+         puede traer completo al navegador). Por eso se espera a que el usuario deje
+         de teclear: sin esta pausa, escribir "cuaderno" dispararía 8 consultas. */
+      var catalogTimer = null;
+      catalogSearchEl.addEventListener("input", function () {
+        catalogSearch = catalogSearchEl.value;
+        clearTimeout(catalogTimer);
+        catalogTimer = setTimeout(renderCatalog, 250);
+      });
+    }
+    var catalogCatEl = $("#catalog-category");
+    if (catalogCatEl) catalogCatEl.addEventListener("change", function () {
+      catalogCategory = catalogCatEl.value;
+      renderCatalog();
     });
 
     var apptStatus = "", apptDate = "";

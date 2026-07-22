@@ -185,13 +185,15 @@
 
 /* Selector de estado dentro de la tabla */
 .status-select,
-.role-select {
+.role-select,
+.catalog-select {
   font-family: inherit; font-size: 0.78rem; font-weight: 600;
   padding: 6px 10px; border-radius: var(--radius-sm);
   border: 1.5px solid var(--border-light); background: #fff; color: var(--text-primary); cursor: pointer;
 }
 .status-select:focus-visible,
-.role-select:focus-visible { outline: 2px solid var(--brand-blue); }
+.role-select:focus-visible,
+.catalog-select:focus-visible { outline: 2px solid var(--brand-blue); }
 .role-select:disabled { opacity: 0.6; cursor: not-allowed; }
 
 .admin-btn-sm { font-size: 0.76rem; font-weight: 600; padding: 6px 12px; border-radius: var(--radius-sm); border: 1px solid var(--border-light); background: #fff; color: var(--text-secondary); cursor: pointer; transition: all var(--transition-fast); }
@@ -205,6 +207,23 @@
 .admin-search { margin-left: auto; min-width: 240px; max-width: 320px; padding: 8px 12px; border: 1px solid var(--border, #e5e7eb); border-radius: 8px; font: inherit; color: inherit; background: #fff; }
 .admin-search:focus-visible { outline: 3px solid var(--brand-cyan, #00C6FF); outline-offset: 1px; border-color: var(--brand-blue, #066CFF); }
 .admin-stars { color: #F59E0B; letter-spacing: 1px; }
+
+/* ── Catálogo de productos ── */
+.catalog-prod { display: flex; align-items: center; gap: 10px; }
+/* El nombre sí puede partirse en varias líneas (la tabla es nowrap por defecto):
+   los nombres del proveedor son largos y estirarían la tabla a lo ancho. */
+.catalog-prod b { display: block; white-space: normal; max-width: 340px; line-height: 1.3; }
+.catalog-thumb {
+  width: 38px; height: 38px; flex: none; border-radius: var(--radius-sm);
+  object-fit: contain; background: #fff; border: 1px solid var(--border-light);
+}
+/* Rayado diagonal = "aquí no hay foto", se distingue de una foto blanca que no cargó. */
+.catalog-thumb--empty { display: block; background: repeating-linear-gradient(45deg, #F1F5F9, #F1F5F9 5px, #E2E8F0 5px, #E2E8F0 10px); }
+.catalog-note { font-size: 0.72rem; font-weight: 500; color: var(--text-muted, #6b7280); margin-top: 2px; white-space: normal; }
+.catalog-note.is-warn { color: #B45309; }
+.catalog-empty { text-align: center; color: var(--text-muted, #6b7280); padding: 24px; white-space: normal; }
+/* Aviso ámbar en el menú: productos que todavía necesitan fotos. */
+.admin-nav__badge--warn { background: #FEF3C7; color: #B45309; }
 /* Historial de usuario (modal): chips de servicios y lista de movimientos */
 .service-chips { display: flex; flex-wrap: wrap; gap: 8px; }
 .user-movements { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
