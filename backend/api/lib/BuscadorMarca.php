@@ -45,22 +45,32 @@ final class BuscadorMarca
      */
     public static function marcas(): array
     {
-        return [
-            'FELLOWES' => ['buscar' => 'https://www.fellowes.com/mx/es/search?q={q}',
-                           'dominios' => ['fellowes.com']],
-            'ACCO'     => ['buscar' => 'https://www.accobrands.com.mx/busqueda?q={q}',
-                           'dominios' => ['accobrands.com.mx', 'accobrands.com']],
-            '3M'       => ['buscar' => 'https://www.3m.com.mx/3M/es_MX/p/?Ntt={q}',
-                           'dominios' => ['3m.com.mx', '3m.com', 'multimedia.3m.com']],
-            'XEROX'    => ['buscar' => 'https://www.xerox.com/es-mx/search?text={q}',
-                           'dominios' => ['xerox.com']],
-            'PILOT'    => ['buscar' => 'https://www.pilotpen.com.mx/?s={q}',
-                           'dominios' => ['pilotpen.com.mx']],
-            'ZEBRA'    => ['buscar' => 'https://www.zebrapen.com/?s={q}',
-                           'dominios' => ['zebrapen.com']],
-            'SANFORD'  => ['buscar' => 'https://www.sharpie.com/search?q={q}',
-                           'dominios' => ['sharpie.com', 'newellbrands.com']],
-        ];
+        /* ═══ NINGUNA MARCA ACTIVA HOY, y esto NO es un olvido ═══════════════
+           Se probó contra los sitios reales (22-jul-2026) con productos del
+           catálogo de OK.station. Resultado, marca por marca:
+
+             FELLOWES  su buscador REDIRIGE A LA PORTADA: /mx/es/search?q=… acaba
+                       en /us/en. La URL no existe. Cero JSON-LD, cero og:image.
+             ACCO      ni accobrands.com.mx ni acco.com.mx resuelven. El sitio
+                       corporativo accobrands.com no tiene fichas de producto.
+             3M        no responde a /3M/es_MX/p/?Ntt= ni a su ruta de búsqueda.
+             XEROX     su robots.txt prohíbe la ruta de búsqueda. Se respeta.
+
+           Sus catálogos se pintan con JavaScript, así que pedir el HTML no
+           devuelve productos por más que se afine el extractor. Dejarlas
+           "activas" costaba ~1.2 s de espera por producto para no encontrar
+           nada, y son ~282 productos de corrido.
+
+           El mecanismo se conserva entero —fetch, robots.txt, filtros, caché y
+           la lista blanca de descarga— porque es correcto y está probado. Para
+           habilitar una marca hay que COMPROBAR ANTES, con este mismo archivo,
+           que su buscador devuelve fichas en el HTML. Agregar una sin probarla
+           solo devuelve adornos de su plantilla, y una foto equivocada publicada
+           es peor que el placeholder de marca.
+
+           Mientras tanto la foto se pone pegándola en el panel (Ctrl+V), que
+           funciona con CUALQUIER marca y no depende de sitios ajenos. */
+        return [];
     }
 
     /** ¿Hay buscador para esta marca? Devuelve su config o null. */

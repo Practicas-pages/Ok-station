@@ -30,26 +30,22 @@
 
   var modal = null, actual = null;   // actual = { id, nombre, marca }
 
-  /* ── Buscadores oficiales por marca ────────────────────────────────────────
-     NO se descarga nada de aquí: se ABRE la búsqueda en otra pestaña para que la
-     persona vea las fotos en el sitio del fabricante y copie la que corresponde.
-     Esa diferencia importa: bajar imágenes de un sitio automáticamente tiene
-     implicaciones de derechos y de robots.txt; abrir una búsqueda no.
-     Las marcas se agregan conforme se comprueba que su buscador sirve. */
-  var BUSCADORES = {
-    "3M":        "https://www.3m.com.mx/3M/es_MX/p/?Ntt=",
-    "FELLOWES":  "https://www.fellowes.com/mx/es/search?q=",
-    "ACCO":      "https://www.accobrands.com.mx/busqueda?q=",
-    "PILOT":     "https://www.pilotpen.com.mx/buscar?q=",
-    "XEROX":     "https://www.xerox.com/es-mx/search?text=",
-    "SANFORD":   "https://www.sharpie.com/search?q=",
-    "ZEBRA":     "https://www.zebrapen.com/?s="
-  };
+  /* ── Ayuda para encontrar la foto ──────────────────────────────────────────
+     Se probaron los buscadores propios de las marcas (Fellowes, ACCO, 3M, Xerox)
+     y ninguno sirve: unos redirigen a su portada, otros no resuelven y otros lo
+     prohíben en su robots.txt. Enlazarlos era mandar al trabajador a un callejón.
 
+     En su lugar, una búsqueda web normal con la marca y la clave. Aquí SÍ es
+     apropiada, y la diferencia con automatizarla es toda: una máquina que elige
+     sola de un buscador acaba publicando la variante equivocada; una persona ve
+     el resultado, reconoce el producto y prefiere la página del fabricante. El
+     buscador solo la lleva; quien decide es ella.
+     Funciona con CUALQUIER marca, incluidas las que no tienen sitio (BACO,
+     NEXTEP, MAPASA…), que es justo donde están la mayoría de los huecos. */
   function urlBusqueda(marca, termino) {
-    var base = BUSCADORES[String(marca || "").toUpperCase().trim()];
-    if (!base) return null;
-    return base + encodeURIComponent(termino);
+    var q = [marca, termino].filter(Boolean).join(" ").trim();
+    if (!q) return null;
+    return "https://duckduckgo.com/?iax=images&ia=images&q=" + encodeURIComponent(q);
   }
 
   /* ── Armazón del diálogo ─────────────────────────────────────────────────── */
@@ -179,13 +175,17 @@
        El enlace al sitio queda solo como salida de emergencia por si ninguna de
        las que trajo es la correcta. */
     var marca = actual.marca || (j && j.producto && j.producto.brand) || "";
-    var urlSitio = urlBusqueda(marca, (j && j.producto && j.producto.sku) || actual.nombre);
-    if (urlSitio) {
-      html += '<div class="fotos-marca-buscar">' +
-              '¿Ninguna es la correcta? <a href="' + esc(urlSitio) + '" target="_blank" rel="noopener">' +
-              'Abrir el sitio de ' + esc(marca) + '</a>' +
-              '<div class="fotos-tip">Copia la imagen (clic derecho → Copiar imagen) y pégala aquí con Ctrl+V.</div></div>';
-    }
+    var clave = (j && j.producto && (j.producto.sku || j.producto.ref)) || "";
+    /* Dos búsquedas porque fallan por motivos distintos: la CLAVE es exacta pero a
+       veces no está indexada en ningún lado, y el NOMBRE encuentra más pero puede
+       traer variantes parecidas. Teniendo las dos a un clic, la persona prueba. */
+    var porClave  = clave ? urlBusqueda(marca, clave) : null;
+    var porNombre = urlBusqueda(marca, actual.nombre);
+    html += '<div class="fotos-marca-buscar"><b>Buscar la foto:</b> ' +
+            (porClave ? '<a href="' + esc(porClave) + '" target="_blank" rel="noopener">por clave (' + esc(clave) + ')</a> · ' : '') +
+            '<a href="' + esc(porNombre) + '" target="_blank" rel="noopener">por nombre</a>' +
+            '<div class="fotos-tip">Abre el resultado, prefiere la página del fabricante, ' +
+            'copia la imagen (clic derecho → Copiar imagen) y pégala aquí con <b>Ctrl+V</b>.</div></div>';
 
     ((j && j.notas) || []).forEach(function (n) {
       html += '<div class="fotos-nota">' + esc(n) + '</div>';
