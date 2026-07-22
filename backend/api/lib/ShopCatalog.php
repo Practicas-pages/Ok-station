@@ -108,6 +108,29 @@ final class ShopCatalog
         return null;
     }
 
+    /**
+     * ¿El id existe en el catálogo, aunque hoy esté OCULTO (is_active = 0)?
+     *
+     * Sirve para una distinción que en el checkout vale dinero: resolve() devuelve
+     * null tanto para un id inventado por el cliente como para un producto REAL que
+     * dejó de publicarse (descontinuado por Exel, o fuera del alcance del catálogo).
+     * Tratarlos igual hacía que un producto retirado se cayera del pedido en
+     * silencio: el cliente creía llevar tres cosas, pagaba dos y nadie le avisaba.
+     * Con esto el checkout puede callar ante la basura y avisar ante lo retirado.
+     */
+    public static function existeAunqueOculto(int $id): bool
+    {
+        try {
+            $st = db()->prepare('SELECT 1 FROM products WHERE id = ? LIMIT 1');
+            $st->execute([$id]);
+            return (bool) $st->fetchColumn();
+        } catch (Throwable $e) {
+            /* Si la tabla no existe todavía, no se puede afirmar que el producto fue
+               retirado. Se responde que no, que deja el comportamiento anterior. */
+            return false;
+        }
+    }
+
     /** Desglose de precio de un producto (para el panel/auditoría del margen). */
     public static function pricingFor(int $id): ?array
     {
