@@ -1532,7 +1532,24 @@ html[data-theme="dark"] #site .viewtoggle button.on{background:#10233E; color:#3
        paginó: si no, diría "12 productos" hasta que hicieras scroll. */
     var total=dbMode?dbTotal:list.length;
     $("catCount").textContent=total+" producto"+(total===1?"":"s");
-    if(!list.length){loops=1; $("grid").innerHTML='<div class="empty">No encontramos productos.</div>'; return;}
+    if(!list.length){loops=1;
+      /* Las marcas elegidas se conservan al cambiar de categoría (a propósito), pero si
+         esa marca no existe aquí el resultado es 0 y la categoría parecía vacía o rota:
+         el globito del botón "Filtros" es demasiado discreto para explicarlo. Aquí se
+         dice cuál es el filtro que está estorbando y se ofrece quitarlo de un toque. */
+      var act=[];
+      if(fBrands.length) act.push(fBrands.length===1?"la marca "+okEsc(fBrands[0]):fBrands.length+" marcas");
+      if(fSubcats.length) act.push(fSubcats.length===1?"el tipo "+okEsc(fSubcats[0]):fSubcats.length+" tipos");
+      if(act.length){
+        $("grid").innerHTML='<div class="empty">'
+          +'<p style="margin:0 0 6px;font-weight:700;color:var(--ink)">Aquí no hay nada con los filtros puestos</p>'
+          +'<p style="margin:0 0 14px">Sigues filtrando por '+act.join(" y ")+'. Los filtros se mantienen al cambiar de categoría.</p>'
+          +'<button type="button" class="maddbtn" id="emptyClear" style="width:auto;padding:11px 20px">Quitar filtros y ver todo</button>'
+          +'</div>';
+      } else {
+        $("grid").innerHTML='<div class="empty">No encontramos productos.</div>';
+      }
+      return;}
     var html=cardsHTML(list);
     for(var i=1;i<loops;i++) html+=loopSep()+cardsHTML(list);   // vueltas ya dadas
     $("grid").innerHTML=html;
@@ -1547,7 +1564,9 @@ html[data-theme="dark"] #site .viewtoggle button.on{background:#10233E; color:#3
     loops++;
     $("grid").insertAdjacentHTML("beforeend", loopSep()+cardsHTML(list));
   }
-  $("grid").addEventListener("click",function(e){var w=e.target.closest("[data-wish]"); if(w){e.stopPropagation(); toggleWishlist(+w.dataset.wish); return;} var a=e.target.closest("[data-add]"); if(a){e.stopPropagation(); addToCart(+a.dataset.add,1); return;} var o=e.target.closest("[data-open]"); if(o){openProduct(+o.dataset.open);}});
+  $("grid").addEventListener("click",function(e){
+    if(e.target.closest("#emptyClear")){ filtClear(); return; }
+    var w=e.target.closest("[data-wish]"); if(w){e.stopPropagation(); toggleWishlist(+w.dataset.wish); return;} var a=e.target.closest("[data-add]"); if(a){e.stopPropagation(); addToCart(+a.dataset.add,1); return;} var o=e.target.closest("[data-open]"); if(o){openProduct(+o.dataset.open);}});
   // ── Autocompletado del buscador ──
   function okEsc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];});}
   function acHi(name,q){var terms=okNorm(q).split(" ").filter(function(x){return x.length>=2;}); if(!terms.length)return okEsc(name); terms.sort(function(a,b){return b.length-a.length;}); var map={a:"[aáàä]",e:"[eéèë]",i:"[iíìï]",o:"[oóòö]",u:"[uúùü]",n:"[nñ]"}; for(var k=0;k<terms.length;k++){var pat=terms[k].replace(/[.*+?^${}()|[\]\\]/g,"\\$&").replace(/[aeioun]/g,function(c){return map[c]||c;}); try{var re=new RegExp(pat,"i"),m=name.match(re); if(m){var idx=m.index; return okEsc(name.slice(0,idx))+"<mark>"+okEsc(m[0])+"</mark>"+okEsc(name.slice(idx+m[0].length));}}catch(e){}} return okEsc(name);}
@@ -1960,6 +1979,10 @@ html[data-theme="dark"] #site .viewtoggle button.on{background:#10233E; color:#3
          muestra el mapa con un pin AJUSTABLE (arrástralo a tu casa y los campos se
          rellenan solos; siempre puedes corregirlos a mano). */
       '<button type="button" class="afgeo" id="afGeo">📍 Usar mi ubicación actual</button>'+
+      /* Aviso de permiso: el navegador pregunta solo la primera vez. Si el cliente ya
+         dijo que no, NO vuelve a preguntar nunca y el botón parecía descompuesto; aquí
+         se le explica dónde reactivarlo. Ver afGeoBox()/afGeoBlocked(). */
+      '<div id="afGeoHelp" hidden></div>'+
       '<div id="afMapWrap" hidden><div id="afMap"></div>'+
         '<p class="desc" style="font-size:.78rem;margin:6px 0 10px">Arrastra el pin a tu puerta para afinar la dirección.</p></div>'+
       '<input type="hidden" id="afLat"><input type="hidden" id="afLon">'+
@@ -2007,18 +2030,76 @@ html[data-theme="dark"] #site .viewtoggle button.on{background:#10233E; color:#3
     s.onload=function(){cb();}; s.onerror=function(){flash("No se pudo cargar el mapa; escribe tu dirección");};
     document.head.appendChild(s);
   }
-  function afGeoStart(){
+  /* Caja de aviso bajo el botón. tono: "info" mientras se pide, "block" si está negado. */
+  function afGeoBox(html,tono){
+    var h=$("afGeoHelp"); if(!h) return;
+    var col = tono==="block"
+      ? "background:#fff4e5;border:1px solid #ffd8a8;color:#7a4100"
+      : "background:#eaf2ff;border:1px solid #c7ddff;color:#0b3d91";
+    h.hidden=false;
+    h.setAttribute("role","status");
+    h.style.cssText="margin:8px 0 12px;padding:11px 13px;border-radius:12px;font-size:.82rem;line-height:1.5;"+col;
+    h.innerHTML=html;
+  }
+  function afGeoHide(){ var h=$("afGeoHelp"); if(h){h.hidden=true; h.innerHTML="";} }
+
+  /* Permiso NEGADO: el navegador ya no vuelve a preguntar, así que el botón por sí solo
+     no puede hacer nada. Se explica dónde se reactiva (que es distinto en cada navegador)
+     y se deja un botón para reintentar sin recargar la página. */
+  function afGeoBlocked(){
+    afGeoBox(
+      '<b>Tu navegador está bloqueando la ubicación</b><br>'+
+      'Le dijiste que no a este sitio, por eso ya no te pregunta. Para reactivarlo:'+
+      '<ul style="margin:7px 0 0;padding-left:18px">'+
+        '<li>En computadora: toca el <b>candado 🔒</b> o el ícono 📍 a la izquierda de la dirección web → <b>Ubicación</b> → <b>Permitir</b>.</li>'+
+        '<li>En Android (Chrome): <b>⋮</b> → <b>Configuración del sitio</b> → <b>Ubicación</b> → <b>Permitir</b>.</li>'+
+        '<li>En iPhone (Safari): <b>Ajustes</b> → <b>Safari</b> → <b>Ubicación</b> → <b>Preguntar</b> o <b>Permitir</b>.</li>'+
+      '</ul>'+
+      '<button type="button" id="afGeoRetry" style="margin-top:10px;padding:8px 14px;border-radius:10px;border:1px solid currentColor;background:#fff;color:inherit;font:inherit;font-weight:600;cursor:pointer">Ya lo permití, reintentar</button>'+
+      '<div style="margin-top:8px;opacity:.85">También puedes escribir tu dirección a mano aquí abajo.</div>',
+      "block");
+    var r=$("afGeoRetry"); if(r) r.addEventListener("click",function(){ afGeoHide(); afGeoStart(true); });
+  }
+
+  /* forzar=true viene del botón "reintentar": salta la consulta de permiso previa
+     (que puede seguir en caché) y pide la ubicación directo. */
+  function afGeoStart(forzar){
     var b=$("afGeo");
     if(!navigator.geolocation){flash("Tu navegador no comparte la ubicación; escribe tu dirección");return;}
-    if(b){b.disabled=true; b.textContent="Obteniendo tu ubicación…";}
-    navigator.geolocation.getCurrentPosition(function(pos){
-      if(b){b.disabled=false; b.textContent="📍 Usar mi ubicación actual";}
-      afShowMap(pos.coords.latitude,pos.coords.longitude);
-      afReverse(pos.coords.latitude,pos.coords.longitude);
-    },function(){
-      if(b){b.disabled=false; b.textContent="📍 Usar mi ubicación actual";}
-      flash("No pudimos leer tu ubicación; escribe tu dirección");
-    },{enableHighAccuracy:true,timeout:10000,maximumAge:60000});
+
+    function pedir(){
+      if(b){b.disabled=true; b.textContent="Obteniendo tu ubicación…";}
+      navigator.geolocation.getCurrentPosition(function(pos){
+        if(b){b.disabled=false; b.textContent="📍 Usar mi ubicación actual";}
+        afGeoHide();
+        afShowMap(pos.coords.latitude,pos.coords.longitude);
+        afReverse(pos.coords.latitude,pos.coords.longitude);
+      },function(err){
+        if(b){b.disabled=false; b.textContent="📍 Usar mi ubicación actual";}
+        /* 1=PERMISSION_DENIED, 2=POSITION_UNAVAILABLE, 3=TIMEOUT: cada uno se
+           resuelve distinto, así que no pueden compartir el mismo aviso. */
+        if(err && err.code===1){ afGeoBlocked(); return; }
+        if(err && err.code===3){
+          afGeoBox('Tu teléfono tardó demasiado en responder. Vuelve a intentarlo o escribe tu dirección a mano.',"info");
+        } else {
+          afGeoBox('No pudimos leer tu ubicación (puede ser la señal del GPS). Escribe tu dirección a mano y listo.',"info");
+        }
+      },{enableHighAccuracy:true,timeout:10000,maximumAge:60000});
+    }
+
+    /* Si el permiso ya está negado, getCurrentPosition falla al instante y sin prompt:
+       más vale decirlo de una vez que fingir que se está buscando. */
+    if(!forzar && navigator.permissions && navigator.permissions.query){
+      navigator.permissions.query({name:"geolocation"}).then(function(st){
+        if(st.state==="denied"){ afGeoBlocked(); return; }
+        /* En "prompt" el navegador va a preguntar: se avisa para que nadie ignore
+           el cuadrito del navegador creyendo que la página se trabó. */
+        if(st.state==="prompt"){ afGeoBox('Tu navegador te va a preguntar si compartes tu ubicación — toca <b>Permitir</b>.',"info"); }
+        pedir();
+      }).catch(pedir);
+      return;
+    }
+    pedir();
   }
   function afShowMap(lat,lon){
     var la=$("afLat"), lo=$("afLon"); if(la)la.value=lat; if(lo)lo.value=lon;
@@ -2278,7 +2359,10 @@ html[data-theme="dark"] #site .viewtoggle button.on{background:#10233E; color:#3
   function show(id){$(id).classList.add("show"); document.documentElement.classList.add("modal-lock");}
   function hide(id){$(id).classList.remove("show"); if(!anyOvOpen())document.documentElement.classList.remove("modal-lock");}
   document.addEventListener("keydown",function(e){if(e.key==="Escape"){var pv=$("prodOv").classList.contains("show");wishReopen=false;hide("prodOv");hide("coOv");hide("wishOv");$("app").classList.remove("drawer-open","cart-open");if(pv)okiEmit("vista-previa-cerrada");okiEmit("carrito-cerrado");}});
-  var tt2; function flash(m){var el=$("toast"); el.textContent=m; el.classList.add("show"); clearTimeout(tt2); tt2=setTimeout(function(){el.classList.remove("show");},1600);}
+  /* flashMute: al agregar deseados en bloque, addToCart avisa producto por producto y
+     saldrían 20 avisos encimados. Se callan durante el lote y se da UN solo resumen. */
+  var tt2, flashMute=false;
+  function flash(m){ if(flashMute) return; var el=$("toast"); el.textContent=m; el.classList.add("show"); clearTimeout(tt2); tt2=setTimeout(function(){el.classList.remove("show");},1600);}
 
   // ── Vista de deseos (overlay) ──────────────────────────────
   /* Miniatura de deseados: la foto REAL del producto (antes siempre salía el emoji
@@ -2291,7 +2375,19 @@ html[data-theme="dark"] #site .viewtoggle button.on{background:#10233E; color:#3
   function renderWishlist(){var items=wishlist.map(prod).filter(Boolean);
     var body='<button class="x" data-close style="position:absolute;top:14px;right:14px;z-index:5">×</button><div class="mb" style="padding-top:26px"><h3 style="margin:0 0 4px;font-size:1.25rem">💙 Tus deseados</h3><p class="desc" style="font-size:.86rem;max-width:none">Guarda lo que te gusta y págalo cuando quieras. Recoge gratis en OK.station o recíbelo a domicilio en todo México.</p>';
     if(!items.length){body+='<div style="padding:26px 0;text-align:center;color:var(--muted)">Aún no tienes productos en deseados.<br>Toca el ❤ en cualquier producto para guardarlo aquí.</div>';}
-    else{body+='<div style="display:flex;flex-direction:column;gap:10px;margin-top:12px">'+items.map(function(p){
+    else{
+      /* Pasar TODO al carrito de un tirón. Se anuncia cuántos hay y cuánto suman para
+         que nadie agregue a ciegas; los que no tengan existencias se quedan aquí. */
+      var conStock=items.filter(function(p){return p.stock>0;});
+      var suma=conStock.reduce(function(a,p){return a+p.price;},0);
+      body+='<button class="maddbtn" id="wishAddAll" style="margin-top:14px;width:100%"'+(conStock.length?'':' disabled')+'>'
+        +(conStock.length
+            ? 'Agregar todo al carrito ('+conStock.length+' · '+mxn(suma)+')'
+            : 'Sin existencias por ahora')+'</button>'
+        +(conStock.length<items.length
+            ? '<p class="desc" style="font-size:.78rem;margin:6px 0 0">'+(items.length-conStock.length)+' sin existencias se quedan en deseados.</p>'
+            : '');
+      body+='<div style="display:flex;flex-direction:column;gap:10px;margin-top:12px">'+items.map(function(p){
       return '<div style="display:flex;gap:12px;align-items:center;border:1px solid var(--line);border-radius:14px;padding:10px 12px">'
         +wishThumb(p)
         +'<div data-open="'+p.id+'" style="flex:1 1 auto;min-width:0;cursor:pointer"><div style="font-weight:700;font-size:.95rem">'+okEsc(p.name)+'</div><div style="color:var(--muted);font-size:.85rem">'+mxn(p.price)+'</div></div>'
@@ -2301,11 +2397,34 @@ html[data-theme="dark"] #site .viewtoggle button.on{background:#10233E; color:#3
     body+='</div>';
     $("wishModal").innerHTML=body;
   }
+  /* Pasa todos los deseados al carrito. Dos cuidados:
+     · Se itera sobre una COPIA: addToCart va sacando cada producto de deseados
+       (se "gradúa" al carrito), así que recorrer el arreglo vivo saltaría la mitad.
+     · Los que no tienen existencias se omiten a propósito: addToCart tope la cantidad
+       con el stock, así que un producto en 0 entraría al carrito con cantidad 0. */
+  function wishAddAll(){
+    var ids=wishlist.slice(), añadidos=0, sinStock=0;
+    flashMute=true;
+    ids.forEach(function(id){
+      var p=prod(id); if(!p) return;
+      if(!(p.stock>0)){ sinStock++; return; }
+      addToCart(id,1); añadidos++;
+    });
+    flashMute=false;
+    if(!añadidos){ flash("Tus deseados no tienen existencias por ahora"); return; }
+    flash(añadidos+(añadidos===1?" producto agregado":" productos agregados")
+          +(sinStock?" · "+sinStock+" sin existencias":""));
+    renderWishlist();
+    /* Si ya no queda nada guardado, se cierra el panel y OKi muestra el carrito. */
+    if(!wishlist.length){ hide("wishOv"); okiEmit("ver-lista"); }
+  }
+
   var wishReopen=false; // volver al banner de deseados al cerrar la vista previa
   function maybeReopenWish(){ if(wishReopen){ wishReopen=false; renderWishlist(); show("wishOv"); } }
   $("wishBtn").addEventListener("click",function(){renderWishlist(); show("wishOv");});
   $("wishOv").addEventListener("click",function(e){
     if(e.target.id==="wishOv"||e.target.closest("[data-close]")){hide("wishOv"); return;}
+    if(e.target.closest("#wishAddAll")){ wishAddAll(); return; }
     var o=e.target.closest("[data-open]"); if(o){wishReopen=true; hide("wishOv"); openProduct(+o.dataset.open); return;}
     var w=e.target.closest("[data-wish]"); if(w){toggleWishlist(+w.dataset.wish); return;}
     /* Agregar al carrito desde deseados: cierra el banner y OKi muestra tu lista
@@ -2507,7 +2626,20 @@ html[data-theme="dark"] #site .viewtoggle button.on{background:#10233E; color:#3
       var q=sessionStorage.getItem("okstation_q");
       if(q){ sessionStorage.removeItem("okstation_q"); showView("store"); var qi=$("q"); if(qi) qi.value=q; query=q; reloadFromDB(); return; }
       var cat=sessionStorage.getItem("okstation_ir_cat");
-      if(cat){ sessionStorage.removeItem("okstation_ir_cat"); showView("store"); selectCat(cat); }
+      if(cat){ sessionStorage.removeItem("okstation_ir_cat"); showView("store"); selectCat(cat); return; }
+      /* Marca desde la ficha del producto (el "EPSON" azul). No es una pantalla nueva:
+         es la MISMA tienda con el filtro de marca ya puesto, sobre todo el catálogo.
+         Se arma el estado a mano en vez de llamar a selectCat() para no disparar dos
+         peticiones seguidas (selectCat ya recarga por su cuenta). */
+      var marca=sessionStorage.getItem("okstation_ir_brand");
+      if(marca){
+        sessionStorage.removeItem("okstation_ir_brand");
+        showView("store");
+        activeCat="all"; activeSub="";
+        fBrands=[marca]; fSubcats=[];
+        fBrandsLoaded=false; fSubcatsLoaded=false;
+        filtCountUpdate(); renderCats(); reloadFromDB();
+      }
     }catch(e){}
   }
 
