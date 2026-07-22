@@ -22,6 +22,7 @@ declare(strict_types=1);
 if (PHP_SAPI !== 'cli') { http_response_code(403); exit("Solo CLI.\n"); }
 
 require __DIR__ . '/../api/lib/env.php';
+require_once __DIR__ . '/../api/lib/CatalogoAlcance.php';   // alcance_sql(): sin autoloader hay que pedirlo
 load_env(__DIR__ . '/../.env');
 
 $cfgFile = __DIR__ . '/../api/config.php';
@@ -48,12 +49,22 @@ try {
 
 echo "── Backfill de imágenes faltantes (Exel) ── " . date('Y-m-d H:i:s') . "\n";
 
-/* Productos activos SIN ninguna imagen. Solo estos nos interesan. */
-$sinFoto = $PDO->query(
+/* Productos activos SIN ninguna imagen. Solo estos nos interesan.
+
+   El ALCANCE va EN la consulta y no heredado de is_active: is_active también se
+   apaga por falta de existencias, y cualquier proceso puede encenderlo en bloque
+   (aplicar-alcance.php --revertir lo hace). Sin este filtro, una corrida después
+   de un revertir se pondría a traer fotos de tóner y papel que ya no se venden.
+   Va con prepare y no con query() para no interpolar los nombres en el SQL. */
+$alc = alcance_sql('products');
+$stSin = $PDO->prepare(
     "SELECT id, supplier_ref FROM products
       WHERE supplier = 'exel' AND is_active = 1
+        {$alc['sql']}
         AND NOT EXISTS (SELECT 1 FROM product_images i WHERE i.product_id = products.id)"
-)->fetchAll();
+);
+$stSin->execute($alc['params']);
+$sinFoto = $stSin->fetchAll();
 if (!$sinFoto) { echo "  ✓ No hay productos activos sin imagen. Nada que hacer.\n"; exit(0); }
 echo "  Productos sin imagen: " . count($sinFoto) . "\n";
 
