@@ -952,11 +952,38 @@ html[data-theme="dark"] #site{
   /* --soft alimenta las cajas de preguntas (.mfaq) y varios fondos suaves; sin
      declararlo aquí caía a su fallback CLARO (#F4F6FD) y quedaban parches blancos. */
   --soft:#101827;
+  /* --ink2 (texto secundario) y --line2 (borde marcado) tampoco estaban declarados
+     aquí, así que caían a sus valores CLAROS: #4A5068 de texto es invisible sobre
+     una tarjeta oscura. Se declaran aunque hoy se usen poco, para que el siguiente
+     que eche mano del token no reviva el bug. */
+  --ink2:#B6BFD3; --line2:#313D5A;
 }
 /* El encabezado PEGAJOSO de los paneles laterales de la vista previa traía #fff a
    mano (no entra por --card), así que "Descripción" y "Ficha técnica" quedaban
    como una franja blanca con el título encima, ilegible. */
 html[data-theme="dark"] #site .pvside .pvhead{background:var(--card); border-bottom-color:var(--line)}
+/* ── Texto secundario con el gris #33404f escrito a mano ──
+   Ese gris está pensado para papel blanco. Sobre las tarjetas oscuras se quedaba en
+   ~1.7:1 de contraste (el mínimo legible es 4.5:1), así que el título se leía y el
+   cuerpo NO: la vista previa parecía vacía y las especificaciones invisibles.
+   Se detectaron midiendo el contraste de todos los textos con el tema oscuro puesto,
+   no a ojo. Todos apuntan ya al token, que sí se voltea con el tema. */
+html[data-theme="dark"] #site :is(
+  .pvside .pvdesc-full, .mb .desc, .specs li, .ship button,
+  .paybadges span, .mainnav a, .tb-acctmenu a, .tb-acctmenu button, .dlist button
+){color:var(--ink2)}
+/* La ✕ de los modales: el círculo es blanco fijo y el aspa tomaba --ink, que en
+   oscuro es casi blanco → blanco sobre blanco, el botón de cerrar desaparecía. */
+html[data-theme="dark"] #site .modal .x{background:var(--card); color:var(--ink); border-color:var(--line)}
+/* La ✕ del cajón de filtros no traía color: caía al negro por omisión del navegador
+   y sobre la tarjeta oscura quedaba a 1.3:1. */
+html[data-theme="dark"] #site :is(.fdh,.pvhead) .x{color:var(--muted); background:none; border:0}
+/* La opción de envío ELEGIDA se marca con un azul clarito de fondo. En oscuro ese
+   azul sigue siendo casi blanco, así que hay que bajarlo de tono y subir el texto:
+   si no, la opción seleccionada es la única ilegible de las dos. */
+html[data-theme="dark"] #site :is(.ship,.dlist) button.on{background:#122447; border-color:var(--blue); color:#7FB4FF}
+/* El contador que va DENTRO de la categoría activa era un círculo blanco. */
+html[data-theme="dark"] #site .dlist button.on .dn{background:#1E3567; color:#7FB4FF}
 /* El aviso breve usa background:var(--ink), que en oscuro se vuelve CLARO y
    dejaba texto blanco sobre fondo claro (ilegible). Va al revés del fondo. */
 html[data-theme="dark"] #site .toast{background:#E9EDF6; color:#12141C}
