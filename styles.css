@@ -6623,14 +6623,9 @@ html[data-theme="dark"] body { background: var(--surface-page); }
    desaparece. Pasa a tarjeta noche con texto claro. */
 html[data-theme="dark"] .btn--light { background: var(--surface-card); color: var(--text-primary); border-color: var(--border-medium); }
 html[data-theme="dark"] .btn--light:hover { background: #1E2840; color: #fff; }
-/* OKi (el asistente) se queda EN CLARO por ahora: su hoja usa los tokens y al
-   voltearse quedaba texto claro sobre su panel blanco (ilegible). Re-fijar los
-   tokens claros DENTRO de su ámbito lo aísla del tema; oscurecerlo de verdad
-   es de oki.css (Oscar) cuando se quiera. */
-html[data-theme="dark"] [class*="oki"] {
-  --text-primary:#12141C; --text-secondary:#4A5068; --text-muted:#717890;
-  --surface-card:#FFFFFF; --border-light:#E4E7F0;
-}
+/* OKi: su modo oscuro vive en oki.css (Oscar lo hizo nativo, commit 4e01fdb).
+   Aquí hubo un aislamiento temporal que lo forzaba a claro; se retiró para no
+   pelearse con esa implementación. */
 
 /* ── Los "fondos blancos continuos" del rediseño (línea ~5695) usan !important,
    así que en oscuro hay que responder con la misma fuerza. Se listan los MISMOS
@@ -6758,6 +6753,4 @@ html[data-theme="dark"] :is(.pdp__card, .pdp__more, .pdp__oki, .pdp__rel) {
 }
 html[data-theme="dark"] .pdp__qty { background:#101827 !important; color: var(--text-primary); border-color: var(--border-light); }
 
-/* ── OKi: además de re-fijar sus tokens, color EXPLÍCITO. Su globo heredaba el
-   color del body (claro en oscuro) sobre su fondo blanco: texto invisible. ── */
-html[data-theme="dark"] [class*="oki"] { color: #12141C; }
+/* (El color forzado de OKi también se retiró: su oscuro nativo está en oki.css.) */
