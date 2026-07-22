@@ -29,6 +29,8 @@
     var main = $("pdpMain"), stage = $("pdpStage");
     if (!main) return;
 
+    var lens = $("pdpLens"), panel = $("pdpZoom"), hint = $("pdpZoomHint");
+
     document.querySelectorAll(".pdp__thumb").forEach(function (b) {
       b.addEventListener("click", function () {
         main.src = b.dataset.src;
@@ -37,19 +39,96 @@
           x.classList.toggle("on", on);
           x.setAttribute("aria-selected", on ? "true" : "false");
         });
+        /* La imagen cambió: el panel tiene que apuntar a la nueva y recalcular
+           medidas, si no seguiría ampliando la foto anterior. */
+        if (panel) panel.style.backgroundImage = 'url("' + b.dataset.src + '")';
+        ocultar();
       });
     });
 
-    /* Zoom siguiendo el mouse. Solo con puntero fino: con el dedo estorbaría el scroll
+    /* Zoom tipo lupa. Solo con puntero fino: con el dedo estorbaría el scroll
        (el CSS ya lo limita, esto evita hasta registrar los listeners). */
-    if (!stage || !window.matchMedia || !window.matchMedia("(hover: hover) and (pointer: fine)").matches) return;
-    stage.addEventListener("mouseenter", function () { stage.classList.add("is-zoom"); });
-    stage.addEventListener("mouseleave", function () { stage.classList.remove("is-zoom"); main.style.transformOrigin = "center center"; });
-    stage.addEventListener("mousemove", function (e) {
-      var r = stage.getBoundingClientRect();
-      var x = ((e.clientX - r.left) / r.width) * 100, y = ((e.clientY - r.top) / r.height) * 100;
-      main.style.transformOrigin = x + "% " + y + "%";
-    });
+    if (!stage || !lens || !panel ||
+        !window.matchMedia || !window.matchMedia("(hover: hover) and (pointer: fine)").matches) return;
+
+    var Z = 2.5, Z_MIN = 1.5, Z_MAX = 6, activo = false;
+
+    /* Rectángulo REAL de la foto dentro del escenario. No sirve el getBoundingClientRect
+       del <img> a secas: la imagen es object-fit:contain con padding, así que lo pintado
+       casi nunca llena la caja y, sin este cálculo, la lupa apuntaría descuadrada. */
+    function imgRect() {
+      var r = main.getBoundingClientRect(), cs = getComputedStyle(main);
+      var pl = parseFloat(cs.paddingLeft) || 0, pr = parseFloat(cs.paddingRight) || 0;
+      var pt = parseFloat(cs.paddingTop) || 0, pb = parseFloat(cs.paddingBottom) || 0;
+      var cw = r.width - pl - pr, ch = r.height - pt - pb;
+      var nw = main.naturalWidth || 1, nh = main.naturalHeight || 1;
+      var s = Math.min(cw / nw, ch / nh);
+      var w = nw * s, h = nh * s;
+      return { left: r.left + pl + (cw - w) / 2, top: r.top + pt + (ch - h) / 2, width: w, height: h };
+    }
+
+    function ocultar() {
+      activo = false;
+      lens.hidden = true; panel.hidden = true;
+      stage.classList.remove("is-zoom");
+    }
+
+    function pintar(e) {
+      var ir = imgRect();
+      if (!(ir.width > 0) || !(ir.height > 0)) return;
+
+      /* Fuera de la foto (dentro del marco pero en el margen): se apaga, si no la lupa
+         quedaría pegada en la orilla mostrando algo que el cursor ya no señala. */
+      if (e.clientX < ir.left || e.clientX > ir.left + ir.width ||
+          e.clientY < ir.top  || e.clientY > ir.top  + ir.height) { ocultar(); return; }
+
+      if (!activo) {
+        activo = true;
+        lens.hidden = false; panel.hidden = false;
+        stage.classList.add("is-zoom");
+        if (!panel.style.backgroundImage) panel.style.backgroundImage = 'url("' + main.currentSrc + '")';
+      }
+
+      /* En pantalla angosta el CSS apaga el panel (display:none) y mide 0: sin esto,
+         los factores saldrían NaN y la lupa quedaría con medidas basura. */
+      var pw = panel.clientWidth, ph = panel.clientHeight;
+      if (!(pw > 0) || !(ph > 0)) { ocultar(); return; }
+      /* La lupa mide justo la porción que cabe en el panel: lo que se enmarca es
+         exactamente lo que se ve ampliado (si no, el recuadro mentiría). */
+      var lw = Math.min(pw / Z, ir.width), lh = Math.min(ph / Z, ir.height);
+
+      /* Centrada en el cursor y sujeta a la foto, para que nunca se salga del borde. */
+      var lx = Math.max(0, Math.min(e.clientX - ir.left - lw / 2, ir.width  - lw));
+      var ly = Math.max(0, Math.min(e.clientY - ir.top  - lh / 2, ir.height - lh));
+
+      var sr = stage.getBoundingClientRect();
+      lens.style.width = lw + "px"; lens.style.height = lh + "px";
+      lens.style.left = (ir.left - sr.left + lx) + "px";
+      lens.style.top  = (ir.top  - sr.top  + ly) + "px";
+
+      /* Factores reales: si la lupa se topó con el borde de la foto, el aumento efectivo
+         ya no es Z y usar Z aquí descuadraría el encuadre. */
+      var fx = pw / lw, fy = ph / lh;
+      panel.style.backgroundSize = (ir.width * fx) + "px " + (ir.height * fy) + "px";
+      panel.style.backgroundPosition = (-lx * fx) + "px " + (-ly * fy) + "px";
+      if (hint) hint.textContent = (Math.round(Z * 10) / 10) + "×";
+    }
+
+    stage.addEventListener("mousemove", pintar);
+    stage.addEventListener("mouseleave", ocultar);
+
+    /* Rueda = más o menos aumento. passive:false porque hay que frenar el scroll de la
+       página: girar la rueda encima de la foto debe ampliar, no mover la página. */
+    stage.addEventListener("wheel", function (e) {
+      if (!activo) return;
+      e.preventDefault();
+      Z = Math.max(Z_MIN, Math.min(Z_MAX, Z + (e.deltaY < 0 ? 0.35 : -0.35)));
+      pintar(e);
+    }, { passive: false });
+
+    /* Al hacer scroll o cambiar el tamaño, las medidas guardadas dejan de valer. */
+    window.addEventListener("scroll", function () { if (activo) ocultar(); }, { passive: true });
+    window.addEventListener("resize", function () { if (activo) ocultar(); });
   })();
 
   /* ── Cantidad ── */
@@ -179,6 +258,18 @@
   document.querySelectorAll("[data-ir-cat]").forEach(function (a) {
     a.addEventListener("click", function () {
       try { sessionStorage.setItem("okstation_ir_cat", a.dataset.irCat); } catch (e) {}
+    });
+  });
+
+  /* Igual, pero con la MARCA: la tienda de siempre con el filtro ya aplicado
+     (no es una pantalla aparte). Lo lee tienda.html al arrancar. */
+  document.querySelectorAll("[data-ir-brand]").forEach(function (a) {
+    a.addEventListener("click", function () {
+      try {
+        sessionStorage.setItem("okstation_ir_brand", a.dataset.irBrand);
+        /* Una marca y una categoría a la vez se pisarían; gana la que se acaba de tocar. */
+        sessionStorage.removeItem("okstation_ir_cat");
+      } catch (e) {}
     });
   });
 

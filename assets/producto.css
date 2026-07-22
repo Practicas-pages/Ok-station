@@ -29,12 +29,56 @@
    eso hacía que la imagen (742px) reventara su marco (521px) y saliera recortada. */
 .pdp__stage img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; padding: clamp(14px, 3vw, 32px); box-sizing: border-box; display: block; transition: transform .25s ease; }
 .pdp__stage--empty { font-size: 4rem; }
-/* Zoom tipo tienda grande: SOLO con mouse (con el dedo estorba y bloquea el scroll). */
+/* Zoom tipo tienda grande: SOLO con mouse (con el dedo estorba y bloquea el scroll).
+   La foto principal ya NO se agranda sola: ahora se marca con un recuadro (.pdp__lens)
+   la zona señalada y esa zona sale ampliada en el panel de al lado (.pdp__zoom). */
 @media (hover: hover) and (pointer: fine) {
-  .pdp__stage { cursor: zoom-in; }
-  .pdp__stage.is-zoom img { transform: scale(2.1); padding: 0; }
+  .pdp__stage { cursor: crosshair; }
 }
-.pdp__thumbs { display: flex; gap: 9px; margin-top: 12px; flex-wrap: wrap; }
+/* Recuadro de lo que se está viendo. pointer-events:none es indispensable: si atrapara
+   el mouse, se robaría el mousemove del escenario y la lupa se trabaría al moverse. */
+.pdp__lens {
+  position: absolute; z-index: 4; pointer-events: none;
+  /* border-box para que el borde quede DENTRO de la medida: si no, el recuadro sale
+     2px más grande de cada lado y encuadra un poco más de lo que el panel enseña. */
+  box-sizing: border-box;
+  border: 2px solid var(--brand-blue, #066CFF);
+  background: rgba(6, 108, 255, .12);
+  border-radius: 6px;
+  box-shadow: 0 0 0 9999px rgba(10, 22, 50, .10);
+}
+/* Panel ampliado: sale FLOTANDO a la derecha, encima del buy box, para no empujar la
+   página ni cambiar el alto de nada al aparecer. */
+.pdp__zoom {
+  position: absolute; z-index: 30;
+  left: calc(100% + 14px); top: clamp(14px, 2vw, 22px);
+  width: min(520px, 42vw); aspect-ratio: 1 / 1;
+  background-color: #fff; background-repeat: no-repeat;
+  border: 1px solid var(--border-light, #e6eaf2);
+  border-radius: var(--radius-md, 14px);
+  box-shadow: 0 18px 50px rgba(4, 12, 40, .18);
+}
+/* Indicador del aumento: recuerda que la rueda del mouse lo cambia. */
+.pdp__zoomhint {
+  position: absolute; right: 10px; bottom: 10px;
+  background: rgba(10, 22, 50, .72); color: #fff;
+  font-size: .74rem; font-weight: 700; padding: 4px 9px; border-radius: 999px;
+}
+.pdp__zoomhint::after { content: " · rueda para acercar"; font-weight: 500; opacity: .85; }
+
+/* ── Miniaturas en columna a la izquierda ──
+   El :has() evita reservar la columna cuando el producto trae UNA sola foto (ahí no se
+   pinta .pdp__thumbs y la galería se queda como estaba, a lo ancho). */
+.pdp__gallery:has(.pdp__thumbs) {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 12px;
+  align-items: start;
+}
+/* La columna va primero aunque en el HTML el escenario esté antes (el orden del marcado
+   se respeta a propósito: primero la foto grande para quien navega con lector o teclado). */
+.pdp__gallery:has(.pdp__thumbs) .pdp__thumbs { order: -1; }
+.pdp__thumbs { display: flex; flex-direction: column; gap: 9px; margin-top: 0; flex-wrap: nowrap; }
 .pdp__thumb { width: 66px; height: 66px; padding: 3px; border-radius: 12px; border: 2px solid var(--border-light, #e6eaf2); background: #fff; cursor: pointer; transition: border-color .15s, transform .15s; }
 .pdp__thumb img { width: 100%; height: 100%; object-fit: contain; display: block; }
 .pdp__thumb:hover { transform: translateY(-2px); }
@@ -47,8 +91,15 @@
   .pdp__buy { position: sticky; top: 96px; }
 }
 .pdp__meta { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: .78rem; color: var(--text-muted, #6B7280); text-transform: uppercase; letter-spacing: .04em; }
-.pdp__meta b { color: var(--brand-blue, #066CFF); font-weight: 800; }
-.pdp__meta span + span::before, .pdp__meta b + span::before { content: "·"; margin-right: 8px; opacity: .6; }
+.pdp__meta b, .pdp__meta .pdp__brand { color: var(--brand-blue, #066CFF); font-weight: 800; }
+.pdp__meta span + span::before,
+.pdp__meta b + span::before,
+.pdp__meta .pdp__brand + span::before { content: "·"; margin-right: 8px; opacity: .6; }
+/* La marca lleva a la tienda filtrada por ella: se ve y se siente clickeable
+   (antes era un <b> suelto, del mismo azul pero sin nada que invitara a tocarlo). */
+.pdp__brand { text-decoration: none; border-bottom: 1px solid transparent; transition: border-color .15s, opacity .15s; }
+.pdp__brand:hover { border-bottom-color: currentColor; }
+.pdp__brand:focus-visible { outline: 3px solid var(--brand-cyan, #00C6FF); outline-offset: 3px; border-radius: 3px; }
 .pdp__title { font-size: clamp(1.4rem, 2.6vw, 2rem); line-height: 1.22; margin: 8px 0 14px; color: var(--text-primary, #12141C); }
 
 .pdp__price { display: flex; align-items: baseline; flex-wrap: wrap; gap: 10px; }
@@ -162,6 +213,14 @@
   .pdp__grid { grid-template-columns: 1fr; }
   .pdp__bar { display: flex; }
   .pdp { padding-bottom: 96px; }   /* hueco para la barra de compra */
+
+  /* Sin la columna de compra al lado ya no hay dónde poner el panel ampliado: saldría
+     fuera de la pantalla. Se apaga el zoom y las miniaturas vuelven a ir debajo, en fila
+     (en una pantalla angosta una columna lateral se comería el ancho de la foto). */
+  .pdp__zoom, .pdp__lens { display: none !important; }
+  .pdp__gallery:has(.pdp__thumbs) { grid-template-columns: 1fr; }
+  .pdp__gallery:has(.pdp__thumbs) .pdp__thumbs { order: 0; }
+  .pdp__thumbs { flex-direction: row; flex-wrap: wrap; margin-top: 12px; }
 }
 @media (max-width: 560px) {
   .pdp__actions { gap: 8px; }

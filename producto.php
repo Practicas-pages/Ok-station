@@ -251,9 +251,16 @@ $ldCrumbs = [
       <section class="pdp__gallery" aria-label="Imágenes del producto">
         <?php if ($off > 0): ?><span class="pdp__off">−<?= $off ?>%</span><?php endif; ?>
         <?php if ($images): ?>
-          <!-- El zoom se activa solo si el puntero es un mouse: con el dedo estorba. -->
+          <!-- El zoom se activa solo si el puntero es un mouse: con el dedo estorba.
+               pdpLens = recuadro que marca QUÉ se está viendo; pdpZoom = panel al lado
+               con esa zona ampliada. Los pinta el JS al entrar el cursor y los quita al
+               salir, así que arrancan ocultos y sin ocupar lugar. -->
           <div class="pdp__stage" id="pdpStage">
             <img id="pdpMain" src="<?= e($images[0]) ?>" alt="<?= e($name) ?>" width="600" height="600" fetchpriority="high" decoding="async">
+            <div class="pdp__lens" id="pdpLens" hidden aria-hidden="true"></div>
+          </div>
+          <div class="pdp__zoom" id="pdpZoom" hidden aria-hidden="true">
+            <span class="pdp__zoomhint" id="pdpZoomHint"></span>
           </div>
           <?php if (count($images) > 1): ?>
           <div class="pdp__thumbs" role="tablist" aria-label="Más imágenes">
@@ -273,7 +280,7 @@ $ldCrumbs = [
       <!-- ── Buy box ── -->
       <section class="pdp__buy" aria-label="Comprar">
         <div class="pdp__meta">
-          <?php if ($brand !== ''): ?><b><?= e($brand) ?></b><?php endif; ?>
+          <?php if ($brand !== ''): ?><a class="pdp__brand" href="/tienda#store" data-ir-brand="<?= e($brand) ?>" title="Ver todo lo de <?= e($brand) ?> en la tienda"><?= e($brand) ?></a><?php endif; ?>
           <?php if ($sku !== ''): ?><span>SKU <?= e($sku) ?></span><?php endif; ?>
           <?php if ($sub !== ''): ?><span><?= e($sub) ?></span><?php endif; ?>
         </div>
