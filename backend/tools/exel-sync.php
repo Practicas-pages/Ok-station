@@ -30,27 +30,30 @@ if (PHP_SAPI !== 'cli') {
     exit("Solo CLI.\n");
 }
 
-/* ── Filtro de papelería: lista blanca por categoria_nombre de Exel ──
-   Decisión de negocio (junta 2026-07-14): "Papelería + impresión".
-   Todas las subcategorías de estas categorías se importan; el resto se descarta.
-   La lista es ADITIVA a propósito: agregar una categoría que Exel no tenga no rompe
-   nada (simplemente no hace match), y cubre el día que sí la traiga. TODAS deben ser
-   de papelería: lo que no esté aquí (cómputo, accesorios…) NO entra a la tienda. */
-const PAPELERIA_CATS = [
-    'Oficina y Escolar',
-    'Papel',
-    'Consumibles',
-    'Impresión y Multifuncionales',
-    'Digitalización de Documentos',
-    'Adhesivos y Cintas',
-    'Archivo y Carpetas',
-    'Engrapado y Perforado',
-    'Escritura y Corrección',
-    'Cuadernos y Libretas',
-    'Etiquetas y Rotulación',
-    'Calculadoras',
-    'Arte y Manualidades',
-];
+/* ── Filtro de catálogo: lista blanca por categoria_nombre de Exel ──
+   Decisión de negocio 2026-07-22: SOLO "Oficina y Escolar". Antes eran 13 categorías
+   ("Papelería + impresión", junta del 2026-07-14), pero esa lista dejaba entrar
+   cómputo: "Impresión y Multifuncionales" trae videocámaras y computadoras, y
+   "Consumibles" trae ruteadores. Con una sola categoría el problema desaparece de
+   raíz y ya no hace falta depurar subcategoría por subcategoría.
+
+   OJO al cambiarla: angostar la lista APAGA productos (is_active=0), y la salvaguarda
+   de feed incompleto (más abajo) va a abortar la primera corrida a propósito, porque
+   no puede distinguir "el catálogo se encogió porque así lo decidimos" de "Exel
+   respondió a medias". Esa primera vez se corre con --force, a conciencia y de día.
+
+   Se puede sobrescribir sin tocar código con EXEL_CATEGORIAS en backend/.env
+   (separadas por coma), para que un cambio de alcance no dependa de un deploy. */
+const PAPELERIA_CATS = ['Oficina y Escolar'];
+
+/** Lista blanca efectiva: la del .env si existe, si no la constante de arriba. */
+function categorias_permitidas(): array
+{
+    $env = trim((string) env('EXEL_CATEGORIAS', ''));
+    if ($env === '') return PAPELERIA_CATS;
+    $cats = array_values(array_filter(array_map('trim', explode(',', $env)), 'strlen'));
+    return $cats ?: PAPELERIA_CATS;
+}
 
 /* ── Arranque: config + conexión + ShopCatalog (para el margen) ── */
 $CONFIG = require __DIR__ . '/../api/config.php';
@@ -104,7 +107,37 @@ $raw = $file ? read_feed_file($file) : fetch_from_api();
 echo "  Recibidos: " . count($raw) . " productos del origen\n";
 
 /* ── 2. Filtrar SOLO papelería + normalizar ── */
-$whitelist = array_map('norm', PAPELERIA_CATS);
+$catsPermitidas = categorias_permitidas();
+$whitelist = array_map('norm', $catsPermitidas);
+echo "  Categorías permitidas: " . implode(' · ', $catsPermitidas) . "\n";
+
+/* ── Almacén: qué se puede y qué NO ─────────────────────────────────────────
+   Hasta hoy EXEL_WAREHOUSE=4 se escribía en products.warehouse_id pero NUNCA se le
+   mandaba a Exel: GET /productos va sin parámetros y el stock sale del campo plano
+   `stock`. O sea, la columna decía "almacén 4" sin que nadie lo hubiera comprobado,
+   y si ese stock es global la tienda puede estar ofreciendo piezas que no están en
+   Tijuana. Eso es un riesgo de venta, no un detalle cosmético.
+
+   Aquí NO se inventa el endpoint "productos por almacenes" (está documentado en el
+   roadmap pero nunca se implementó y no tenemos su contrato). Lo que sí se hace es
+   dejar de mentir en silencio: se busca en el feed real cualquier campo que hable de
+   almacenes y, si existe, se filtra de verdad. Si no existe, se avisa fuerte en cada
+   corrida para que el hueco esté a la vista y no se dé por resuelto. */
+$claveAlmacen = null;
+foreach ($raw as $p) {
+    foreach (array_keys($p) as $k) {
+        if (preg_match('/^(almacen|almacén|bodega|sucursal|warehouse)/i', $k)) { $claveAlmacen = $k; break 2; }
+    }
+}
+$fueraAlmacen = 0;
+if ($claveAlmacen !== null) {
+    echo "  Almacén: filtrando por «{$claveAlmacen}» = {$warehouse}\n";
+} else {
+    echo "  ⚠ Almacén: el feed NO trae ningún campo de almacén, así que NO se está\n";
+    echo "    filtrando por el {$warehouse}. El stock que se guarda es el que mande\n";
+    echo "    Exel, del almacén que sea. Para filtrar de verdad hace falta el contrato\n";
+    echo "    del endpoint 'productos por almacenes'. Pídeselo a Exel.\n";
+}
 $rows = [];
 $descartados = 0;
 $ofertas = 0;      // productos que Exel marca en oferta (alimenta "Ofertas del día")
@@ -130,6 +163,14 @@ foreach ($raw as $p) {
     }
 
     if (!$pasa) { $descartados++; continue; }
+
+    /* Almacén: solo si el feed de verdad lo trae (ver el bloque de arriba). Se compara
+       como texto y sin espacios: Exel podría mandar 4, "4" o " 4 " y las tres son el
+       mismo almacén. Si el campo no existe, esto no hace nada y el aviso ya se dio. */
+    if ($claveAlmacen !== null && trim((string) ($p[$claveAlmacen] ?? '')) !== trim($warehouse)) {
+        $fueraAlmacen++;
+        continue;
+    }
 
     $cost = (float) ($p['precio'] ?? 0);
 
@@ -174,7 +215,8 @@ foreach ($raw as $p) {
     ];
     if ($limit && count($rows) >= $limit) break;
 }
-echo "  Papelería: " . count($rows) . " a importar  ·  descartados (no papelería): {$descartados}\n";
+echo "  A importar: " . count($rows) . "  ·  descartados por categoría: {$descartados}"
+   . ($claveAlmacen !== null ? "  ·  fuera del almacén {$warehouse}: {$fueraAlmacen}" : "") . "\n";
 
 /* El informe va ANTES de rendirse: si la lista blanca no empata con los nombres reales
    de Exel, "no hay nada que importar" no dice NADA. Esto sí dice qué mandó Exel. */
@@ -241,11 +283,21 @@ $activosAntes = (int) $PDO->query(
 if (!$force && $activosAntes > 0 && count($rows) < $activosAntes * FEED_MINIMO) {
     $pct = round(count($rows) / $activosAntes * 100);
     fwrite(STDERR,
-        "\n✗ ABORTADO: el feed trae " . count($rows) . " productos de papelería, " .
+        "\n✗ ABORTADO: pasaron el filtro " . count($rows) . " productos, " .
         "solo el {$pct}% de los {$activosAntes} que hay publicados.\n" .
         "  Se esperaba al menos el " . (int) (FEED_MINIMO * 100) . "%. NO se escribió nada y el\n" .
-        "  catálogo sigue como estaba.\n" .
-        "  Revisa la API de Exel. Si el catálogo de verdad se encogió, repite con --force.\n");
+        "  catálogo sigue como estaba.\n\n" .
+        "  Hay DOS causas posibles y conviene distinguirlas antes de forzar:\n\n" .
+        "  a) Exel respondió a medias (corte de red, su API degradada). Es lo que esta\n" .
+        "     salvaguarda existe para atajar. NO fuerces: vuelve a intentar más tarde.\n\n" .
+        "  b) El alcance del catálogo cambió a propósito. Hoy solo entran: " .
+             implode(', ', $catsPermitidas) . ".\n" .
+        "     Si acabas de angostar la lista, esto es lo ESPERADO — el sync no puede\n" .
+        "     distinguir tu decisión de una falla de Exel, por eso se detiene y pregunta.\n\n" .
+        "  Para ver el reparto real sin escribir nada:  --dry-run\n" .
+        "  Para aplicar el cambio de alcance a conciencia:  --force\n" .
+        "  (Con --force se APAGAN los productos que ya no entran. No se borran: quedan\n" .
+        "   con is_active=0 y vuelven solos si se restituye la categoría.)\n");
     exit(1);
 }
 
