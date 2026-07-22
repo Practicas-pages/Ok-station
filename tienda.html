@@ -121,7 +121,11 @@
 #site .pimg--marca{background:var(--surface-bg,#F2F4F8); display:grid; place-items:center;
   padding:8px; box-sizing:border-box; overflow:hidden}
 #site .ph-logo{width:auto; height:auto; max-width:80%; max-height:80%; opacity:.9}
-html[data-theme="dark"] #site .pimg--marca{background:#1B2338}
+/* En oscuro el fondo NO puede oscurecerse: el logo es un PNG incrustado con la
+   palabra "station" en NEGRO, así que sobre #1B2338 desaparecía y las miniaturas
+   se veían vacías. Se deja claro en ambos temas, igual que las fotos reales de
+   producto (que casi siempre vienen sobre blanco) y que el marco de la ficha. */
+html[data-theme="dark"] #site .pimg--marca{background:#E9EEF7}
 #site .mh .pimg{height:100%; border-radius:0}
 #site .mh .pimg .pemoji{font-size:88px}
 #site .fcard .pimg{height:96px}

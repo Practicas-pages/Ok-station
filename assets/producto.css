@@ -29,6 +29,14 @@
    eso hacía que la imagen (742px) reventara su marco (521px) y saliera recortada. */
 .pdp__stage img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; padding: clamp(14px, 3vw, 32px); box-sizing: border-box; display: block; transition: transform .25s ease; }
 .pdp__stage--empty { font-size: 4rem; }
+/* Producto sin foto: el logo CENTRADO en el marco grande. Antes traía un
+   style="width:60%;height:auto" en línea que peleaba con el inset:0 de la regla de
+   .pdp__stage img: con el ancho definido, el `right:0` se ignora y la imagen se
+   pegaba arriba y a la izquierda en vez de quedar al centro. Dejando que herede
+   inset:0 + object-fit:contain, el centrado lo hace el navegador; aquí solo se
+   ajusta el aire. El padding en % se resuelve contra el ANCHO, así que el logo
+   crece y encoge en proporción al marco. */
+.pdp__stage--empty .ph-logo { padding: 22%; opacity: .9; }
 /* Zoom tipo tienda grande: SOLO con mouse (con el dedo estorba y bloquea el scroll).
    La foto principal ya NO se agranda sola: ahora se marca con un recuadro (.pdp__lens)
    la zona señalada y esa zona sale ampliada en el panel de al lado (.pdp__zoom). */

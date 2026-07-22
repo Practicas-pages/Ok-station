@@ -273,7 +273,7 @@ $ldCrumbs = [
           <?php endif; ?>
         <?php else: ?>
           <!-- Sin foto: wordmark Ok.station sobre fondo transparente (no un 📦 genérico). -->
-          <div class="pdp__stage pdp__stage--empty"><img src="/assets/img/placeholder-producto.svg" alt="Producto sin imagen" width="280" height="280" style="width:60%;max-width:280px;height:auto" loading="lazy"></div>
+          <div class="pdp__stage pdp__stage--empty"><img class="ph-logo" src="/assets/img/placeholder-producto.svg" alt="Producto sin imagen" width="280" height="280" loading="lazy"></div>
         <?php endif; ?>
       </section>
 

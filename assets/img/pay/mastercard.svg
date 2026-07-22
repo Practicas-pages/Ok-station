@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 26" role="img" aria-label="Mastercard">
+  <!-- Símbolo de Mastercard: dos círculos entrelazados. La intersección va naranja,
+       como en el original: el círculo amarillo se redibuja recortado contra el rojo. -->
+  <defs>
+    <clipPath id="mcLeft"><circle cx="15" cy="13" r="11"/></clipPath>
+  </defs>
+  <circle cx="15" cy="13" r="11" fill="#EB001B"/>
+  <circle cx="25" cy="13" r="11" fill="#F79E1B"/>
+  <g clip-path="url(#mcLeft)"><circle cx="25" cy="13" r="11" fill="#FF5F00"/></g>
+</svg>

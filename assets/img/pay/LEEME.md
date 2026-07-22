@@ -1,29 +1,47 @@
 # Logotipos de los medios de pago
 
-La ficha de producto (`producto.php` → sección "Medios de pago") busca los
-logotipos AQUÍ. Mientras un archivo no exista, la ficha muestra una etiqueta de
-texto con el nombre — se ve bien igual, pero con el logotipo se ve mejor.
+La ficha de producto (`producto.php` → sección "Medios de pago") toma los
+logotipos de esta carpeta.
 
-Archivos que espera (nombre EXACTO, en minúsculas):
+| Archivo            | Se muestra como   | Estado                  |
+|--------------------|-------------------|-------------------------|
+| `visa.svg`         | Visa              | Provisional (ver abajo) |
+| `mastercard.svg`   | Mastercard        | Provisional (ver abajo) |
+| `amex.svg`         | American Express  | Provisional (ver abajo) |
+| `mercadopago.svg`  | Mercado Pago      | Provisional (ver abajo) |
 
-| Archivo            | Se muestra como   |
-|--------------------|-------------------|
-| `visa.svg`         | Visa              |
-| `mastercard.svg`   | Mastercard        |
-| `amex.svg`         | American Express  |
-| `mercadopago.svg`  | Mercado Pago      |
+## Ojo: son provisionales, conviene cambiarlos
 
-En cuanto los subas aparecen solos: no hay que tocar código.
+Los que están aquí se dibujaron a mano para que la sección no se viera vacía. Se
+parecen y se entienden, pero **no son el arte oficial de cada marca**:
 
-## Por qué no vienen ya hechos
+- Mastercard es el más fiel: son dos círculos y la geometría es exacta.
+- Visa y Mercado Pago llevan su nombre en su color, pero en una tipografía
+  común (Arial), no en la suya propia.
+- American Express dice "AMEX" y no "AMERICAN EXPRESS": a 32px de alto el
+  nombre completo sale ilegible.
 
-Son marcas registradas. Dibujarlas a mano da un resultado impreciso y no está
-permitido: hay que usar el archivo oficial de cada marca. Los oficiales se bajan
-de sus centros de marca (Visa Brand Center, Mastercard Brand Center, American
-Express Brand Hub) y el de Mercado Pago viene en su kit para vendedores.
+Son marcas registradas, así que lo correcto es sustituirlos por el archivo
+oficial de cada una. Se bajan de sus centros de marca (Visa Brand Center,
+Mastercard Brand Center, American Express Brand Hub) y el de Mercado Pago viene
+en su kit para vendedores.
+
+**Para cambiarlos solo hay que sobrescribir el archivo con el mismo nombre.** No
+se toca código ni hay que avisarle a nadie.
+
+## Si falta un archivo
+
+La ficha no se rompe: si un `.svg` no existe, muestra una etiqueta de texto con
+el nombre de la marca. Mide lo mismo de alto que la imagen, así que el bloque no
+da un salto cuando lo subas.
 
 ## Medidas
 
-Se pintan a 32px de alto y el ancho se ajusta solo. Un SVG de cualquier tamaño
-sirve; si usas PNG, que sea de al menos 96px de alto (3x) para que no se vea
-borroso, y cambia la extensión en `producto.php`.
+Se pintan a 32px de alto y el ancho se ajusta solo; los de aquí quedan en unos
+68-72px, que es lo que los deja parejos. El recuadro blanco, el borde y las
+esquinas redondeadas los pone el CSS (`.pdp__pay-item` en
+`assets/producto.css`), así que el archivo va con **fondo transparente** y solo
+la marca.
+
+Si usas PNG en vez de SVG, que sea de al menos 96px de alto (3x) para que no se
+vea borroso, y cambia la extensión en `producto.php`.
