@@ -100,29 +100,39 @@
   transform:translate(-50%,-50%) scale(.96);opacity:0;visibility:hidden;
   transition:transform .2s cubic-bezier(.34,1.56,.64,1),opacity .18s,visibility .2s}
 #tdWishDrawer.open,#tdLocDrawer.open,#tdPrevDrawer.open{transform:translate(-50%,-50%) scale(1);opacity:1;visibility:visible}
-/* ── Vista previa de producto (misma info que la de la tienda) ── */
-#tdPrevDrawer{width:min(520px,94vw)}
-/* Con un panel lateral abierto (descripción/ficha) el modal crece a 3 columnas,
-   igual que la vista previa de la tienda (pv-3col). */
-#tdPrevDrawer.pv3{width:min(1080px,96vw)}
-.tdpv-grid{display:flex;align-items:stretch;max-height:calc(88vh - 62px)}
+/* ── Vista previa de producto — MISMA que la de la tienda ──
+   El contenedor NO es una tarjeta: es una fila centrada de hasta 3 tarjetas
+   independientes con separación (igual que #prodOv de tienda.html). Por eso se le
+   quita el fondo/sombra/recorte que hereda de .td-drawer. */
+#tdPrevDrawer{
+  width:auto;max-width:96vw;height:auto;max-height:none;
+  background:none;box-shadow:none;border-radius:0;overflow:visible;
+  display:flex;align-items:center;justify-content:center;gap:14px}
+.tdpv-card{position:relative;flex:0 0 min(560px,94vw);width:min(560px,94vw);max-height:88vh;overflow:auto;
+  background:#fff;border-radius:22px;box-shadow:0 26px 74px rgba(16,24,40,.28)}
+.tdpv-x{position:absolute;top:14px;right:14px;z-index:5;width:34px;height:34px;padding:0;border:0;border-radius:50%;
+  background:rgba(255,255,255,.94);box-shadow:0 2px 10px rgba(16,24,40,.16);font-size:1.15rem;line-height:1;cursor:pointer}
 /* El atributo hidden pierde contra cualquier display del CSS de autor: sin estas
    reglas, los paneles/botones "ocultos" se veían igual (y aplastaban el modal). */
 .tdpv-side[hidden],.tdpv-desc[hidden],.tdpv-full[hidden],.td-fmore[hidden],.td-fbmore[hidden]{display:none !important}
-.tdpv-side{flex:0 0 270px;display:flex;flex-direction:column;border-right:1px solid var(--line,#e3e6ee);min-width:0}
-.tdpv-side:last-child{border-right:0;border-left:1px solid var(--line,#e3e6ee)}
-.tdpv-sideh{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-bottom:1px solid var(--line,#e3e6ee);font-size:.95rem}
-.tdpv-sideb{overflow:auto;padding:12px 14px;font-size:.84rem;color:#3d4a5c}
-.tdpv-sideb .mfaq{margin-top:10px;padding-top:10px;border-top:1px solid var(--line,#e3e6ee)}
-.tdpv-sideb .mfaq b{display:block;font-size:.8rem}
-.tdpv-sideb .mfaq span{font-size:.8rem;color:var(--muted,#667085)}
+/* Paneles laterales: tarjetas propias, con su encabezado pegajoso. */
+.tdpv-side{flex:0 0 308px;width:308px;max-height:88vh;overflow:auto;display:flex;flex-direction:column;min-width:0;
+  background:#fff;border-radius:22px;box-shadow:0 26px 74px rgba(16,24,40,.28)}
+.tdpv-sideh{position:sticky;top:0;z-index:2;background:#fff;display:flex;align-items:center;justify-content:space-between;gap:10px;
+  padding:18px 20px 14px;border-bottom:1px solid var(--line,#e3e6ee);font-size:1.06rem;font-weight:800}
+.tdpv-sideb{padding:18px 20px 22px;font-size:.93rem;color:#33404f;line-height:1.72}
+.tdpv-sideb>p{margin:0 0 16px}
+/* Preguntas frecuentes en CAJAS, igual que .mfaq de la tienda. */
+.tdpv-sideb .mfaq{background:#F4F6FD;border:1px solid var(--line,#e3e6ee);border-radius:12px;padding:10px 13px;margin:0 0 9px}
+.tdpv-sideb .mfaq b{display:block;font-size:.84rem;color:var(--ink,#111);margin-bottom:2px}
+.tdpv-sideb .mfaq span{font-size:.82rem;color:#4A5068;line-height:1.4}
+/* En pantallas chicas las 3 tarjetas se apilan y el conjunto scrollea, igual que la tienda. */
 @media(max-width:900px){
-  #tdPrevDrawer.pv3{width:min(520px,94vw)}
-  .tdpv-grid{flex-direction:column}
-  .tdpv-side{flex:none;max-height:220px;border:0;border-top:1px solid var(--line,#e3e6ee)}
-  .tdpv-side:last-child{border-left:0}
+  #tdPrevDrawer{flex-direction:column;max-height:92vh;overflow-y:auto;gap:12px}
+  .tdpv-side{flex:0 0 auto;width:min(520px,94vw);max-height:none}
+  .tdpv-card{flex:0 0 auto;max-height:none}
 }
-.tdpv-body{flex:1 1 auto;min-width:0;overflow:auto;padding:0 18px 18px}
+.tdpv-body{min-width:0;padding:18px 18px 18px}
 .tdpv-img{height:210px;background:#f4f6fa;border-radius:14px;margin:14px 0 4px;background-size:contain;background-position:center;background-repeat:no-repeat}
 .tdpv-thumbs{display:flex;gap:8px;margin:8px 0 2px}
 .tdpv-thumbs button{width:52px;height:52px;border:1.5px solid var(--line,#e3e6ee);border-radius:10px;background:#fff center/cover no-repeat;cursor:pointer;padding:0}
@@ -201,6 +211,11 @@
 .af-field input:focus,.af-field select:focus{outline:none;border-color:var(--brand-blue,#066CFF);box-shadow:0 0 0 3px rgba(6,108,255,.14)}
 .afrow{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .afopt{font-weight:500;color:var(--muted,#667085);font-size:.72rem}
+.afgeo{display:flex;width:100%;align-items:center;justify-content:center;gap:8px;margin:0 0 12px;padding:11px;border:1.5px solid var(--brand-blue,#066CFF);border-radius:12px;background:#eef5ff;color:var(--brand-blue,#066CFF);font:inherit;font-size:.88rem;font-weight:700;cursor:pointer}
+.afgeo:disabled{opacity:.6;cursor:default}
+#afMapWrap[hidden]{display:none}
+#afMap{height:220px;border-radius:12px;border:1px solid var(--line,#e3e6ee);margin-bottom:4px;z-index:1}
+.afmaphint{font-size:.78rem;color:var(--muted,#667085);margin:6px 0 10px}
 .afchk{display:flex;align-items:center;gap:8px;margin-top:10px;font-size:.83rem;cursor:pointer}
 .afchk input{width:auto;margin:0}
 .afsave{display:block;width:100%;margin-top:14px;padding:13px;border:0;border-radius:12px;background:var(--grad-brand);color:#fff;font:inherit;font-weight:800;font-size:.95rem;cursor:pointer}
@@ -492,17 +507,17 @@ body.td-predrag .td-trash{display:flex}
      (foto, precio, stock, descripción y ficha técnica de product.php), al tocar
      cualquier renglón de la tabla. -->
 <aside class="td-drawer" id="tdPrevDrawer" aria-label="Vista previa del producto" aria-hidden="true">
-  <div class="td-dh"><b>Vista previa</b><button type="button" class="td-dx" data-dclose aria-label="Cerrar">×</button></div>
-  <div class="tdpv-grid">
-    <div class="tdpv-side" id="tdpvDescP" hidden>
-      <div class="tdpv-sideh"><b>Descripción</b><button type="button" class="td-dx" data-pvside="tdpvDescP" aria-label="Cerrar descripción">×</button></div>
-      <div class="tdpv-sideb" id="tdpvDescB"></div>
-    </div>
+  <div class="tdpv-side" id="tdpvDescP" hidden>
+    <div class="tdpv-sideh"><b>Descripción</b><button type="button" class="td-dx" data-pvside="tdpvDescP" aria-label="Cerrar descripción">×</button></div>
+    <div class="tdpv-sideb" id="tdpvDescB"></div>
+  </div>
+  <div class="tdpv-card">
+    <button type="button" class="tdpv-x" data-dclose aria-label="Cerrar">×</button>
     <div class="tdpv-body" id="tdPrevBody"></div>
-    <div class="tdpv-side" id="tdpvSpecsP" hidden>
-      <div class="tdpv-sideh"><b>Ficha técnica</b><button type="button" class="td-dx" data-pvside="tdpvSpecsP" aria-label="Cerrar ficha">×</button></div>
-      <div class="tdpv-sideb" id="tdpvSpecsB"></div>
-    </div>
+  </div>
+  <div class="tdpv-side" id="tdpvSpecsP" hidden>
+    <div class="tdpv-sideh"><b>Ficha técnica</b><button type="button" class="td-dx" data-pvside="tdpvSpecsP" aria-label="Cerrar ficha">×</button></div>
+    <div class="tdpv-sideb" id="tdpvSpecsB"></div>
   </div>
 </aside>
 
@@ -1416,6 +1431,11 @@ body.td-predrag .td-trash{display:flex}
     var hayPrevias = (locAddrs||[]).length > 0;
     $("tdLocBody").innerHTML =
       '<div class="loc-err" id="locErr" role="alert" hidden></div>'+
+      /* Geolocalización + mapa (idéntico a la tienda): llena la dirección donde está el
+         teléfono y muestra un pin ajustable; todo editable a mano. */
+      '<button type="button" class="afgeo" id="afGeo">📍 Usar mi ubicación actual</button>'+
+      '<div id="afMapWrap" hidden><div id="afMap"></div><p class="afmaphint">Arrastra el pin a tu puerta para afinar la dirección.</p></div>'+
+      '<input type="hidden" id="afLat"><input type="hidden" id="afLon">'+
       '<div class="af-field"><label for="afRec">¿Quién recibe?</label><input id="afRec" type="text" maxlength="160" autocomplete="name" placeholder="Nombre y apellido" value="'+esc(u.full_name||"")+'"></div>'+
       '<div class="af-field"><label for="afPhone">Teléfono</label><input id="afPhone" type="tel" maxlength="40" inputmode="tel" autocomplete="tel" placeholder="664 719 4117" value="'+esc(u.phone||"")+'"></div>'+
       '<div class="af-field"><label for="afStreet">Calle</label><input id="afStreet" type="text" maxlength="200" autocomplete="address-line1" placeholder="Blvd. Insurgentes"></div>'+
@@ -1430,13 +1450,83 @@ body.td-predrag .td-trash{display:flex}
       '<button type="button" class="afsave" id="afSave">Agregar dirección</button>'+
       (hayPrevias?'<button type="button" class="afback" id="afBack">← Volver a mis direcciones</button>':'');
     setTimeout(function(){ var f=$("afRec"); if(f)f.focus(); }, 50);
+    /* Permiso DIRECTO: si el cliente YA se lo dio a la página, el formulario se llena
+       solo al abrirse (sin volver a picar el botón ni ver otro prompt). */
+    try {
+      if (navigator.permissions && navigator.permissions.query) {
+        navigator.permissions.query({name:"geolocation"}).then(function(st){
+          if (st.state === "granted" && $("afGeo")) afGeoStart();
+        }).catch(function(){});
+      }
+    } catch (e) {}
   }
+
+  /* ── Geolocalización + mapa (mismo comportamiento y endpoint que la tienda) ── */
+  var afMapObj=null, afPin=null;
+  function locMsg(m){ var e=$("locErr"); if(e){ e.textContent=m; e.hidden=false; } }
+  function okLoadLeaflet(cb){
+    if(window.L){cb();return;}
+    if(!document.getElementById("leafCss")){
+      var l=document.createElement("link"); l.id="leafCss"; l.rel="stylesheet"; l.href="/assets/vendor/leaflet/leaflet.css"; document.head.appendChild(l);
+    }
+    var s=document.createElement("script"); s.src="/assets/vendor/leaflet/leaflet.js";
+    s.onload=function(){cb();};
+    s.onerror=function(){ locMsg("No se pudo cargar el mapa; escribe tu dirección."); };
+    document.head.appendChild(s);
+  }
+  function afGeoStart(){
+    var b=$("afGeo");
+    if(!navigator.geolocation){ locMsg("Tu navegador no comparte la ubicación; escribe tu dirección."); return; }
+    if(b){ b.disabled=true; b.textContent="Obteniendo tu ubicación…"; }
+    navigator.geolocation.getCurrentPosition(function(pos){
+      if(b){ b.disabled=false; b.textContent="📍 Usar mi ubicación actual"; }
+      afShowMap(pos.coords.latitude,pos.coords.longitude);
+      afReverse(pos.coords.latitude,pos.coords.longitude);
+    },function(){
+      if(b){ b.disabled=false; b.textContent="📍 Usar mi ubicación actual"; }
+      locMsg("No pudimos leer tu ubicación; escribe tu dirección.");
+    },{enableHighAccuracy:true,timeout:10000,maximumAge:60000});
+  }
+  function afShowMap(lat,lon){
+    var la=$("afLat"), lo=$("afLon"); if(la)la.value=lat; if(lo)lo.value=lon;
+    okLoadLeaflet(function(){
+      var wrap=$("afMapWrap"), cont=$("afMap"); if(!wrap||!cont) return;
+      wrap.hidden=false;
+      /* El formulario se re-pinta (innerHTML): si el contenedor viejo ya no está en el
+         DOM, hay que tirar el mapa anterior o Leaflet escribe sobre un nodo huérfano. */
+      if(afMapObj && !document.body.contains(afMapObj.getContainer())){ try{afMapObj.remove();}catch(e){} afMapObj=null; afPin=null; }
+      if(!afMapObj){
+        afMapObj=L.map(cont).setView([lat,lon],17);
+        L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19,attribution:"© OpenStreetMap"}).addTo(afMapObj);
+        afPin=L.marker([lat,lon],{draggable:true,title:"Arrástrame a tu puerta"}).addTo(afMapObj);
+        afPin.on("dragend",function(){ var p=afPin.getLatLng(); if(la)la.value=p.lat; if(lo)lo.value=p.lng; afReverse(p.lat,p.lng); });
+      } else { afMapObj.setView([lat,lon],17); afPin.setLatLng([lat,lon]); }
+      setTimeout(function(){ try{afMapObj.invalidateSize();}catch(e){} },80);
+    });
+  }
+  function afReverse(lat,lon){
+    authFetch("backend/api/shop/geo-reverse.php?lat="+(+lat).toFixed(6)+"&lon="+(+lon).toFixed(6)).then(function(j){
+      if(!j||!j.ok||!j.address) return;
+      var a=j.address, set=function(id,vv){ var el=$(id); if(el&&vv) el.value=vv; };
+      set("afStreet",a.street); set("afExt",a.ext_num); set("afCol",a.colonia);
+      set("afCp",a.zip); set("afCity",a.city);
+      if(a.state){ var sel=$("afState"); if(sel){ for(var i=0;i<sel.options.length;i++){ if(sel.options[i].text.toLowerCase()===a.state.toLowerCase()){ sel.selectedIndex=i; break; } } } }
+    }).catch(function(){});
+  }
+
   function saveAddr(){
     var err = $("locErr"); function bad(m){ if(err){ err.textContent=m; err.hidden=false; err.scrollIntoView({block:"nearest"}); } }
     var v = function(id){ return ($(id).value||"").trim(); };
     var body = { recipient:v("afRec"), phone:v("afPhone"), street:v("afStreet"), ext_num:v("afExt"),
                  int_num:v("afInt"), neighborhood:v("afCol"), city:v("afCity"), state:v("afState"),
                  postal_code:v("afCp"), notes:v("afNotes"), is_default:$("afDef").checked };
+    /* La coordenada EXACTA del pin viaja en las referencias: es lo que de verdad lleva
+       al repartidor a la puerta cuando la nomenclatura de la calle es confusa. */
+    var gLat=($("afLat")&&$("afLat").value)||"", gLon=($("afLon")&&$("afLon").value)||"";
+    if (gLat && gLon && body.notes.indexOf("GPS ") < 0){
+      body.notes = (body.notes ? body.notes+" · " : "") + "GPS "+(+gLat).toFixed(6)+","+(+gLon).toFixed(6);
+      if (body.notes.length > 255) body.notes = body.notes.slice(0,255);
+    }
     if (body.recipient.length < 3)                 return bad("Escribe el nombre de quien recibe.");
     if ((body.phone.match(/\d/g)||[]).length < 10) return bad("El teléfono debe tener al menos 10 dígitos.");
     if (!body.street)                              return bad("Escribe la calle.");
@@ -1466,6 +1556,7 @@ body.td-predrag .td-trash{display:flex}
   $("tdLocDrawer").addEventListener("click", function(e){
     if (e.target.closest("#addrNew")) return locForm();
     if (e.target.closest("#afBack"))  return locList(locAddrs||[]);
+    if (e.target.closest("#afGeo"))   return afGeoStart();
     if (e.target.closest("#afSave"))  return saveAddr();
     var a = e.target.closest("[data-addr]"); if (a) return pickAddr(+a.dataset.addr);
   });
