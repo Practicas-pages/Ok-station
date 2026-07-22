@@ -6905,3 +6905,27 @@ html[data-theme="dark"] #mp-brick :is(input, select, textarea) {
   color: revert;
   border-color: revert;
 }
+/* ── NAVBAR LISO EN OSCURO (decisión de sixseven) ──────────────────────────
+   Fuera degradados en oscuro: color liso, la fila de arriba un poco más clara
+   y la de categorías un poco más oscura. En CLARO se conserva el degradado
+   morado→cyan de marca: solo cambia la noche.
+   Se definen como tokens para que TODAS las barras del sitio (tienda,
+   ficha/compra rápida vía shop-header.css, categoría) usen los mismos valores
+   y no se vuelvan a desincronizar. */
+html[data-theme="dark"] {
+  --nav-top:    #1C2745;   /* fila superior: logo, buscador, acciones */
+  --nav-bottom: #151D34;   /* fila de categorías: un paso más oscura */
+  --nav-line:   rgba(255,255,255,.10);
+}
+/* La barra de categoria.php (es un azul liso #066CFF en claro). */
+html[data-theme="dark"] .bar { background: var(--nav-top) !important; }
+
+/* El prefijo del teléfono (bandera + "MX +52") se quedaba claro mientras el
+   campo ya era oscuro: la píldora se veía partida en dos (captura del usuario).
+   Va con el mismo fondo y borde que el campo para que lean como UNA pieza. */
+html[data-theme="dark"] .input-prefix__tag {
+  background: #101827 !important;
+  color: var(--text-primary) !important;
+  border-color: var(--border-light) !important;
+}
+html[data-theme="dark"] .input-prefix__cc { color: var(--text-primary); }

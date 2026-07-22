@@ -980,27 +980,36 @@ html[data-theme="dark"] #site :is(.field input,.field select,.field textarea,.mo
    blancos gritaban en el censo). Con !important porque heartBtn() los pinta con
    ESTILO EN LÍNEA (style="background:#fff…") y ningún selector normal le gana. */
 html[data-theme="dark"] #site .wishbtn{background:#101827 !important; border-color:var(--line) !important}
-/* Botón ACTIVO del selector lista/cuadros: tinte azul-noche en vez de blanco. */
-html[data-theme="dark"] #site .viewtoggle button.on{background:#10233E; color:#3E8BFF}
+/* Botón ACTIVO del selector lista/cuadros: blanco, como el resto de lo activo. */
+html[data-theme="dark"] #site .viewtoggle button.on{background:#fff; color:#12141C}
 /* ── ENCABEZADO NOCHE ──
-   Primera versión dejaba el degradado brillante del modo claro con chips
-   blancos: era el sombrero del tema claro sobre un cuerpo oscuro (deslumbraba,
-   captura real del usuario). Un modo oscuro de verdad también apaga el
-   encabezado: MISMOS tonos de marca (morado→azul→cyan) a ~40% de luz, y los
-   controles pasan a fantasma con texto claro. Los ACENTOS que orientan
-   (categoría activa azul, Ofertas naranja, WhatsApp verde) se conservan. */
-html[data-theme="dark"] #site .topbar{
-  background:linear-gradient(100deg,#3D0E66 0%,#2A1566 22%,#0A3578 52%,#0A4E74 78%,#075A6E 100%)}
-html[data-theme="dark"] #site .popbar-row{
-  background:linear-gradient(rgba(5,8,18,.35),rgba(5,8,18,.35)),
-             linear-gradient(100deg,#3D0E66 0%,#2A1566 22%,#0A3578 52%,#0A4E74 78%,#075A6E 100%)}
+   Historia de este bloque, para que no se repita:
+   v1 dejó el degradado brillante del modo claro → deslumbraba sobre el cuerpo
+   oscuro. v2 lo apagó pero SEGUÍA siendo degradado, y se veía sucio.
+   v3 (esta): COLOR LISO, arriba un paso más claro que la fila de categorías.
+   Los valores viven en styles.css (--nav-top / --nav-bottom) para que la barra
+   de la ficha y la de categoría usen exactamente los mismos.
+   En modo CLARO no se toca nada: ahí sigue el degradado de marca. */
+html[data-theme="dark"] #site .topbar{background:var(--nav-top)}
+html[data-theme="dark"] #site .popbar-row{background:var(--nav-bottom); border-top:1px solid var(--nav-line)}
 /* Buscador: cristal oscuro en vez de blanco brillante. */
 html[data-theme="dark"] #site .search input{background:rgba(8,13,26,.55); color:#E9EDF6; border:1px solid rgba(255,255,255,.18)}
 html[data-theme="dark"] #site .search input::placeholder{color:#8A94AB}
 html[data-theme="dark"] #site .search svg{color:#8A94AB}
-/* Chips de categorías: fantasma noche; la activa sigue azul sólido y Ofertas naranja. */
+/* Chips de categorías: fantasma noche. Ofertas conserva su naranja. */
 html[data-theme="dark"] #site .pop:not(.on):not(.hot){background:rgba(255,255,255,.08); color:#E9EDF6; border-color:rgba(255,255,255,.26)}
 html[data-theme="dark"] #site .pop:not(.on):not(.hot):hover{background:rgba(255,255,255,.16); color:#fff; box-shadow:none}
+/* SELECCIONADO = BLANCO, no azul (decisión de sixseven). Aplica a la categoría
+   activa y a las píldoras de favoritos/carrito cuando están activas. Así el
+   único color fuerte del navbar es el naranja de Ofertas, que sí debe destacar.
+   Se quita la sombra azulada que traían: sobre liso se veía como suciedad. */
+html[data-theme="dark"] #site .pop.on{
+  background:#fff !important; color:#12141C !important; border-color:#fff !important; box-shadow:none !important}
+html[data-theme="dark"] #site .pop.on .dot{background:#12141C}
+html[data-theme="dark"] #site :is(.tb-fav,.tb-cart).on{
+  background:#fff !important; color:#12141C !important; border-color:#fff !important; box-shadow:none !important}
+html[data-theme="dark"] #site :is(.tb-fav,.tb-cart).on svg{color:#12141C}
+html[data-theme="dark"] #site :is(.tb-fav,.tb-cart).on:hover{background:#EEF3FB !important}
 /* Píldoras de Cuenta / Favoritos / Carrito y el botón Filtros: fantasma noche.
    (!important porque algunas traen fondo con !important o estilos propios.) */
 html[data-theme="dark"] #site :is(.tb-cuenta,.tb-fav,.tb-cart,.tb-filt){
