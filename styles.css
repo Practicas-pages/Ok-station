@@ -6832,3 +6832,61 @@ html[data-theme="dark"] .chip {
   color: var(--text-secondary);
 }
 html[data-theme="dark"] .chip:hover { border-color: var(--brand-blue); color: var(--brand-blue); }
+/* ── CAMPOS DE FORMULARIO EN OSCURO ────────────────────────────────────────
+   BUG REAL, no cosmético: la mayoría de los campos del sitio (citas, pedido,
+   contacto) NUNCA tuvieron una regla de fondo — usaban el blanco por defecto
+   del navegador. En oscuro heredaban nuestro color de texto claro y quedaban
+   #E9EDF6 SOBRE BLANCO: el usuario no veía lo que escribía. Medido: 17 de 21
+   campos en la portada.
+   Se excluyen radio/checkbox/range: son controles nativos que el navegador
+   dibuja solo; a esos se les da accent-color y se romperían con un fondo. */
+html[data-theme="dark"] :is(
+  input:not([type="radio"]):not([type="checkbox"]):not([type="range"]):not([type="color"]),
+  textarea, select
+) {
+  background: #101827;
+  color: var(--text-primary);
+  border-color: var(--border-light);
+  color-scheme: dark;
+}
+html[data-theme="dark"] :is(input, textarea)::placeholder { color: var(--text-muted); opacity: 1; }
+html[data-theme="dark"] select option { background: #101827; color: var(--text-primary); }
+/* Los nativos: que el navegador los dibuje en su variante oscura y con la
+   marca como color de acento (la palomita/el punto). */
+html[data-theme="dark"] :is(input[type="radio"], input[type="checkbox"]) {
+  accent-color: var(--brand-blue-hover, #3E8BFF);
+  color-scheme: dark;
+}
+/* Foco visible sobre fondo oscuro. */
+html[data-theme="dark"] :is(input, textarea, select):focus-visible {
+  outline: 2px solid var(--brand-blue-hover, #3E8BFF); outline-offset: 1px;
+}
+
+/* La sección de citas fuerza sus campos a blanco con !important (línea ~5900,
+   del rediseño claro). En oscuro hay que ganarle con la misma arma; si no, el
+   texto claro queda sobre blanco y no se ve lo que se escribe.
+   Excepción a propósito: el campo de FECHA conserva color-scheme:light porque
+   el calendario nativo de Chrome se dibuja ilegible al mezclar los esquemas. */
+html[data-theme="dark"] :is(
+  .citas-section input:not([type="radio"]):not([type="checkbox"]),
+  .citas-section select,
+  .citas-section textarea
+) {
+  background: #101827 !important;
+  border: 1px solid var(--border-light) !important;
+  color: var(--text-primary) !important;
+}
+html[data-theme="dark"] :is(.citas-section .time-slot, .citas-section .tramite-btn) {
+  background: #101827 !important;
+  border: 1px solid var(--border-light) !important;
+  color: var(--text-primary) !important;
+}
+html[data-theme="dark"] :is(.citas-section .time-slot, .citas-section .tramite-btn):is(.is-selected, .is-active, [aria-pressed="true"]) {
+  background: var(--brand-blue-hover, #3E8BFF) !important; color: #fff !important;
+}
+/* Las otras superficies que el rediseño claro fuerza a blanco con !important
+   (inventario multilínea del propio archivo: FAQ, contador de citas, paso activo). */
+html[data-theme="dark"] #faq .faq-item { background: var(--surface-card) !important; border-color: var(--border-light) !important; }
+html[data-theme="dark"] .citas-section .qty-btn {
+  background: #101827 !important; border: 1px solid var(--border-light) !important; color: var(--text-primary) !important;
+}
