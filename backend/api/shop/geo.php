@@ -15,6 +15,10 @@ respond([
     'ok'       => true,
     'country'  => $geo['country'],
     'state'    => $geo['state'],
+    // Aproximados (nivel ciudad) y solo por IP: prellenan la dirección de quien
+    // tiene bloqueado el permiso del navegador. No influyen en el IVA.
+    'city'     => $geo['city'] ?? '',
+    'zip'      => $geo['zip'] ?? '',
     'is_bc'    => $geo['is_bc'],
     'iva_rate' => $geo['iva_rate'],          // 0.08 (BC) | 0.16 (nacional)
     'iva_pct'  => (int) round($geo['iva_rate'] * 100),

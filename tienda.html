@@ -255,7 +255,10 @@ html[data-theme="dark"] #site .pimg--marca{background:#1B2338}
 #site .feat>.fcard{flex:0 0 clamp(166px,44vw,196px); scroll-snap-align:start}
 #site .featnav{position:absolute; top:calc(50% + 4px); transform:translateY(-50%); width:38px; height:38px; border-radius:50%; border:1px solid var(--line); background:#fff; color:#0b1220; box-shadow:0 6px 20px rgba(9,14,34,.16); display:none; place-items:center; cursor:pointer; z-index:6; transition:transform .15s}
 #site .featnav:hover{transform:translateY(-50%) scale(1.08)}
-#site .featnav.prev{left:-8px} #site .featnav.next{right:-8px}
+/* Separadas del carril: a -8px quedaban ENCIMA de la tarjeta y tapaban el producto.
+   Se recorre el carrusel hacia adentro para dejarles ese espacio libre. */
+#site .featnav.prev{left:-19px} #site .featnav.next{right:-19px}
+#site .feat-wrap{padding:0 22px; margin:0 -22px}
 #site .feat-wrap.can-prev .featnav.prev{display:grid}
 #site .feat-wrap.can-next .featnav.next{display:grid}
 @media(max-width:820px){ #site .featnav{display:none !important} }
@@ -953,6 +956,11 @@ html[data-theme="dark"] #site .pvside .pvhead{background:var(--card); border-bot
 /* El aviso breve usa background:var(--ink), que en oscuro se vuelve CLARO y
    dejaba texto blanco sobre fondo claro (ilegible). Va al revés del fondo. */
 html[data-theme="dark"] #site .toast{background:#E9EDF6; color:#12141C}
+/* Preguntas frecuentes: el blanco vive en .faq .qa (no en .faq), así que la regla
+   general de superficies no lo alcanzaba y quedaban 4 barras blancas vacías. */
+html[data-theme="dark"] #site .faq .qa{background:var(--card); border-color:var(--line)}
+html[data-theme="dark"] #site .faq .q{color:var(--ink)}
+html[data-theme="dark"] #site .faq .a{color:var(--muted)}
 html[data-theme="dark"] #site .mfaq b{color:var(--ink)}
 html[data-theme="dark"] #site .mfaq span{color:var(--muted)}
 /* Barra de scroll de los paneles: el pulgar claro resaltaba como una línea blanca. */
@@ -2088,6 +2096,29 @@ html[data-theme="dark"] #site :is(.tb-cuenta,.tb-fav,.tb-cart,.tb-filt):hover{ba
   /* Permiso NEGADO: el navegador ya no vuelve a preguntar, así que el botón por sí solo
      no puede hacer nada. Se explica dónde se reactiva (que es distinto en cada navegador)
      y se deja un botón para reintentar sin recargar la página. */
+  /* Ubicación APROXIMADA por IP: la única vía que funciona de un clic cuando el
+     navegador ya bloqueó el permiso (no hay API para volver a pedirlo). Llega a
+     nivel ciudad, así que llena estado, ciudad y CP y deja la calle al cliente.
+     Si el servidor no la resuelve, se dice claramente en vez de fallar en silencio. */
+  function afGeoPorIp(btn){
+    var orig = btn ? btn.textContent : "";
+    if(btn){ btn.disabled=true; btn.textContent="Ubicando…"; }
+    fetch("/backend/api/shop/geo.php").then(function(r){return r.json();}).then(function(j){
+      if(btn){ btn.disabled=false; btn.textContent=orig; }
+      if(!j||!j.ok||!j.state){ flash("No pudimos ubicarte; escribe tu dirección."); return; }
+      var set=function(id,v){ var el=$(id); if(el&&v) el.value=v; };
+      set("afCity", j.city); set("afCp", j.zip);
+      var sel=$("afState");
+      if(sel&&j.state){ for(var i=0;i<sel.options.length;i++){ if(sel.options[i].text.toLowerCase()===String(j.state).toLowerCase()){ sel.selectedIndex=i; break; } } }
+      afGeoBox('<b>Listo, te ubicamos por tu conexión</b><br>'+
+        'Es aproximado: revisa la <b>calle</b> y el <b>número</b> antes de guardar.', "info");
+      setTimeout(function(){ var c=$("afStreet"); if(c) c.focus(); }, 60);
+    }).catch(function(){
+      if(btn){ btn.disabled=false; btn.textContent=orig; }
+      flash("No pudimos ubicarte; escribe tu dirección.");
+    });
+  }
+
   function afGeoBlocked(){
     /* Se muestra SOLO el paso del dispositivo que está usando. Antes salían los
        tres a la vez (computadora, Android y iPhone) y el aviso se volvía una pared
@@ -2098,15 +2129,20 @@ html[data-theme="dark"] #site :is(.tb-cuenta,.tb-fav,.tb-cart,.tb-filt):hover{ba
       : (/iPhone|iPad|iPod/i.test(ua)
           ? 'Entra a <b>Ajustes</b> → <b>Safari</b> → <b>Ubicación</b> → <b>Preguntar</b>.'
           : 'Toca el <b>candado 🔒</b> junto a la dirección web → <b>Ubicación</b> → <b>Permitir</b>.');
+    /* NINGUNA página puede volver a abrir el diálogo de permiso una vez negado (es
+       una protección del navegador). Así que en vez de mandar a la gente a la
+       configuración —que la mayoría no sabe usar— se ofrece PRIMERO un botón que
+       sí funciona de un clic: ubicación aproximada por IP, que no pide permiso.
+       Llena estado, ciudad y CP; la calle la escribe el cliente. */
     afGeoBox(
       '<b>Tu navegador tiene bloqueada la ubicación</b><br>'+
-      paso+'<br>'+
-      /* Fondo TRANSPARENTE, no #fff: así hereda el tono del aviso y se ve bien
-         tanto en claro como en oscuro sin tener que pintarlo dos veces. */
-      '<button type="button" id="afGeoRetry" style="margin-top:10px;padding:8px 14px;border-radius:10px;border:1px solid currentColor;background:transparent;color:inherit;font:inherit;font-weight:700;cursor:pointer">Ya lo permití · reintentar</button>'+
-      '<div style="margin-top:8px;opacity:.85">También puedes escribir tu dirección a mano aquí abajo.</div>',
+      'No te preocupes, podemos ubicarte igual:'+
+      '<button type="button" id="afGeoIp" style="display:block;width:100%;margin-top:10px;padding:11px 14px;border-radius:12px;border:0;background:var(--blue);color:#fff;font:inherit;font-weight:700;cursor:pointer">📍 Ubicarme aproximadamente</button>'+
+      '<div style="margin-top:9px;opacity:.9;font-size:.95em">¿Prefieres la ubicación exacta? '+paso+
+        ' <button type="button" id="afGeoRetry" style="padding:2px 6px;border-radius:8px;border:1px solid currentColor;background:transparent;color:inherit;font:inherit;font-weight:700;cursor:pointer">Ya lo permití</button></div>',
       "block");
     var r=$("afGeoRetry"); if(r) r.addEventListener("click",function(){ afGeoHide(); afGeoStart(true); });
+    var ip=$("afGeoIp"); if(ip) ip.addEventListener("click",function(){ afGeoPorIp(ip); });
   }
 
   /* forzar=true viene del botón "reintentar": salta la consulta de permiso previa

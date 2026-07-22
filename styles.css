@@ -6822,3 +6822,13 @@ html[data-theme="dark"] :is(.acct__btn, .acct__menu) {
 html[data-theme="dark"] .acct__menu { box-shadow: 0 22px 60px rgba(0,0,0,.55); }
 html[data-theme="dark"] .acct__btn:hover { border-color: var(--border-medium); }
 /* Abierto se pinta de azul de marca: ahí el texto blanco ya contrasta y se deja. */
+
+/* Pastillas de filtro (.chip): las usa TODO el panel (Pedidos, Tienda, Citas) y
+   traían background:#fff con el texto por token, así que en oscuro se leían casi
+   en blanco sobre blanco. La seleccionada se queda azul: ahí ya contrasta. */
+html[data-theme="dark"] .chip {
+  background: var(--surface-card);
+  border-color: var(--border-light);
+  color: var(--text-secondary);
+}
+html[data-theme="dark"] .chip:hover { border-color: var(--brand-blue); color: var(--brand-blue); }

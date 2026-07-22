@@ -94,7 +94,8 @@ final class Geo
         if (!self::isReservedIp($ip)) {
             $geo = self::ipLookup($ip);
             if ($geo && ($geo['state'] ?? '') !== '') {
-                return self::pack($geo['country'] ?: 'MX', $geo['state'], 'ip');
+                return self::pack($geo['country'] ?: 'MX', $geo['state'], 'ip',
+                                  (string) ($geo['city'] ?? ''), (string) ($geo['zip'] ?? ''));
             }
         }
 
@@ -102,11 +103,17 @@ final class Geo
         return self::pack('MX', 'Baja California', 'default');
     }
 
-    private static function pack(string $country, string $state, string $source): array
+    /* city/zip son OPCIONALES y solo los trae la vía de IP: sirven para prellenar
+       la dirección, nunca para el IVA (eso lo decide el ESTADO). Por eso van con
+       valor por omisión y ninguna otra vía tiene que cambiar. */
+    private static function pack(string $country, string $state, string $source,
+                                 string $city = '', string $zip = ''): array
     {
         return [
             'country'  => $country,
             'state'    => $state,
+            'city'     => $city,
+            'zip'      => $zip,
             'is_bc'    => self::isBC($state),
             'iva_rate' => self::ivaForState($state),
             'source'   => $source,
@@ -119,7 +126,11 @@ final class Geo
         $cached = self::cacheGet($ip);
         if ($cached !== null) return $cached;
 
-        $url = 'http://ip-api.com/json/' . rawurlencode($ip) . '?fields=status,country,countryCode,regionName&lang=es';
+        /* Se piden también CIUDAD y CP: sirven para prellenar la dirección de quien
+           tiene bloqueado el permiso de ubicación del navegador (que no se puede
+           volver a pedir por código). Es aproximado —nivel ciudad—, y el cliente
+           corrige lo que haga falta. */
+        $url = 'http://ip-api.com/json/' . rawurlencode($ip) . '?fields=status,country,countryCode,regionName,city,zip&lang=es';
         $ch = curl_init($url);
         curl_setopt_array($ch, [
             CURLOPT_RETURNTRANSFER => true,
@@ -134,7 +145,12 @@ final class Geo
         $j = json_decode((string) $raw, true);
         if (!is_array($j) || ($j['status'] ?? '') !== 'success') return null;
 
-        $out = ['country' => (string) ($j['countryCode'] ?? ''), 'state' => (string) ($j['regionName'] ?? '')];
+        $out = [
+            'country' => (string) ($j['countryCode'] ?? ''),
+            'state'   => (string) ($j['regionName'] ?? ''),
+            'city'    => (string) ($j['city'] ?? ''),
+            'zip'     => (string) ($j['zip'] ?? ''),
+        ];
         self::cacheSet($ip, $out);
         return $out;
     }
