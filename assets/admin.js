@@ -1170,6 +1170,50 @@
     document.addEventListener("keydown", escClose);
   }
 
+  /* ── PDF del recibo de una compra (panel) ──────────────────────────────────
+     Orden de preferencia a propósito:
+       1. El recibo YA GUARDADO en el servidor — es EXACTAMENTE el mismo PDF que
+          se le envió por correo al cliente, así que lo que ve el panel y lo que
+          tiene el cliente coinciden (importante en una aclaración).
+       2. Si todavía no existe (el cliente aún no ha pasado por "Mis compras"),
+          se genera aquí con los datos de la compra, igual que hace Citas.
+     No sube el PDF generado: subirlo dispararía el correo al cliente, y el panel
+     no debería mandarle un recibo solo porque un administrador lo consultó. */
+  function shopPdf(id, btn) {
+    var orig = btn.textContent;
+    btn.disabled = true; btn.textContent = "…";
+    var done = function () { btn.disabled = false; btn.textContent = orig; };
+
+    fetch(API_BASE + "/shop/ticket.php?id=" + encodeURIComponent(id), {
+      headers: { Authorization: "Bearer " + token() }
+    })
+      .then(function (r) { if (!r.ok) throw new Error("sin-recibo"); return r.blob(); })
+      .then(function (blob) {
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement("a");
+        a.href = url; a.download = "recibo-" + id + ".pdf";
+        document.body.appendChild(a); a.click(); a.remove();
+        setTimeout(function () { URL.revokeObjectURL(url); }, 4000);
+        done();
+      })
+      .catch(function () {
+        /* Aún no hay recibo guardado: se arma con el detalle de la compra. */
+        if (!window.OKShopTicketDownload) {
+          done();
+          window.alert("El recibo aún no está disponible (el cliente no lo ha generado) y no se pudo cargar el generador de PDF.");
+          return;
+        }
+        DataSource.shopOrderDetail(id).then(function (res) {
+          done();
+          if (!res || !res.ok || !res.order) { window.alert("No se pudo cargar la compra para generar el recibo."); return; }
+          var o = res.order;
+          if (!o.name) o.name = (o.client && (o.client.full_name || o.client.name)) || "";
+          try { window.OKShopTicketDownload(o); }
+          catch (e) { window.alert("No se pudo generar el recibo en este navegador."); }
+        }).catch(function () { done(); window.alert("Sin conexión al cargar la compra."); });
+      });
+  }
+
   function viewShopOrder(id) {
     DataSource.shopOrderDetail(id).then(function (res) {
       if (!res || !res.ok || !res.order) { window.alert((res && res.error) || "No se pudo cargar el detalle de la compra."); return; }
@@ -1189,7 +1233,7 @@
         return;
       }
       var head = '<thead><tr><th>Folio</th><th>Cliente</th><th>Productos</th>' + (money ? '<th>Total</th>' : '') +
-        '<th>Estado</th><th>Pago</th><th>Entrega</th><th>Fecha</th></tr></thead>';
+        '<th>Estado</th><th>Pago</th><th>Entrega</th><th>Fecha</th><th>Acciones</th></tr></thead>';
       var body = list.map(function (o) {
         var statusSel = '<select class="shop-status-select" data-id="' + (o.id || o.code) + '">' + Object.keys(SHOP_STATUS).map(function (k) {
           return '<option value="' + k + '"' + (k === o.status ? " selected" : "") + '>' + SHOP_STATUS[k] + '</option>';
@@ -1204,14 +1248,25 @@
         var verId = (o.id || o.code);
         var folioCell = '<button type="button" class="folio-link mono" data-shop-view="' + esc(String(verId)) + '" title="Ver qué pidió">' + esc(o.code) + '</button>';
         var itemsCell = '<button type="button" class="folio-link" data-shop-view="' + esc(String(verId)) + '" title="Ver qué pidió">' + esc(o.items) + '</button>';
+        /* Acciones: MISMA pareja que en Citas (Ver + PDF), para que el panel se
+           opere igual en los tres apartados. */
+        var acciones = '<button type="button" class="admin-btn-sm shop-view" data-id="' + esc(String(verId)) + '">Ver</button>' +
+          ' <button type="button" class="admin-btn-sm shop-pdf" data-id="' + esc(String(verId)) + '">PDF</button>';
         return '<tr><td>' + folioCell + '</td><td>' + clientCell(o.user_id, o.client) + '</td>' +
           '<td>' + itemsCell + '</td>' + (money ? '<td class="mono">' + mxn(o.total) + '</td>' : '') +
-          '<td>' + statusSel + '</td><td>' + payCell + '</td><td>' + esc(entrega) + '</td><td>' + esc(o.date) + '</td></tr>';
+          '<td>' + statusSel + '</td><td>' + payCell + '</td><td>' + esc(entrega) + '</td><td>' + esc(o.date) + '</td>' +
+          '<td class="nowrap">' + acciones + '</td></tr>';
       }).join("");
       t.innerHTML = head + '<tbody>' + body + '</tbody>';
       bindClientLinks(t);
       $$("[data-shop-view]", t).forEach(function (b) {
         b.addEventListener("click", function () { viewShopOrder(b.dataset.shopView); });
+      });
+      $$(".shop-view", t).forEach(function (b) {
+        b.addEventListener("click", function () { viewShopOrder(b.dataset.id); });
+      });
+      $$(".shop-pdf", t).forEach(function (b) {
+        b.addEventListener("click", function () { shopPdf(b.dataset.id, b); });
       });
       $$(".shop-status-select", t).forEach(function (sel) {
         var prev = sel.value;
