@@ -26,6 +26,7 @@
 require __DIR__ . '/../_bootstrap.php';
 require __DIR__ . '/../lib/authz.php';
 require __DIR__ . '/../lib/Icecat.php';
+require __DIR__ . '/../lib/BuscadorMarca.php';   // antes que ImagenSegura: le aporta sus dominios
 require __DIR__ . '/../lib/ImagenSegura.php';
 only_method('GET');
 
@@ -94,13 +95,45 @@ if (Icecat::available()) {
     $notas[] = 'Icecat no está configurado en este servidor.';
 }
 
-/* ── Páginas oficiales de marca ───────────────────────────────────────────────
-   Todavía no hay adaptadores: cada marca necesita comprobarse una por una (que
-   tenga fichas públicas, buscador por número de parte y que su robots.txt lo
-   permita). Se avisa en vez de devolver resultados inventados o de buscadores
-   genéricos, que es de donde salen las fotos equivocadas. */
-$notas[] = 'Búsqueda en la página oficial de ' . ($p['brand'] ?: 'la marca') . ': aún no disponible. '
-         . 'Mientras tanto, sube la foto desde tu computadora — es la vía que siempre funciona.';
+/* ── Página oficial de la marca ───────────────────────────────────────────────
+   Se busca EN EL SITIO DEL FABRICANTE, no en un buscador de imágenes: Google o
+   Bing devuelven fotos de terceros cuyos derechos no tenemos y que muchas veces
+   ni siquiera son del producto correcto. La foto del fabricante es suya,
+   corresponde a su número de parte, y usarla para vender su producto es el uso
+   previsto.
+
+   Se prueba primero con la CLAVE (identifica el producto exacto) y, si no da
+   nada, con el nombre (más tolerante pero menos preciso). */
+$marca = trim((string) ($p['brand'] ?? ''));
+if ($marca !== '' && BuscadorMarca::config($marca)) {
+    /* UN solo intento, no una cadena de reintentos. Cada consulta al sitio del
+       fabricante tarda ~1.2 s; encadenar clave, referencia y nombre dejaba al
+       trabajador esperando 5 segundos ANTES de ver nada, y son ~282 productos de
+       corrido. Se usa la clave, que es lo que identifica al producto; si no da
+       resultado, el nombre casi nunca lo da tampoco y sale más barato pegar la
+       foto que esperar. */
+    $termino = trim((string) ($p['sku'] ?? '')) ?: trim((string) ($p['supplier_ref'] ?? '')) ?: $p['name'];
+
+    $r          = BuscadorMarca::buscar($marca, $termino);
+    $hallado    = $r['imagenes'];
+    $ultimaNota = $r['nota'];
+    foreach ($hallado as $img) {
+        $cands[] = [
+            'origen'    => 'marca',
+            'fuente'    => $marca,
+            'url'       => $img['url'],
+            'pagina'    => $img['pagina'],
+            'principal' => false,
+            /* Se dice claramente que NADIE comprobó que sea este producto: es lo
+               que la persona tiene que hacer al mirarla. */
+            'nota'      => 'Encontrada en el sitio de ' . $marca . '. Compruébala antes de usarla.',
+        ];
+    }
+    if (!$hallado && $ultimaNota !== '') $notas[] = $ultimaNota;
+} elseif ($marca !== '') {
+    $notas[] = 'No hay buscador configurado para ' . $marca . ' todavía. '
+             . 'Búscala y pégala aquí con Ctrl+V — es la vía que siempre funciona.';
+}
 
 respond([
     'producto' => [
