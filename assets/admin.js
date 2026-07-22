@@ -233,6 +233,10 @@
       if (f.images)   p.push("images=" + encodeURIComponent(f.images));
       return apiGet("/admin/catalog.php" + (p.length ? "?" + p.join("&") : ""));
     },
+    productDetail:    function (id) { return apiGet("/admin/product-detail.php?id=" + encodeURIComponent(id)); },
+    imageCandidates:  function (id) { return apiGet("/admin/image-candidates.php?id=" + encodeURIComponent(id)); },
+    /* Guarda la elección del administrador. `action`: add | primary | remove. */
+    productImage:     function (payload) { return apiPost("/admin/product-image.php", payload); },
     orderDetail: function (id) {
       if (DEMO) { var o = (MOCK.orders || []).find(function (x) { return String(x.id || x.code) === String(id); }); return Promise.resolve(o ? { ok: true, order: o } : { ok: false }); }
       return apiGet("/orders/get.php?id=" + encodeURIComponent(id));
@@ -1742,7 +1746,10 @@
             ? '<img class="catalog-thumb" src="' + esc(p.thumb) + '" alt="" loading="lazy">'
             : '<span class="catalog-thumb catalog-thumb--empty" aria-hidden="true"></span>';
           var ref = p.sku || p.supplier_ref || "";
-          return '<tr>' +
+          /* El renglón entero abre la ficha. Con tabindex/role para que también se
+             pueda llegar con el teclado, no solo con el ratón. */
+          return '<tr class="is-clickable" data-pid="' + p.id + '" tabindex="0" role="button" ' +
+            'aria-label="Ver ficha de ' + esc(p.name) + '">' +
             '<td><div class="catalog-prod">' + thumb + '<div><b>' + esc(p.name) + '</b>' +
               (ref ? '<div class="catalog-note">' + esc(ref) + '</div>' : '') + '</div></div></td>' +
             '<td>' + esc(p.brand || "—") + '</td>' +
@@ -1764,10 +1771,216 @@
           : '';
 
         t.innerHTML = head + '<tbody>' + body + capped + '</tbody>';
+
+        $$("tr[data-pid]", t).forEach(function (tr) {
+          tr.addEventListener("click", function () { openProductModal(+tr.dataset.pid); });
+          tr.addEventListener("keydown", function (e) {
+            if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openProductModal(+tr.dataset.pid); }
+          });
+        });
       })
       .catch(function () {
         t.innerHTML = head + '<tbody><tr><td colspan="7" class="catalog-empty">No se pudo cargar el catálogo.</td></tr></tbody>';
       });
+  }
+
+  /* ── Ficha del producto (clic en un renglón del catálogo) ──
+     Muestra TODO lo que se sabe del producto y deja gestionar sus imágenes.
+     Regla que atraviesa toda esta pantalla: ninguna fuente publica sola; el
+     administrador elige cada foto. Ver image-candidates.php. */
+  var prodModalId = null;
+
+  function escProdClose(e) { if (e.key === "Escape") closeProductModal(); }
+  function closeProductModal() {
+    var m = document.getElementById("prod-modal");
+    if (m) m.remove();
+    document.body.style.overflow = "";
+    document.removeEventListener("keydown", escProdClose);
+    prodModalId = null;
+  }
+
+  function prodField(label, value) {
+    return '<div class="prod-field"><span>' + label + '</span><b>' + value + '</b></div>';
+  }
+
+  /* Galería: cada imagen con su procedencia y si ya está copiada en nuestro servidor. */
+  function prodImagesHtml(d) {
+    var imgs = d.images || [], max = d.max_images || 5;
+    var cards = imgs.map(function (im) {
+      return '<figure class="prod-img' + (im.is_primary ? " is-primary" : "") + '">' +
+        '<img src="' + esc(im.src) + '" alt="" loading="lazy">' +
+        (im.is_primary ? '<span class="prod-img__flag">Principal</span>' : '') +
+        '<figcaption>' + esc(im.source) +
+          '<span class="' + (im.local ? "" : "is-warn") + '">' + (im.local ? "local" : "remota") + '</span>' +
+        '</figcaption>' +
+        '<div class="prod-img__acts">' +
+          (im.is_primary ? '' : '<button class="admin-btn-sm" data-imgprimary="' + im.id + '">Principal</button>') +
+          '<button class="admin-btn-sm" data-imgremove="' + im.id + '">Quitar</button>' +
+        '</div>' +
+      '</figure>';
+    }).join("");
+    var vacio = '<p class="prod-hint">Este producto no tiene imágenes. En la tienda se muestra el logotipo de Ok.station en su lugar.</p>';
+    return '<div class="prod-gallery">' + (imgs.length ? cards : vacio) + '</div>' +
+      '<p class="prod-hint">' + imgs.length + ' de ' + max + ' imágenes.' +
+      (imgs.length ? ' Las marcadas como <b>remota</b> se sirven desde el proveedor: si esa fuente se cae, el producto se queda sin foto.' : '') +
+      '</p>';
+  }
+
+  function prodSpecsHtml(specs) {
+    if (!specs || !specs.length) {
+      return '<p class="prod-hint">Sin ficha técnica. Icecat no aportó características para este producto.</p>';
+    }
+    return specs.map(function (g) {
+      return '<h4 class="prod-subtitle">' + esc(g.group) + '</h4>' +
+        '<table class="prod-specs"><tbody>' + g.items.map(function (it) {
+          return '<tr><th>' + esc(it.name) + '</th><td>' + esc(it.value) + '</td></tr>';
+        }).join("") + '</tbody></table>';
+    }).join("");
+  }
+
+  function prodEnrichHtml(rows) {
+    if (!rows || !rows.length) return '<p class="prod-hint">Todavía no se consulta ninguna fuente para este producto.</p>';
+    var ESTADO = { ok: "Aportó datos", sin_datos: "No lo tiene", error: "Falló", revision: "Espera revisión", rechazado: "Descartado" };
+    return '<table class="prod-specs"><tbody>' + rows.map(function (r) {
+      return '<tr><th>' + esc(r.source) + '</th><td>' + esc(ESTADO[r.status] || r.status) +
+        (r.fields ? ' · ' + esc(r.fields) : '') +
+        (r.confidence !== null && typeof r.confidence !== "undefined" ? ' · ' + esc(r.confidence) + '% de certeza' : '') +
+        (r.detail ? '<div class="catalog-note">' + esc(r.detail) + '</div>' : '') +
+        '</td></tr>';
+    }).join("") + '</tbody></table>';
+  }
+
+  /* Candidatas: lo que proponen las fuentes. Se pintan para ELEGIR, nunca se
+     publican solas. Mientras Oscar no conecte la búsqueda en vivo, esto llega
+     vacío y se explica por qué en vez de dejar un hueco mudo. */
+  function renderCandidates(id) {
+    var box = $("#prod-candidates");
+    if (!box) return;
+    box.innerHTML = '<p class="prod-hint">Buscando imágenes…</p>';
+    DataSource.imageCandidates(id).then(function (j) {
+      var list = (j && j.candidates) || [];
+      if (!list.length) {
+        box.innerHTML = '<p class="prod-hint">Ninguna fuente propone imágenes para este producto todavía.' +
+          ((j && j.pending && j.pending.live_search)
+            ? ' <b>La búsqueda en vivo (Icecat y fabricantes) está pendiente de conectar.</b>' : '') +
+          '</p>';
+        return;
+      }
+      box.innerHTML = '<div class="prod-gallery">' + list.map(function (c, i) {
+        return '<figure class="prod-img">' +
+          '<img src="' + esc(c.thumb || c.url) + '" alt="" loading="lazy">' +
+          '<figcaption>' + esc(c.source) +
+            (c.confidence != null ? '<span>' + esc(c.confidence) + '%</span>' : '') +
+          '</figcaption>' +
+          '<div class="prod-img__acts">' +
+            '<button class="admin-btn-sm" data-usecand="' + i + '">Usar esta</button>' +
+            (c.source_url ? '<a class="admin-btn-sm" href="' + esc(c.source_url) + '" target="_blank" rel="noopener noreferrer">Ver origen</a>' : '') +
+          '</div>' +
+        '</figure>';
+      }).join("") + '</div>';
+      $$("[data-usecand]", box).forEach(function (b) {
+        b.addEventListener("click", function () {
+          var c = list[+b.dataset.usecand];
+          b.disabled = true;
+          addProductImage(id, c.url, c.source);
+        });
+      });
+    }).catch(function () {
+      box.innerHTML = '<p class="prod-hint">No se pudieron consultar las fuentes de imágenes.</p>';
+    });
+  }
+
+  function addProductImage(id, url, source) {
+    DataSource.productImage({ action: "add", product_id: id, url: url, source: source || "manual" })
+      .then(function (j) {
+        if (!j || !j.ok) { window.alert((j && (j.error || j.message)) || "No se pudo agregar la imagen."); return; }
+        openProductModal(id);      // recarga la ficha con la imagen ya puesta
+        rendered.catalogo = false; // el conteo del listado cambió
+        renderCatalog();
+      })
+      .catch(function () { window.alert("Sin conexión al agregar la imagen."); });
+  }
+
+  function productModalHtml(d) {
+    var p = d.product || {};
+    var ref = p.sku || p.supplier_ref || "";
+    return '<div class="prod-modal__panel">' +
+      '<div class="prod-modal__head">' +
+        '<div><div class="prod-modal__title">' + esc(p.name || "Producto") + '</div>' +
+        '<div class="prod-modal__sub">' + esc(p.brand || "sin marca") + (ref ? " · " + esc(ref) : "") +
+          ' · ' + esc(p.category || "sin categoría") + '</div></div>' +
+        '<button type="button" class="btn btn--light btn--sm" id="prod-modal-close">Cerrar</button>' +
+      '</div>' +
+      '<div class="prod-modal__body">' +
+        '<h4 class="prod-subtitle">Imágenes</h4>' + prodImagesHtml(d) +
+        '<h4 class="prod-subtitle">Agregar una imagen</h4>' +
+        '<div id="prod-candidates"></div>' +
+        '<div class="prod-addurl">' +
+          '<input type="url" id="prod-url" class="admin-search" placeholder="…o pega la dirección de una imagen (https://)" aria-label="Dirección de la imagen">' +
+          '<input type="text" id="prod-url-source" class="catalog-select" value="manual" aria-label="Origen de la imagen" title="De dónde salió: manual, fabricante:3m…">' +
+          '<button class="btn btn--primary btn--sm" id="prod-url-add">Agregar</button>' +
+        '</div>' +
+        '<h4 class="prod-subtitle">Datos del catálogo</h4>' +
+        '<div class="prod-fields">' +
+          prodField("Precio público", mxn(Number(p.price) || 0) + " <small>+ IVA</small>") +
+          prodField("Costo proveedor", mxn(Number(p.cost) || 0)) +
+          prodField("Existencia", p.stock + " <small>almacén " + esc(p.warehouse_id || "—") + "</small>") +
+          prodField("Estado", p.is_active ? "Publicado" : "Oculto") +
+          prodField("Subcategoría", esc(p.subcategory || "—")) +
+          prodField("Proveedor", esc(p.supplier || "—") + " <small>" + esc(p.supplier_ref || "") + "</small>") +
+          prodField("Código de barras", esc(p.barcode || "—")) +
+          prodField("Clave SAT", esc(p.sat_code || "—")) +
+          prodField("Última sincronización", esc(p.last_synced_at || "—")) +
+          prodField("Enriquecido", esc(p.enriched_at || "nunca")) +
+        '</div>' +
+        '<h4 class="prod-subtitle">Fuentes consultadas</h4>' + prodEnrichHtml(d.enrichment) +
+        '<h4 class="prod-subtitle">Ficha técnica</h4>' + prodSpecsHtml(d.specs) +
+      '</div>' +
+    '</div>';
+  }
+
+  function openProductModal(id) {
+    DataSource.productDetail(id).then(function (d) {
+      if (!d || !d.ok) { window.alert((d && (d.error || d.message)) || "No se pudo abrir el producto."); return; }
+      closeProductModal();
+      prodModalId = id;
+      var ov = document.createElement("div");
+      ov.id = "prod-modal";
+      ov.className = "prod-modal";
+      ov.setAttribute("role", "dialog");
+      ov.setAttribute("aria-modal", "true");
+      ov.innerHTML = productModalHtml(d);
+      document.body.appendChild(ov);
+      document.body.style.overflow = "hidden";
+
+      ov.addEventListener("click", function (e) { if (e.target === ov) closeProductModal(); });
+      $("#prod-modal-close", ov).addEventListener("click", closeProductModal);
+      document.addEventListener("keydown", escProdClose);
+
+      $$("[data-imgprimary]", ov).forEach(function (b) {
+        b.addEventListener("click", function () {
+          b.disabled = true;
+          DataSource.productImage({ action: "primary", product_id: id, image_id: +b.dataset.imgprimary })
+            .then(function () { openProductModal(id); renderCatalog(); });
+        });
+      });
+      $$("[data-imgremove]", ov).forEach(function (b) {
+        b.addEventListener("click", function () {
+          if (!window.confirm("¿Quitar esta imagen del producto?")) return;
+          b.disabled = true;
+          DataSource.productImage({ action: "remove", product_id: id, image_id: +b.dataset.imgremove })
+            .then(function () { openProductModal(id); renderCatalog(); });
+        });
+      });
+      var addBtn = $("#prod-url-add", ov);
+      if (addBtn) addBtn.addEventListener("click", function () {
+        var u = ($("#prod-url", ov).value || "").trim();
+        if (!u) { window.alert("Pega la dirección de la imagen."); return; }
+        addProductImage(id, u, ($("#prod-url-source", ov).value || "manual").trim());
+      });
+
+      renderCandidates(id);
+    }).catch(function () { window.alert("Sin conexión al abrir el producto."); });
   }
 
   /* ============================================================
