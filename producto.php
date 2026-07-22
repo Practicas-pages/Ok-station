@@ -337,6 +337,46 @@ $ldCrumbs = [
           <li><span aria-hidden="true">🧾</span> Facturamos: pídelo por WhatsApp</li>
         </ul>
 
+        <?php
+        /* ── Medios de pago ──
+           Solo lo que de verdad se acepta: Visa, Mastercard y American Express
+           (crédito y débito), cobrados a través de Mercado Pago.
+           Los logotipos son marcas registradas y no se dibujan a mano: se apunta al
+           archivo oficial y, mientras no esté subido, el onerror deja una etiqueta de
+           texto con el nombre. Así la sección se ve bien HOY y se actualiza sola en
+           cuanto los .svg existan, sin tocar este archivo. */
+        $pagos = [
+            ['visa',       'Visa'],
+            ['mastercard', 'Mastercard'],
+            ['amex',       'American Express'],
+        ];
+        ?>
+        <section class="pdp__pay" aria-label="Medios de pago">
+          <h2 class="pdp__pay-title">Medios de pago</h2>
+
+          <p class="pdp__pay-sub">Tarjetas de crédito y débito</p>
+          <ul class="pdp__pay-list">
+            <?php foreach ($pagos as [$slug, $label]): ?>
+              <li class="pdp__pay-item">
+                <img src="/assets/img/pay/<?= e($slug) ?>.svg" alt="<?= e($label) ?>"
+                     width="52" height="32" loading="lazy" decoding="async"
+                     onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'pdp__pay-txt',textContent:this.alt}))">
+              </li>
+            <?php endforeach; ?>
+          </ul>
+
+          <p class="pdp__pay-sub">Procesado por</p>
+          <ul class="pdp__pay-list">
+            <li class="pdp__pay-item">
+              <img src="/assets/img/pay/mercadopago.svg" alt="Mercado Pago"
+                   width="86" height="32" loading="lazy" decoding="async"
+                   onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'pdp__pay-txt',textContent:this.alt}))">
+            </li>
+          </ul>
+
+          <p class="pdp__pay-note">Tus datos viajan cifrados: la tarjeta la cobra Mercado Pago, nosotros no la guardamos.</p>
+        </section>
+
         <!-- Innovación: la ficha del producto ya está aquí; OKi puede responder sobre ELLA. -->
         <button type="button" class="pdp__oki" id="pdpOki">
           <span class="pdp__oki-ico" aria-hidden="true">🚀</span>
@@ -397,7 +437,7 @@ $ldCrumbs = [
             <?php if ($r['old']): ?><span class="pdp__rel-off">−<?= (int) round((1 - $r['price'] / $r['old']) * 100) ?>%</span><?php endif; ?>
             <div class="pdp__rel-img">
               <?php if ($r['image']): ?><img src="<?= e($r['image']) ?>" alt="" loading="lazy" width="120" height="120" decoding="async">
-              <?php else: ?><span aria-hidden="true">📦</span><?php endif; ?>
+              <?php else: /* Sin foto (Icecat/Exel no la traen) → logo de Ok.station centrado. */ ?><img class="ph-logo" src="/assets/img/placeholder-producto.svg" alt="" loading="lazy" width="120" height="120" decoding="async"><?php endif; ?>
             </div>
             <h3><?= e($r['name']) ?></h3>
             <div class="pdp__rel-price"><?= mxn($r['price']) ?><?php if ($r['old']): ?> <s><?= mxn($r['old']) ?></s><?php endif; ?></div>
