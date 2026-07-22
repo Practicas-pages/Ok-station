@@ -434,3 +434,69 @@ html[data-theme="dark"] :is(.appt-pdf, .guest-card) {
 html[data-theme="dark"] .appt-pdf { color: var(--brand-blue); border-color: var(--border-medium); }
 /* Los recuadros de documentos se quedan CLAROS: son escaneos de actas y CURP en
    papel blanco; invertirlos los volvería ilegibles. */
+
+/* ── Selector de fotos del Catálogo (assets/admin-fotos.js) ──────────────────
+   Pensado para hacer ~282 productos de corrido: lo que importa es que cada uno
+   cueste UN clic. Por eso las candidatas van en cuadrícula grande y clicable, y
+   la zona de pegar está siempre visible sin tener que abrir nada más.
+   Todo con los tokens del panel, así hereda el modo oscuro sin reglas propias. */
+.catalog-foto {
+  margin-top: 6px; border: 1px solid var(--border-medium, #cbd5e1); background: var(--surface-card, #fff);
+  color: var(--text-primary, #12141C); border-radius: 8px; padding: 3px 9px;
+  font: inherit; font-size: .72rem; font-weight: 600; cursor: pointer;
+}
+.catalog-foto:hover { border-color: var(--brand-blue, #066CFF); color: var(--brand-blue, #066CFF); }
+
+.fotos-ov {
+  position: fixed; inset: 0; z-index: 200; display: none; align-items: center; justify-content: center;
+  background: rgba(8, 12, 30, .55); padding: 16px;
+}
+.fotos-ov.on { display: flex; }
+.fotos-box {
+  background: var(--surface-card, #fff); color: var(--text-primary, #12141C);
+  border-radius: 16px; width: min(680px, 96vw); max-height: 90vh; display: flex; flex-direction: column;
+  box-shadow: 0 30px 80px rgba(8, 12, 30, .45);
+}
+.fotos-head {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 14px 18px; border-bottom: 1px solid var(--border-light, #e5e7eb);
+}
+.fotos-head b { font-size: .95rem; display: block; }
+.fotos-marca { font-size: .78rem; color: var(--text-muted, #6b7280); font-weight: 600; }
+.fotos-x { border: 0; background: none; font-size: 1rem; cursor: pointer; color: var(--text-muted, #6b7280); }
+.fotos-body { padding: 16px 18px; overflow: auto; flex: 1; }
+.fotos-cargando { color: var(--text-muted, #6b7280); font-size: .85rem; text-align: center; padding: 18px 0; }
+
+/* Cuadrícula de candidatas: el clic es en toda la tarjeta, no en un botón chico. */
+.fotos-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; }
+.fotos-cand {
+  margin: 0; border: 2px solid var(--border-light, #e5e7eb); border-radius: 12px; overflow: hidden;
+  cursor: pointer; background: #fff; transition: border-color .15s, transform .12s;
+}
+.fotos-cand:hover { border-color: var(--brand-blue, #066CFF); transform: translateY(-2px); }
+/* El fondo de las miniaturas se queda CLARO en ambos temas: las fotos de producto
+   vienen recortadas sobre blanco y sobre oscuro salen con halo. */
+.fotos-cand img { width: 100%; height: 108px; object-fit: contain; display: block; background: #fff; padding: 6px; box-sizing: border-box; }
+.fotos-cand figcaption { font-size: .68rem; text-align: center; padding: 4px; color: var(--text-muted, #6b7280); background: var(--surface-page, #f8fafc); }
+/* La que YA tiene el producto no se ofrece para volver a ponerla: se muestra para
+   saber qué hay, pero sin invitar al clic. */
+.fotos-cand.es-actual { cursor: default; opacity: .75; border-style: dashed; }
+.fotos-cand.es-actual:hover { border-color: var(--border-light, #e5e7eb); transform: none; }
+
+.fotos-marca-buscar { margin-top: 14px; font-size: .82rem; line-height: 1.5; }
+.fotos-marca-buscar a { color: var(--brand-blue, #066CFF); font-weight: 600; }
+.fotos-tip { font-size: .74rem; color: var(--text-muted, #6b7280); margin-top: 3px; }
+.fotos-nota { margin-top: 10px; font-size: .76rem; color: var(--text-muted, #6b7280); line-height: 1.45; }
+
+.fotos-foot { padding: 14px 18px; border-top: 1px solid var(--border-light, #e5e7eb); }
+.fotos-drop {
+  border: 2px dashed var(--border-medium, #cbd5e1); border-radius: 12px; padding: 16px;
+  text-align: center; font-size: .82rem; color: var(--text-secondary, #4A5068); cursor: pointer;
+}
+.fotos-drop.on, .fotos-drop:hover { border-color: var(--brand-blue, #066CFF); background: var(--brand-blue-light, #EAF1FF); }
+.fotos-msg { margin-top: 8px; font-size: .8rem; min-height: 1.2em; }
+.fotos-msg.is-bien { color: #0F7B4D; font-weight: 700; }
+.fotos-msg.is-mal { color: #B91C1C; font-weight: 700; }
+html[data-theme="dark"] .fotos-drop.on, html[data-theme="dark"] .fotos-drop:hover { background: #122447; }
+html[data-theme="dark"] .fotos-msg.is-bien { color: #4ADE80; }
+html[data-theme="dark"] .fotos-msg.is-mal { color: #FF6B5E; }

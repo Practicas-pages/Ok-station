@@ -1685,9 +1685,19 @@
     var tone = n === 0 ? "cancelado" : (n < 3 ? "pendiente" : "listo");
     var note = n === 0 ? "sin fotos"
              : (local === 0 ? "ninguna local" : (local < n ? local + " locales" : "todas locales"));
+    /* El botón abre el selector de fotos (assets/admin-fotos.js, archivo aparte).
+       Solo se engancha por atributos: si ese archivo no cargara, esta celda sigue
+       mostrando el conteo igual que antes. */
     return '<td><span class="badge badge--' + tone + '">' + n + '/5</span>' +
-      '<div class="catalog-note' + (n > 0 && local === 0 ? " is-warn" : "") + '">' + note + '</div></td>';
+      '<div class="catalog-note' + (n > 0 && local === 0 ? " is-warn" : "") + '">' + note + '</div>' +
+      '<button type="button" class="catalog-foto" data-foto="' + p.id +
+        '" data-foto-nombre="' + esc(p.name) + '" data-foto-marca="' + esc(p.brand || "") + '">' +
+        (n === 0 ? "Poner foto" : "Cambiar") + '</button></td>';
   }
+
+  /* Se expone para que admin-fotos.js pueda refrescar la tabla tras guardar una
+     foto, sin recargar la página entera (van a ser ~282 productos de corrido). */
+  window.okAdminRecargarCatalogo = function () { renderCatalog(); };
 
   function renderCatalog() {
     var head = '<thead><tr><th>Producto</th><th>Marca</th><th>Categoría</th><th>Imágenes</th>' +
