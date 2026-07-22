@@ -255,3 +255,11 @@ html[data-theme="dark"] :is(.tb-acctmenu a, .tb-acctmenu button) { color: var(--
 html[data-theme="dark"] :is(.tb-acctmenu a:hover, .tb-acctmenu button:hover, .shopbar__ac-item:hover) {
   background: var(--brand-blue-light);
 }
+
+/* ── Producto SIN foto: logo de Ok.station en las miniaturas del header ──
+   Las cajas ya centran (place-items:center) y contienen (object-fit:contain), así
+   que aquí solo se le da más aire que a una foto normal para que el logo no llegue
+   a las orillas. Sustituye al 📦 genérico que salía antes. */
+.shopbar__ac-img .ph-logo,
+.sb-ci__t .ph-logo,
+.sb-wi__t .ph-logo { padding: 8px; opacity: .9; }

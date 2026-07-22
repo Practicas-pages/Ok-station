@@ -127,9 +127,14 @@
     return esc(name);
   }
   function acClose() { if (acBox) { acBox.classList.remove("show"); acBox.innerHTML = ""; } acItems = []; acSel = -1; if (input) input.setAttribute("aria-expanded", "false"); }
+  /* Producto sin foto (Icecat/Exel no la traen): el logo de Ok.station en vez del 📦
+     genérico. Las cajas de estas miniaturas ya centran y contienen con object-fit,
+     así que el logo entra derecho sin reglas nuevas. */
+  var PH_LOGO = '<img src="/assets/img/placeholder-producto.svg" alt="" loading="lazy" class="ph-logo">';
+
   function acRow(p, q) {
     var img = p.image ? '<span class="shopbar__ac-img"><img src="' + encodeURI(p.image) + '" alt="" loading="lazy"></span>'
-                      : '<span class="shopbar__ac-img">📦</span>';
+                      : '<span class="shopbar__ac-img">' + PH_LOGO + '</span>';
     return '<a class="shopbar__ac-item" role="option" href="/producto/' + p.id + '-' + slug(p.name) + '">' +
       img + '<span class="shopbar__ac-txt"><span class="shopbar__ac-name">' + acHi(p.name, q) + '</span>' +
       '<span class="shopbar__ac-meta">' + esc((p.brand ? p.brand + " · " : "") + (p.category || "")) + '</span></span>' +
@@ -233,11 +238,11 @@
 
   function ciThumb(p) {
     if (p.image) return '<span class="sb-ci__t"><img src="' + encodeURI(p.image) + '" alt="" loading="lazy"></span>';
-    return '<span class="sb-ci__t" style="background:' + (p.grad || "var(--grad-blue)") + '"><span class="sb-emoji">' + (p.emoji || "📦") + '</span></span>';
+    return '<span class="sb-ci__t">' + PH_LOGO + '</span>';
   }
   function wiThumb(p) {
     if (p.image) return '<span class="sb-wi__t"><img src="' + encodeURI(p.image) + '" alt="" loading="lazy"></span>';
-    return '<span class="sb-wi__t" style="background:' + (p.grad || "var(--grad-blue)") + '"><span class="sb-emoji">' + (p.emoji || "📦") + '</span></span>';
+    return '<span class="sb-wi__t">' + PH_LOGO + '</span>';
   }
 
   function renderCart() {
