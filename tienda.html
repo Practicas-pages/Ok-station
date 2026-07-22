@@ -962,6 +962,13 @@ html[data-theme="dark"] #site :is(.field input,.field select,.field textarea,.mo
 html[data-theme="dark"] #site .wishbtn{background:#101827 !important; border-color:var(--line) !important}
 /* Botón ACTIVO del selector lista/cuadros: tinte azul-noche en vez de blanco. */
 html[data-theme="dark"] #site .viewtoggle button.on{background:#10233E; color:#3E8BFF}
+/* Los CHIPS de categorías y el botón Filtros viven SOBRE el degradado de marca,
+   que es idéntico en ambos temas: se quedan CLAROS como el buscador. Al voltear
+   --paper se habían vuelto píldoras lodosas sobre el degradado (captura real).
+   La categoría activa (azul) y Ofertas (naranja) conservan su color. */
+html[data-theme="dark"] #site .pop:not(.on):not(.hot){background:#fff; color:#33404f; border-color:rgba(8,12,30,.14)}
+html[data-theme="dark"] #site .pop:not(.on):not(.hot):hover{background:#fff; color:var(--blue)}
+html[data-theme="dark"] #site .tb-filt{background:#fff; color:#12141C}
 </style>
 
 <div class="header-bar">
