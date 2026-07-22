@@ -48,3 +48,31 @@ function categoria_permitida(string $cat): bool
     }
     return false;
 }
+
+/**
+ * Filtro SQL de alcance, para las fuentes de enriquecimiento (Icecat, fabricantes).
+ *
+ * Por qué no basta con `is_active = 1`: is_active tambien se apaga por falta de
+ * existencias, y sobre todo se puede encender en bloque desde fuera — el propio
+ * aplicar-alcance.php --revertir enciende TODO lo que tenga stock. La noche
+ * siguiente, un enriquecedor que solo mirara is_active se pondría a gastar cuota en
+ * productos que no van a venderse aquí. El alcance del catálogo es una decisión de
+ * negocio y tiene que viajar con la consulta, no depender de una bandera que otro
+ * proceso puede mover.
+ *
+ * Devuelve ['sql' => 'AND category IN (:alcance0)', 'params' => [':alcance0' => …]].
+ * Placeholders NOMBRADOS a propósito: PDO no deja mezclar nombrados y posicionales
+ * en la misma consulta, y la cola de EnrichLog ya usa :enrich_source. Con uno
+ * posicional aquí, la consulta combinada reventaría en tiempo de ejecución.
+ */
+function alcance_sql(string $alias = 'products'): array
+{
+    $cats = categorias_permitidas();
+    if (!$cats) return ['sql' => '', 'params' => []];
+    $nombres = []; $params = [];
+    foreach (array_values($cats) as $i => $c) {
+        $nombres[] = ":alcance{$i}";
+        $params[":alcance{$i}"] = $c;
+    }
+    return ['sql' => "AND {$alias}.category IN (" . implode(',', $nombres) . ")", 'params' => $params];
+}

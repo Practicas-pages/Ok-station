@@ -52,6 +52,7 @@ $GLOBALS['CONFIG'] = $CONFIG;   // Icecat.php lo lee como global
 
 require __DIR__ . '/../api/lib/Icecat.php';
 require __DIR__ . '/../api/lib/ProductEnricher.php';
+require __DIR__ . '/../api/lib/CatalogoAlcance.php';   // alcance_sql(): sin autoloader hay que pedirlo
 
 if (!Icecat::available()) {
     fwrite(STDERR, "✗ Falta ICECAT_USERNAME en backend/.env. No hay con qué consultar Icecat.\n");
@@ -102,16 +103,24 @@ $leFalta     = $soloSinFoto
    quedaba marcado como resuelto y no se le volvía a preguntar nunca — ni a Icecat
    cuando su catálogo creciera, ni a ninguna otra fuente. Con la bitácora, un
    'sin_datos' vuelve a la cola a los 30 días y un 'error' al día siguiente. */
+/* El ALCANCE viaja con la consulta, no se hereda de is_active. is_active también se
+   apaga por falta de existencias y, sobre todo, se puede encender en bloque desde
+   fuera (aplicar-alcance.php --revertir enciende todo lo que tenga stock). Sin este
+   filtro, la noche siguiente a un revertir se gastaría cuota de Icecat en productos
+   que OK.station ya no vende. */
+$alcance = alcance_sql('products');
+
 $rows = $pdo->prepare(
     "SELECT id, barcode, brand, sku FROM products
       WHERE is_active = 1
+        {$alcance['sql']}
         AND " . EnrichLog::pendienteSql('products') . "
         AND (CHAR_LENGTH(COALESCE(barcode,'')) >= 8 OR (COALESCE(brand,'') <> '' AND COALESCE(sku,'') <> ''))
         AND {$leFalta}
       ORDER BY {$sinFoto} DESC, id ASC
       LIMIT {$limit}"
 );
-$rows->execute([':enrich_source' => 'icecat']);
+$rows->execute([':enrich_source' => 'icecat'] + $alcance['params']);
 $pend = $rows->fetchAll();
 
 $total = count($pend);
