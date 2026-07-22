@@ -112,6 +112,11 @@
 /* Imagen del producto = su emoji sobre el gradiente de su categoría (mientras no haya foto real). */
 #site .pimg{border:0 !important; color:#fff; box-shadow:inset 0 0 40px rgba(255,255,255,.08)}
 #site .pimg .pemoji{font-size:clamp(34px,7vw,48px); line-height:1; filter:drop-shadow(0 3px 6px rgba(10,20,60,.30))}
+/* Producto SIN foto: el logo de OK.station centrado sobre el gris suave. Se ve
+   intencional (una marca), no un hueco. El logo no se estira: conserva su alto. */
+#site .pimg--marca{background:var(--surface-bg,#F2F4F8); display:grid; place-items:center; padding:14%}
+#site .pimg--marca img{width:100%; max-width:150px; height:auto; opacity:.9}
+html[data-theme="dark"] #site .pimg--marca{background:#1B2338}
 #site .mh .pimg{height:100%; border-radius:0}
 #site .mh .pimg .pemoji{font-size:88px}
 #site .fcard .pimg{height:96px}
@@ -743,6 +748,26 @@ html.q-lock, html.q-lock body{overflow:hidden}
 #site .mfaq span{font-size:.82rem; color:#4A5068; line-height:1.4}
 #site .maddbtn{width:100%; border:none; background:var(--blue); color:#fff; font-weight:600; padding:13px; border-radius:999px; box-shadow:var(--sh-blue,0 14px 40px rgba(6,108,255,.30)); transition:transform .15s, background .15s}
 #site .maddbtn:hover{background:var(--blue-h,#0558CC); transform:translateY(-2px)}
+
+/* ── Botones del e-commerce: PRESIÓN y ANILLO DE FOCO (jul 2026) ──
+   La presión (baja y encoge 3%) confirma el toque con el dedo o el clic.
+   El anillo es accesibilidad además de estética: :focus-visible solo aparece
+   navegando con TECLADO, así que no molesta a quien usa el mouse. */
+#site :is(.add,.maddbtn,.fadd,.afsave,.quick):active:not(:disabled){transform:translateY(0) scale(.97)}
+#site :is(.add,.maddbtn,.fadd,.afsave,.quick,.pop,.heart,.gostore,.btn-w):focus-visible{
+  outline:3px solid var(--blue); outline-offset:3px}
+
+/* El botón de PAGAR lleva el degradado OFICIAL, y se desplaza al pasar el cursor
+   en vez de cambiar de color: se siente premium sin parpadear. Es el "botón caro"
+   de la pantalla — uno solo por vista, por eso va con [data-copay] y no en todos
+   los .maddbtn (que también son "Continuar" e "Iniciar sesión"). */
+#site .maddbtn[data-copay]{
+  background:var(--grad-purpura-azul-cyan,linear-gradient(135deg,#9C1DFF 0%,#066CFF 55%,#00C6FF 100%));
+  background-size:220% 100%; background-position:0% 50%;
+  box-shadow:0 12px 36px rgba(156,29,255,.30);
+  transition:background-position .55s ease, transform .15s ease, box-shadow .2s ease}
+#site .maddbtn[data-copay]:hover:not(:disabled){background-position:100% 50%; transform:translateY(-2px)}
+#site .maddbtn[data-copay]:disabled{opacity:.65; box-shadow:none}
 #site .steps{display:flex; gap:6px; margin-bottom:16px}
 #site .steps .s{flex:1; height:5px; border-radius:99px; background:var(--line)}
 #site .steps .s.on{background:var(--grad)}
@@ -1210,7 +1235,9 @@ html[data-theme="dark"] #site :is(.field input,.field select,.field textarea,.mo
   function pimg(p,cls){
     /* Producto de la BD con foto real (Icecat/Exel) → la mostramos; si no, el emoji. */
     if(p.image) return '<div class="ph pimg has-img '+(cls||'')+'"><img class="pimg-img" src="'+encodeURI(p.image)+'" alt="" loading="lazy"></div>';
-    return '<div class="ph pimg '+(cls||'')+'" style="background:'+(p.grad||'var(--grad-blue)')+'"><span class="pemoji">'+(p.emoji||'📦')+'</span></div>';}
+    /* SIN foto → el logo de OK.station, no un emoji: son ~323 productos (6%) y con
+       la marca se ve intencional en vez de "roto". Misma imagen que usa ph(). */
+    return '<div class="ph pimg pimg--marca '+(cls||'')+'">'+PHIMG+'</div>';}
   /* Foto para la tarjeta de una categoria: toma la de un producto REAL de esa categoria
      (las que ya bajo Icecat) y reusa pimg(). Si esa categoria aun no tiene ninguna foto,
      cae en la caja gris de siempre: nunca se rompe ni se inventa una imagen. */
@@ -1756,7 +1783,7 @@ html[data-theme="dark"] #site :is(.field input,.field select,.field textarea,.mo
      sobre el gradiente de su categoría — nunca el ícono gris de "sin imagen". */
   function cartThumb(p){
     if(p.image) return '<div class="t has-img"><img src="'+encodeURI(p.image)+'" alt="" loading="lazy"></div>';
-    return '<div class="t" style="background:'+(p.grad||'var(--grad-blue)')+';border-style:solid;border-color:transparent"><span class="temoji">'+(p.emoji||'📦')+'</span></div>';
+    return '<div class="t pimg--marca">'+PHIMG+'</div>';
   }
   function renderCart(){var keys=Object.keys(cart);
     if(!keys.length){$("items").innerHTML='<div class="cart-empty">Tu carrito está vacío.</div>';}
@@ -2242,7 +2269,7 @@ html[data-theme="dark"] #site :is(.field input,.field select,.field textarea,.mo
   function wishThumb(p){
     var base='flex:0 0 auto;width:46px;height:46px;border-radius:12px;cursor:pointer;overflow:hidden;';
     if(p.image) return '<div data-open="'+p.id+'" title="Ver producto" style="'+base+'background:#fff;border:1px solid var(--line);padding:3px;box-sizing:border-box"><img src="'+encodeURI(p.image)+'" alt="" loading="lazy" style="width:100%;height:100%;object-fit:contain;display:block"></div>';
-    return '<div data-open="'+p.id+'" title="Ver producto" class="pimg" style="'+base+'background:'+(p.grad||"var(--grad-blue)")+'"><span class="pemoji" style="font-size:26px">'+(p.emoji||"📦")+'</span></div>';
+    return '<div data-open="'+p.id+'" title="Ver producto" class="pimg pimg--marca" style="'+base+'">'+PHIMG+'</div>';
   }
   function renderWishlist(){var items=wishlist.map(prod).filter(Boolean);
     var body='<button class="x" data-close style="position:absolute;top:14px;right:14px;z-index:5">×</button><div class="mb" style="padding-top:26px"><h3 style="margin:0 0 4px;font-size:1.25rem">💙 Tus deseados</h3><p class="desc" style="font-size:.86rem;max-width:none">Guarda lo que te gusta y págalo cuando quieras. Recoge gratis en OK.station o recíbelo a domicilio en todo México.</p>';

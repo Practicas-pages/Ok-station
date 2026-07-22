@@ -236,3 +236,11 @@ html[data-theme="dark"] .oki-cart-badge{ border-color:#171F31 }
 /* Corazón de "deseados" apagado: su gris claro brillaba MÁS que el activo, y
    parecía que todo estaba marcado como deseado. */
 html[data-theme="dark"] .olv-wsh{ color:#5A6480 }
+
+/* La etiqueta "oferta" y la X de quitar: naranja y rojo legibles sobre noche. */
+html[data-theme="dark"] .olv-rec small .o{ color:#FB923C }
+html[data-theme="dark"] .olv-x:hover{ color:#F87171 }
+
+/* El SVG del astronauta NO se toca: su traje blanco es la mascota, y sobre el
+   fondo noche se ve mejor. Tampoco .olv-th--img (arriba): las fotos de producto
+   vienen recortadas sobre blanco. */

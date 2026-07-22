@@ -304,6 +304,24 @@ body.td-predrag .td-trash{display:flex}
   transition:background .14s,transform .12s,box-shadow .16s}
 .td-add:hover{background:var(--brand-blue-hover,#0558CC);transform:translateY(-1px);box-shadow:0 6px 14px rgba(6,108,255,.36)}
 .td-add:active{transform:translateY(0) scale(.97);box-shadow:0 2px 6px rgba(6,108,255,.28)}
+
+/* ── Botones del e-commerce: PRESIÓN y ANILLO DE FOCO (jul 2026) ──
+   Mismo criterio que la tienda: la presión confirma el toque, y el anillo solo
+   aparece navegando con TECLADO (:focus-visible), no al hacer clic con el mouse. */
+:is(.tdpv-add,.td-dgo,.td-go,.td-fmore,.td-fbmore):active:not(:disabled){transform:translateY(0) scale(.97)}
+:is(.td-add,.tdpv-add,.td-dgo,.td-go,.td-wish,.td-cat,.td-fopt):focus-visible{
+  outline:3px solid var(--brand-blue,#066CFF); outline-offset:3px}
+.tdpv-add{transition:background .16s ease,transform .14s ease,box-shadow .2s ease}
+.tdpv-add:hover:not(:disabled){background:var(--brand-blue-hover,#0558CC);transform:translateY(-2px)}
+
+/* PAGAR: el degradado oficial que se desplaza al pasar el cursor (el "botón caro"). */
+.td-dgo{
+  background:var(--grad-purpura-azul-cyan,linear-gradient(135deg,#9C1DFF 0%,#066CFF 55%,#00C6FF 100%));
+  background-size:220% 100%; background-position:0% 50%;
+  box-shadow:0 12px 36px rgba(156,29,255,.30);
+  transition:background-position .55s ease, transform .15s ease, box-shadow .2s ease}
+.td-dgo:hover:not(:disabled){background-position:100% 50%; transform:translateY(-2px)}
+.td-dgo:disabled{opacity:.65; box-shadow:none}
 .td-add:focus-visible{outline:3px solid rgba(6,108,255,.4);outline-offset:2px}
 .td-add[disabled]{cursor:default}
 /* Confirmación de "agregado": el botón late, confirma y vuelve SOLO a "+ Agregar".

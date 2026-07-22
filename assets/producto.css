@@ -68,6 +68,17 @@
 
 .pdp__add { flex: 1 1 200px; min-height: 46px; border: none; border-radius: var(--radius-full, 9999px); background: var(--grad-brand, linear-gradient(135deg, #9C1DFF, #066CFF 55%, #00C6FF)); color: #fff; font: inherit; font-weight: 700; font-size: .98rem; cursor: pointer; padding: 12px 20px; box-shadow: 0 14px 34px rgba(6, 108, 255, .32); transition: transform .18s cubic-bezier(.34, 1.56, .64, 1), box-shadow .18s, filter .15s; position: relative; text-decoration: none; display: inline-grid; place-items: center; text-align: center; }
 .pdp__add:hover { transform: translateY(-2px); box-shadow: 0 20px 44px rgba(6, 108, 255, .42); }
+
+/* ── Presión, anillo de foco y degradado que se DESPLAZA (jul 2026) ──
+   El botón ya traía el degradado de marca; ahora se mueve al pasar el cursor en
+   vez de quedarse fijo, igual que el de pagar de la tienda. */
+.pdp__add { background-size: 220% 100%; background-position: 0% 50%;
+  transition: background-position .55s ease, transform .18s cubic-bezier(.34,1.56,.64,1), box-shadow .18s, filter .15s; }
+.pdp__add:hover:not(:disabled) { background-position: 100% 50%; }
+.pdp__add:active:not(:disabled),
+.pdp__wish:active { transform: translateY(0) scale(.97); }
+.pdp__add:focus-visible,
+.pdp__wish:focus-visible { outline: 3px solid var(--brand-blue, #066CFF); outline-offset: 3px; }
 /* Mismo colchón anti-parpadeo que en la tienda: el botón sube al pasar el cursor y, sin
    esto, la zona sensible se movía con él y el hover entraba/salía en bucle en el borde. */
 .pdp__add::after, .pdp__wish::after { content: ""; position: absolute; inset: -5px; border-radius: inherit; transition: transform .18s cubic-bezier(.34, 1.56, .64, 1); }
