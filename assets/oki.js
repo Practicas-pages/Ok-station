@@ -601,11 +601,25 @@
 
   var dock, panel, chat, input;
 
+  /* El botón del encabezado alterna lista ⇄ chat, así que debe mostrar el ICONO
+     DEL DESTINO, no el de donde ya estás: en el chat ofrece el carrito (tu lista)
+     y estando en la lista ofrece el globo (chatear). Antes siempre decía 🛒, así
+     que desde la lista parecía llevar otra vez a la lista. */
+  function okiSyncTab() {
+    var b = document.getElementById("oki-tab");
+    if (!b || !panel) return;
+    var enLista = panel.getAttribute("data-view") === "list";
+    b.textContent = enLista ? "💬" : "🛒";
+    var t = enLista ? "Chatear con OKi" : "Tu lista de compras";
+    b.setAttribute("aria-label", t);
+    b.setAttribute("title", t);
+  }
   function showList() {
     panel.setAttribute("data-view", "list");
     renderStoreList();   // la estructura siempre existe; renderStoreList maneja vacío/cargando
+    okiSyncTab();
   }
-  function showChat() { panel.setAttribute("data-view", "chat"); }
+  function showChat() { panel.setAttribute("data-view", "chat"); okiSyncTab(); }
 
   function build() {
     if (document.getElementById("oki-dock")) return;
@@ -798,6 +812,7 @@
         else if (e.target.closest("#oki-olv-chat")) { showChat(); }
       });
       if (storeReady()) panel.setAttribute("data-view", "list"); // en la tienda la LISTA predomina; fuera predomina el CHAT
+      okiSyncTab();   // el icono del encabezado debe nacer acorde a la vista inicial
       renderStoreList();
       okiUpdateBadge();  // el globito del carrito refleja lo guardado en cualquier página
     }

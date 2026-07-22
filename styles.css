@@ -6809,3 +6809,16 @@ html[data-theme="dark"] :is(.pdp__card, .pdp__more, .pdp__oki, .pdp__rel) {
 html[data-theme="dark"] .pdp__qty { background:#101827 !important; color: var(--text-primary); border-color: var(--border-light); }
 
 /* (El color forzado de OKi también se retiró: su oscuro nativo está en oki.css.) */
+
+
+/* ── Modo oscuro, ronda 4: la pastilla de la cuenta ────────────────────────
+   .acct__btn y .acct__menu traían background:#fff a mano mientras su texto usa
+   var(--text-primary): en oscuro el nombre y los enlaces del menú quedaban
+   claros sobre blanco, o sea invisibles. Aparece en TODAS las páginas. */
+html[data-theme="dark"] :is(.acct__btn, .acct__menu) {
+  background: var(--surface-card);
+  border-color: var(--border-light);
+}
+html[data-theme="dark"] .acct__menu { box-shadow: 0 22px 60px rgba(0,0,0,.55); }
+html[data-theme="dark"] .acct__btn:hover { border-color: var(--border-medium); }
+/* Abierto se pinta de azul de marca: ahí el texto blanco ya contrasta y se deja. */

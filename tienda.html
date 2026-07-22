@@ -2070,9 +2070,14 @@ html[data-theme="dark"] #site :is(.tb-cuenta,.tb-fav,.tb-cart,.tb-filt):hover{ba
   /* Caja de aviso bajo el botón. tono: "info" mientras se pide, "block" si está negado. */
   function afGeoBox(html,tono){
     var h=$("afGeoHelp"); if(!h) return;
+    /* Los colores van EN LÍNEA, así que el tema se resuelve AQUÍ: una regla CSS
+       no puede ganarle a un style inline. */
+    var osc = document.documentElement.getAttribute("data-theme")==="dark";
     var col = tono==="block"
-      ? "background:#fff4e5;border:1px solid #ffd8a8;color:#7a4100"
-      : "background:#eaf2ff;border:1px solid #c7ddff;color:#0b3d91";
+      ? (osc ? "background:#2A1C0B;border:1px solid #5C3A12;color:#FFD9A0"
+             : "background:#fff4e5;border:1px solid #ffd8a8;color:#7a4100")
+      : (osc ? "background:#0E1B33;border:1px solid #24406E;color:#BBD4FF"
+             : "background:#eaf2ff;border:1px solid #c7ddff;color:#0b3d91");
     h.hidden=false;
     h.setAttribute("role","status");
     h.style.cssText="margin:8px 0 12px;padding:11px 13px;border-radius:12px;font-size:.82rem;line-height:1.5;"+col;
@@ -2084,15 +2089,21 @@ html[data-theme="dark"] #site :is(.tb-cuenta,.tb-fav,.tb-cart,.tb-filt):hover{ba
      no puede hacer nada. Se explica dónde se reactiva (que es distinto en cada navegador)
      y se deja un botón para reintentar sin recargar la página. */
   function afGeoBlocked(){
+    /* Se muestra SOLO el paso del dispositivo que está usando. Antes salían los
+       tres a la vez (computadora, Android y iPhone) y el aviso se volvía una pared
+       de texto justo cuando la persona solo quiere seguir comprando. */
+    var ua = navigator.userAgent || "";
+    var paso = /Android/i.test(ua)
+      ? 'Toca <b>⋮</b> → <b>Configuración del sitio</b> → <b>Ubicación</b> → <b>Permitir</b>.'
+      : (/iPhone|iPad|iPod/i.test(ua)
+          ? 'Entra a <b>Ajustes</b> → <b>Safari</b> → <b>Ubicación</b> → <b>Preguntar</b>.'
+          : 'Toca el <b>candado 🔒</b> junto a la dirección web → <b>Ubicación</b> → <b>Permitir</b>.');
     afGeoBox(
-      '<b>Tu navegador está bloqueando la ubicación</b><br>'+
-      'Le dijiste que no a este sitio, por eso ya no te pregunta. Para reactivarlo:'+
-      '<ul style="margin:7px 0 0;padding-left:18px">'+
-        '<li>En computadora: toca el <b>candado 🔒</b> o el ícono 📍 a la izquierda de la dirección web → <b>Ubicación</b> → <b>Permitir</b>.</li>'+
-        '<li>En Android (Chrome): <b>⋮</b> → <b>Configuración del sitio</b> → <b>Ubicación</b> → <b>Permitir</b>.</li>'+
-        '<li>En iPhone (Safari): <b>Ajustes</b> → <b>Safari</b> → <b>Ubicación</b> → <b>Preguntar</b> o <b>Permitir</b>.</li>'+
-      '</ul>'+
-      '<button type="button" id="afGeoRetry" style="margin-top:10px;padding:8px 14px;border-radius:10px;border:1px solid currentColor;background:#fff;color:inherit;font:inherit;font-weight:600;cursor:pointer">Ya lo permití, reintentar</button>'+
+      '<b>Tu navegador tiene bloqueada la ubicación</b><br>'+
+      paso+'<br>'+
+      /* Fondo TRANSPARENTE, no #fff: así hereda el tono del aviso y se ve bien
+         tanto en claro como en oscuro sin tener que pintarlo dos veces. */
+      '<button type="button" id="afGeoRetry" style="margin-top:10px;padding:8px 14px;border-radius:10px;border:1px solid currentColor;background:transparent;color:inherit;font:inherit;font-weight:700;cursor:pointer">Ya lo permití · reintentar</button>'+
       '<div style="margin-top:8px;opacity:.85">También puedes escribir tu dirección a mano aquí abajo.</div>',
       "block");
     var r=$("afGeoRetry"); if(r) r.addEventListener("click",function(){ afGeoHide(); afGeoStart(true); });
