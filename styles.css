@@ -6685,7 +6685,14 @@ html[data-theme="dark"] .btn--light:hover { background: #1E2840; color: #fff; }
 /* ── Los "fondos blancos continuos" del rediseño (línea ~5695) usan !important,
    así que en oscuro hay que responder con la misma fuerza. Se listan los MISMOS
    selectores para que no quede ninguna franja blanca suelta. ── */
-html[data-theme="dark"] :is(html, body, #top) { background: #0F1524 !important; }
+/* OJO con el selector: `html[data-theme="dark"] :is(html, …)` NO alcanza al propio
+   <html> — el descendiente exige que esté DENTRO, y html no puede estar dentro de
+   sí mismo. Así que <html> se quedaba en el #FFFFFF !important de arriba mientras
+   <body> sí se oscurecía. Donde el contenido no llena la pantalla (compra rápida,
+   que tiene su propio scroll interno) el lienzo blanco asomaba por debajo como una
+   franja enorme. Va el elemento por su lado y sus descendientes por el suyo. */
+html[data-theme="dark"],
+html[data-theme="dark"] :is(body, #top) { background: #0F1524 !important; }
 html[data-theme="dark"] :is(.section, .section--alt, .section--dark, .section--dark-2, .citas-section) { background: #131B2C !important; }
 
 /* ── Superficies con blanco a mano que quedaban claras con texto claro
