@@ -107,7 +107,9 @@
 #tdPrevDrawer{
   width:auto;max-width:96vw;height:auto;max-height:none;
   background:none;box-shadow:none;border-radius:0;overflow:visible;
-  display:flex;align-items:center;justify-content:center;gap:14px}
+  /* flex-direction:row es OBLIGATORIO: .td-drawer impone `column` y sin resetearlo
+     las tres tarjetas se apilan una debajo de otra en vez de quedar en fila. */
+  display:flex;flex-direction:row;align-items:center;justify-content:center;gap:14px}
 .tdpv-card{position:relative;flex:0 0 min(560px,94vw);width:min(560px,94vw);max-height:88vh;overflow:auto;
   background:#fff;border-radius:22px;box-shadow:0 26px 74px rgba(16,24,40,.28)}
 .tdpv-x{position:absolute;top:14px;right:14px;z-index:5;width:34px;height:34px;padding:0;border:0;border-radius:50%;
