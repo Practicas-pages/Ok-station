@@ -36,7 +36,10 @@ $productId = (int) ($_GET['product_id'] ?? 0);
 if ($productId <= 0) fail('Falta el producto.', 422);
 
 $pdo = db();
-$st = $pdo->prepare('SELECT id, name, brand, sku, supplier_ref, barcode, category FROM products WHERE id = ? LIMIT 1');
+/* Se trae también la descripción: el panel la usa para armar una búsqueda de la
+   foto. Con productos genéricos ("arillo", "broche") el nombre solo no distingue,
+   y la descripción sí dice de qué pieza se trata. */
+$st = $pdo->prepare('SELECT id, name, brand, sku, supplier_ref, barcode, category, description FROM products WHERE id = ? LIMIT 1');
 $st->execute([$productId]);
 $p = $st->fetch(PDO::FETCH_ASSOC);
 if (!$p) fail('Ese producto no existe.', 404);
@@ -143,6 +146,8 @@ respond([
         'sku'   => $p['sku'],
         'ref'   => $p['supplier_ref'],
         'barcode' => $p['barcode'],
+        /* Recortada: el panel solo la usa para armar la búsqueda, no para mostrarla. */
+        'description' => mb_strimwidth(trim((string) ($p['description'] ?? '')), 0, 300, ''),
     ],
     'candidatas' => $cands,
     'notas'      => $notas,

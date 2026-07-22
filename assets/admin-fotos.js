@@ -42,8 +42,37 @@
      buscador solo la lleva; quien decide es ella.
      Funciona con CUALQUIER marca, incluidas las que no tienen sitio (BACO,
      NEXTEP, MAPASA…), que es justo donde están la mayoría de los huecos. */
-  function urlBusqueda(marca, termino) {
-    var q = [marca, termino].filter(Boolean).join(" ").trim();
+  /* Convierte el nombre telegráfico de Exel en algo que un buscador entienda.
+     Los nombres vienen así: «Arillo Fellowes 1" Plastico C/10 Negro», «Broche Acco
+     No.7 cms P1570 C/50 Broches». Buscarlos tal cual da malos resultados porque
+     "C/10" y "C/50" son la PRESENTACIÓN (piezas por paquete), no el producto: dos
+     artículos idénticos que solo difieren en cuántos trae la caja se ven iguales en
+     foto, y ese dato solo confunde al buscador. Se quitan.
+     También se evita repetir la marca cuando el nombre ya la trae — antes salía
+     "FELLOWES Arillo Fellowes 1…", que empeora la búsqueda en vez de acotarla. */
+  function fraseBusqueda(nombre, marca) {
+    var s = String(nombre || "");
+    s = s.replace(/\bC\s*\/\s*\d+\b/gi, " ");        // C/10, C/ 25 → presentación
+    s = s.replace(/\bcon\s+\d+\s+(pz|pzas|piezas)\b/gi, " ");
+    s = s.replace(/\b(pz|pzas|piezas|paq|paquete)\b\.?/gi, " ");
+    s = s.replace(/\s+/g, " ").trim();
+
+    /* Exel guarda la RAZÓN SOCIAL, no la marca comercial: "NEXTEP SOLUCIONES",
+       "ACCO BRANDS MEXICO". Nadie busca así y esas palabras de más desvían el
+       resultado. Importa especialmente con NEXTEP, que es la marca con más
+       productos sin foto del catálogo. */
+    var m = String(marca || "").trim()
+      .replace(/\b(soluciones|brands|mexico|méxico|s\.?a\.?|de|c\.?v\.?|inc\.?|corp\.?|ltd\.?|sa|cv)\b/gi, " ")
+      .replace(/\s+/g, " ").trim();
+
+    /* Solo se antepone la marca si el nombre no la menciona ya: si no, salía
+       "FELLOWES Arillo Fellowes 1…", que en un buscador estorba más que ayuda. */
+    if (m && s.toUpperCase().indexOf(m.toUpperCase()) === -1) s = m + " " + s;
+    return s.trim();
+  }
+
+  function urlBusqueda(texto) {
+    var q = String(texto || "").trim();
     if (!q) return null;
     return "https://duckduckgo.com/?iax=images&ia=images&q=" + encodeURIComponent(q);
   }
@@ -174,16 +203,34 @@
        `candidatas` con origen "marca": no hay que ir a ninguna parte, se da clic.
        El enlace al sitio queda solo como salida de emergencia por si ninguna de
        las que trajo es la correcta. */
-    var marca = actual.marca || (j && j.producto && j.producto.brand) || "";
-    var clave = (j && j.producto && (j.producto.sku || j.producto.ref)) || "";
-    /* Dos búsquedas porque fallan por motivos distintos: la CLAVE es exacta pero a
-       veces no está indexada en ningún lado, y el NOMBRE encuentra más pero puede
-       traer variantes parecidas. Teniendo las dos a un clic, la persona prueba. */
-    var porClave  = clave ? urlBusqueda(marca, clave) : null;
-    var porNombre = urlBusqueda(marca, actual.nombre);
-    html += '<div class="fotos-marca-buscar"><b>Buscar la foto:</b> ' +
-            (porClave ? '<a href="' + esc(porClave) + '" target="_blank" rel="noopener">por clave (' + esc(clave) + ')</a> · ' : '') +
-            '<a href="' + esc(porNombre) + '" target="_blank" rel="noopener">por nombre</a>' +
+    var prod  = (j && j.producto) || {};
+    var marca = actual.marca || prod.brand || "";
+    var clave = prod.sku || prod.ref || "";
+    var desc  = (prod.description || "").trim();
+
+    /* El NOMBRE va primero porque es lo que de verdad describe la pieza. La clave
+       queda de segunda: identifica el producto sin ambigüedad, pero muchas son
+       referencias internas del proveedor que no están indexadas en ningún lado.
+       La descripción, cuando existe, es la que mejor funciona con productos
+       genéricos ("arillo", "broche") donde el nombre solo no basta — pero solo la
+       tiene el 14% del catálogo, así que se ofrece únicamente si está. */
+    var frase = fraseBusqueda(actual.nombre, marca);
+    var enlaces = [];
+    enlaces.push('<a href="' + esc(urlBusqueda(frase)) + '" target="_blank" rel="noopener">por nombre</a>');
+    if (clave) {
+      enlaces.push('<a href="' + esc(urlBusqueda(marca + " " + clave)) + '" target="_blank" rel="noopener">por clave</a>');
+    }
+    if (desc) {
+      /* La descripción entera es demasiado larga para un buscador: se recorta a
+         las primeras palabras, que es donde está el producto. */
+      var frDesc = fraseBusqueda(desc.split(/\s+/).slice(0, 12).join(" "), marca);
+      enlaces.push('<a href="' + esc(urlBusqueda(frDesc)) + '" target="_blank" rel="noopener">por descripción</a>');
+    }
+
+    html += '<div class="fotos-marca-buscar"><b>Buscar la foto:</b> ' + enlaces.join(" · ") +
+            /* Se enseña la frase que se va a buscar: si sale rara, la persona lo ve
+               antes de dar clic en vez de descubrirlo en la pestaña nueva. */
+            '<div class="fotos-tip">Buscará: «' + esc(frase) + '»</div>' +
             '<div class="fotos-tip">Abre el resultado, prefiere la página del fabricante, ' +
             'copia la imagen (clic derecho → Copiar imagen) y pégala aquí con <b>Ctrl+V</b>.</div></div>';
 
