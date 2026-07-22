@@ -111,6 +111,16 @@
 .stat-card__delta.up { color: var(--color-success); }
 .stat-card__delta.down { color: var(--color-error); }
 
+/* Variante compacta (catálogo): indicadores de apoyo, no protagonistas.
+   El grid base es de 4 columnas fijas y el catálogo tiene 5 indicadores, así que
+   el quinto caía solo en un segundo renglón. Con auto-fit caben los 5 a lo ancho
+   y el listado —que es lo que de verdad se viene a ver— sube a la pantalla. */
+.stat-grid--compact { grid-template-columns: repeat(auto-fit, minmax(132px, 1fr)); gap: var(--space-3); }
+.stat-grid--compact .stat-card { padding: var(--space-3) var(--space-4); }
+.stat-grid--compact .stat-card__top { margin-bottom: 2px; }
+.stat-grid--compact .stat-card__label { font-size: 0.72rem; }
+.stat-grid--compact .stat-card__value { font-size: 1.15rem; }
+
 /* ── Tarjetas / columnas ── */
 .admin-cols { display: grid; grid-template-columns: 1.4fr 1fr; gap: var(--space-4); }
 .admin-card {
@@ -224,6 +234,48 @@
 .catalog-empty { text-align: center; color: var(--text-muted, #6b7280); padding: 24px; white-space: normal; }
 /* Aviso ámbar en el menú: productos que todavía necesitan fotos. */
 .admin-nav__badge--warn { background: #FEF3C7; color: #B45309; }
+
+/* ── Ficha del producto ── */
+.admin-table tr.is-clickable { cursor: pointer; }
+.admin-table tr.is-clickable:focus-visible { outline: 2px solid var(--brand-blue); outline-offset: -2px; }
+
+.prod-modal { position: fixed; inset: 0; z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 18px; background: rgba(15,23,42,.5); backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px); }
+.prod-modal__panel { background: #fff; border-radius: 16px; max-width: 880px; width: 100%; max-height: 92vh; overflow: auto; box-shadow: 0 20px 60px rgba(0,0,0,.3); }
+.prod-modal__head { position: sticky; top: 0; background: #fff; z-index: 1; display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding: 16px 20px; border-bottom: 1px solid var(--border-light); }
+.prod-modal__title { font-weight: 700; font-size: 1.02rem; }
+.prod-modal__sub { font-size: .8rem; color: var(--text-muted, #6b7280); margin-top: 2px; }
+.prod-modal__body { padding: 4px 20px 20px; }
+.prod-subtitle { margin: 20px 0 8px; font-size: .85rem; font-weight: 700; }
+.prod-hint { font-size: .78rem; color: var(--text-muted, #6b7280); margin: 6px 0 0; line-height: 1.45; }
+
+.prod-gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(132px, 1fr)); gap: 10px; }
+/* `position: relative` para que el distintivo "Principal" se ancle A ESTA tarjeta
+   y no al primer ancestro posicionado, que sería la ventana completa. */
+.prod-img { position: relative; margin: 0; border: 1px solid var(--border-light); border-radius: var(--radius-sm); overflow: hidden; background: #fff; }
+/* La principal se distingue con el azul institucional, no con un adorno extra. */
+.prod-img.is-primary { border-color: var(--brand-blue, #066CFF); box-shadow: 0 0 0 1px var(--brand-blue, #066CFF); }
+.prod-img img { display: block; width: 100%; height: 108px; object-fit: contain; background: #fff; }
+.prod-img__flag { position: absolute; top: 6px; left: 6px; background: var(--brand-blue, #066CFF); color: #fff; font-size: .62rem; font-weight: 700; padding: 2px 6px; border-radius: var(--radius-full, 999px); }
+.prod-img figcaption { display: flex; justify-content: space-between; gap: 6px; padding: 5px 7px; font-size: .68rem; color: var(--text-muted, #6b7280); border-top: 1px solid var(--border-light); }
+.prod-img figcaption .is-warn { color: #B45309; font-weight: 600; }
+.prod-img__acts { display: flex; gap: 5px; padding: 6px 7px; border-top: 1px solid var(--border-light); }
+.prod-img__acts .admin-btn-sm { flex: 1; text-align: center; font-size: .7rem; padding: 4px 6px; text-decoration: none; }
+
+.prod-addurl { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+.prod-addurl .admin-search { margin-left: 0; flex: 1 1 260px; max-width: none; }
+.prod-addurl .catalog-select { width: 130px; }
+
+.prod-fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; }
+.prod-field { border: 1px solid var(--border-light); border-radius: var(--radius-sm); padding: 8px 10px; }
+.prod-field span { display: block; font-size: .7rem; color: var(--text-muted, #6b7280); }
+.prod-field b { font-size: .88rem; }
+.prod-field small { font-weight: 500; color: var(--text-muted, #6b7280); }
+
+.prod-specs { width: 100%; border-collapse: collapse; font-size: .8rem; }
+.prod-specs th, .prod-specs td { text-align: left; vertical-align: top; padding: 6px 8px; border-bottom: 1px solid var(--border-light); }
+.prod-specs th { width: 40%; font-weight: 600; color: var(--text-secondary); }
+
+html[data-theme="dark"] :is(.prod-modal__panel, .prod-modal__head, .prod-img, .prod-img img, .prod-field) { background: var(--surface, #12161d); }
 /* Historial de usuario (modal): chips de servicios y lista de movimientos */
 .service-chips { display: flex; flex-wrap: wrap; gap: 8px; }
 .user-movements { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
