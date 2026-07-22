@@ -1315,6 +1315,14 @@ html[data-theme="dark"] #site :is(.field input,.field select,.field textarea,.mo
     var list=CATS.filter(function(c){return c.id!=="all";}).slice(0,6);
     $("landCats").innerHTML=list.map(function(c){return '<button class="ctile" data-cat="'+okEsc(c.id)+'" data-go-store>'+catImg(c.id)+'<b>'+okEsc(c.name)+'</b><span>Ver productos →</span></button>';}).join("");
   }
+  /* Esqueleto de carga: anticipa la FORMA del catálogo en vez de un texto suelto.
+     Si ok-anim.js aún no cargó (defer), cae al aviso de siempre. */
+  function okSkel(n){
+    /* Las tarjetas fantasma van como hijas DIRECTAS de #grid (que ya es display:grid):
+       envolverlas las metía todas en una sola celda de 160px. */
+    if(window.OKanim && OKanim.skeleton && !OKanim.reduced) return OKanim.skeleton(n||10);
+    return '<div class="empty">Cargando productos…</div>';
+  }
   function renderLandFeat(){
     /* Destacados: primero las ofertas, luego lo demás; siempre con existencia. */
     var pool=P.filter(function(p){return p.stock>0;});
@@ -2373,7 +2381,7 @@ html[data-theme="dark"] #site :is(.field input,.field select,.field textarea,.mo
     if(!dbMode) { renderGrid(); return; }
     var token=++filterToken;
     dbLoading=true;
-    $("grid").innerHTML='<div class="empty">Cargando productos…</div>';
+    $("grid").innerHTML=okSkel();
     fetch("/backend/api/shop/products.php?"+dbParams()+"&page=1")
       .then(function(r){return r.json();}).then(function(j){
         dbLoading=false;
@@ -2484,13 +2492,13 @@ html[data-theme="dark"] #site :is(.field input,.field select,.field textarea,.mo
       .then(function(r){return r.json();})
       .then(function(j){
         if(!j||!j.ok||!Array.isArray(j.items)) return;
-        var changed=false, cartChanged=false, seen={};
+        var changed=false, cartChanged=false, seen={}, movidos={};
         j.items.forEach(function(it){
           seen[it.id]=1;
           var cur=PALL[it.id];
           if(cur){
             if(cur.price!==(it.price||0) || cur.stock!==(it.stock||0) || (cur.old||null)!==(it.old||null)){
-              changed=true; if(cart[it.id]) cartChanged=true;
+              changed=true; movidos[it.id]=1; if(cart[it.id]) cartChanged=true;
             }
             cur.price=it.price||0; cur.old=it.old||null; cur.stock=it.stock||0;
             if(it.name) cur.name=it.name; if(it.image) cur.image=it.image;
@@ -2502,6 +2510,22 @@ html[data-theme="dark"] #site :is(.field input,.field select,.field textarea,.mo
         /* Recorta lo que ya no alcanza y saca del carrito lo agotado. */
         for(var d in cart){ if(cart[d].p){ if(cart[d].p.stock<=0){ delete cart[d]; } else if(cart[d].qty>cart[d].p.stock){ cart[d].qty=cart[d].p.stock; } } }
         saveCart(); renderCart(); renderGrid(); renderLandFeat();
+        /* Pulso verde en los precios que de verdad cambiaron: el cliente ve QUÉ se
+           movió, en vez de solo leer que "algo" cambió. Va tras el repintado. */
+        if(window.OKanim && OKanim.pulse){
+          setTimeout(function(){
+            /* En la rejilla el id vive en el botón "agregar"; el precio es .price
+               dentro de la misma tarjeta .prod. */
+            Object.keys(movidos).forEach(function(id){
+              var b=document.querySelector('[data-add="'+id+'"]');
+              var card=(b&&b.closest)?b.closest(".prod"):null;
+              var pr=card?card.querySelector(".price"):null;
+              if(pr) OKanim.pulse(pr);
+            });
+            /* En el carrito, el precio unitario de cada renglón. */
+            if(cartChanged) [].forEach.call(document.querySelectorAll("#items .pu"),function(el){ OKanim.pulse(el); });
+          },40);
+        }
         if(cartChanged) flash("Actualizamos los precios y existencias de tu carrito");
       }).catch(function(){});
   }
@@ -2547,6 +2571,7 @@ html[data-theme="dark"] #site :is(.field input,.field select,.field textarea,.mo
 <!-- Sesión en el header (muestra tu cuenta si iniciaste sesión) + navbar inteligente -->
 <script src="assets/session-nav.js?v=20260717a" defer></script>
 <!-- OKi, el astronauta ayudante. Conectado a la tienda vía el contrato window.OKtienda (ver OKi-tienda-integracion.md). -->
+<script src="assets/ok-anim.js?v=20260722a" defer></script>
 <script src="assets/oki.js?v=20260717d" defer></script>
 </body>
 </html>

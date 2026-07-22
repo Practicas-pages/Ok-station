@@ -6657,3 +6657,82 @@ html[data-theme="dark"] ::placeholder { color: var(--text-faint); }
    encima (18 textos ilegibles, medidos en una página de servicio). */
 html[data-theme="dark"] :is(.site-footer, .doc-field) { background: #131B2C !important; }
 html[data-theme="dark"] .citas-section .okcal__day:not(.is-selected):not(.is-empty) { background: #1A2338 !important; color: var(--text-primary); }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   CAPA DE ANIMACIONES COMPARTIDA  ·  jul 2026
+   --------------------------------------------------------------------------
+   Las seis animaciones aprobadas, disponibles en TODO el sitio (styles.css lo
+   cargan las 30 páginas). El comportamiento vive en assets/ok-anim.js.
+
+   Solo se AGREGAN clases nuevas con prefijo .ok- : ninguna regla existente se
+   modifica, así que no puede alterar el layout de ninguna página.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+@keyframes ok-shimmer  { 0% { background-position: -180% 0 } 100% { background-position: 180% 0 } }
+@keyframes ok-pricepop { 0% { transform: scale(1) } 30% { transform: scale(1.14) } 100% { transform: scale(1) } }
+@keyframes ok-toastup  { 0%   { transform: translate(-50%, 26px); opacity: 0 }
+                         12%  { transform: translate(-50%, 0);    opacity: 1 }
+                         88%  { transform: translate(-50%, 0);    opacity: 1 }
+                         100% { transform: translate(-50%, 26px); opacity: 0 } }
+
+/* ── 1. Levantar al pasar ──────────────────────────────────────────────────
+   Dice "esto se puede tocar" antes de que lo toquen. Utilidad opcional: las
+   tarjetas que ya tienen su propio hover conservan el suyo. */
+.ok-lift { transition: transform var(--transition-base), box-shadow var(--transition-base) }
+.ok-lift:hover { transform: translateY(-4px); box-shadow: var(--shadow-md) }
+
+/* ── 2. Vuela al carrito ───────────────────────────────────────────────────
+   El punto lo crea y lo destruye ok-anim.js; aquí solo su aspecto. */
+.ok-fly {
+  position: fixed; z-index: 9999; pointer-events: none;
+  width: 22px; height: 22px; border-radius: 50%;
+  background: var(--brand-blue); box-shadow: var(--shadow-brand);
+  will-change: transform, opacity;
+}
+
+/* ── 3. Precio actualizado ─────────────────────────────────────────────────
+   Pulso verde cuando el refresco automático cambia un precio. */
+.ok-pulse { animation: ok-pricepop .6s ease-out; color: var(--color-success) !important }
+
+/* ── 4. Esqueleto de carga ─────────────────────────────────────────────────
+   Anticipa la FORMA del contenido en vez de un spinner que no dice nada. */
+.ok-skel {
+  height: 13px; border-radius: var(--radius-full); margin-bottom: 7px;
+  background: linear-gradient(90deg, var(--border-light) 25%, var(--surface-bg) 50%, var(--border-light) 75%);
+  background-size: 220% 100%; animation: ok-shimmer 1.5s linear infinite;
+}
+.ok-skel--ph { height: 112px; border-radius: 12px; margin-bottom: 12px }
+.ok-skel-card {
+  background: var(--surface-card); border: 1px solid var(--border-light);
+  border-radius: var(--radius-md); padding: 13px;
+}
+/* Rejilla de fantasmas: misma forma que la rejilla real del catálogo. */
+.ok-skel-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 14px }
+
+/* ── 5. Aviso breve ────────────────────────────────────────────────────────
+   Sube, se queda ~1.6 s y se va. Nunca bloquea. */
+/* El aviso va SIEMPRE al revés del fondo. No se usa --text-primary como fondo:
+   en modo oscuro ese token se vuelve claro y el aviso quedaba blanco sobre
+   blanco (invisible). Por eso el par va explícito en ambos temas. */
+.ok-toast {
+  position: fixed; left: 50%; bottom: 28px; z-index: 9998;
+  transform: translate(-50%, 26px); opacity: 0; pointer-events: none;
+  background: #12141C; color: #fff;
+  font-weight: 700; font-size: .86rem; line-height: 1.4;
+  padding: 11px 20px; border-radius: var(--radius-full);
+  box-shadow: var(--shadow-lg); max-width: min(92vw, 420px); text-align: center;
+}
+.ok-toast.on { animation: ok-toastup 2.6s ease-in-out }
+html[data-theme="dark"] .ok-toast { background: #E9EDF6; color: #12141C }
+
+/* ── 6. Cajón lateral ──────────────────────────────────────────────────────
+   Ya existe en cada página (transform + transition). No se redefine aquí para
+   no pelearse con la que ya funciona. */
+
+/* Nadie debe marearse por una tienda: sin movimiento si el sistema lo pide. */
+@media (prefers-reduced-motion: reduce) {
+  .ok-skel { animation: none }
+  .ok-pulse { animation: none }
+  .ok-toast.on { animation: none; opacity: 1; transform: translate(-50%, 0) }
+  .ok-lift:hover { transform: none }
+}

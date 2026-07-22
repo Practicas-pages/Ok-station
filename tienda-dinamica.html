@@ -593,8 +593,22 @@ html[data-theme="dark"] .td-row{border-color:var(--border-light,#26314A)}
     else if (loading || done) return;
     var myToken = ++loadToken;   // invalida las respuestas que aún vengan en camino
     loading = true;
-    $("tdState").textContent = page===1 ? "Cargando productos…" : "Cargando más…";
-    $("tdState").style.display = "";
+    /* Esqueleto en la PRIMERA página: anticipa la forma de la tabla en vez de un
+       texto suelto. En "cargar más" basta el aviso (ya hay filas en pantalla). */
+    if (page===1 && window.OKanim && !OKanim.reduced){
+      var sk="";
+      for (var s=0;s<8;s++) sk += '<div class="td-row td-skel" aria-hidden="true">'+
+        '<div class="ok-skel" style="height:44px;width:44px;border-radius:10px;margin:0"></div>'+
+        '<div><div class="ok-skel" style="width:62%"></div><div class="ok-skel" style="width:28%;height:10px;margin:0"></div></div>'+
+        '<div class="ok-skel" style="width:70%;margin:0"></div>'+
+        '<div class="ok-skel" style="height:30px;border-radius:99px;margin:0"></div>'+
+        '<div class="ok-skel" style="height:22px;width:22px;border-radius:50%;margin:0"></div></div>';
+      $("tdRows").innerHTML = sk;
+      $("tdState").style.display = "none";
+    } else {
+      $("tdState").textContent = page===1 ? "Cargando productos…" : "Cargando más…";
+      $("tdState").style.display = "";
+    }
 
     var u = "backend/api/shop/products.php?per_page="+PER+"&page="+page
           + (q ? "&q="+encodeURIComponent(q) : "")
@@ -603,8 +617,17 @@ html[data-theme="dark"] .td-row{border-color:var(--border-light,#26314A)}
           + (fBrands.length ? "&brand="+encodeURIComponent(fBrands.join(",")) : "")
           + (fSort !== "name" ? "&sort="+encodeURIComponent(fSort) : "");
 
+    /* Quita las filas fantasma y devuelve el aviso a la vista. Se llama SIEMPRE al
+       volver la respuesta: si no, el esqueleto se quedaría encima de las filas
+       reales (addRow AÑADE) y los mensajes de error quedarían ocultos. */
+    function quitarSkel(){
+      var r = $("tdRows");
+      if (r && r.querySelector(".td-skel")) r.innerHTML = "";
+      $("tdState").style.display = "";
+    }
     fetch(u).then(function(r){ return r.json(); }).then(function(j){
       if (myToken !== loadToken) return;   // llegó tarde: ya hay una búsqueda más nueva
+      quitarSkel();
       loading = false;
       if (!j || !j.ok){ $("tdState").textContent = "No se pudo cargar el catálogo."; return; }
       pages = j.pages || 1;
@@ -626,6 +649,7 @@ html[data-theme="dark"] .td-row{border-color:var(--border-light,#26314A)}
       setTimeout(maybeMore, 0);
     }).catch(function(){
       if (myToken !== loadToken) return;
+      quitarSkel();          // sin esto el esqueleto se quedaría girando para siempre
       loading = false;
       $("tdState").textContent = "Error de conexión. Reintenta.";
     });
@@ -1610,6 +1634,7 @@ html[data-theme="dark"] .td-row{border-color:var(--border-light,#26314A)}
 <script src="assets/session-nav.js?v=20260716a" defer></script>
 <!-- OKi (astronauta): se auto-inyecta. Va DESPUÉS de shop-cart.js, que define
      window.OKtienda (el puente del carrito/deseados compartido que OKi lee). -->
+<script src="assets/ok-anim.js?v=20260722a" defer></script>
 <script src="assets/oki.js?v=20260717d" defer></script>
 </body>
 </html>

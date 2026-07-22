@@ -448,6 +448,7 @@ $ldCrumbs = [
 <script src="/assets/session-nav.js?v=20260717a" defer></script>
 <script src="/assets/address-book.js?v=20260717a" defer></script>
 <script src="/assets/catalogo.js?v=20260716a" defer></script>
+<script src="/assets/ok-anim.js?v=20260722a" defer></script>
 <script src="/assets/oki.js?v=20260717d" defer></script>
 </body>
 </html>
