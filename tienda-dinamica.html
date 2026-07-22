@@ -595,7 +595,10 @@ html[data-theme="dark"] .td-row{border-color:var(--border-light,#26314A)}
     loading = true;
     /* Esqueleto en la PRIMERA página: anticipa la forma de la tabla en vez de un
        texto suelto. En "cargar más" basta el aviso (ya hay filas en pantalla). */
-    if (page===1 && window.OKanim && !OKanim.reduced){
+    /* OJO: la condición es `reset`, NO `page===1`. El scroll infinito devuelve
+       page a 1 al dar la vuelta al catálogo (ver más abajo), y con page===1 el
+       esqueleto BORRABA las filas reales que el cliente venía viendo. */
+    if (reset && window.OKanim && !OKanim.reduced){
       var sk="";
       for (var s=0;s<8;s++) sk += '<div class="td-row td-skel" aria-hidden="true">'+
         '<div class="ok-skel" style="height:44px;width:44px;border-radius:10px;margin:0"></div>'+

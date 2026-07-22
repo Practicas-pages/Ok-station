@@ -1317,11 +1317,30 @@ html[data-theme="dark"] #site :is(.field input,.field select,.field textarea,.mo
   }
   /* Esqueleto de carga: anticipa la FORMA del catálogo en vez de un texto suelto.
      Si ok-anim.js aún no cargó (defer), cae al aviso de siempre. */
+  /* Esqueleto de carga. Dos decisiones:
+     · AUTOCONTENIDO: ok-anim.js va con defer y este script corre ANTES, así que
+       delegarlo a OKanim dejaba el PRIMER pintado (el que más importa) sin esqueleto.
+     · Respeta la vista activa: en "lista" son renglones y en "cuadros" tarjetas. Si
+       no, se anuncia una forma y llega otra, que era justo lo que se quería evitar.
+     Van como hijas DIRECTAS de #grid (que ya es display:grid): envolverlas las metía
+     todas en una sola columna angosta. */
   function okSkel(n){
-    /* Las tarjetas fantasma van como hijas DIRECTAS de #grid (que ya es display:grid):
-       envolverlas las metía todas en una sola celda de 160px. */
-    if(window.OKanim && OKanim.skeleton && !OKanim.reduced) return OKanim.skeleton(n||10);
-    return '<div class="empty">Cargando productos…</div>';
+    try{ if(window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches)
+           return '<div class="empty">Cargando productos…</div>'; }catch(e){}
+    var g=$("grid"), lista=g && g.classList.contains("is-list"), out="";
+    for(var i=0;i<(n||10);i++){
+      out += lista
+        ? '<div class="ok-skel-card" aria-hidden="true" style="display:grid;grid-template-columns:64px 1fr 104px;gap:14px;align-items:center">'+
+            '<div class="ok-skel" style="height:56px;border-radius:12px;margin:0"></div>'+
+            '<div><div class="ok-skel" style="width:58%"></div><div class="ok-skel" style="width:32%;height:10px;margin:0"></div></div>'+
+            '<div class="ok-skel" style="height:18px;margin:0"></div></div>'
+        : '<div class="ok-skel-card" aria-hidden="true">'+
+            '<div class="ok-skel ok-skel--ph"></div>'+
+            '<div class="ok-skel" style="width:52%"></div>'+
+            '<div class="ok-skel" style="width:86%"></div>'+
+            '<div class="ok-skel" style="width:38%;height:16px;margin-top:10px"></div></div>';
+    }
+    return out;
   }
   function renderLandFeat(){
     /* Destacados: primero las ofertas, luego lo demás; siempre con existencia. */
@@ -2412,7 +2431,7 @@ html[data-theme="dark"] #site :is(.field input,.field select,.field textarea,.mo
 
   loadCart(); updateWishBadge(); renderCart();
   renderLandCats(); renderLandFeat();          // con el respaldo, para que el landing nunca salga vacío
-  $("grid").innerHTML='<div class="empty">Cargando productos…</div>';
+  $("grid").innerHTML=okSkel();
   loadCatalogFromDB().then(function(){
     renderCats(); renderGrid(); renderLandCats(); renderLandFeat();
     if(!dbMode){ catalogReady=true; return; }  // sin BD manda el respaldo, que ya está en memoria
@@ -2516,11 +2535,15 @@ html[data-theme="dark"] #site :is(.field input,.field select,.field textarea,.mo
           setTimeout(function(){
             /* En la rejilla el id vive en el botón "agregar"; el precio es .price
                dentro de la misma tarjeta .prod. */
+            /* querySelectorAll, no querySelector: el scroll infinito repite el
+               catálogo, así que el mismo producto aparece varias veces en el DOM y
+               la copia visible suele NO ser la primera. */
             Object.keys(movidos).forEach(function(id){
-              var b=document.querySelector('[data-add="'+id+'"]');
-              var card=(b&&b.closest)?b.closest(".prod"):null;
-              var pr=card?card.querySelector(".price"):null;
-              if(pr) OKanim.pulse(pr);
+              [].forEach.call(document.querySelectorAll('[data-add="'+id+'"]'),function(b){
+                var card=b.closest?b.closest(".prod"):null;
+                var pr=card?card.querySelector(".price"):null;
+                if(pr) OKanim.pulse(pr);
+              });
             });
             /* En el carrito, el precio unitario de cada renglón. */
             if(cartChanged) [].forEach.call(document.querySelectorAll("#items .pu"),function(el){ OKanim.pulse(el); });

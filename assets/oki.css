@@ -174,3 +174,65 @@
 /* Resaltado breve al enfocar la sección de deseados (botón ❤). */
 .olv-flash > .olv-rec, .olv-flash > .olv-empty{animation:olvFlash 1.3s ease !important}
 @keyframes olvFlash{0%,100%{box-shadow:0 0 0 0 rgba(156,29,255,0)}25%{box-shadow:0 0 0 3px rgba(156,29,255,.35)}}
+
+
+/* ══════════════════════════════════════════════════════════════════
+   MODO OSCURO — se activa con html[data-theme="dark"] (assets/theme.js)
+   ------------------------------------------------------------------
+   OKi aparece en TODAS las páginas, así que sin esto el panel quedaba
+   como una caja BLANCA brillante sobre la página oscura.
+
+   Dos pasos: (1) redefinir los tokens LOCALES que declara .oki-dock/
+   .oki-panel arriba —de ahí sale el 70%—, y (2) parchar las superficies
+   que traen el blanco escrito a mano.
+   La MARCA no se toca: el encabezado con degradado, el azul y el badge
+   ya funcionan sobre oscuro.
+   ══════════════════════════════════════════════════════════════════ */
+/* (1) Tokens locales en versión noche — misma familia azul-noche que el sitio. */
+html[data-theme="dark"] :is(.oki-dock, .oki-panel){
+  --soft:#1B2338; --ink:#E9EDF6; --ink2:#B6BFD3; --muted:#8A94AB;
+  --line:#26314A; --line2:#3A4763;
+  --sh-md:0 12px 32px rgba(0,0,0,.5),0 4px 12px rgba(0,0,0,.35);
+}
+
+/* (2) Superficies con el blanco escrito a mano. */
+html[data-theme="dark"] .oki-panel{ background:#171F31; border-color:#26314A;
+  box-shadow:0 26px 64px rgba(0,0,0,.62) }
+html[data-theme="dark"] .oki-bubble{ background:#171F31; border-color:#26314A; color:#E9EDF6 }
+/* La colita de la burbuja es un triángulo pintado con border-color: va al tono del panel. */
+html[data-theme="dark"] .oki-bubble::after{ border-top-color:#171F31 }
+
+/* Mensajes del chat: el del BOT es la superficie; el MÍO se queda azul de marca. */
+html[data-theme="dark"] .oki-msg.bot{ background:#1B2338; border-color:#26314A; color:#E9EDF6 }
+
+/* Botones y chips que eran blancos → superficie elevada. */
+html[data-theme="dark"] :is(.oki-quick button, .oki-list-clear, .olv-chat, .olv-store){
+  background:#1B2338; border-color:#3A4763; color:#B6BFD3 }
+html[data-theme="dark"] :is(.oki-quick button:hover, .oki-list-clear:hover, .olv-chat:hover, .olv-store:hover){
+  background:#232D46 }
+
+/* Renglones de "tu lista de compras", recomendaciones y deseados. */
+html[data-theme="dark"] :is(.olv-it, .olv-rec){ background:#1B2338; border-color:#26314A }
+html[data-theme="dark"] :is(.olv-it .olv-nm b, .olv-rec .olv-nm b){ color:#E9EDF6 }
+/* La miniatura CON FOTO conserva fondo claro a propósito: las fotos de producto
+   vienen recortadas sobre blanco y sobre oscuro se ven con un halo feo. */
+html[data-theme="dark"] .olv-th--img{ background:#F2F4F8; border-color:#3A4763 }
+
+/* Estados vacíos y textos secundarios de la lista. */
+html[data-theme="dark"] .olv-empty{ color:#8A94AB }
+
+/* Caja de escritura del chat (el input no declara fondo propio). */
+html[data-theme="dark"] .oki-input input{ background:#1B2338; color:#E9EDF6; border-color:#3A4763 }
+html[data-theme="dark"] .oki-input input::placeholder{ color:#67708A }
+
+/* Selector de cantidad del renglón: el +/- era azul sobre azul muy claro. */
+html[data-theme="dark"] .olv-q button{ background:#10233E; color:#5FA8FF }
+html[data-theme="dark"] .olv-q span{ color:#E9EDF6 }
+
+/* El contador del carrito lleva un aro blanco pensado para recortarse contra
+   página CLARA; sobre el azul-noche brillaba y parecía despegado. */
+html[data-theme="dark"] .oki-cart-badge{ border-color:#171F31 }
+
+/* Corazón de "deseados" apagado: su gris claro brillaba MÁS que el activo, y
+   parecía que todo estaba marcado como deseado. */
+html[data-theme="dark"] .olv-wsh{ color:#5A6480 }

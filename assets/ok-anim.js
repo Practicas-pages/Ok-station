@@ -27,7 +27,11 @@
   /* Botones que significan "agregar" en las 3 superficies (tienda, compra
      rápida y ficha). Se listan por selector para NO tener que modificar el
      código de cada página. */
-  var ADD_SEL  = "[data-add],[data-madd],.td-add,.tdpv-add,.maddbtn,#pdpAdd";
+  /* Solo botones que de verdad AGREGAN. Se usa el atributo semántico, no la clase
+     de presentación .maddbtn: tienda.html la reutiliza en "Pagar", "Continuar" e
+     "Iniciar sesión", y ahí un punto volando al carrito diría justo lo contrario
+     de lo que está pasando. #pdpAddBar es la barra pegajosa de la ficha en móvil. */
+  var ADD_SEL  = "[data-add],[data-madd],.td-add,.tdpv-add,#pdpAdd,#pdpAddBar";
   /* Destinos posibles del vuelo: el carrito de cada barra. */
   var CART_SEL = "#cartBtn,#tdCartNavBtn,.tb-cart,.sb-cart";
 
