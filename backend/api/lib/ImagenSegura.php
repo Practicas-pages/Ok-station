@@ -34,11 +34,16 @@ final class ImagenSegura
     public static function dominiosPermitidos(): array
     {
         $extra = array_filter(array_map('trim', explode(',', (string) env('IMG_DOMINIOS_EXTRA', ''))));
+        /* Los dominios de las marcas salen de BuscadorMarca, que es donde se
+           registran. Si estuvieran duplicados aquí, habilitar una marca nueva
+           exigiría acordarse de tocar DOS archivos y tarde o temprano alguien
+           habilitaría el buscador y no la descarga. */
+        $marcas = class_exists('BuscadorMarca') ? BuscadorMarca::todosLosDominios() : [];
         return array_merge([
             'exeldelnorte.com.mx',   // el proveedor: fuente de nivel 1
             'icecat.biz',            // la base de fichas que ya se consulta
             'iceimg.net',            // CDN de imágenes de Icecat
-        ], $extra);
+        ], $marcas, $extra);
     }
 
     /**

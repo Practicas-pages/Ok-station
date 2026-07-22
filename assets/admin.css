@@ -552,3 +552,14 @@ html[data-theme="dark"] .appt-pdf { color: var(--brand-blue); border-color: var(
 html[data-theme="dark"] .fotos-drop.on, html[data-theme="dark"] .fotos-drop:hover { background: #122447; }
 html[data-theme="dark"] .fotos-msg.is-bien { color: #4ADE80; }
 html[data-theme="dark"] .fotos-msg.is-mal { color: #FF6B5E; }
+
+/* La barra superior traía rgba(247,248,251,.85) escrito a mano y ninguna regla
+   oscura, así que en modo noche quedaba una cintilla clara con el título en texto
+   casi blanco encima: ilegible y fuera de sitio sobre el resto oscuro. */
+html[data-theme="dark"] .admin-topbar { background: rgba(23, 31, 49, .85); }
+
+/* Fotos traídas del sitio del fabricante. Se distinguen a propósito: NADIE
+   comprobó que correspondan a este producto exacto, y quien da el clic tiene que
+   saber que le toca a él verificarlo. */
+.fotos-cand.es-marca { border-color: var(--brand-purple, #9C1DFF); }
+.fotos-cand.es-marca figcaption { color: var(--brand-purple, #9C1DFF); font-weight: 700; }

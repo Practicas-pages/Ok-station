@@ -7,6 +7,7 @@
  */
 require __DIR__ . '/../_bootstrap.php';
 require __DIR__ . '/../lib/authz.php';
+require __DIR__ . '/../lib/CatalogoAlcance.php';   // sin autoloader: hay que pedirlo
 only_method('GET');
 
 $user = require_permission('shop.view');
@@ -45,6 +46,19 @@ if ($q !== '') {
     $where[] = "(p.name LIKE ? OR p.sku LIKE ? OR p.supplier_ref LIKE ? OR p.brand LIKE ?)";
     array_push($params, $like, $like, $like, $like);
 }
+/* ALCANCE: esta vista solo muestra lo que OK.station vende. Sin esto, el panel
+   listaba los 2,714 productos apagados de Consumibles, Papel e Impresión —
+   "5,609 productos, 343 sin fotos"— y el trabajador se ponía a buscarle fotos a
+   cosas que ya no están a la venta. Los conteos de arriba también se inflaban.
+   Se resuelve con la MISMA lista blanca que usa el sync, no con una copia.
+   Esta consulta usa placeholders POSICIONALES (?), así que aquí no se puede usar
+   alcance_sql() —devuelve nombrados y PDO no deja mezclarlos—, pero sí se usa su
+   misma fuente de verdad: categorias_permitidas(). */
+$catsOk = categorias_permitidas();
+if ($catsOk) {
+    $where[] = 'p.category IN (' . implode(',', array_fill(0, count($catsOk), '?')) . ')';
+    foreach ($catsOk as $c) $params[] = $c;
+}
 if ($category !== '')                   { $where[] = "p.category = ?";  $params[] = $category; }
 if ($active === '1' || $active === '0') { $where[] = "p.is_active = ?"; $params[] = (int) $active; }
 /* El alias `images` no existe todavía en el WHERE (SQL lo evalúa después), por eso
@@ -72,16 +86,27 @@ foreach ($rows as &$r) {
 }
 unset($r);
 
-/* Resumen del catálogo COMPLETO (no del filtro): el semáforo de arriba debe decir
-   siempre cómo va el catálogo entero, aunque estés viendo una búsqueda. */
-$stats = db()->query(
+/* Resumen del catálogo (no del filtro de búsqueda): el semáforo de arriba debe
+   decir siempre cómo va el catálogo, aunque estés viendo una búsqueda.
+   Acotado al ALCANCE por la misma razón que la lista: contar los productos
+   apagados hacía que el panel dijera "5,609 productos, 343 sin fotos" cuando lo
+   que de verdad hay que atender son los de Oficina y Escolar. Un número que
+   incluye trabajo que nadie va a hacer no ayuda a decidir. */
+$stAlc = ''; $pAlc = [];
+if ($catsOk) {
+    $stAlc = ' WHERE p.category IN (' . implode(',', array_fill(0, count($catsOk), '?')) . ')';
+    $pAlc  = $catsOk;
+}
+$stStats = db()->prepare(
     "SELECT COUNT(*)                          AS total,
             SUM(n.c = 0)                      AS sin_imagenes,
             SUM(n.c BETWEEN 1 AND 2)          AS pocas,
             SUM(n.c >= 3)                     AS ok,
             SUM(n.c > 0 AND n.s = 0)          AS sin_descargar
-     FROM (SELECT p.id, $imgCount AS c, $storedCount AS s FROM products p) n"
-)->fetch();
+     FROM (SELECT p.id, $imgCount AS c, $storedCount AS s FROM products p{$stAlc}) n"
+);
+$stStats->execute($pAlc);
+$stats = $stStats->fetch();
 
 /* Categorías reales del catálogo, para llenar el filtro sin inventar nombres. */
 $cats = db()->query(

@@ -22,6 +22,7 @@
  */
 require __DIR__ . '/../_bootstrap.php';
 require __DIR__ . '/../lib/authz.php';
+require __DIR__ . '/../lib/BuscadorMarca.php';   // aporta los dominios de marca a la lista blanca
 require __DIR__ . '/../lib/ImagenSegura.php';
 require __DIR__ . '/../lib/EnrichLog.php';
 only_method('POST');

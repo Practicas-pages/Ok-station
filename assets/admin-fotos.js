@@ -160,28 +160,31 @@
         /* Las que ya tiene el producto NO se ofrecen para "volver a ponerlas": se
            muestran para que se vea qué hay, marcando si están descargadas. */
         var yaEs = c.origen === "actual";
-        html += '<figure class="fotos-cand' + (yaEs ? " es-actual" : "") + '"' +
+        var pie = yaEs ? (c.descargada ? "actual" : "actual · sin descargar") : c.fuente;
+        /* Las que vienen del sitio de la marca se marcan aparte: NADIE comprobó
+           que sean este producto exacto, y quien da el clic debe saberlo. */
+        html += '<figure class="fotos-cand' + (yaEs ? " es-actual" : "") +
+                  (c.origen === "marca" ? " es-marca" : "") + '"' +
                   (yaEs ? "" : ' data-cand="' + esc(c.url) + '" title="Usar esta foto"') + '>' +
-                  '<img src="' + esc(c.url) + '" alt="" loading="lazy">' +
-                  '<figcaption>' + esc(yaEs ? (c.descargada ? "actual" : "actual · sin descargar") : c.fuente) + '</figcaption>' +
+                  '<img src="' + esc(c.url) + '" alt="" loading="lazy" ' +
+                    'onerror="this.closest(\'figure\').remove()">' +
+                  '<figcaption>' + esc(pie) + '</figcaption>' +
                 '</figure>';
       });
       html += '</div>';
     }
 
-    /* Búsqueda en la marca: lo que el dueño pidió ver. Se ofrece el nombre del
-       producto y su clave como términos, porque a veces uno funciona y el otro no. */
+    /* Si la marca tiene buscador, el servidor ya trajo sus fotos y vienen en
+       `candidatas` con origen "marca": no hay que ir a ninguna parte, se da clic.
+       El enlace al sitio queda solo como salida de emergencia por si ninguna de
+       las que trajo es la correcta. */
     var marca = actual.marca || (j && j.producto && j.producto.brand) || "";
-    var url1 = urlBusqueda(marca, actual.nombre);
-    var url2 = (j && j.producto && j.producto.sku) ? urlBusqueda(marca, j.producto.sku) : null;
-    if (url1) {
-      html += '<div class="fotos-marca-buscar"><b>Buscar en el sitio de ' + esc(marca) + ':</b> ' +
-              '<a href="' + esc(url1) + '" target="_blank" rel="noopener">por nombre</a>' +
-              (url2 ? ' · <a href="' + esc(url2) + '" target="_blank" rel="noopener">por clave</a>' : '') +
-              '<div class="fotos-tip">Copia la imagen del sitio (clic derecho → Copiar imagen) y pégala aquí con Ctrl+V.</div></div>';
-    } else if (marca) {
-      html += '<div class="fotos-marca-buscar"><b>' + esc(marca) + '</b> no tiene buscador configurado todavía. ' +
-              'Busca la foto y pégala aquí con Ctrl+V.</div>';
+    var urlSitio = urlBusqueda(marca, (j && j.producto && j.producto.sku) || actual.nombre);
+    if (urlSitio) {
+      html += '<div class="fotos-marca-buscar">' +
+              '¿Ninguna es la correcta? <a href="' + esc(urlSitio) + '" target="_blank" rel="noopener">' +
+              'Abrir el sitio de ' + esc(marca) + '</a>' +
+              '<div class="fotos-tip">Copia la imagen (clic derecho → Copiar imagen) y pégala aquí con Ctrl+V.</div></div>';
     }
 
     ((j && j.notas) || []).forEach(function (n) {
