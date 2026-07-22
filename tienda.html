@@ -34,6 +34,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap">
+<!-- Tema (claro/oscuro): antes de la hoja para pintar ya con el tema elegido -->
+<script src="assets/theme.js?v=20260721a"></script>
 <link rel="stylesheet" href="styles.css">
 <link rel="stylesheet" href="assets/oki.css?v=20260716d">
 
@@ -901,6 +903,23 @@ html.q-lock, html.q-lock body{overflow:hidden}
   #site .grid:not(.is-list) .prod .cat{white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
   #site .grid:not(.is-list) .prod .row{flex-wrap:wrap; row-gap:4px}
 }
+
+/* ══ MODO OSCURO de la tienda (html[data-theme="dark"], lo pone theme.js) ══
+   Primero se voltean las VARIABLES de #site (la mayoría de la tienda las usa) y
+   después parches para lo que traía blanco a mano. A PROPÓSITO no cambian: las
+   fotos de producto (.pimg — la mercancía luce sobre claro, como en las apps de
+   ML), ni lo que vive sobre el degradado de marca (buscador, chips, ☰): el
+   degradado es el mismo en los dos temas. */
+html[data-theme="dark"] #site{
+  --paper:#0F1524; --card:#171F31; --ink:#E9EDF6; --muted:#8A94AB; --line:#26314A;
+}
+html[data-theme="dark"] #site :is(.modal,.drawer,.fdraw,.tb-acctmenu,.tb-filt,.ac,.mh,.dlist,.addr,.ci,.comail-opt,.descmore,.pvside,.field,.faq,.trustbar,.paincard,.fcard,.ctile,.featnav,.viewtoggle,.quick,.siteheader){background:var(--card); color:var(--ink)}
+html[data-theme="dark"] #site :is(.btn-w,.btnlight,.hb-ghost,.fclear){background:var(--card); color:var(--ink); border-color:var(--line)}
+/* Inputs de formularios (checkout/dirección): fondo noche, texto claro. */
+html[data-theme="dark"] #site :is(.field input,.field select,.field textarea,.modal input,.modal select,.modal textarea){background:#101827; color:var(--ink); border-color:var(--line)}
+/* El botón de tema en el topbar de degradado: fantasma blanco, como sus vecinos. */
+#site .tb-actions .theme-toggle{width:40px; height:40px; border:1.5px solid rgba(255,255,255,.55); background:transparent; color:#fff}
+#site .tb-actions .theme-toggle:hover{background:rgba(255,255,255,.14); border-color:#fff; color:#fff}
 </style>
 
 <div class="header-bar">

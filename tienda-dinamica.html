@@ -10,6 +10,8 @@
 <meta name="robots" content="noindex, follow">
 <link rel="icon" href="favicon.ico">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap">
+<!-- Tema (claro/oscuro): antes de la hoja para pintar ya con el tema elegido -->
+<script src="assets/theme.js?v=20260721a"></script>
 <link rel="stylesheet" href="styles.css">
 <link rel="stylesheet" href="assets/shop-header.css?v=20260716a">
 <link rel="stylesheet" href="assets/oki.css?v=20260716d">
@@ -395,6 +397,16 @@ body.td-predrag .td-trash{display:flex}
     background:rgba(255,255,255,.94);border-color:rgba(16,24,40,.12);box-shadow:0 1px 4px rgba(16,24,40,.18)}
   .td-wish svg{width:13px;height:13px}
 }
+
+/* ══ MODO OSCURO (html[data-theme="dark"], lo pone theme.js) ══
+   Los tokens del design system ya vienen volteados desde styles.css; aquí solo
+   los paneles y controles que traían blanco a mano. Las fotos (.td-img) y la
+   franja de degradado se quedan igual: funcionan en los dos temas. */
+html[data-theme="dark"] body{background:#0F1524; color:#E9EDF6}   /* la hoja propia pisaba el token */
+html[data-theme="dark"] :is(.td-panel,.td-drawer,.td-ci,.td-di,.td-ship,.td-filtbtn){background:var(--surface-card,#171F31); color:var(--text-primary,#E9EDF6)}
+html[data-theme="dark"] :is(.co-phone,.co-ship button,.td-q input,#tdQ){background:#101827; color:var(--text-primary,#E9EDF6); border-color:var(--border-light,#26314A)}
+html[data-theme="dark"] .td-head{background:var(--surface-card,#171F31); color:var(--text-muted,#8A94AB)}
+html[data-theme="dark"] .td-row{border-color:var(--border-light,#26314A)}
 </style>
 </head>
 <body>

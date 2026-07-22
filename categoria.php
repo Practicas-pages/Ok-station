@@ -152,6 +152,8 @@ function mxn($n): string { return '$' . number_format((float) $n, 2); }
   <meta property="og:description" content="<?= e($metaDesc) ?>">
   <meta property="og:url" content="<?= e($canon) ?>">
   <link rel="icon" href="/assets/img/OKD-Isotipo-Azul-96.png" type="image/png" sizes="96x96">
+  <!-- Tema (claro/oscuro): antes de los estilos para pintar ya con el tema elegido -->
+  <script src="/assets/theme.js?v=20260721a"></script>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" media="print" onload="this.media='all'">
   <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap"></noscript>
   <script type="application/ld+json"><?= json_encode($ldList, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?></script>
@@ -189,6 +191,22 @@ function mxn($n): string { return '$' . number_format((float) $n, 2); }
     .chips a{background:#fff;border:1.5px solid #E3E8F1;border-radius:99px;padding:8px 15px;
       font-size:.86rem;font-weight:600;color:#33404f;text-decoration:none}
     .chips a:hover{border-color:#066CFF;color:#066CFF}
+
+    /* ── Modo oscuro (html[data-theme="dark"], lo pone theme.js). Esta página no
+       carga styles.css, así que trae su propio bloque. Las miniaturas (.thumb)
+       se quedan claras: la mercancía luce sobre fondo claro. ── */
+    html[data-theme="dark"] body{background:#0F1524;color:#E9EDF6}
+    html[data-theme="dark"] :is(.card,.empty,.chips a){background:#171F31;border-color:#26314A;color:#E9EDF6}
+    html[data-theme="dark"] .name{color:#E9EDF6}
+    html[data-theme="dark"] .price{color:#E9EDF6}
+    html[data-theme="dark"] :is(.lead,.crumbs,.brand,.stock.out,.empty){color:#8A94AB}
+    html[data-theme="dark"] .chips a:hover{border-color:#3E8BFF;color:#3E8BFF}
+
+    /* Botón de tema en la barra azul: fantasma blanco y a la derecha del todo.
+       (La barra es azul en AMBOS temas, así que no cambia con el modo oscuro.) */
+    .bar .theme-toggle{margin-left:auto;width:34px;height:34px;
+      border:1.5px solid rgba(255,255,255,.55);background:transparent;color:#fff}
+    .bar .theme-toggle:hover{background:rgba(255,255,255,.16);border-color:#fff;color:#fff}
   </style>
 </head>
 <body>

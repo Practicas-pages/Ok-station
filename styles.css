@@ -6572,3 +6572,88 @@ body::before, body::after,
   .cita-summary--grouped .cita-summary__est { flex-direction: column; }
   .cita-summary--grouped .cita-summary__total { flex-basis: auto; max-width: none; }
 }
+/* ============================================================
+   MODO OSCURO — se activa con html[data-theme="dark"] (theme.js)
+   ------------------------------------------------------------
+   El claro es el DEFAULT: sin atributo no cambia nada. Aquí solo
+   se redefinen los TOKENS del design system (el 90% del sitio los
+   usa) + parches puntuales para superficies con blanco "a mano".
+   La marca (azul/morado/cyan, degradados, footer oscuro) se queda:
+   ya funcionan sobre fondo oscuro.
+   Paleta: azul-noche de la familia del hero (#0a1120), no gris.
+   ============================================================ */
+html[data-theme="dark"] {
+  --surface-bg:      #0F1524;
+  --surface-page:    #0F1524;
+  --surface-card:    #171F31;
+  --text-primary:    #E9EDF6;
+  --text-secondary:  #B6BFD3;
+  --text-muted:      #8A94AB;
+  --text-faint:      #67708A;
+  --border-light:    #26314A;
+  --border-medium:   #3A4763;
+  /* Tintes claros de marca (fondos de chips/avisos): versión noche. */
+  --brand-blue-light:   #10233E;
+  --brand-purple-light: #221436;
+  --brand-gray:         #333A4C;
+  /* En oscuro el hover ACLARA (oscurecer un azul sobre negro lo apaga). */
+  --brand-blue-hover:   #3E8BFF;
+  --brand-purple-hover: #B054FF;
+}
+
+/* ── Parches: superficies con blanco directo (no tokenizadas) ── */
+html[data-theme="dark"] .section { background: var(--surface-card); }
+html[data-theme="dark"] .site-header { background: var(--surface-card); border-bottom: 1px solid var(--border-light); }
+html[data-theme="dark"] .site-header .logo__img { filter: brightness(0) invert(1); } /* logo negro → blanco */
+
+/* ── Botón sol/luna (lo inyecta theme.js) ── */
+.theme-toggle {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 38px; height: 38px; border-radius: 50%;
+  border: 1.5px solid var(--border-medium); background: var(--surface-card);
+  color: var(--text-secondary); cursor: pointer; flex: 0 0 auto;
+  transition: background .15s, color .15s, border-color .15s;
+}
+.theme-toggle:hover { color: var(--brand-blue); border-color: var(--brand-blue); }
+/* La capa de "rediseño" (línea ~4261) vuelve a poner body/section en blanco A
+   MANO, pisando los tokens: en oscuro se re-pisa aquí (este bloque va al final
+   de la hoja a propósito, para ganar el cascadeo). */
+html[data-theme="dark"] body { background: var(--surface-page); }
+/* Botón claro sobre fondo oscuro: si se queda blanco, su texto blanco del hero
+   desaparece. Pasa a tarjeta noche con texto claro. */
+html[data-theme="dark"] .btn--light { background: var(--surface-card); color: var(--text-primary); border-color: var(--border-medium); }
+html[data-theme="dark"] .btn--light:hover { background: #1E2840; color: #fff; }
+/* OKi (el asistente) se queda EN CLARO por ahora: su hoja usa los tokens y al
+   voltearse quedaba texto claro sobre su panel blanco (ilegible). Re-fijar los
+   tokens claros DENTRO de su ámbito lo aísla del tema; oscurecerlo de verdad
+   es de oki.css (Oscar) cuando se quiera. */
+html[data-theme="dark"] [class*="oki"] {
+  --text-primary:#12141C; --text-secondary:#4A5068; --text-muted:#717890;
+  --surface-card:#FFFFFF; --border-light:#E4E7F0;
+}
+
+/* ── Los "fondos blancos continuos" del rediseño (línea ~5695) usan !important,
+   así que en oscuro hay que responder con la misma fuerza. Se listan los MISMOS
+   selectores para que no quede ninguna franja blanca suelta. ── */
+html[data-theme="dark"] :is(html, body, #top) { background: #0F1524 !important; }
+html[data-theme="dark"] :is(.section, .section--alt, .section--dark, .section--dark-2, .citas-section) { background: #131B2C !important; }
+
+/* ── Superficies con blanco a mano que quedaban claras con texto claro
+   (detectadas midiendo contraste en la página, no a ojo). Se agrupan por
+   familia para que futuras tarjetas del mismo tipo hereden el arreglo. ── */
+html[data-theme="dark"] :is(
+  .tramite-btn, .cita-layout, .order-drop, .order-prices, .order-summary,
+  .card, .service-card, .price-card, .faq-item, .testimonial, .info-card
+) { background: var(--surface-card) !important; border-color: var(--border-light); color: var(--text-primary); }
+
+/* Campos de formulario: fondo noche y texto claro (si no, texto claro sobre blanco). */
+html[data-theme="dark"] :is(input, select, textarea) {
+  background: #101827; color: var(--text-primary); border-color: var(--border-light);
+}
+html[data-theme="dark"] ::placeholder { color: var(--text-faint); }
+
+/* Footer, campos de documento y días del calendario: el rediseño los fijó en
+   #F7F9FF con !important, así que en oscuro quedaban claros con texto claro
+   encima (18 textos ilegibles, medidos en una página de servicio). */
+html[data-theme="dark"] :is(.site-footer, .doc-field) { background: #131B2C !important; }
+html[data-theme="dark"] .citas-section .okcal__day:not(.is-selected):not(.is-empty) { background: #1A2338 !important; color: var(--text-primary); }

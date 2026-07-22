@@ -3,6 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- Tema (claro/oscuro): antes de los estilos para pintar ya con el tema elegido -->
+  <script src="assets/theme.js?v=20260721a"></script>
   <meta name="robots" content="noindex, follow">
   <title>Acceso restringido — Ok.station</title>
   <meta name="theme-color" content="#066CFF">
@@ -31,6 +33,16 @@
     .ghost:hover{background:#F5F8FD}
     .brand{margin-top:26px;font-size:.82rem;color:#8b93a3}
     .brand b{color:#066CFF}
+
+    /* ── Modo oscuro (html[data-theme="dark"], lo pone theme.js) ──
+       Esta página es autosuficiente, así que trae su propio bloque. ── */
+    html[data-theme="dark"] body{background:#0F1524;color:#E9EDF6}
+    html[data-theme="dark"] .card{background:#171F31;border-color:#26314A;
+      box-shadow:0 10px 40px rgba(0,0,0,.35)}
+    html[data-theme="dark"] p{color:#8A94AB}
+    html[data-theme="dark"] .ghost{background:#171F31;color:#E9EDF6;border-color:#3A4763}
+    html[data-theme="dark"] .ghost:hover{background:#1E2840}
+    html[data-theme="dark"] .brand{color:#67708A}
   </style>
 </head>
 <body>

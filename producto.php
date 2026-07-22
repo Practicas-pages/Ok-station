@@ -180,6 +180,8 @@ $ldCrumbs = [
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" media="print" onload="this.media='all'">
   <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap"></noscript>
+  <!-- Tema (claro/oscuro): antes de la hoja para pintar ya con el tema elegido -->
+  <script src="/assets/theme.js?v=20260721a"></script>
   <link rel="stylesheet" href="/styles.css?v=20260716b">
   <link rel="stylesheet" href="/assets/shop-header.css?v=20260717f">
   <link rel="stylesheet" href="/assets/producto.css?v=20260716b">
