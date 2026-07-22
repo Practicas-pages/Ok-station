@@ -30,30 +30,15 @@ if (PHP_SAPI !== 'cli') {
     exit("Solo CLI.\n");
 }
 
-/* ── Filtro de catálogo: lista blanca por categoria_nombre de Exel ──
-   Decisión de negocio 2026-07-22: SOLO "Oficina y Escolar". Antes eran 13 categorías
-   ("Papelería + impresión", junta del 2026-07-14), pero esa lista dejaba entrar
-   cómputo: "Impresión y Multifuncionales" trae videocámaras y computadoras, y
-   "Consumibles" trae ruteadores. Con una sola categoría el problema desaparece de
-   raíz y ya no hace falta depurar subcategoría por subcategoría.
+/* ── Filtro de catálogo ──
+   La lista blanca vive en lib/CatalogoAlcance.php porque aplicar-alcance.php necesita
+   EXACTAMENTE la misma. Si cada uno llevara la suya, un cambio en una y no en la otra
+   dejaría productos que este sync publica y el otro apaga en cuanto corre.
 
-   OJO al cambiarla: angostar la lista APAGA productos (is_active=0), y la salvaguarda
-   de feed incompleto (más abajo) va a abortar la primera corrida a propósito, porque
-   no puede distinguir "el catálogo se encogió porque así lo decidimos" de "Exel
-   respondió a medias". Esa primera vez se corre con --force, a conciencia y de día.
-
-   Se puede sobrescribir sin tocar código con EXEL_CATEGORIAS en backend/.env
-   (separadas por coma), para que un cambio de alcance no dependa de un deploy. */
-const PAPELERIA_CATS = ['Oficina y Escolar'];
-
-/** Lista blanca efectiva: la del .env si existe, si no la constante de arriba. */
-function categorias_permitidas(): array
-{
-    $env = trim((string) env('EXEL_CATEGORIAS', ''));
-    if ($env === '') return PAPELERIA_CATS;
-    $cats = array_values(array_filter(array_map('trim', explode(',', $env)), 'strlen'));
-    return $cats ?: PAPELERIA_CATS;
-}
+   OJO al angostarla: APAGA productos (is_active=0) y la salvaguarda de feed incompleto
+   (más abajo) aborta la primera corrida a propósito, porque no puede distinguir "el
+   catálogo se encogió porque así lo decidimos" de "Exel respondió a medias". */
+require_once __DIR__ . '/../api/lib/CatalogoAlcance.php';
 
 /* ── Arranque: config + conexión + ShopCatalog (para el margen) ── */
 $CONFIG = require __DIR__ . '/../api/config.php';
@@ -108,7 +93,6 @@ echo "  Recibidos: " . count($raw) . " productos del origen\n";
 
 /* ── 2. Filtrar SOLO papelería + normalizar ── */
 $catsPermitidas = categorias_permitidas();
-$whitelist = array_map('norm', $catsPermitidas);
 echo "  Categorías permitidas: " . implode(' · ', $catsPermitidas) . "\n";
 
 /* ── Almacén: qué se puede y qué NO ─────────────────────────────────────────
@@ -147,7 +131,9 @@ $ofertas = 0;      // productos que Exel marca en oferta (alimenta "Ofertas del 
 $censo = [];
 foreach ($raw as $p) {
     $cat = (string) ($p['categoria_nombre'] ?? '');
-    $pasa = in_array(norm($cat), $whitelist, true);
+    /* La normalización la hace la lib, no aquí: así el sync y aplicar-alcance.php
+       deciden idéntico ante un "OFICINA Y ESCOLAR " con mayúsculas y espacios. */
+    $pasa = categoria_permitida($cat);
     $k = $cat === '' ? '(sin categoría)' : $cat;
     if (!isset($censo[$k])) $censo[$k] = ['n' => 0, 'pasa' => $pasa, 'subs' => []];
     $censo[$k]['n']++;
