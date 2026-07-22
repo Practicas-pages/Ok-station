@@ -114,8 +114,13 @@
 #site .pimg .pemoji{font-size:clamp(34px,7vw,48px); line-height:1; filter:drop-shadow(0 3px 6px rgba(10,20,60,.30))}
 /* Producto SIN foto: el logo de OK.station centrado sobre el gris suave. Se ve
    intencional (una marca), no un hueco. El logo no se estira: conserva su alto. */
-#site .pimg--marca{background:var(--surface-bg,#F2F4F8); display:grid; place-items:center; padding:14%}
-#site .pimg--marca img{width:100%; max-width:150px; height:auto; opacity:.9}
+/* Producto SIN foto: el logo CENTRADO y CONTENIDO dentro de la caja.
+   Ojo con dos trampas que ya explotaron: el padding en % es relativo al ANCHO
+   (en vista de lista reventaba el alto de la fila), y el alto se limita con
+   max-height —no con width— para que el SVG nunca estire su contenedor. */
+#site .pimg--marca{background:var(--surface-bg,#F2F4F8); display:grid; place-items:center;
+  padding:8px; box-sizing:border-box; overflow:hidden}
+#site .ph-logo{width:auto; height:auto; max-width:80%; max-height:80%; opacity:.9}
 html[data-theme="dark"] #site .pimg--marca{background:#1B2338}
 #site .mh .pimg{height:100%; border-radius:0}
 #site .mh .pimg .pemoji{font-size:88px}
@@ -945,6 +950,9 @@ html[data-theme="dark"] #site{
    mano (no entra por --card), así que "Descripción" y "Ficha técnica" quedaban
    como una franja blanca con el título encima, ilegible. */
 html[data-theme="dark"] #site .pvside .pvhead{background:var(--card); border-bottom-color:var(--line)}
+/* El aviso breve usa background:var(--ink), que en oscuro se vuelve CLARO y
+   dejaba texto blanco sobre fondo claro (ilegible). Va al revés del fondo. */
+html[data-theme="dark"] #site .toast{background:#E9EDF6; color:#12141C}
 html[data-theme="dark"] #site .mfaq b{color:var(--ink)}
 html[data-theme="dark"] #site .mfaq span{color:var(--muted)}
 /* Barra de scroll de los paneles: el pulgar claro resaltaba como una línea blanca. */
@@ -1254,6 +1262,10 @@ html[data-theme="dark"] #site .tb-filt{background:#fff; color:#12141C}
   /* Placeholder sin imagen: wordmark Ok.station (SVG con fondo transparente),
      en lugar del icono gris genérico de "Imagen". */
   var PHIMG='<img src="assets/img/placeholder-producto.svg" alt="" loading="lazy" style="width:62%;max-width:170px;height:auto">';
+  /* Igual, pero SIN estilos en línea: el tamaño lo manda .ph-logo del CSS. Se usa
+     donde el logo va DENTRO de una caja de tamaño fijo (tarjeta de producto,
+     miniatura del carrito), que es donde el width en línea reventaba el alto. */
+  var PHLOGO='<img src="assets/img/placeholder-producto.svg" alt="" loading="lazy" class="ph-logo">';
   function ph(cls){return '<div class="ph '+(cls||'')+'">'+PHIMG+'</div>';}
   // Imagen de producto: usa su emoji sobre el gradiente de su categoría (placeholder "real").
   function pimg(p,cls){
@@ -1261,7 +1273,7 @@ html[data-theme="dark"] #site .tb-filt{background:#fff; color:#12141C}
     if(p.image) return '<div class="ph pimg has-img '+(cls||'')+'"><img class="pimg-img" src="'+encodeURI(p.image)+'" alt="" loading="lazy"></div>';
     /* SIN foto → el logo de OK.station, no un emoji: son ~323 productos (6%) y con
        la marca se ve intencional en vez de "roto". Misma imagen que usa ph(). */
-    return '<div class="ph pimg pimg--marca '+(cls||'')+'">'+PHIMG+'</div>';}
+    return '<div class="ph pimg pimg--marca '+(cls||'')+'">'+PHLOGO+'</div>';}
   /* Foto para la tarjeta de una categoria: toma la de un producto REAL de esa categoria
      (las que ya bajo Icecat) y reusa pimg(). Si esa categoria aun no tiene ninguna foto,
      cae en la caja gris de siempre: nunca se rompe ni se inventa una imagen. */
@@ -1826,7 +1838,7 @@ html[data-theme="dark"] #site .tb-filt{background:#fff; color:#12141C}
      sobre el gradiente de su categoría — nunca el ícono gris de "sin imagen". */
   function cartThumb(p){
     if(p.image) return '<div class="t has-img"><img src="'+encodeURI(p.image)+'" alt="" loading="lazy"></div>';
-    return '<div class="t pimg--marca">'+PHIMG+'</div>';
+    return '<div class="t pimg--marca">'+PHLOGO+'</div>';
   }
   function renderCart(){var keys=Object.keys(cart);
     if(!keys.length){$("items").innerHTML='<div class="cart-empty">Tu carrito está vacío.</div>';}
@@ -2377,7 +2389,7 @@ html[data-theme="dark"] #site .tb-filt{background:#fff; color:#12141C}
   function wishThumb(p){
     var base='flex:0 0 auto;width:46px;height:46px;border-radius:12px;cursor:pointer;overflow:hidden;';
     if(p.image) return '<div data-open="'+p.id+'" title="Ver producto" style="'+base+'background:#fff;border:1px solid var(--line);padding:3px;box-sizing:border-box"><img src="'+encodeURI(p.image)+'" alt="" loading="lazy" style="width:100%;height:100%;object-fit:contain;display:block"></div>';
-    return '<div data-open="'+p.id+'" title="Ver producto" class="pimg pimg--marca" style="'+base+'">'+PHIMG+'</div>';
+    return '<div data-open="'+p.id+'" title="Ver producto" class="pimg pimg--marca" style="'+base+'">'+PHLOGO+'</div>';
   }
   function renderWishlist(){var items=wishlist.map(prod).filter(Boolean);
     var body='<button class="x" data-close style="position:absolute;top:14px;right:14px;z-index:5">×</button><div class="mb" style="padding-top:26px"><h3 style="margin:0 0 4px;font-size:1.25rem">💙 Tus deseados</h3><p class="desc" style="font-size:.86rem;max-width:none">Guarda lo que te gusta y págalo cuando quieras. Recoge gratis en OK.station o recíbelo a domicilio en todo México.</p>';
