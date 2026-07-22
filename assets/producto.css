@@ -292,3 +292,9 @@ html[data-theme="dark"] #paEmail { background: var(--surface-page); border-color
 html[data-theme="dark"] .pdp__toast { background: #E9EDF6; color: #12141C; }
 /* La GALERÍA conserva su marco claro por dentro: las fotos de producto vienen
    recortadas sobre blanco y sobre oscuro salen con un halo. */
+
+/* Nota para quien venga a tocar el modo oscuro: el logo del placeholder lleva la
+   palabra "station" en NEGRO sobre fondo transparente, así que SOLO se ve si el
+   recuadro que lo contiene es claro. Aquí no hace falta regla: .pdp__stage y
+   .pdp__rel-img ya traen su degradado claro fijo en ambos temas. Si algún día se
+   oscurecen, el logo desaparece y la caja se ve vacía. */

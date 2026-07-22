@@ -405,3 +405,13 @@ html[data-theme="dark"] .admin-search::placeholder { color: var(--text-faint); }
 .shopit__link { font-weight: 700; font-size: .9rem; color: var(--brand-blue); text-decoration: none; }
 .shopit__link:hover { text-decoration: underline; }
 .shopit__link span { opacity: .6; font-size: .85em; }
+
+/* Ronda 2 del barrido: superficies que seguían con blanco fijo. */
+html[data-theme="dark"] :is(.appt-pdf, .guest-card) {
+  background: var(--surface-card);
+  border-color: var(--border-light);
+  color: var(--text-primary);
+}
+html[data-theme="dark"] .appt-pdf { color: var(--brand-blue); border-color: var(--border-medium); }
+/* Los recuadros de documentos se quedan CLAROS: son escaneos de actas y CURP en
+   papel blanco; invertirlos los volvería ilegibles. */

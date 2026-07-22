@@ -278,3 +278,12 @@ html[data-theme="dark"] .shopbar {
 /* "Cerrar sesión" en rojo, igual que en el menú del home. */
 html[data-theme="dark"] .shopbar .tb-acctlogout,
 .shopbar .tb-acctlogout { color: var(--color-error, #DC2626); font-weight: 600; }
+
+/* Ronda 2 del barrido: botones que seguían con blanco fijo.
+   NO se tocan .shopbar__ac-img ni .sb-wi__t (miniaturas de producto: las fotos
+   vienen recortadas sobre blanco), ni .pop:hover (vive sobre el degradado). */
+html[data-theme="dark"] :is(.sb-modal__x, .sb-wi__heart) {
+  background: var(--surface-page);
+  border-color: var(--border-medium);
+  color: var(--text-primary);
+}

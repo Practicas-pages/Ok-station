@@ -216,3 +216,15 @@ html[data-theme="dark"] .order-pay { background: var(--surface-page); border-col
 html[data-theme="dark"] .order-pay--paid { background: #12241C; border-color: #1F4634; }
 html[data-theme="dark"] .order-pay__done { color: #4ADE80; }
 html[data-theme="dark"] .order-alert--error { background: rgba(220,38,38,.14); border-color: #7A2233; color: #FCA5A5; }
+
+/* Ronda 2 del barrido: superficies que seguían con blanco fijo. */
+html[data-theme="dark"] :is(.order-drop, .order-prices, .order-summary) {
+  background: var(--surface-card);
+  border-color: var(--border-light);
+  color: var(--text-primary);
+}
+html[data-theme="dark"] :is(.file-cfg select, .qty button) {
+  background: var(--surface-page);
+  border-color: var(--border-medium);
+  color: var(--text-primary);
+}
