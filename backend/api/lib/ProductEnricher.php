@@ -11,6 +11,11 @@
  * Recibe el PDO por parámetro para servir igual desde un endpoint (db()) que desde
  * el runner CLI (su propio PDO). Requiere Icecat.php ya incluido.
  */
+
+/* Aquí NO hay autoloader: si un llamador olvida requerir EnrichLog, la clase no
+   existe y esto revienta con un fatal en pleno enriquecimiento. Se requiere desde
+   aquí para que cualquiera que use ProductEnricher lo tenga sí o sí. */
+require_once __DIR__ . '/EnrichLog.php';
 final class ProductEnricher
 {
     /**
@@ -38,8 +43,15 @@ final class ProductEnricher
             'code'  => (string) ($p['sku'] ?? ''),
         ]);
 
-        // No está en Icecat: marca el intento para no repreguntar en cada vista.
+        // No está en Icecat. Se marca el intento para no repreguntar en cada vista,
+        // PERO en la bitácora y como 'sin_datos', no como éxito: así el producto
+        // sigue siendo visible para otra fuente (las páginas del fabricante) en vez
+        // de quedar sepultado bajo un enriched_at que dice "ya está resuelto".
         if ($data === null) {
+            EnrichLog::registrar($pdo, $productId, 'icecat', 'sin_datos', [
+                'match_key' => (string) ($p['barcode'] ?? '') ?: trim(($p['brand'] ?? '') . ' ' . ($p['sku'] ?? '')),
+                'detail'    => 'Icecat respondió sin ficha para este identificador',
+            ]);
             try {
                 $pdo->prepare('UPDATE products SET enriched_at = NOW() WHERE id = ?')->execute([$productId]);
             } catch (Throwable $e) {}
@@ -108,9 +120,27 @@ final class ProductEnricher
             $out['images']   = $i;
             $out['specs']    = count($data['specs']);
             $out['source']   = 'icecat';
+
+            /* Qué aportó Icecat en realidad, campo por campo. Se registra DESPUÉS del
+               commit: la bitácora describe lo que quedó escrito, no lo que se intentó.
+               Si aportó imágenes pero no ficha, el producto sigue necesitando ficha y
+               otra fuente debe poder verlo — por eso importa el detalle y no un
+               "enriquecido" a secas. */
+            $aporto = [];
+            if ($i > 0)                     $aporto[] = 'imagen';
+            if (count($data['specs']) > 0)  $aporto[] = 'ficha';
+            if (!empty($data['description']) && trim((string) ($p['description'] ?? '')) === '') $aporto[] = 'descripcion';
+            EnrichLog::registrar($pdo, $productId, 'icecat', $aporto ? 'ok' : 'sin_datos', [
+                'fields'    => implode(',', $aporto),
+                'match_key' => (string) ($p['barcode'] ?? '') ?: trim(($p['brand'] ?? '') . ' ' . ($p['sku'] ?? '')),
+            ]);
         } catch (Throwable $e) {
             if ($pdo->inTransaction()) $pdo->rollBack();
             $out['reason'] = 'write_error: ' . $e->getMessage();
+            /* Falla de ESCRITURA, no de la fuente: es temporal y debe reintentarse.
+               Sin esto, un error de base de datos dejaba al producto sin registro y
+               el runner lo reintentaría en cada corrida sin control. */
+            EnrichLog::registrar($pdo, $productId, 'icecat', 'error', ['detail' => $e->getMessage()]);
         }
         return $out;
     }

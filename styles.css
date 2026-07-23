@@ -6685,7 +6685,14 @@ html[data-theme="dark"] .btn--light:hover { background: #1E2840; color: #fff; }
 /* ── Los "fondos blancos continuos" del rediseño (línea ~5695) usan !important,
    así que en oscuro hay que responder con la misma fuerza. Se listan los MISMOS
    selectores para que no quede ninguna franja blanca suelta. ── */
-html[data-theme="dark"] :is(html, body, #top) { background: #0F1524 !important; }
+/* OJO con el selector: `html[data-theme="dark"] :is(html, …)` NO alcanza al propio
+   <html> — el descendiente exige que esté DENTRO, y html no puede estar dentro de
+   sí mismo. Así que <html> se quedaba en el #FFFFFF !important de arriba mientras
+   <body> sí se oscurecía. Donde el contenido no llena la pantalla (compra rápida,
+   que tiene su propio scroll interno) el lienzo blanco asomaba por debajo como una
+   franja enorme. Va el elemento por su lado y sus descendientes por el suyo. */
+html[data-theme="dark"],
+html[data-theme="dark"] :is(body, #top) { background: #0F1524 !important; }
 html[data-theme="dark"] :is(.section, .section--alt, .section--dark, .section--dark-2, .citas-section, .okpromo-sec) { background: #131B2C !important; }
 /* FAQ: en oscuro la pregunta y la respuesta usaban un navy fijo (#0b1f3a/#2b3650)
    que quedaba invisible sobre la tarjeta oscura. Se devuelven a los tokens claros. */
@@ -6909,3 +6916,27 @@ html[data-theme="dark"] #mp-brick :is(input, select, textarea) {
   color: revert;
   border-color: revert;
 }
+/* ── NAVBAR LISO EN OSCURO (decisión de sixseven) ──────────────────────────
+   Fuera degradados en oscuro: color liso, la fila de arriba un poco más clara
+   y la de categorías un poco más oscura. En CLARO se conserva el degradado
+   morado→cyan de marca: solo cambia la noche.
+   Se definen como tokens para que TODAS las barras del sitio (tienda,
+   ficha/compra rápida vía shop-header.css, categoría) usen los mismos valores
+   y no se vuelvan a desincronizar. */
+html[data-theme="dark"] {
+  --nav-top:    #1C2745;   /* fila superior: logo, buscador, acciones */
+  --nav-bottom: #151D34;   /* fila de categorías: un paso más oscura */
+  --nav-line:   rgba(255,255,255,.10);
+}
+/* La barra de categoria.php (es un azul liso #066CFF en claro). */
+html[data-theme="dark"] .bar { background: var(--nav-top) !important; }
+
+/* El prefijo del teléfono (bandera + "MX +52") se quedaba claro mientras el
+   campo ya era oscuro: la píldora se veía partida en dos (captura del usuario).
+   Va con el mismo fondo y borde que el campo para que lean como UNA pieza. */
+html[data-theme="dark"] .input-prefix__tag {
+  background: #101827 !important;
+  color: var(--text-primary) !important;
+  border-color: var(--border-light) !important;
+}
+html[data-theme="dark"] .input-prefix__cc { color: var(--text-primary); }

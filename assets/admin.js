@@ -17,7 +17,19 @@
   var $ = function (s, c) { return (c || document).querySelector(s); };
   var $$ = function (s, c) { return Array.prototype.slice.call((c || document).querySelectorAll(s)); };
   function mxn(n) { return new Intl.NumberFormat("es-MX", { style: "currency", currency: "MXN", maximumFractionDigits: 0 }).format(n); }
-  function esc(s) { var d = document.createElement("div"); d.textContent = String(s == null ? "" : s); return d.innerHTML; }
+  /* Escapa para insertar con innerHTML. textContent cubre <, > y &, pero NO las
+     comillas, y aquí casi todo acaba DENTRO de un atributo. Se vio en el panel:
+     el producto «Arillo Fellowes 1" Plastico C/10 Negro» rompía
+     data-foto-nombre="…" en la comilla y el diálogo mostraba solo "Arillo
+     Fellowes 1". Peor que el corte: un nombre con `" onerror="…` se habría
+     ejecutado, y los nombres vienen de la API de Exel, no de nosotros.
+     Escapar las comillas es seguro también fuera de atributos: dentro de
+     innerHTML, &quot; se pinta como una comilla normal. */
+  function esc(s) {
+    var d = document.createElement("div");
+    d.textContent = String(s == null ? "" : s);
+    return d.innerHTML.replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+  }
 
   var STATUS = {
     recibido: "Recibido", en_revision: "En revisión", en_produccion: "En producción",
@@ -221,6 +233,22 @@
        permisos (staff con shop.view ve cualquiera) y le oculta los importes al
        empleado — no hay que repetir esas reglas aquí. */
     shopOrderDetail: function (id) { return apiGet("/shop/get.php?id=" + encodeURIComponent(id)); },
+    /* ── Catálogo de productos (SOLO LECTURA) ──
+       Devuelve el JSON completo, no solo `products`: la vista también necesita el
+       resumen del catálogo (stats) y las categorías reales para el filtro. */
+    catalog: function (f) {
+      f = f || {};
+      if (DEMO) return Promise.resolve({ ok: true, products: [], stats: {}, categories: [] });
+      var p = [];
+      if (f.q)        p.push("q=" + encodeURIComponent(f.q));
+      if (f.category) p.push("category=" + encodeURIComponent(f.category));
+      if (f.images)   p.push("images=" + encodeURIComponent(f.images));
+      return apiGet("/admin/catalog.php" + (p.length ? "?" + p.join("&") : ""));
+    },
+    productDetail:    function (id) { return apiGet("/admin/product-detail.php?id=" + encodeURIComponent(id)); },
+    /* Solo `primary` y `remove`: PONER una foto es trabajo de admin-fotos.js +
+       image-set.php, que además la descargan a nuestro servidor. */
+    productImage:     function (payload) { return apiPost("/admin/product-image.php", payload); },
     orderDetail: function (id) {
       if (DEMO) { var o = (MOCK.orders || []).find(function (x) { return String(x.id || x.code) === String(id); }); return Promise.resolve(o ? { ok: true, order: o } : { ok: false }); }
       return apiGet("/orders/get.php?id=" + encodeURIComponent(id));
@@ -1658,9 +1686,298 @@
   }
 
   /* ============================================================
+     CATÁLOGO — productos de la tienda y estado de sus imágenes
+     ============================================================ */
+  var catalogSearch = "", catalogImages = "", catalogCategory = "", catalogCatsLoaded = false;
+
+  /* Semáforo de fotos. Se muestran DOS datos porque NO son lo mismo:
+       images        → fotos registradas
+       images_stored → fotos ya descargadas a nuestro servidor
+     La tienda resuelve la foto con COALESCE(stored_path, url) (ver ShopProduct.php),
+     así que un producto con 0 descargadas se ve bien HOY pero se sirve desde Icecat:
+     si Icecat bloquea el enlace directo o se cae, ese producto queda sin foto. */
+  function catalogImagesCell(p) {
+    var n = p.images, local = p.images_stored;
+    var tone = n === 0 ? "cancelado" : (n < 3 ? "pendiente" : "listo");
+    var note = n === 0 ? "sin fotos"
+             : (local === 0 ? "ninguna local" : (local < n ? local + " locales" : "todas locales"));
+    /* El botón abre el selector de fotos (assets/admin-fotos.js, archivo aparte).
+       Solo se engancha por atributos: si ese archivo no cargara, esta celda sigue
+       mostrando el conteo igual que antes. */
+    return '<td><span class="badge badge--' + tone + '">' + n + '/5</span>' +
+      '<div class="catalog-note' + (n > 0 && local === 0 ? " is-warn" : "") + '">' + note + '</div>' +
+      '<button type="button" class="catalog-foto" data-foto="' + p.id +
+        '" data-foto-nombre="' + esc(p.name) + '" data-foto-marca="' + esc(p.brand || "") + '">' +
+        (n === 0 ? "Poner foto" : "Cambiar") + '</button></td>';
+  }
+
+  /* Se expone para que admin-fotos.js pueda refrescar la tabla tras guardar una
+     foto, sin recargar la página entera (van a ser ~264 productos de corrido). */
+  window.okAdminRecargarCatalogo = function () { renderCatalog(); };
+
+  /* La cola de los que se ven SIN foto, para encadenarlos en el selector. */
+  var catalogSinFoto = [];
+  window.okAdminSinFoto = function () { return catalogSinFoto.slice(); };
+
+  function renderCatalog() {
+    var head = '<thead><tr><th>Producto</th><th>Marca</th><th>Categoría</th><th>Imágenes</th>' +
+      '<th>Stock</th><th>Precio</th><th>Estado</th></tr></thead>';
+    var t = $("#catalog-table");
+    if (!t) return;
+    t.innerHTML = head + '<tbody><tr><td colspan="7" class="catalog-empty">Cargando catálogo…</td></tr></tbody>';
+
+    DataSource.catalog({ q: catalogSearch.trim(), category: catalogCategory, images: catalogImages })
+      .then(function (j) {
+        var list = (j && j.products) || [];
+
+        /* Cola de trabajo para el selector de fotos (admin-fotos.js): los que se
+           ven ahora mismo SIN ninguna foto, en el mismo orden de la tabla. Sirve
+           para encadenar uno tras otro sin volver a la lista — son ~264 productos
+           y hacerlos de a uno, cerrando y buscando el siguiente cada vez, es lo
+           que convierte un rato de trabajo en una tarde entera. */
+        catalogSinFoto = list.filter(function (p) { return p.images === 0; })
+          .map(function (p) { return { id: p.id, nombre: p.name, marca: p.brand || "" }; });
+        var s = (j && j.stats) || {};
+
+        /* El resumen es del catálogo COMPLETO, no del filtro: si cambiara al buscar,
+           dejaría de servir como termómetro general. */
+        var stats = $("#catalog-stats");
+        if (stats) stats.innerHTML =
+          reportStat("Productos", s.total || 0) +
+          reportStat("Sin fotos", s.sin_imagenes || 0) +
+          reportStat("Pocas (1-2)", s.pocas || 0) +
+          reportStat("Completas (3+)", s.ok || 0) +
+          reportStat("Sin descargar", s.sin_descargar || 0);
+
+        /* Aviso en el menú lateral: productos que todavía necesitan fotos. */
+        var navBadge = $("#nav-catalogo-count");
+        if (navBadge) {
+          var pend = (s.sin_imagenes || 0) + (s.pocas || 0);
+          navBadge.textContent = pend;
+          navBadge.hidden = !pend;
+        }
+
+        /* Las categorías se llenan UNA sola vez: vienen del catálogo entero. Si se
+           recargaran en cada filtro, al elegir una categoría el select se quedaría
+           solo con esa y ya no podrías volver a las demás. */
+        if (!catalogCatsLoaded && j && j.categories && j.categories.length) {
+          var sel = $("#catalog-category");
+          if (sel) {
+            sel.innerHTML = '<option value="">Todas</option>' + j.categories.map(function (c) {
+              return '<option value="' + esc(c.category) + '">' + esc(c.category) + " (" + c.n + ")</option>";
+            }).join("");
+            catalogCatsLoaded = true;
+          }
+        }
+
+        if (!list.length) {
+          t.innerHTML = head + '<tbody><tr><td colspan="7" class="catalog-empty">No hay productos que coincidan con el filtro.</td></tr></tbody>';
+          return;
+        }
+
+        var body = list.map(function (p) {
+          var thumb = p.thumb
+            ? '<img class="catalog-thumb" src="' + esc(p.thumb) + '" alt="" loading="lazy">'
+            : '<span class="catalog-thumb catalog-thumb--empty" aria-hidden="true"></span>';
+          var ref = p.sku || p.supplier_ref || "";
+          /* El renglón entero abre la ficha. Con tabindex/role para que también se
+             pueda llegar con el teclado, no solo con el ratón. */
+          return '<tr class="is-clickable" data-pid="' + p.id + '" tabindex="0" role="button" ' +
+            'aria-label="Ver ficha de ' + esc(p.name) + '">' +
+            '<td><div class="catalog-prod">' + thumb + '<div><b>' + esc(p.name) + '</b>' +
+              (ref ? '<div class="catalog-note">' + esc(ref) + '</div>' : '') + '</div></div></td>' +
+            '<td>' + esc(p.brand || "—") + '</td>' +
+            '<td>' + esc(p.category || "—") +
+              (p.subcategory ? '<div class="catalog-note">' + esc(p.subcategory) + '</div>' : '') + '</td>' +
+            catalogImagesCell(p) +
+            '<td>' + p.stock + '</td>' +
+            '<td>' + mxn(Number(p.price) || 0) + '</td>' +
+            '<td><span class="badge badge--' + (p.is_active ? "listo" : "oculta") + '">' +
+              (p.is_active ? "Publicado" : "Oculto") + '</span></td>' +
+            '</tr>';
+        }).join("");
+
+        /* Se avisa cuando la lista viene topada: sin esto, el panel se vería
+           "completo" mostrando solo una parte del catálogo. */
+        var capped = (j.count && j.limit && j.count >= j.limit)
+          ? '<tr><td colspan="7" class="catalog-empty">Mostrando los primeros ' + j.limit +
+            ' productos. Acota con la búsqueda o los filtros para ver el resto.</td></tr>'
+          : '';
+
+        t.innerHTML = head + '<tbody>' + body + capped + '</tbody>';
+
+        $$("tr[data-pid]", t).forEach(function (tr) {
+          tr.addEventListener("click", function (e) {
+            /* El renglón entero abre la ficha, PERO trae dentro el botón de foto
+               (admin-fotos.js). Sin esta guarda, pedir la foto abriría además la
+               ficha encima y se elegiría a ciegas. Cualquier control propio dentro
+               del renglón queda cubierto por el mismo cierre. */
+            if (e.target.closest("button, a, input, select")) return;
+            openProductModal(+tr.dataset.pid);
+          });
+          tr.addEventListener("keydown", function (e) {
+            if (e.target !== tr) return;
+            if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openProductModal(+tr.dataset.pid); }
+          });
+        });
+      })
+      .catch(function () {
+        t.innerHTML = head + '<tbody><tr><td colspan="7" class="catalog-empty">No se pudo cargar el catálogo.</td></tr></tbody>';
+      });
+  }
+
+  /* ── Ficha del producto (clic en un renglón del catálogo) ──
+     Muestra TODO lo que se sabe del producto y deja gestionar sus imágenes.
+     Regla que atraviesa toda esta pantalla: ninguna fuente publica sola; el
+     administrador elige cada foto. Ver image-candidates.php. */
+  var prodModalId = null;
+
+  function escProdClose(e) { if (e.key === "Escape") closeProductModal(); }
+  function closeProductModal() {
+    var m = document.getElementById("prod-modal");
+    if (m) m.remove();
+    document.body.style.overflow = "";
+    document.removeEventListener("keydown", escProdClose);
+    prodModalId = null;
+  }
+
+  function prodField(label, value) {
+    return '<div class="prod-field"><span>' + label + '</span><b>' + value + '</b></div>';
+  }
+
+  /* Galería: cada imagen con su procedencia y si ya está copiada en nuestro servidor. */
+  function prodImagesHtml(d) {
+    var imgs = d.images || [], max = d.max_images || 5;
+    var cards = imgs.map(function (im) {
+      return '<figure class="prod-img' + (im.is_primary ? " is-primary" : "") + '">' +
+        '<img src="' + esc(im.src) + '" alt="" loading="lazy">' +
+        (im.is_primary ? '<span class="prod-img__flag">Principal</span>' : '') +
+        '<figcaption>' + esc(im.source) +
+          '<span class="' + (im.local ? "" : "is-warn") + '">' + (im.local ? "local" : "remota") + '</span>' +
+        '</figcaption>' +
+        '<div class="prod-img__acts">' +
+          (im.is_primary ? '' : '<button class="admin-btn-sm" data-imgprimary="' + im.id + '">Principal</button>') +
+          '<button class="admin-btn-sm" data-imgremove="' + im.id + '">Quitar</button>' +
+        '</div>' +
+      '</figure>';
+    }).join("");
+    var vacio = '<p class="prod-hint">Este producto no tiene imágenes. En la tienda se muestra el logotipo de Ok.station en su lugar.</p>';
+    return '<div class="prod-gallery">' + (imgs.length ? cards : vacio) + '</div>' +
+      '<p class="prod-hint">' + imgs.length + ' de ' + max + ' imágenes.' +
+      (imgs.length ? ' Las marcadas como <b>remota</b> se sirven desde el proveedor: si esa fuente se cae, el producto se queda sin foto.' : '') +
+      '</p>';
+  }
+
+  function prodSpecsHtml(specs) {
+    if (!specs || !specs.length) {
+      return '<p class="prod-hint">Sin ficha técnica. Icecat no aportó características para este producto.</p>';
+    }
+    return specs.map(function (g) {
+      return '<h4 class="prod-subtitle">' + esc(g.group) + '</h4>' +
+        '<table class="prod-specs"><tbody>' + g.items.map(function (it) {
+          return '<tr><th>' + esc(it.name) + '</th><td>' + esc(it.value) + '</td></tr>';
+        }).join("") + '</tbody></table>';
+    }).join("");
+  }
+
+  function prodEnrichHtml(rows) {
+    if (!rows || !rows.length) return '<p class="prod-hint">Todavía no se consulta ninguna fuente para este producto.</p>';
+    var ESTADO = { ok: "Aportó datos", sin_datos: "No lo tiene", error: "Falló", revision: "Espera revisión", rechazado: "Descartado" };
+    return '<table class="prod-specs"><tbody>' + rows.map(function (r) {
+      return '<tr><th>' + esc(r.source) + '</th><td>' + esc(ESTADO[r.status] || r.status) +
+        (r.fields ? ' · ' + esc(r.fields) : '') +
+        (r.confidence !== null && typeof r.confidence !== "undefined" ? ' · ' + esc(r.confidence) + '% de certeza' : '') +
+        (r.detail ? '<div class="catalog-note">' + esc(r.detail) + '</div>' : '') +
+        '</td></tr>';
+    }).join("") + '</tbody></table>';
+  }
+
+  function productModalHtml(d) {
+    var p = d.product || {};
+    var ref = p.sku || p.supplier_ref || "";
+    return '<div class="prod-modal__panel">' +
+      '<div class="prod-modal__head">' +
+        '<div><div class="prod-modal__title">' + esc(p.name || "Producto") + '</div>' +
+        '<div class="prod-modal__sub">' + esc(p.brand || "sin marca") + (ref ? " · " + esc(ref) : "") +
+          ' · ' + esc(p.category || "sin categoría") + '</div></div>' +
+        '<button type="button" class="btn btn--light btn--sm" id="prod-modal-close">Cerrar</button>' +
+      '</div>' +
+      '<div class="prod-modal__body">' +
+        '<h4 class="prod-subtitle">Imágenes</h4>' + prodImagesHtml(d) +
+        /* PONER una foto lo resuelve admin-fotos.js: busca candidatas, permite
+           subir un archivo o pegar con Ctrl+V, y la descarga a nuestro servidor.
+           Aquí solo se dispara con su mismo enganche [data-foto] — un solo camino
+           para poner fotos en todo el panel. */
+        '<div class="prod-addurl">' +
+          '<button type="button" class="btn btn--primary btn--sm" data-foto="' + p.id +
+            '" data-foto-nombre="' + esc(p.name || "") + '" data-foto-marca="' + esc(p.brand || "") + '">' +
+            ((d.images || []).length ? "Cambiar foto" : "Poner foto") + '</button>' +
+        '</div>' +
+        '<h4 class="prod-subtitle">Datos del catálogo</h4>' +
+        '<div class="prod-fields">' +
+          prodField("Precio público", mxn(Number(p.price) || 0) + " <small>+ IVA</small>") +
+          prodField("Costo proveedor", mxn(Number(p.cost) || 0)) +
+          prodField("Existencia", p.stock + " <small>almacén " + esc(p.warehouse_id || "—") + "</small>") +
+          prodField("Estado", p.is_active ? "Publicado" : "Oculto") +
+          prodField("Subcategoría", esc(p.subcategory || "—")) +
+          prodField("Proveedor", esc(p.supplier || "—") + " <small>" + esc(p.supplier_ref || "") + "</small>") +
+          prodField("Código de barras", esc(p.barcode || "—")) +
+          prodField("Clave SAT", esc(p.sat_code || "—")) +
+          prodField("Última sincronización", esc(p.last_synced_at || "—")) +
+          prodField("Enriquecido", esc(p.enriched_at || "nunca")) +
+        '</div>' +
+        '<h4 class="prod-subtitle">Fuentes consultadas</h4>' + prodEnrichHtml(d.enrichment) +
+        '<h4 class="prod-subtitle">Ficha técnica</h4>' + prodSpecsHtml(d.specs) +
+      '</div>' +
+    '</div>';
+  }
+
+  function openProductModal(id) {
+    DataSource.productDetail(id).then(function (d) {
+      if (!d || !d.ok) { window.alert((d && (d.error || d.message)) || "No se pudo abrir el producto."); return; }
+      closeProductModal();
+      prodModalId = id;
+      var ov = document.createElement("div");
+      ov.id = "prod-modal";
+      ov.className = "prod-modal";
+      ov.setAttribute("role", "dialog");
+      ov.setAttribute("aria-modal", "true");
+      ov.innerHTML = productModalHtml(d);
+      document.body.appendChild(ov);
+      document.body.style.overflow = "hidden";
+
+      ov.addEventListener("click", function (e) { if (e.target === ov) closeProductModal(); });
+      $("#prod-modal-close", ov).addEventListener("click", closeProductModal);
+      document.addEventListener("keydown", escProdClose);
+
+      $$("[data-imgprimary]", ov).forEach(function (b) {
+        b.addEventListener("click", function () {
+          b.disabled = true;
+          DataSource.productImage({ action: "primary", product_id: id, image_id: +b.dataset.imgprimary })
+            .then(function () { openProductModal(id); renderCatalog(); });
+        });
+      });
+      $$("[data-imgremove]", ov).forEach(function (b) {
+        b.addEventListener("click", function () {
+          if (!window.confirm("¿Quitar esta imagen del producto?")) return;
+          b.disabled = true;
+          DataSource.productImage({ action: "remove", product_id: id, image_id: +b.dataset.imgremove })
+            .then(function () { openProductModal(id); renderCatalog(); });
+        });
+      });
+      /* El selector de fotos de admin-fotos.js se monta sobre <body>. Si la ficha
+         siguiera abierta encima, el usuario elegiría a ciegas: se cierra al pasar
+         el control. Al volver, la tabla se refresca sola con el conteo nuevo. */
+      $$("[data-foto]", ov).forEach(function (b) {
+        b.addEventListener("click", function () { closeProductModal(); });
+      });
+    }).catch(function () { window.alert("Sin conexión al abrir el producto."); });
+  }
+
+  /* ============================================================
      NAVEGACIÓN ENTRE VISTAS
      ============================================================ */
-  var TITLES = { dashboard: "Dashboard", pedidos: "Pedidos", tienda: "Tienda", citas: "Citas", usuarios: "Usuarios", resenas: "Reseñas", reportes: "Reportes", precios: "Precios" };
+  var TITLES = { dashboard: "Dashboard", pedidos: "Pedidos", tienda: "Tienda", catalogo: "Catálogo", citas: "Citas", usuarios: "Usuarios", resenas: "Reseñas", reportes: "Reportes", precios: "Precios" };
   var rendered = {};
   function showView(view) {
     /* Blindaje: el empleado puro no entra a Usuarios ni Reportes aunque fuerce la URL/nav. */
@@ -1673,6 +1990,7 @@
     if (!rendered[view]) {
       if (view === "pedidos") renderOrdersTable();
       if (view === "tienda") renderShopTable();
+      if (view === "catalogo") renderCatalog();
       if (view === "citas") renderAppointments("");
       if (view === "usuarios") renderUsers();
       if (view === "resenas") renderReviews();
@@ -1840,6 +2158,33 @@
     if (shopSearchEl) shopSearchEl.addEventListener("input", function () {
       shopSearch = shopSearchEl.value;
       renderShopTable();
+    });
+
+    /* Filtros del CATÁLOGO */
+    $$("#catalog-filters .chip").forEach(function (c) {
+      c.addEventListener("click", function () {
+        $$("#catalog-filters .chip").forEach(function (x) { x.classList.remove("is-selected"); });
+        c.classList.add("is-selected");
+        catalogImages = c.dataset.images || "";
+        renderCatalog();
+      });
+    });
+    var catalogSearchEl = $("#catalog-search");
+    if (catalogSearchEl) {
+      /* El catálogo filtra en el SERVIDOR (puede crecer a miles de productos, no se
+         puede traer completo al navegador). Por eso se espera a que el usuario deje
+         de teclear: sin esta pausa, escribir "cuaderno" dispararía 8 consultas. */
+      var catalogTimer = null;
+      catalogSearchEl.addEventListener("input", function () {
+        catalogSearch = catalogSearchEl.value;
+        clearTimeout(catalogTimer);
+        catalogTimer = setTimeout(renderCatalog, 250);
+      });
+    }
+    var catalogCatEl = $("#catalog-category");
+    if (catalogCatEl) catalogCatEl.addEventListener("change", function () {
+      catalogCategory = catalogCatEl.value;
+      renderCatalog();
     });
 
     var apptStatus = "", apptDate = "";

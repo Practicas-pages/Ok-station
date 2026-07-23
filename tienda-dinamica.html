@@ -25,8 +25,33 @@
 
 /* La navbar sin buscador: el spacer ocupa el hueco central (logo izq, acciones der). */
 .shopbar__spacer{flex:1 1 auto}
+/* ══ CINTILLA — el mismo tratamiento que la fila 2 de la tienda (.shopbar__cats) ══
+   La tienda cuelga bajo la navbar una franja a todo lo ancho con el degradado de
+   marca cubierto por un velo oscuro, y encima botones tipo píldora. Compra rápida
+   tenía sus controles sueltos sobre el fondo de la página y por eso se veía como
+   otra sección del sitio. Aquí se reusan EL DISEÑO Y LOS COLORES, no los botones:
+   sus categorías siguen filtrando dentro de la página, no navegando a la tienda.
+   Las variables --sb-grad y --sb-col vienen de assets/shop-header.css, así que si
+   la marca cambia de degradado, cintilla y navbar se mueven juntas. */
+.td-band{background:linear-gradient(rgba(8,12,30,.16),rgba(8,12,30,.16)),var(--sb-grad,linear-gradient(100deg,#9C1DFF 0%,#6A2BF5 22%,#066CFF 52%,#0EA6FF 78%,#00C6FF 100%))}
+.td-band__in{max-width:var(--sb-col,1200px);margin:0 auto;padding:11px max(14px,16px);
+  display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+/* En OSCURO no lleva degradado: ZequiDev dejó las tres barras del sitio lisas en
+   modo noche (--nav-top arriba, --nav-bottom en la fila de abajo). La cintilla es
+   fila de abajo, así que toma --nav-bottom; si no, quedaría una franja brillante
+   colgando de una barra apagada. El tema claro conserva el degradado. */
+html[data-theme="dark"] .td-band{background:var(--nav-bottom,#151D34);
+  border-top:1px solid var(--nav-line,rgba(255,255,255,.10))}
+html[data-theme="dark"] .td-band :is(.td-back,.td-catbtn){
+  background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.30)}
+html[data-theme="dark"] .td-band :is(.td-back,.td-catbtn):hover{background:rgba(255,255,255,.16)}
+html[data-theme="dark"] .td-band .td-search input{border-color:rgba(255,255,255,.18)}
 /* ── Barra superior: buscador + categorías + filtros ── */
-.td-top{display:grid;grid-template-columns:1fr auto auto;gap:10px;align-items:center;margin-bottom:14px}
+/* Tres columnas: buscador, Categorías y Filtros. El botón de tema NO vive aquí — a
+   partir del arreglo de ZequiDev en theme.js las ranuras van por grupo y en esta
+   página gana .shopbar__top, así que el tema queda en la barra de arriba. */
+.td-top{display:grid;grid-template-columns:1fr auto auto;gap:10px;align-items:center;
+  flex:1 1 420px;min-width:0}
 .td-search{position:relative}
 .td-search input{
   width:100%;height:52px;border-radius:999px;border:1px solid var(--line,#e3e6ee);
@@ -328,6 +353,11 @@ body.td-predrag .td-trash{display:flex}
    Van DESPUÉS de [disabled] a propósito: misma especificidad, gana el último. */
 .td-add.done{background:var(--brand-purple,#9C1DFF);animation:tdPop .42s cubic-bezier(.34,1.56,.64,1)}
 .td-add.max{background:var(--brand-orange,#FF7C19)}
+/* AGOTADO en rojo: es la única señal de la tabla que significa "no se puede", y el
+   rojo es lo que la gente ya lee como tal. No lleva sombra ni hover porque no es un
+   botón que invite a apretarse — es el estado del producto, no una acción. */
+.td-add.out{background:#D92D20;box-shadow:none;cursor:not-allowed}
+.td-add.out:hover{background:#D92D20;transform:none;box-shadow:none}
 @keyframes tdPop{0%{transform:scale(1)}40%{transform:scale(1.14)}100%{transform:scale(1)}}
 .td-add .ck{display:inline-block;animation:tdCk .34s cubic-bezier(.34,1.56,.64,1) .04s both}
 @keyframes tdCk{from{transform:scale(0) rotate(-30deg);opacity:0}to{transform:scale(1) rotate(0);opacity:1}}
@@ -383,6 +413,20 @@ body.td-predrag .td-trash{display:flex}
 .td-msg.ok{color:#067647}
 
 /* Volver */
+/* "Volver a la tienda" copia a .shopbar__back: píldora translúcida con borde blanco
+   sobre el degradado. Va DESPUÉS de la regla vieja para ganarle sin tener que
+   borrarla (la de abajo sigue sirviendo si algún día sale de la cintilla). */
+.td-band .td-back{flex:none;color:#fff;font-weight:700;font-size:.82rem;margin:0;
+  padding:8px 14px;border-radius:99px;background:rgba(9,14,34,.42);
+  border:1.5px solid rgba(255,255,255,.6);backdrop-filter:blur(8px);transition:background .15s}
+.td-band .td-back:hover{background:rgba(9,14,34,.56);color:#fff}
+/* Dentro de la cintilla el buscador ya no necesita sombra propia: el velo oscuro le
+   da el contraste. Los botones dejan el degradado (competía con el fondo) y pasan a
+   la píldora sólida, igual que .shopbar .pop sobre el carril de la tienda. */
+.td-band .td-search input{height:46px;box-shadow:none;border-color:rgba(255,255,255,.5)}
+.td-band .td-catbtn{height:46px;background:rgba(9,14,34,.42);border:1.5px solid rgba(255,255,255,.6);
+  backdrop-filter:blur(8px);box-shadow:none}
+.td-band .td-catbtn:hover{background:rgba(9,14,34,.62);transform:translateY(-1px);box-shadow:none}
 .td-back{display:inline-flex;align-items:center;gap:6px;color:var(--muted,#667085);text-decoration:none;
   font-size:.85rem;font-weight:600;margin-bottom:12px}
 .td-back:hover{color:var(--brand-blue,#066CFF)}
@@ -403,8 +447,15 @@ body.td-predrag .td-trash{display:flex}
 }
 /* Móvil: el buscador ocupa su fila y los dos botones se reparten la de abajo. */
 @media(max-width:560px){
+  /* Buscador arriba a todo lo ancho; abajo Categorías, Filtros y el botón de tema.
+     El tema entra en la MISMA fila (no en una tercera, que le costaba a la cintilla
+     casi un tercio de la pantalla del teléfono antes de ver el primer producto). */
   .td-top{grid-template-columns:1fr 1fr;gap:8px}
   .td-search{grid-column:1 / -1}
+  /* En el teléfono la cintilla aprieta márgenes y "Volver" se va a su propia fila
+     pegado a la izquierda, para no robarle ancho a los botones. */
+  .td-band__in{padding:9px 14px;gap:8px}
+  .td-band .td-back{padding:6px 12px;font-size:.78rem}
   .td-catbtn{height:46px;padding:0 12px;font-size:.86rem;justify-content:center}
   /* La 5ª columna del corazón no cabe: vuelve a 4 columnas y el corazón se monta
      SOBRE la imagen (como en las tarjetas de la tienda). Así nada se desborda. */
@@ -703,7 +754,11 @@ html[data-theme="dark"] .td-go:disabled{ background:#232D46; color:#67708A }
        compra rápida (botón "Categorías" de la página). El carril navegaba a la tienda
        normal, que sacaba al usuario de aquí. "Volver a la tienda" queda en el cuerpo. -->
 </header>
-<main class="td-wrap">
+<!-- CINTILLA: la misma franja que la tienda cuelga bajo su navbar. Va FUERA de
+     .td-wrap porque el fondo tiene que ir a todo lo ancho; el contenido de adentro
+     se vuelve a alinear con .td-band__in al mismo ancho de columna del sitio. -->
+<div class="td-band">
+ <div class="td-band__in">
   <a class="td-back" href="tienda.html">
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>
     Volver a la tienda
@@ -726,6 +781,9 @@ html[data-theme="dark"] .td-go:disabled{ background:#232D46; color:#67708A }
       <svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M6 9l6 6 6-6"/></svg>
     </button>
   </div>
+ </div>
+</div>
+<main class="td-wrap">
   <div class="td-cats" id="tdCats"><div class="row" id="tdCatsRow"></div></div>
   <div class="td-cats" id="tdFilts"></div>
 
@@ -952,7 +1010,13 @@ html[data-theme="dark"] .td-go:disabled{ background:#232D46; color:#67708A }
       img +
       '<div><div class="td-name">'+esc(p.name)+'</div><div class="td-meta">'+esc(p.brand||"")+(p.stock<=0?' · <b>agotado</b>':(p.stock<=5?' · <b>solo '+p.stock+'</b>':''))+'</div></div>' +
       '<div class="td-price">'+old+mxn(p.price)+'</div>' +
-      '<div style="text-align:right"><button class="td-add" data-add="'+p.id+'">+ Agregar</button></div>' +
+      /* Sin existencias el botón nace AGOTADO y deshabilitado, no "+ Agregar": no
+         tiene caso ofrecer algo que no se puede vender y luego negarlo al clic. */
+      '<div style="text-align:right">' +
+        (p.stock<=0
+          ? '<button class="td-add out" data-add="'+p.id+'" disabled aria-disabled="true">Agotado</button>'
+          : '<button class="td-add" data-add="'+p.id+'">+ Agregar</button>') +
+      '</div>' +
       '<button class="td-wish'+(isWished(p.id)?' on':'')+'" data-wish="'+p.id+'" aria-pressed="'+(isWished(p.id)?'true':'false')+'" aria-label="Guardar en favoritos" title="'+(isWished(p.id)?'Quitar de favoritos':'Guardar en favoritos')+'">'+HEART+'</button>';
     row.querySelector("[data-add]").addEventListener("click", function(){ addToPre(p); });
     /* Tocar el RENGLÓN (imagen/nombre/precio) abre la vista previa — la misma
@@ -996,6 +1060,11 @@ html[data-theme="dark"] .td-go:disabled{ background:#232D46; color:#67708A }
     var b = document.querySelector('[data-add="'+p.id+'"]');
     if (b && b.disabled) return;                               // está confirmando → ignora el clic
     var cur = pre[p.id] ? pre[p.id].qty : 0;
+    /* Dos motivos distintos para no poder agregar, y el usuario merece saber cuál:
+       AGOTADO es "no hay nada" (rojo, se acabó) y MÁXIMO es "ya te llevas todas las
+       que quedan" (naranja, no es un error tuyo). Antes ambos decían "Máximo", así
+       que un producto en cero se veía como si el problema fuera tu carrito. */
+    if (p.stock <= 0){ btnTemp(b, "out", "Agotado"); return; }
     if (cur >= p.stock){ btnTemp(b, "max", "Máximo"); return; } // ya no hay más piezas
     if (!pre[p.id]) pre[p.id] = { p:p, qty:0 };
     pre[p.id].qty++;

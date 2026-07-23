@@ -61,21 +61,28 @@
 
   /* Un botón por página, en el PRIMER encabezado que exista. El orden importa:
      primero los headers propios de tienda/fichas y al final el del sitio. */
+  /* Cada GRUPO es un encabezado del sitio; dentro del grupo se usa la primera
+     ranura que exista. Agrupar importa: compra rápida tiene a la vez
+     `.shopbar__top` y `.td-top`, y al tratarlos como ranuras sueltas salían DOS
+     botones de tema en la misma pantalla (visto en pruebas). Son el mismo
+     encabezado, así que van juntos y solo gana uno. */
   var SLOTS = [
-    ".oknav__actions",      // navbar unificado (el que reemplaza a los tres de abajo)
-    ".shopbar__top",        // ficha de producto / páginas con barra de e-commerce
-    "#site .tb-actions",    // catálogo de tienda.html
-    ".td-top",              // compra rápida
-    "nav.bar",              // páginas de categoría (categoria.php, barra propia)
-    ".nav__actions",        // header del sitio (index, servicios, cuenta, perfil…)
+    [".oknav__actions"],            // navbar unificado (reemplaza a los de abajo)
+    [".shopbar__top", ".td-top"],   // barra del e-commerce: ficha y compra rápida
+    ["#site .tb-actions"],          // catálogo de tienda.html (vista tienda)
+    ["nav.bar"],                    // páginas de categoría (barra propia)
+    [".nav__actions"],              // header del sitio (index, servicios, perfil…)
   ];
   function inject() {
-    /* En TODOS los encabezados presentes, no solo el primero: tienda.html tiene
-       dos (navbar en la portada y topbar en el catálogo) y cada vista debe traer
-       su botón. En las demás páginas solo existe uno y queda igual. */
+    /* Un botón por GRUPO presente, no uno por ranura: tienda.html sí necesita
+       dos (portada y catálogo son vistas distintas), pero una misma barra no. */
     for (var i = 0; i < SLOTS.length; i++) {
-      var slot = document.querySelector(SLOTS[i]);
-      if (slot && !slot.querySelector(".theme-toggle")) slot.appendChild(makeButton());
+      for (var j = 0; j < SLOTS[i].length; j++) {
+        var slot = document.querySelector(SLOTS[i][j]);
+        if (!slot) continue;
+        if (!slot.querySelector(".theme-toggle")) slot.appendChild(makeButton());
+        break;   // grupo resuelto: no se prueban las demás ranuras
+      }
     }
     refreshButtons(stored());
   }

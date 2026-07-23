@@ -75,13 +75,24 @@ $ivaRate = ($shipMode === 'envio') ? Geo::ivaForState($state) : 0.08;
    resolve() usa el catálogo REAL (products) y, si el id no está, el demo hardcodeado. */
 $resolved  = [];
 $sinStock  = [];    // productos del catálogo real que ya no alcanzan → "se nos acabó"
+$retirados = [];    // ids que existen pero ya no se publican → "ya no lo manejamos"
 $precioCambio = []; // productos cuyo precio actual difiere >3% del que el cliente vio
 $totalIncl = 0.0;   // total con el IVA del destino ya aplicado
 foreach ($items as $it) {
     $pid = (int) ($it['id'] ?? 0);
     $qty = max(1, min(999, (int) ($it['qty'] ?? 1)));
     $p = ShopCatalog::resolve($pid);
-    if (!$p) continue;   // id inexistente → se ignora (no se confía en el cliente)
+    if (!$p) {
+        /* Dos casos muy distintos detrás del mismo null, y confundirlos cuesta dinero:
+           · El id NUNCA existió → basura del cliente, se ignora como siempre.
+           · El id existe pero ya no se publica (Exel lo descontinuó, o quedó fuera del
+             alcance del catálogo) → antes se caía del pedido EN SILENCIO. El cliente
+             creía llevar tres cosas, pagaba dos y nadie le decía nada.
+           Se avisa por el mismo camino que "se nos acabó", que ya devuelve 409 y hace
+           que el carrito se repinte. */
+        if (ShopCatalog::existeAunqueOculto($pid)) $retirados[] = $pid;
+        continue;
+    }
     // Validación de stock (solo catálogo real; el demo no lleva inventario).
     // NOTA: valida contra el stock del último sync; la revalidación EN VIVO contra Exel
     // (POST productos por almacenes) se añadirá cuando esté la API key.
@@ -105,6 +116,13 @@ foreach ($items as $it) {
     $line = round($unit * $qty, 2);
     $totalIncl += $line;
     $resolved[] = ['id' => $pid, 'sku' => $p['sku'], 'name' => $p['name'], 'unit' => $unit, 'qty' => $qty, 'line' => $line];
+}
+/* Se revisa ANTES que el stock: si un producto ya ni se maneja, decirle al cliente
+   "no hay suficiente inventario" lo mandaría a esperar algo que no va a volver. */
+if ($retirados) {
+    error_log('[shop.create] productos retirados en un carrito activo: ' . implode(',', $retirados));
+    fail('Uno o más productos de tu carrito ya no están disponibles. Se quitaron: revisa tu carrito y el total antes de pagar.',
+         409, ['unavailable' => $retirados]);
 }
 if ($sinStock) {
     fail('Ya no hay suficiente inventario de: ' . implode(', ', $sinStock) . '. Actualiza tu carrito y vuelve a intentar.', 409, ['out_of_stock' => $sinStock]);

@@ -15,10 +15,20 @@
 #   esto reduce que ese bloqueo salte.)
 #
 # Uso:   bash deploy/actualizar-precios.sh
-# Cron:  30 * * * * cd /home/okstation/htdocs/okstation.mx && bash deploy/actualizar-precios.sh >> /var/log/okstation-precios.log 2>&1
-#        (al minuto :30 de cada hora; el sync COMPLETO sigue a las 2:15 — corre a los :30
-#         para no encimarse con él. Aunque se encimaran no habría daño: los UPSERT son
-#         atómicos y la salvaguarda del 70% protege el catálogo.)
+# Cron:  30 8-20/2 * * * cd /home/okstation/htdocs/okstation.mx && bash deploy/actualizar-precios.sh >> /var/log/okstation-precios.log 2>&1
+#        (al minuto :30, cada 2 horas y SOLO en horario hábil; el sync COMPLETO sigue
+#         a las 2:15 — corre a los :30 para no encimarse con él. Aunque se encimaran no
+#         habría daño: los UPSERT son atómicos y la salvaguarda del 70% protege.)
+#
+# POR QUÉ CADA 2 HORAS Y NO CADA HORA (cambio 2026-07-22):
+#   Nació como `30 * * * *`, o sea 24 llamadas al día. Cada una baja el catálogo
+#   COMPLETO (~5,500 productos) porque GET /productos no acepta filtros ni deltas.
+#   Sumado al sync nocturno y a exel-imagenes, eso agotó la cuota diaria de Exel y
+#   la API empezó a contestar 401 "Numero de peticiones diarias excedidas" — con lo
+#   que dejó de actualizarse TODO, que es justo lo contrario de lo que se buscaba.
+#   De 24 llamadas se baja a 7 (8:30 a 20:30 cada 2 h), que cubre el horario en que
+#   la tienda de verdad vende. De madrugada nadie compra y el sync completo ya pasa.
+#   Si Exel confirma un límite más alto, se puede volver a apretar.
 # ==============================================================================
 set -uo pipefail
 

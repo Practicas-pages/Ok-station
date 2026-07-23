@@ -4,7 +4,7 @@ Laragon es solo un entorno de desarrollo local: **no cambia el código ni el dep
 Producción sigue igual.
 
 > Ya te dejé preparado y **funcionando**:
-> - Base de datos local `okstationv2` creada, con las 28 migraciones aplicadas.
+> - Base de datos local `okstation` creada, con las 37 migraciones aplicadas.
 > - `backend/.env` local (pagos en sandbox, sin llaves reales) y `backend/api/config.php`.
 > - El `.env` de producción con las llaves reales está en `backend/.env.produccion.bak`
 >   (git lo ignora). **No lo compartas.**
@@ -12,7 +12,20 @@ Producción sigue igual.
 
 ## El sitio ya está corriendo
 Ábrelo en el navegador: **http://localhost:8000**
-Regístrate con tu correo (`aguirre@okdock.mx` ya está como administrador).
+Regístrate con tu correo. Para entrar al panel (`/admin.html`) tu cuenta necesita el
+rol **Administrador**; registrarse solo te deja como Cliente. Para dártelo en local:
+
+    INSERT IGNORE INTO user_roles (user_id, role_id)
+    SELECT u.id, r.id FROM users u, roles r
+    WHERE u.email = 'TU-CORREO' AND r.slug = 'administrador';
+
+¿Olvidaste la contraseña? En local no se manda correo, pero en modo desarrollo el
+endpoint te devuelve el enlace de restablecimiento en la propia respuesta:
+
+    curl -X POST http://localhost:8000/backend/api/forgot-password.php ^
+      -H "Content-Type: application/json" -d "{\"email\":\"TU-CORREO\"}"
+
+Abre el `dev_reset_link` que viene en la respuesta (vale 1 hora, un solo uso).
 
 ## Cómo prender / apagar el servidor local
 Se sirve con el PHP de Laragon en el puerto 8000. (Se usa 8000 en vez del dominio
@@ -81,7 +94,7 @@ En el servidor Linux esto no pasa: usa los certificados del sistema.
 
 ## Si otro día vuelves a empezar de cero
 1. Laragon → Start All (Apache + MySQL).
-2. Crear la base `okstationv2` en HeidiSQL (si no existe).
+2. Crear la base `okstation` en HeidiSQL (si no existe).
 3. `php backend/database/migrate.php`  (aplica migraciones; es idempotente).
 4. `php -S 127.0.0.1:8000 -t .`  y abre http://localhost:8000
 

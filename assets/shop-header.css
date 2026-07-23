@@ -278,3 +278,51 @@ html[data-theme="dark"] .shopbar {
 /* "Cerrar sesión" en rojo, igual que en el menú del home. */
 html[data-theme="dark"] .shopbar .tb-acctlogout,
 .shopbar .tb-acctlogout { color: var(--color-error, #DC2626); font-weight: 600; }
+
+/* Ronda 2 del barrido: botones que seguían con blanco fijo.
+   NO se tocan .shopbar__ac-img ni .sb-wi__t (miniaturas de producto: las fotos
+   vienen recortadas sobre blanco), ni .pop:hover (vive sobre el degradado). */
+html[data-theme="dark"] :is(.sb-modal__x, .sb-wi__heart) {
+  background: var(--surface-page);
+  border-color: var(--border-medium);
+  color: var(--text-primary);
+}
+/* ── MODO OSCURO DE LA BARRA ───────────────────────────────────────────────
+   Esta barra (ficha de producto y compra rápida) NO tenía oscuro: en modo
+   noche seguía saliendo el degradado brillante del tema claro.
+   Mismos tokens que la barra de la tienda (--nav-top / --nav-bottom, definidos
+   en styles.css) para que las tres barras del sitio se vean idénticas.
+   Liso, no degradado; y lo SELECCIONADO va en blanco, no en azul. */
+html[data-theme="dark"] .shopbar__top  { background: var(--nav-top, #1C2745); }
+html[data-theme="dark"] .shopbar__cats { background: var(--nav-bottom, #151D34); border-top: 1px solid var(--nav-line, rgba(255,255,255,.10)); }
+
+/* Buscador: cristal oscuro en vez de blanco. */
+html[data-theme="dark"] .shopbar__search input {
+  background: rgba(8,13,26,.55); color: #E9EDF6; border: 1px solid rgba(255,255,255,.18);
+}
+html[data-theme="dark"] .shopbar__search input::placeholder { color: #8A94AB; }
+html[data-theme="dark"] .shopbar__search svg { color: #8A94AB; }
+
+/* Píldoras de la barra en fantasma noche (cuenta, favoritos, carrito, filtros). */
+html[data-theme="dark"] .shopbar :is(.tb-cuenta, .tb-fav, .tb-cart, .tb-filt) {
+  background: rgba(255,255,255,.08) !important; color: #fff !important;
+  border-color: rgba(255,255,255,.30) !important; box-shadow: none !important;
+}
+html[data-theme="dark"] .shopbar :is(.tb-cuenta, .tb-fav, .tb-cart, .tb-filt) svg { color: #fff; }
+html[data-theme="dark"] .shopbar :is(.tb-cuenta, .tb-fav, .tb-cart, .tb-filt):hover {
+  background: rgba(255,255,255,.16) !important;
+}
+/* SELECCIONADO = blanco (no azul), igual que en la tienda. */
+html[data-theme="dark"] .shopbar :is(.tb-fav, .tb-cart).on {
+  background: #fff !important; color: #12141C !important; border-color: #fff !important; box-shadow: none !important;
+}
+html[data-theme="dark"] .shopbar :is(.tb-fav, .tb-cart).on svg { color: #12141C; }
+/* Chips de categoría: fantasma; el activo en blanco. Ofertas mantiene su naranja. */
+html[data-theme="dark"] .shopbar .pop:not(.on):not(.hot) {
+  background: rgba(255,255,255,.08); color: #E9EDF6; border-color: rgba(255,255,255,.26);
+}
+html[data-theme="dark"] .shopbar .pop:not(.on):not(.hot):hover { background: rgba(255,255,255,.16); color: #fff; }
+html[data-theme="dark"] .shopbar .pop.on {
+  background: #fff !important; color: #12141C !important; border-color: #fff !important; box-shadow: none !important;
+}
+html[data-theme="dark"] .shopbar .pop.on .dot { background: #12141C; }

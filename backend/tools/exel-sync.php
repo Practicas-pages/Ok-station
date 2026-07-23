@@ -30,27 +30,15 @@ if (PHP_SAPI !== 'cli') {
     exit("Solo CLI.\n");
 }
 
-/* ── Filtro de papelería: lista blanca por categoria_nombre de Exel ──
-   Decisión de negocio (junta 2026-07-14): "Papelería + impresión".
-   Todas las subcategorías de estas categorías se importan; el resto se descarta.
-   La lista es ADITIVA a propósito: agregar una categoría que Exel no tenga no rompe
-   nada (simplemente no hace match), y cubre el día que sí la traiga. TODAS deben ser
-   de papelería: lo que no esté aquí (cómputo, accesorios…) NO entra a la tienda. */
-const PAPELERIA_CATS = [
-    'Oficina y Escolar',
-    'Papel',
-    'Consumibles',
-    'Impresión y Multifuncionales',
-    'Digitalización de Documentos',
-    'Adhesivos y Cintas',
-    'Archivo y Carpetas',
-    'Engrapado y Perforado',
-    'Escritura y Corrección',
-    'Cuadernos y Libretas',
-    'Etiquetas y Rotulación',
-    'Calculadoras',
-    'Arte y Manualidades',
-];
+/* ── Filtro de catálogo ──
+   La lista blanca vive en lib/CatalogoAlcance.php porque aplicar-alcance.php necesita
+   EXACTAMENTE la misma. Si cada uno llevara la suya, un cambio en una y no en la otra
+   dejaría productos que este sync publica y el otro apaga en cuanto corre.
+
+   OJO al angostarla: APAGA productos (is_active=0) y la salvaguarda de feed incompleto
+   (más abajo) aborta la primera corrida a propósito, porque no puede distinguir "el
+   catálogo se encogió porque así lo decidimos" de "Exel respondió a medias". */
+require_once __DIR__ . '/../api/lib/CatalogoAlcance.php';
 
 /* ── Arranque: config + conexión + ShopCatalog (para el margen) ── */
 $CONFIG = require __DIR__ . '/../api/config.php';
@@ -104,7 +92,36 @@ $raw = $file ? read_feed_file($file) : fetch_from_api();
 echo "  Recibidos: " . count($raw) . " productos del origen\n";
 
 /* ── 2. Filtrar SOLO papelería + normalizar ── */
-$whitelist = array_map('norm', PAPELERIA_CATS);
+$catsPermitidas = categorias_permitidas();
+echo "  Categorías permitidas: " . implode(' · ', $catsPermitidas) . "\n";
+
+/* ── Almacén: qué se puede y qué NO ─────────────────────────────────────────
+   Hasta hoy EXEL_WAREHOUSE=4 se escribía en products.warehouse_id pero NUNCA se le
+   mandaba a Exel: GET /productos va sin parámetros y el stock sale del campo plano
+   `stock`. O sea, la columna decía "almacén 4" sin que nadie lo hubiera comprobado,
+   y si ese stock es global la tienda puede estar ofreciendo piezas que no están en
+   Tijuana. Eso es un riesgo de venta, no un detalle cosmético.
+
+   Aquí NO se inventa el endpoint "productos por almacenes" (está documentado en el
+   roadmap pero nunca se implementó y no tenemos su contrato). Lo que sí se hace es
+   dejar de mentir en silencio: se busca en el feed real cualquier campo que hable de
+   almacenes y, si existe, se filtra de verdad. Si no existe, se avisa fuerte en cada
+   corrida para que el hueco esté a la vista y no se dé por resuelto. */
+$claveAlmacen = null;
+foreach ($raw as $p) {
+    foreach (array_keys($p) as $k) {
+        if (preg_match('/^(almacen|almacén|bodega|sucursal|warehouse)/i', $k)) { $claveAlmacen = $k; break 2; }
+    }
+}
+$fueraAlmacen = 0;
+if ($claveAlmacen !== null) {
+    echo "  Almacén: filtrando por «{$claveAlmacen}» = {$warehouse}\n";
+} else {
+    echo "  ⚠ Almacén: el feed NO trae ningún campo de almacén, así que NO se está\n";
+    echo "    filtrando por el {$warehouse}. El stock que se guarda es el que mande\n";
+    echo "    Exel, del almacén que sea. Para filtrar de verdad hace falta el contrato\n";
+    echo "    del endpoint 'productos por almacenes'. Pídeselo a Exel.\n";
+}
 $rows = [];
 $descartados = 0;
 $ofertas = 0;      // productos que Exel marca en oferta (alimenta "Ofertas del día")
@@ -114,7 +131,9 @@ $ofertas = 0;      // productos que Exel marca en oferta (alimenta "Ofertas del 
 $censo = [];
 foreach ($raw as $p) {
     $cat = (string) ($p['categoria_nombre'] ?? '');
-    $pasa = in_array(norm($cat), $whitelist, true);
+    /* La normalización la hace la lib, no aquí: así el sync y aplicar-alcance.php
+       deciden idéntico ante un "OFICINA Y ESCOLAR " con mayúsculas y espacios. */
+    $pasa = categoria_permitida($cat);
     $k = $cat === '' ? '(sin categoría)' : $cat;
     if (!isset($censo[$k])) $censo[$k] = ['n' => 0, 'pasa' => $pasa, 'subs' => []];
     $censo[$k]['n']++;
@@ -130,6 +149,14 @@ foreach ($raw as $p) {
     }
 
     if (!$pasa) { $descartados++; continue; }
+
+    /* Almacén: solo si el feed de verdad lo trae (ver el bloque de arriba). Se compara
+       como texto y sin espacios: Exel podría mandar 4, "4" o " 4 " y las tres son el
+       mismo almacén. Si el campo no existe, esto no hace nada y el aviso ya se dio. */
+    if ($claveAlmacen !== null && trim((string) ($p[$claveAlmacen] ?? '')) !== trim($warehouse)) {
+        $fueraAlmacen++;
+        continue;
+    }
 
     $cost = (float) ($p['precio'] ?? 0);
 
@@ -174,7 +201,8 @@ foreach ($raw as $p) {
     ];
     if ($limit && count($rows) >= $limit) break;
 }
-echo "  Papelería: " . count($rows) . " a importar  ·  descartados (no papelería): {$descartados}\n";
+echo "  A importar: " . count($rows) . "  ·  descartados por categoría: {$descartados}"
+   . ($claveAlmacen !== null ? "  ·  fuera del almacén {$warehouse}: {$fueraAlmacen}" : "") . "\n";
 
 /* El informe va ANTES de rendirse: si la lista blanca no empata con los nombres reales
    de Exel, "no hay nada que importar" no dice NADA. Esto sí dice qué mandó Exel. */
@@ -241,11 +269,21 @@ $activosAntes = (int) $PDO->query(
 if (!$force && $activosAntes > 0 && count($rows) < $activosAntes * FEED_MINIMO) {
     $pct = round(count($rows) / $activosAntes * 100);
     fwrite(STDERR,
-        "\n✗ ABORTADO: el feed trae " . count($rows) . " productos de papelería, " .
+        "\n✗ ABORTADO: pasaron el filtro " . count($rows) . " productos, " .
         "solo el {$pct}% de los {$activosAntes} que hay publicados.\n" .
         "  Se esperaba al menos el " . (int) (FEED_MINIMO * 100) . "%. NO se escribió nada y el\n" .
-        "  catálogo sigue como estaba.\n" .
-        "  Revisa la API de Exel. Si el catálogo de verdad se encogió, repite con --force.\n");
+        "  catálogo sigue como estaba.\n\n" .
+        "  Hay DOS causas posibles y conviene distinguirlas antes de forzar:\n\n" .
+        "  a) Exel respondió a medias (corte de red, su API degradada). Es lo que esta\n" .
+        "     salvaguarda existe para atajar. NO fuerces: vuelve a intentar más tarde.\n\n" .
+        "  b) El alcance del catálogo cambió a propósito. Hoy solo entran: " .
+             implode(', ', $catsPermitidas) . ".\n" .
+        "     Si acabas de angostar la lista, esto es lo ESPERADO — el sync no puede\n" .
+        "     distinguir tu decisión de una falla de Exel, por eso se detiene y pregunta.\n\n" .
+        "  Para ver el reparto real sin escribir nada:  --dry-run\n" .
+        "  Para aplicar el cambio de alcance a conciencia:  --force\n" .
+        "  (Con --force se APAGAN los productos que ya no entran. No se borran: quedan\n" .
+        "   con is_active=0 y vuelven solos si se restituye la categoría.)\n");
     exit(1);
 }
 
@@ -442,6 +480,43 @@ function norm(string $s): string {
     return mb_strtolower(trim($s), 'UTF-8');
 }
 
+/**
+ * Termina la corrida explicando QUÉ falló, no solo con qué número.
+ *
+ * Exel devuelve 401 para dos cosas muy distintas y confundirlas cuesta caro:
+ *   · "Numero de peticiones diarias excedidas" → la llave está BIEN, se acabó la
+ *     cuota del día. No hay nada que arreglar: se reanuda solo cuando reinicie.
+ *     Salir con código 2 para que el cron no lo trate como avería.
+ *   · "Token invalido o inactivo" → la llave NO sirve. Eso sí requiere a una
+ *     persona: pedirle una nueva a Exel o restaurar el .env.
+ * Antes ambos casos imprimían "✗ Exel respondió HTTP 401" y mandaban a revisar la
+ * llave, que en el caso de la cuota es perseguir un problema que no existe.
+ */
+function exel_falla(int $code, string $cuerpo): void
+{
+    $json = json_decode($cuerpo, true);
+    $msg  = is_array($json) ? (string) ($json['message'] ?? $json['mensaje'] ?? '') : '';
+
+    if ($msg !== '' && preg_match('/peticion|cuota|excedid|limit/i', $msg)) {
+        fwrite(STDERR,
+            "\n⏳ CUOTA AGOTADA en Exel: «{$msg}»\n" .
+            "   La llave está bien; se acabaron las peticiones del día. NO se escribió\n" .
+            "   nada y el catálogo sigue como estaba.\n" .
+            "   Cada corrida de este script gasta UNA petición y baja el catálogo completo,\n" .
+            "   así que conviene revisar cuántas veces al día se está llamando (crons de\n" .
+            "   deploy/actualizar-precios.sh y deploy/actualizar-catalogo.sh).\n");
+        exit(2);   // 2 = esperado y temporal; 1 = avería que necesita a alguien
+    }
+
+    fwrite(STDERR,
+        "\n✗ Exel respondió HTTP {$code}" . ($msg !== '' ? ": «{$msg}»" : '.') . "\n" .
+        ($code === 401
+            ? "   La llave fue rechazada. Corre  php backend/tools/exel-diagnostico.php\n" .
+              "   para ver si se corrompió en el .env o si Exel la revocó.\n"
+            : "   NO se escribió nada; el catálogo sigue como estaba.\n"));
+    exit(1);
+}
+
 /** Trae el catálogo desde la API de Exel. Envelope: {resultado, mensaje, datos:[...]}. */
 function fetch_from_api(): array {
     $base = rtrim((string) env('EXEL_API_BASE', 'https://api01.exeldelnorte.com.mx'), '/');
@@ -460,7 +535,7 @@ function fetch_from_api(): array {
     $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
     if ($resp === false) { fwrite(STDERR, "✗ Error de red con Exel: " . curl_error($ch) . "\n"); exit(1); }
     curl_close($ch);
-    if ($code !== 200) { fwrite(STDERR, "✗ Exel respondió HTTP {$code}.\n"); exit(1); }
+    if ($code !== 200) { exel_falla($code, (string) $resp); }
 
     $json = json_decode($resp, true);
     if (!is_array($json) || empty($json['resultado'])) {
@@ -498,7 +573,17 @@ function fetch_images_from_api(): array {
     curl_close($ch);
 
     if ($resp === false)               { fwrite(STDERR, "  ⚠ Sin imágenes: error de red ({$err}).\n"); return []; }
-    if ($code < 200 || $code >= 300)   { fwrite(STDERR, "  ⚠ Sin imágenes: /imagenes respondió HTTP {$code}.\n"); return []; }
+    /* Las imágenes NO abortan la corrida: quedarse sin fotos nuevas es molesto,
+       quedarse sin precios es grave. Se avisa y se sigue. Eso sí, se nombra el caso
+       de cuota para no mandar a nadie a revisar una llave que está sana. */
+    if ($code < 200 || $code >= 300) {
+        $j   = json_decode((string) $resp, true);
+        $msg = is_array($j) ? (string) ($j['message'] ?? $j['mensaje'] ?? '') : '';
+        fwrite(STDERR, preg_match('/peticion|cuota|excedid|limit/i', $msg)
+            ? "  ⚠ Sin imágenes: cuota diaria de Exel agotada («{$msg}»). Los precios sí se actualizaron.\n"
+            : "  ⚠ Sin imágenes: /imagenes respondió HTTP {$code}" . ($msg !== '' ? " («{$msg}»)" : '') . ".\n");
+        return [];
+    }
 
     $json = json_decode((string) $resp, true);
     if (!is_array($json)) { fwrite(STDERR, "  ⚠ Sin imágenes: respuesta no es JSON.\n"); return []; }
