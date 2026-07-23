@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es-MX">
+<html lang="es-MX" class="store-view"><!-- la tienda abre SIEMPRE en el catálogo (landing eliminada) -->
 <meta charset="utf-8">
 <!-- Puerta de mantenimiento: primero que nada, para redirigir antes de pintar. -->
 <script src="/assets/site-guard.js?v=20260720a"></script>
@@ -372,9 +372,13 @@ html.store-view .header-bar, html.store-view .site-header{display:none}
    compacto (buscador + botón de Filtros, que en desktop viven en el sidebar), y oknav
    se oculta como antes. */
 @media(min-width:1001px){
+  html.store-view{--oknav-h:140px}
   html.store-view .oknav{display:block}
   html.store-view #site .topbar{display:none}
   html.store-view .oknav__wrap{max-width:none; padding-inline:24px}
+  /* El carrito arranca BAJO la navbar (sticky, z mayor), que si no le tapaba la
+     cabecera con la ✕ (no se podía cerrar) y el primer producto. */
+  html.store-view #site .cart{top:var(--oknav-h,140px); height:auto; bottom:0}
 }
 @media(max-width:1000px){ html.store-view .oknav{display:none} }
 #site .topbar,#site .popbar-row{font-family:"Poppins",system-ui,-apple-system,"Segoe UI",sans-serif}
@@ -1082,6 +1086,10 @@ html[data-theme="dark"] #site :is(.tb-cuenta,.tb-fav,.tb-cart,.tb-filt):hover{ba
      a la reja completa, espejando el padding de .topbar. */
   #site .shell{display:grid; grid-template-columns:250px minmax(0,1fr); gap:22px; align-items:start;
     padding-inline:20px}
+  /* "Categorías" (navbar) alterna el sidebar. Cerrado → una columna, productos a todo
+     lo ancho. Abierto (por defecto) → sidebar sticky de cats + filtros a la izquierda. */
+  html.cats-closed #site .shell{grid-template-columns:minmax(0,1fr)}
+  html.cats-closed #site .store-side{display:none}
   #site .store-side{display:block; position:sticky; top:var(--oknav-h,150px); align-self:start;
     max-height:calc(100vh - var(--oknav-h,150px) - 14px); overflow-y:auto; overflow-x:hidden; padding-right:2px}
   #site .side-cats{display:block}
@@ -1117,9 +1125,9 @@ html[data-theme="dark"] #site :is(.tb-cuenta,.tb-fav,.tb-cart,.tb-filt):hover{ba
 /* Amarillo de compras (marca): #FFE200. Agregar filled; Pagar mismo amarillo con
    borde interior sutil para distinguirlo del de al lado. */
 #site .addbuy{background:#FFE200; color:#12141C}                          /* Agregar */
-#site .addbuy:hover:not(:disabled){filter:brightness(1.05); transform:translateY(-1px)}
+#site .addbuy:hover:not(:disabled){background:#FFE200; filter:brightness(1.04); transform:translateY(-1px)}
 #site .paynow{background:#FFE200; color:#12141C; box-shadow:inset 0 0 0 1.6px rgba(18,20,28,.18)}  /* Pagar (ir a pagar) */
-#site .paynow:hover:not(:disabled){filter:brightness(1.05); transform:translateY(-1px)}
+#site .paynow:hover:not(:disabled){background:#FFE200; filter:brightness(1.04); transform:translateY(-1px)}
 #site .pbtns button:disabled{opacity:.5; cursor:not-allowed}
 /* En vista LISTA los botones no se estiran a todo lo ancho. */
 #site .grid.is-list .pfoot{margin-top:0}
@@ -1343,7 +1351,7 @@ html[data-theme="dark"] #site :is(.tb-cuenta,.tb-fav,.tb-cart,.tb-filt):hover{ba
 
 <div id="site">
   <!-- ══════════ VISTA TIENDA (landing) ══════════ -->
-  <div class="view on" id="tienda">
+  <div class="view" id="tienda">
     <!-- 1) HERO — carrusel full-width estilo Compustar -->
     <section class="hero-slider" id="heroSlider">
       <div class="hs-slide on"><div class="hs-bg" style="background:url('assets/img/hero-tienda.webp') center/cover no-repeat, linear-gradient(135deg,#e9eef6,#dbe4f0)"><span class="hs-tag"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>Imagen de fondo</span><div class="hs-fill"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg><span class="lbl">Tienda OK.station</span></div></div><div class="hs-shade"></div><div class="hs-content"><div class="wrap"><div class="hs-inner sh-copy"><span class="eyebrow">Papelería · Tinta y tóner · Oficina y escuela</span>
@@ -1471,7 +1479,7 @@ html[data-theme="dark"] #site :is(.tb-cuenta,.tb-fav,.tb-cart,.tb-filt):hover{ba
   </div>
 
   <!-- ═══════════ PÁGINA DE TIENDA (independiente) ═══════════ -->
-  <div class="view" id="store">
+  <div class="view on" id="store">
     <div id="app">
 
       <div class="topbar">
@@ -1568,7 +1576,8 @@ html[data-theme="dark"] #site :is(.tb-cuenta,.tb-fav,.tb-cart,.tb-filt):hover{ba
   var BOLT='<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M13 2L4 14h6l-1 8 9-12h-6l1-8z"/></svg>';
 
   // Cambio de vista
-  function showView(id){ ["tienda","store"].forEach(function(v){$(v).classList.toggle("on",v===id);}); document.documentElement.classList.toggle("store-view", id==="store"); window.scrollTo(0,0); okiEmit(id==="store"?"en-tienda":"en-landing"); if(id==="store"&&typeof filtEnsure==="function")filtEnsure(); }
+  function showView(id){ if(id==="tienda") id="store";   /* la landing se eliminó: todo va al catálogo */
+    ["tienda","store"].forEach(function(v){$(v).classList.toggle("on",v===id);}); document.documentElement.classList.toggle("store-view", id==="store"); window.scrollTo(0,0); okiEmit(id==="store"?"en-tienda":"en-landing"); if(id==="store"){ if(typeof filtEnsure==="function")filtEnsure(); var _cb=$("oknavCats"); if(_cb) _cb.setAttribute("aria-expanded", String(!document.documentElement.classList.contains("cats-closed"))); } }
   document.addEventListener("click",function(e){
     if(e.target.closest("[data-open-tienda]")){e.preventDefault(); showView("tienda");}
     if(e.target.closest("[data-go-store]")){e.preventDefault(); showView("store");}
@@ -2827,8 +2836,14 @@ html[data-theme="dark"] #site :is(.tb-cuenta,.tb-fav,.tb-cart,.tb-filt):hover{ba
     verCategoria:function(id,sub){showView("store"); selectCat(String(id||"all"), sub||""); return true;},
     verProducto:function(id){openProduct(+id);},
     abrirDeseados:function(){renderWishlist(); show("wishOv");},
-    abrirCarrito:function(){showView("store"); $("app").classList.add("cart-open"); okiEmit("carrito-abierto");},
+    abrirCarrito:function(){showView("store"); var abierto=$("app").classList.toggle("cart-open"); okiEmit(abierto?"carrito-abierto":"carrito-cerrado");},
     entrarTienda:function(){showView("store");},
+    /* "Categorías" de la navbar: abre/cierra el sidebar (cats + filtros). Desde el
+       landing entra a la tienda con el sidebar abierto. */
+    toggleCategorias:function(){var h=document.documentElement;
+      if(!h.classList.contains("store-view")){ showView("store"); h.classList.remove("cats-closed"); }
+      else { h.classList.toggle("cats-closed"); }
+      var b=$("oknavCats"); if(b) b.setAttribute("aria-expanded", String(!h.classList.contains("cats-closed")));},
     /* Anadidos para el navbar unificado (oknav): sus botones entran a la tienda y actuan. */
     buscarEnTienda:function(texto){showView("store"); var qi=$("q"); if(qi) qi.value=texto; query=String(texto||"").trim(); reloadFromDB();},
     abrirUbicacion:function(){openLoc();},
@@ -2996,6 +3011,8 @@ html[data-theme="dark"] #site :is(.tb-cuenta,.tb-fav,.tb-cart,.tb-filt):hover{ba
       /* #checkout: pagar DIRECTO desde la ficha (igual que el botón del e-commerce). Si el
          carrito quedó vacío, se abre el carrito en vez de un pago sin nada. */
       if(location.hash==="#checkout"){ showView("store"); if(totals().n>0){ renderCheckout(); show("coOv"); } else { $("app").classList.add("cart-open"); okiEmit("carrito-abierto"); } }
+      /* #deseados (el corazón de favoritos): abre la lista de deseados del usuario. */
+      if(location.hash==="#deseados"){ showView("store"); renderWishlist(); show("wishOv"); }
       /* #ubicacion NO se maneja aquí: lo hace routeHash() (síncrono al init y en hashchange).
          Si se abriera aquí TAMBIÉN, openLoc() correría dos veces (doble fetch de direcciones). */
       var q=sessionStorage.getItem("okstation_q");
@@ -3033,10 +3050,12 @@ html[data-theme="dark"] #site :is(.tb-cuenta,.tb-fav,.tb-cart,.tb-filt):hover{ba
   /* #cart muestra el catálogo de inmediato (el carrito lo abre applyIncoming cuando ya
      hay datos); si un hashchange trae #cart estando ya cargado, ábrelo también. */
   function routeHash(){
-    if(location.hash==="#store"||location.hash==="#cart"){ showView("store"); if(location.hash==="#cart"&&catalogReady){ $("app").classList.add("cart-open"); okiEmit("carrito-abierto"); } }
-    else if(location.hash==="#checkout"){ showView("store"); if(catalogReady){ if(totals().n>0){ renderCheckout(); show("coOv"); } else { $("app").classList.add("cart-open"); okiEmit("carrito-abierto"); } } }
-    else if(location.hash==="#ubicacion"){ showView("store"); openLoc(); }
-    else if(location.hash==="#tienda"){ showView("tienda"); }
+    var h=location.hash;
+    /* La landing se eliminó: cualquier hash (o ninguno) abre el catálogo. */
+    if(h==="#deseados"){ showView("store"); if(catalogReady){ renderWishlist(); show("wishOv"); } }
+    else if(h==="#checkout"){ showView("store"); if(catalogReady){ if(totals().n>0){ renderCheckout(); show("coOv"); } else { $("app").classList.add("cart-open"); okiEmit("carrito-abierto"); } } }
+    else if(h==="#ubicacion"){ showView("store"); openLoc(); }
+    else { showView("store"); if(h==="#cart"&&catalogReady){ $("app").classList.add("cart-open"); okiEmit("carrito-abierto"); } }
   }
   routeHash();
   window.addEventListener("hashchange", routeHash);

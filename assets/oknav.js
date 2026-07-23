@@ -263,7 +263,11 @@
   }
   if (catsBtn) {
     catsBtn.addEventListener("click", function () {
-      catsMenu.hidden ? catsAbrir() : catsCerrar();
+      var S = store();
+      // En la tienda, "Categorías" abre/cierra el sidebar de categorías + filtros.
+      if (S && typeof S.toggleCategorias === "function") { S.toggleCategorias(); return; }
+      // Fuera de la tienda: llevar a la tienda, donde vive ese sidebar sticky.
+      location.href = TIENDA + "#store";
     });
   }
   if (catsMenu) {
