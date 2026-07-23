@@ -12,21 +12,31 @@
  * eso con la seguridad que da una persona mirando la foto dos segundos. Aquí el
  * buscador propone y el humano dispone, y con eso el riesgo desaparece.
  *
- * Fuentes, en el orden de prioridad que ya rige el catálogo:
+ * Fuentes, en el orden de prioridad que rige el catálogo:
  *   1. Exel del Norte  — el proveedor manda; si tiene foto, esa va primero.
  *   2. Icecat          — la que ya se consulta para fichas.
- *   3. (pendiente)     — páginas oficiales de marca, cuando se compruebe cuáles
- *                        lo permiten. Se deja el hueco preparado, no simulado.
+ *   3. Sitio de marca  — hoy sin marcas activas: se probaron y ninguna sirve
+ *                        (ver BuscadorMarca.php, con la evidencia dentro).
+ *   4. Buscador de imágenes — por la API oficial de Google, no leyendo su página
+ *                        de resultados (su robots.txt lo prohíbe: Disallow /search).
  *
- * Nunca devuelve resultados de Amazon, Mercado Libre, Google Imágenes ni tiendas
- * de terceros: no son fuentes autorizadas y traen problemas de derechos.
+ * Sobre el punto 4: al principio se descartó cualquier buscador porque devuelve
+ * imágenes de terceros. Se mantiene el motivo pero cambia la conclusión, y vale
+ * la pena explicar por qué. Lo que hacía peligroso a un buscador era que una
+ * MÁQUINA eligiera sola: publicaría la variante equivocada sin que nadie lo note.
+ * Aquí sus resultados solo se PROPONEN — cada uno con el sitio de donde sale— y
+ * quien elige es una persona que ve la foto. Es exactamente lo que ya podía hacer
+ * pegando una imagen con Ctrl+V; esto solo le ahorra los clics.
+ * Y hay una razón práctica: se midió el catálogo y ni Exel (0%), ni Icecat, ni los
+ * sitios de las marcas tienen estas fotos. Sin esto no hay candidatas que mostrar.
  *
  * Permiso: shop.view (el mismo de la vista de Catálogo).
  */
 require __DIR__ . '/../_bootstrap.php';
 require __DIR__ . '/../lib/authz.php';
 require __DIR__ . '/../lib/Icecat.php';
-require __DIR__ . '/../lib/BuscadorMarca.php';   // antes que ImagenSegura: le aporta sus dominios
+require __DIR__ . '/../lib/BuscadorMarca.php';    // antes que ImagenSegura: le aporta sus dominios
+require __DIR__ . '/../lib/BuscadorImagenes.php';
 require __DIR__ . '/../lib/ImagenSegura.php';
 only_method('GET');
 
@@ -133,9 +143,56 @@ if ($marca !== '' && BuscadorMarca::config($marca)) {
         ];
     }
     if (!$hallado && $ultimaNota !== '') $notas[] = $ultimaNota;
-} elseif ($marca !== '') {
-    $notas[] = 'No hay buscador configurado para ' . $marca . ' todavía. '
-             . 'Búscala y pégala aquí con Ctrl+V — es la vía que siempre funciona.';
+}
+
+/* ── Buscador de imágenes (Google Custom Search) ──────────────────────────────
+   La fuente que de verdad propone candidatas para este catálogo. Se llega aquí
+   después de haber comprobado que ni Exel, ni Icecat, ni los sitios de las marcas
+   tienen estas fotos.
+
+   La consulta se arma como la escribiría una persona: se quita la presentación
+   ("C/10" son las piezas por paquete, no el producto) y se antepone la marca solo
+   si el nombre no la trae ya. */
+$consulta = buscar_frase((string) $p['name'], $marca);
+if (BuscadorImagenes::configurado()) {
+    $r = BuscadorImagenes::buscar($consulta);
+    foreach ($r['imagenes'] as $img) {
+        $cands[] = [
+            'origen'    => 'buscador',
+            'fuente'    => $img['sitio'] ?: 'web',
+            'url'       => $img['url'],
+            'miniatura' => $img['miniatura'],
+            'pagina'    => $img['pagina'],
+            'medidas'   => $img['ancho'] && $img['alto'] ? $img['ancho'] . '×' . $img['alto'] : '',
+            'principal' => false,
+            'nota'      => 'Encontrada en ' . ($img['sitio'] ?: 'la web') . '. Compruébala antes de usarla.',
+        ];
+    }
+    if (!$r['imagenes'] && $r['nota'] !== '') $notas[] = $r['nota'];
+} else {
+    /* Sin configurar no se falla: se dicen los pasos exactos. Son cuatro y se
+       hacen una sola vez. */
+    $notas[] = 'no_configurado';
+}
+
+/**
+ * Convierte el nombre telegráfico de Exel en algo que un buscador entienda.
+ * Misma lógica que el panel usa para los enlaces de búsqueda; vive aquí también
+ * porque la consulta al buscador se arma en el servidor.
+ */
+function buscar_frase(string $nombre, string $marca): string
+{
+    $s = preg_replace('/\bC\s*\/\s*\d+\b/iu', ' ', $nombre);
+    $s = preg_replace('/\b(pz|pzas|piezas|paq|paquete)\b\.?/iu', ' ', $s);
+    $s = trim(preg_replace('/\s+/u', ' ', $s));
+
+    /* Exel guarda la razón social ("NEXTEP SOLUCIONES", "ACCO BRANDS MEXICO") y
+       nadie busca así. */
+    $m = preg_replace('/\b(soluciones|brands|mexico|méxico|s\.?a\.?|de|c\.?v\.?|inc\.?|corp\.?|ltd\.?)\b/iu', ' ', $marca);
+    $m = trim(preg_replace('/\s+/u', ' ', $m));
+
+    if ($m !== '' && mb_stripos($s, $m) === false) $s = $m . ' ' . $s;
+    return trim($s);
 }
 
 respond([
@@ -151,6 +208,11 @@ respond([
     ],
     'candidatas' => $cands,
     'notas'      => $notas,
+    'consulta'   => $consulta,   // la frase que se buscó, para poder afinarla desde el panel
+    'buscador'   => [
+        'configurado' => BuscadorImagenes::configurado(),
+        'pasos'       => BuscadorImagenes::configurado() ? [] : BuscadorImagenes::comoConfigurar(),
+    ],
     /* Se le dicen al panel las reglas para que pueda avisar ANTES de subir, en vez
        de que el trabajador escoja una foto y el servidor se la rechace después. */
     'reglas' => [
