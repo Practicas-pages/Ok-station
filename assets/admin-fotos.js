@@ -86,7 +86,10 @@
   function urlBusqueda(texto) {
     var q = String(texto || "").trim();
     if (!q) return null;
-    return "https://duckduckgo.com/?iax=images&ia=images&q=" + encodeURIComponent(q);
+    /* Google Imágenes y no otro buscador: su índice de comercio mexicano es
+       bastante más profundo, y aquí lo único que importa es ENCONTRAR la foto del
+       producto. tbm=isch abre directo la pestaña de imágenes. */
+    return "https://www.google.com/search?tbm=isch&q=" + encodeURIComponent(q);
   }
 
   /* ── Armazón del diálogo ─────────────────────────────────────────────────── */
