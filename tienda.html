@@ -325,6 +325,11 @@ html[data-theme="dark"] #site .pimg--marca{background:#E9EEF7}
 #site .ac-item{display:flex; align-items:center; gap:11px; width:100%; text-align:left; border:none; background:none; padding:9px 14px; cursor:pointer; font:inherit}
 #site .ac-item:hover,#site .ac-item.sel{background:var(--paper,#f5f8fd)}
 #site .ac-emoji{flex:none; width:36px; height:36px; border-radius:10px; display:grid; place-items:center; font-size:20px; background:var(--grad-blue,linear-gradient(135deg,#066CFF,#00C6FF))}
+/* Miniatura REAL del producto en el buscador (antes salía un emoji/caja genérica). */
+#site .ac-thumb{flex:none; width:42px; height:42px; border-radius:9px; background:#fff; border:1px solid var(--line); display:grid; place-items:center; overflow:hidden}
+#site .ac-thumb img{width:100%; height:100%; object-fit:contain; padding:3px; box-sizing:border-box; display:block}
+#site .ac-thumb--ph img{padding:8px; opacity:.9}
+html[data-theme="dark"] #site .ac-thumb{background:#E9EEF7; border-color:transparent}
 #site .ac-txt{flex:1; min-width:0; display:flex; flex-direction:column; gap:1px}
 #site .ac-name{font-size:.9rem; font-weight:600; color:var(--ink,#12141C); white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
 #site .ac-name mark{background:#FFF0B8; color:inherit; border-radius:3px; padding:0 1px}
@@ -361,7 +366,17 @@ html[data-theme="dark"] #site .pimg--marca{background:#E9EEF7}
 #site .pop-actions .cartpill{margin-left:0}
 #site .poplab{font-size:.72rem; font-weight:700; color:rgba(255,255,255,.85); text-transform:uppercase; letter-spacing:.06em; white-space:nowrap; flex:none}
 /* ══ Encabezado unificado del CATALOGO (navbar+buscador en uno) — solo en vista store ══ */
-html.store-view .header-bar, html.store-view .site-header, html.store-view .oknav{display:none}
+html.store-view .header-bar, html.store-view .site-header{display:none}
+/* La navbar unificada (oknav) ES el encabezado de la tienda EN DESKTOP: se muestra y el
+   topbar propio del catálogo se oculta. En móvil/tablet la tienda conserva su topbar
+   compacto (buscador + botón de Filtros, que en desktop viven en el sidebar), y oknav
+   se oculta como antes. */
+@media(min-width:1001px){
+  html.store-view .oknav{display:block}
+  html.store-view #site .topbar{display:none}
+  html.store-view .oknav__wrap{max-width:none; padding-inline:24px}
+}
+@media(max-width:1000px){ html.store-view .oknav{display:none} }
 #site .topbar,#site .popbar-row{font-family:"Poppins",system-ui,-apple-system,"Segoe UI",sans-serif}
 #site .topbar{align-items:center}
 #site .tb-logo{flex:none; display:flex; align-items:center; color:#fff; font-weight:800; font-size:1.18rem; letter-spacing:-.02em; text-decoration:none; white-space:nowrap}
@@ -614,7 +629,7 @@ html.store-view .header-bar, html.store-view .site-header, html.store-view .okna
 #site .sline{display:flex; justify-content:space-between; font-size:.85rem; color:var(--muted); margin:5px 0}
 #site .sline.total{color:var(--ink); font-weight:800; font-size:1.1rem; margin-top:9px; padding-top:9px; border-top:1px solid var(--line)}
 #site .sline span:last-child{font-variant-numeric:tabular-nums}
-#site .checkout{width:100%; margin-top:12px; border:none; background:var(--grad); color:#fff; font-weight:600; padding:13px; border-radius:999px; box-shadow:var(--sh-blue,0 14px 40px rgba(6,108,255,.30)); transition:transform .15s, box-shadow .15s}
+#site .checkout{width:100%; margin-top:12px; border:none; background:#FFE200; color:#12141C; font-weight:700; padding:13px; border-radius:999px; box-shadow:0 12px 34px rgba(255,226,0,.30); transition:transform .15s, box-shadow .15s}
 #site .checkout:hover:not(:disabled){transform:translateY(-2px); box-shadow:0 18px 46px rgba(6,108,255,.36),0 8px 20px rgba(156,29,255,.22)}
 #site .checkout:disabled{opacity:.45; pointer-events:none}
 #site .taxnote{font-size:.68rem; color:var(--muted); text-align:center; margin-top:8px}
@@ -1065,17 +1080,18 @@ html[data-theme="dark"] #site :is(.tb-cuenta,.tb-fav,.tb-cart,.tb-filt):hover{ba
 @media(min-width:1001px){
   /* Dos columnas: sidebar fijo + productos. El centrado (store-col) pasa del catálogo
      a la reja completa, espejando el padding de .topbar. */
-  #site .shell{display:grid; grid-template-columns:248px minmax(0,1fr); gap:24px; align-items:start;
-    padding-inline:max(14px,calc((100% - var(--store-col))/2))}
-  #site .store-side{display:block; position:sticky; top:70px; align-self:start;
-    max-height:calc(100vh - 84px); overflow-y:auto; overflow-x:hidden; padding-right:2px}
+  #site .shell{display:grid; grid-template-columns:250px minmax(0,1fr); gap:22px; align-items:start;
+    padding-inline:20px}
+  #site .store-side{display:block; position:sticky; top:var(--oknav-h,150px); align-self:start;
+    max-height:calc(100vh - var(--oknav-h,150px) - 14px); overflow-y:auto; overflow-x:hidden; padding-right:2px}
   #site .side-cats{display:block}
   #site .side-h{display:block; font-size:.72rem; font-weight:800; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); margin:2px 0 8px 4px}
   /* El catálogo llena su columna (sin su centrado propio, que ahora lo da .shell). */
   #site .catbar{padding-left:2px; padding-right:2px}
   #site .grid,#site .grid.is-list{max-width:none; margin:0; padding-left:0; padding-right:0}
   /* Tarjetas MÁS GRANDES (antes minmax 160px). */
-  #site .grid{grid-template-columns:repeat(auto-fill,minmax(232px,1fr)); gap:18px}
+  #site .grid{grid-template-columns:repeat(auto-fill,minmax(250px,1fr)); gap:18px}
+  #site .grid:not(.is-list) .prod .ph{height:clamp(150px,15vw,190px)}   /* imagen más grande y completa */
   /* Categorías y botón Filtros ya viven en el sidebar. */
   #site .popbar-row,#site .topbar .tb-filt{display:none}
   /* El panel de filtros pasa de cajón a bloque inline dentro del sidebar. */
@@ -1086,7 +1102,28 @@ html[data-theme="dark"] #site :is(.tb-cuenta,.tb-fav,.tb-cart,.tb-filt):hover{ba
   #site .store-side .fdraw .fdbody{overflow:visible; padding:0; min-height:0}
   #site .store-side .fdraw .fdfoot{padding:12px 0 4px; border-top:0}
 }
-@media(min-width:1441px){ #site .grid{grid-template-columns:repeat(auto-fill,minmax(250px,1fr))} }
+@media(min-width:1441px){ #site .grid{grid-template-columns:repeat(auto-fill,minmax(265px,1fr))} }
+
+/* ═══ Tarjeta de producto: imagen completa + nombre + [Agregar amarillo][Pagar] ═══ */
+#site .prod .pinfo{display:flex; flex-direction:column; flex:1 1 auto; min-width:0}
+#site .pfoot{margin-top:auto}
+#site .pmeta{display:flex; align-items:baseline; gap:8px; flex-wrap:wrap; margin:3px 0 9px}
+#site .pmeta .price{font-weight:800; font-size:1.02rem}
+#site .pmeta .stock{font-size:.72rem; color:var(--muted)}
+#site .pmeta .stock.low{color:var(--amber)}
+#site .pbtns{display:flex; gap:7px; position:relative; z-index:2}
+#site .pbtns button{flex:1; border:none; border-radius:999px; padding:10px 8px; font-weight:700; font-size:.82rem; cursor:pointer; font-family:inherit; transition:transform .15s, filter .15s, background .15s}
+#site .pbtns button:active:not(:disabled){transform:translateY(0) scale(.97)}
+/* Amarillo de compras (marca): #FFE200. Agregar filled; Pagar mismo amarillo con
+   borde interior sutil para distinguirlo del de al lado. */
+#site .addbuy{background:#FFE200; color:#12141C}                          /* Agregar */
+#site .addbuy:hover:not(:disabled){filter:brightness(1.05); transform:translateY(-1px)}
+#site .paynow{background:#FFE200; color:#12141C; box-shadow:inset 0 0 0 1.6px rgba(18,20,28,.18)}  /* Pagar (ir a pagar) */
+#site .paynow:hover:not(:disabled){filter:brightness(1.05); transform:translateY(-1px)}
+#site .pbtns button:disabled{opacity:.5; cursor:not-allowed}
+/* En vista LISTA los botones no se estiran a todo lo ancho. */
+#site .grid.is-list .pfoot{margin-top:0}
+#site .grid.is-list .pbtns button{flex:0 0 auto; padding:9px 16px}
 </style>
 
 <!-- ============================ HEADER ============================ -->
@@ -1801,9 +1838,9 @@ html[data-theme="dark"] #site :is(.tb-cuenta,.tb-fav,.tb-cart,.tb-filt):hover{ba
   var EYE='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1.5 12S5 5 12 5s10.5 7 10.5 7-3.5 7-10.5 7S1.5 12 1.5 12z"/><circle cx="12" cy="12" r="3"/></svg>';
   function cardsHTML(list){return list.map(function(p){var low=p.stock<=5; var url=prodUrl(p);
       return '<div class="prod">'+(p.old?'<span class="deal-badge">−'+Math.round((1-p.price/p.old)*100)+'%</span>':'')+pimg(p)+heartBtn(p.id,'position:absolute;top:10px;right:10px;z-index:4;width:36px;height:36px;padding:0;')+
-        '<div class="pinfo"><div class="pnametext"><div class="cat">'+catName(p.cat)+'</div><h3>'+p.name+'</h3><div class="pdesc">'+(p.brand?p.brand+' · ':'')+(p.desc||'')+'</div></div>'+
-        '<div class="row"><div><div class="price">'+mxn(p.price)+(p.old?' <s>'+mxn(p.old)+'</s>':'')+'</div><div class="stock'+(low?' low':'')+'">'+(p.stock<=0?"Agotado":(low?"¡Últimas "+p.stock+"!":p.stock+" en stock"))+'</div></div>'+
-        '<div class="pacts"><button class="quick" data-open="'+p.id+'" title="Vista rápida" aria-label="Vista rápida de '+okEsc(p.name)+'">'+EYE+'</button><button class="add" data-add="'+p.id+'">+</button></div></div></div>'+
+        '<div class="pinfo"><div class="pnametext"><div class="cat">'+catName(p.cat)+'</div><h3>'+p.name+'</h3></div>'+
+        '<div class="pfoot"><div class="pmeta"><span class="price">'+mxn(p.price)+(p.old?' <s>'+mxn(p.old)+'</s>':'')+'</span><span class="stock'+(low?' low':'')+'">'+(p.stock<=0?"Agotado":(low?"¡Últimas "+p.stock+"!":p.stock+" en stock"))+'</span></div>'+
+        '<div class="pbtns"><button class="add addbuy" data-add="'+p.id+'"'+(p.stock<=0?' disabled':'')+'>Agregar</button><button class="paynow" data-buy="'+p.id+'"'+(p.stock<=0?' disabled':'')+'>Pagar</button></div></div></div>'+
         /* La tarjeta entera es un ENLACE a la ficha (clic normal, abrir en pestaña nueva,
            y Google la sigue). La vista rápida quedó en su propio botón. */
         (url ? '<a class="pcover" href="'+url+'" aria-label="Ver '+okEsc(p.name)+'"></a>'
@@ -1849,11 +1886,14 @@ html[data-theme="dark"] #site :is(.tb-cuenta,.tb-fav,.tb-cart,.tb-filt):hover{ba
   }
   $("grid").addEventListener("click",function(e){
     if(e.target.closest("#emptyClear")){ filtClear(); return; }
-    var w=e.target.closest("[data-wish]"); if(w){e.stopPropagation(); toggleWishlist(+w.dataset.wish); return;} var a=e.target.closest("[data-add]"); if(a){e.stopPropagation(); addToCart(+a.dataset.add,1); return;} var o=e.target.closest("[data-open]"); if(o){openProduct(+o.dataset.open);}});
+    var w=e.target.closest("[data-wish]"); if(w){e.stopPropagation(); toggleWishlist(+w.dataset.wish); return;} var a=e.target.closest("[data-add]"); if(a){e.stopPropagation(); addToCart(+a.dataset.add,1); return;} var b=e.target.closest("[data-buy]"); if(b){e.stopPropagation(); comprarAhora(+b.dataset.buy); return;} var o=e.target.closest("[data-open]"); if(o){openProduct(+o.dataset.open);}});
   // ── Autocompletado del buscador ──
   function okEsc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];});}
   function acHi(name,q){var terms=okNorm(q).split(" ").filter(function(x){return x.length>=2;}); if(!terms.length)return okEsc(name); terms.sort(function(a,b){return b.length-a.length;}); var map={a:"[aáàä]",e:"[eéèë]",i:"[iíìï]",o:"[oóòö]",u:"[uúùü]",n:"[nñ]"}; for(var k=0;k<terms.length;k++){var pat=terms[k].replace(/[.*+?^${}()|[\]\\]/g,"\\$&").replace(/[aeioun]/g,function(c){return map[c]||c;}); try{var re=new RegExp(pat,"i"),m=name.match(re); if(m){var idx=m.index; return okEsc(name.slice(0,idx))+"<mark>"+okEsc(m[0])+"</mark>"+okEsc(name.slice(idx+m[0].length));}}catch(e){}} return okEsc(name);}
-  function acRow(p,q){return '<button type="button" class="ac-item" role="option" data-open="'+p.id+'"><span class="ac-emoji">'+(p.emoji||"📦")+'</span><span class="ac-txt"><span class="ac-name">'+(q?acHi(p.name,q):okEsc(p.name))+'</span><span class="ac-meta">'+okEsc((p.brand?p.brand+" · ":"")+catName(p.cat))+'</span></span><span class="ac-price">'+mxn(p.price)+'</span></button>';}
+  function acRow(p,q){var thumb=p.image
+      ? '<span class="ac-thumb"><img src="'+encodeURI(p.image)+'" alt="" loading="lazy"></span>'
+      : '<span class="ac-thumb ac-thumb--ph"><img src="assets/img/placeholder-producto.svg" alt="" loading="lazy"></span>';
+    return '<button type="button" class="ac-item" role="option" data-open="'+p.id+'">'+thumb+'<span class="ac-txt"><span class="ac-name">'+(q?acHi(p.name,q):okEsc(p.name))+'</span><span class="ac-meta">'+okEsc((p.brand?p.brand+" · ":"")+catName(p.cat))+'</span></span><span class="ac-price">'+mxn(p.price)+'</span></button>';}
   /* Búsqueda unificada. Con catálogo real va al SERVIDOR (busca en TODO el catálogo,
      no solo en la página cargada); con el respaldo usa el buscador local difuso.
      Devuelve siempre una promesa, para que quien la use no tenga que saber cuál es. */
@@ -2101,6 +2141,9 @@ html[data-theme="dark"] #site :is(.tb-cuenta,.tb-fav,.tb-cart,.tb-filt):hover{ba
   function addToCart(id,q){var p=prod(id); if(!p)return; var c=cart[id]||{p:p,qty:0}; c.qty=Math.min(p.stock,c.qty+q); cart[id]=c; renderCart(); flash(p.name+" agregado");
     // Si estaba en deseados, se "gradúa" al carrito y SALE de deseados.
     var wi=wishlist.indexOf(+id); if(wi>=0){wishlist.splice(wi,1); saveWishlist(); updateWishBadge(); renderGrid(); if($("wishOv").classList.contains("show")) renderWishlist(); okiEmit("deseados");}}
+  /* "Pagar" desde la tarjeta = comprar ahora: agrega el producto y abre directo el
+     checkout (que pide cuenta, igual que "Finalizar compra" del carrito). */
+  function comprarAhora(id){var p=prod(id); if(!p||p.stock<=0)return; addToCart(id,1); $("app").classList.remove("cart-open"); coStep=1; renderCheckout(); show("coOv");}
   function changeQty(id,d){var c=cart[id]; if(!c)return; c.qty+=d; if(c.qty<=0)delete cart[id]; else c.qty=Math.min(c.p.stock,c.qty); renderCart();}
   function removeItem(id){delete cart[id]; renderCart();}
   function totals(){var sub=0,n=0; for(var k in cart){sub+=cart[k].p.price*cart[k].qty; n+=cart[k].qty;} var ship=(n>0&&shipMode==="envio")?99:0; return {sub:sub,ship:ship,total:sub+ship,n:n};}
