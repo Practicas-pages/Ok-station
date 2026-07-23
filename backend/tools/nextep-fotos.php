@@ -86,9 +86,23 @@ foreach ($nuestros as $p) {
 
 $n = count($nuestros);
 $pc = fn(int $x) => sprintf('%d (%d%%)', $x, (int) round($x * 100 / $n));
-echo "  Con clave NE-xxx y NEXTEP la tiene : " . $pc(count($cruzan)) . "   ← estos se pueden vestir\n";
+echo "  Con clave NE-xxx y NEXTEP la tiene : " . $pc(count($cruzan)) . "   ← estos se visten SOLOS (exacto)\n";
 echo "  Con clave pero NEXTEP no la tiene  : " . $pc($noEstan) . "\n";
 echo "  Sin clave con forma NE-xxx         : " . $pc($sinClave) . "\n";
+
+/* De los que NO cruzan por clave, ¿cuántos empatan por NOMBRE con el catálogo de
+   NEXTEP? Esos NO se pueden vestir solos (el nombre puede confundir la variante),
+   pero SÍ aparecen como candidatas en el panel para elegir con un clic. Aquí solo
+   se cuentan, para que el número esté a la vista y no sea una sorpresa. */
+$idsCruzan = array_column($cruzan, 'id');
+$porNombre = 0;
+foreach ($nuestros as $q) {
+    if (in_array($q['id'], $idsCruzan, true)) continue;
+    if (Nextep::porNombre((string) $q['name'], 1)) $porNombre++;
+}
+echo "  ── de los que NO cruzan por clave, empatan por NOMBRE: " . $pc($porNombre) . "\n";
+echo "     (esos aparecen como candidatas en el panel — se eligen con un clic,\n";
+echo "      NO se visten solos porque el nombre puede confundir la variante)\n";
 
 if (!$cruzan) {
     echo "\n   ➤ Ninguno cruza. Sus claves no están en `sku` ni en `supplier_ref` con el\n";
