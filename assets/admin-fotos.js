@@ -36,6 +36,11 @@
   }
 
   var modal = null, actual = null;   // actual = { id, nombre, marca }
+  /* Cola de trabajo: los productos sin foto que se ven en la tabla. Se toma al
+     abrir el primero y se va consumiendo, para poder hacerlos en fila sin volver
+     a la lista cada vez. Con 264 pendientes, esa ida y vuelta es la diferencia
+     entre un rato y una tarde. */
+  var cola = [], colaTotal = 0;
 
   /* ── Ayuda para encontrar la foto ──────────────────────────────────────────
      Se probaron los buscadores propios de las marcas (Fellowes, ACCO, 3M, Xerox)
@@ -94,7 +99,9 @@
     modal.innerHTML =
       '<div class="fotos-box">' +
         '<div class="fotos-head">' +
-          '<div><b id="fotos-nombre"></b><span id="fotos-marca" class="fotos-marca"></span></div>' +
+          '<div><b id="fotos-nombre"></b><span id="fotos-marca" class="fotos-marca"></span>' +
+            '<div id="fotos-cola" class="fotos-cola"></div></div>' +
+          '<button type="button" class="fotos-skip" data-fotos-siguiente>Saltar →</button>' +
           '<button type="button" class="fotos-x" data-fotos-cerrar aria-label="Cerrar">✕</button>' +
         '</div>' +
         '<div class="fotos-body" id="fotos-body"></div>' +
@@ -110,6 +117,7 @@
 
     modal.addEventListener("click", function (e) {
       if (e.target === modal || e.target.closest("[data-fotos-cerrar]")) return cerrar();
+      if (e.target.closest("[data-fotos-siguiente]")) return siguiente();
       var cand = e.target.closest("[data-cand]");
       if (cand) return usarUrl(cand.getAttribute("data-cand"));
     });
@@ -146,6 +154,29 @@
     return modal;
   }
 
+  /* Cuántos van y cuántos faltan. Sin esto, hacer 264 productos es trabajar a
+     ciegas: no se sabe si uno lleva 10 o 200, y eso pesa más que el trabajo. */
+  function pintarProgreso() {
+    var el = modal && modal.querySelector("#fotos-cola");
+    if (!el) return;
+    if (colaTotal <= 1) { el.textContent = ""; return; }
+    var hechos = colaTotal - cola.length;
+    el.textContent = hechos + " de " + colaTotal + " · faltan " + cola.length;
+  }
+
+  /* Pasa al siguiente pendiente sin cerrar el diálogo. */
+  function siguiente() {
+    var p = cola.shift();
+    if (!p) { cerrar(); return; }
+    actual = { id: p.id, nombre: p.nombre, marca: p.marca };
+    modal.querySelector("#fotos-nombre").textContent = p.nombre;
+    modal.querySelector("#fotos-marca").textContent = p.marca ? "· " + p.marca : "";
+    modal.querySelector("#fotos-body").innerHTML = '<div class="fotos-cargando">Buscando fotos…</div>';
+    msg("");
+    pintarProgreso();
+    cargarCandidatas(p.id);
+  }
+
   function msg(texto, tipo) {
     var el = modal && modal.querySelector("#fotos-msg");
     if (!el) return;
@@ -163,12 +194,26 @@
   function abrir(id, nombre, marca) {
     construir();
     actual = { id: id, nombre: nombre, marca: marca };
+
+    /* Se arma la cola con los pendientes que hay en pantalla, quitando el que se
+       está abriendo. Se rehace en cada apertura desde la tabla para que respete
+       el filtro y el orden que el trabajador esté viendo. */
+    var pend = (typeof window.okAdminSinFoto === "function") ? window.okAdminSinFoto() : [];
+    cola = pend.filter(function (p) { return String(p.id) !== String(id); });
+    colaTotal = pend.length;
+
     modal.querySelector("#fotos-nombre").textContent = nombre;
     modal.querySelector("#fotos-marca").textContent = marca ? "· " + marca : "";
+    pintarProgreso();
     modal.querySelector("#fotos-body").innerHTML = '<div class="fotos-cargando">Buscando fotos…</div>';
     modal.classList.add("on");
     msg("");
+    cargarCandidatas(id);
+  }
 
+  /* Consulta y pinta las candidatas de un producto. Aparte de abrir() para poder
+     encadenar productos sin volver a montar el diálogo. */
+  function cargarCandidatas(id) {
     /* El .catch de antes tapaba TRES fallas distintas bajo el mismo mensaje: que
        el servidor no respondiera, que devolviera algo que no es JSON (un error de
        PHP se imprime como texto), o que reventara al pintar. Sin distinguirlas no
@@ -296,7 +341,11 @@
         /* Se refresca la tabla para que el conteo y la miniatura queden al día sin
            tener que recargar la página entera. */
         if (typeof window.okAdminRecargarCatalogo === "function") window.okAdminRecargarCatalogo();
-        setTimeout(cerrar, 700);
+        /* Y se pasa SOLO al siguiente pendiente. Es lo que convierte 264 productos
+           en una tarea seguida: guardar, ver el que sigue, pegar. Sin esto había
+           que cerrar, buscar el siguiente renglón y volver a abrir, cada vez.
+           Si ya no quedan, se cierra como antes. */
+        setTimeout(function () { cola.length ? siguiente() : cerrar(); }, 600);
       })
       .catch(function () { msg("Falló la conexión.", "mal"); });
   }

@@ -563,3 +563,13 @@ html[data-theme="dark"] .admin-topbar { background: rgba(23, 31, 49, .85); }
    saber que le toca a él verificarlo. */
 .fotos-cand.es-marca { border-color: var(--brand-purple, #9C1DFF); }
 .fotos-cand.es-marca figcaption { color: var(--brand-purple, #9C1DFF); font-weight: 700; }
+
+/* Cola de trabajo del selector de fotos: cuántos van y cuántos faltan. Con 264
+   pendientes, no saber si llevas 10 o 200 pesa más que el trabajo en sí. */
+.fotos-cola { font-size: .72rem; color: var(--text-muted, #6b7280); margin-top: 2px; font-variant-numeric: tabular-nums; }
+.fotos-skip {
+  flex: none; margin-left: auto; border: 1px solid var(--border-medium, #cbd5e1);
+  background: var(--surface-card, #fff); color: var(--text-secondary, #4A5068);
+  border-radius: 8px; padding: 5px 11px; font: inherit; font-size: .76rem; font-weight: 600; cursor: pointer;
+}
+.fotos-skip:hover { border-color: var(--brand-blue, #066CFF); color: var(--brand-blue, #066CFF); }

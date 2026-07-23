@@ -1712,8 +1712,12 @@
   }
 
   /* Se expone para que admin-fotos.js pueda refrescar la tabla tras guardar una
-     foto, sin recargar la página entera (van a ser ~282 productos de corrido). */
+     foto, sin recargar la página entera (van a ser ~264 productos de corrido). */
   window.okAdminRecargarCatalogo = function () { renderCatalog(); };
+
+  /* La cola de los que se ven SIN foto, para encadenarlos en el selector. */
+  var catalogSinFoto = [];
+  window.okAdminSinFoto = function () { return catalogSinFoto.slice(); };
 
   function renderCatalog() {
     var head = '<thead><tr><th>Producto</th><th>Marca</th><th>Categoría</th><th>Imágenes</th>' +
@@ -1725,6 +1729,14 @@
     DataSource.catalog({ q: catalogSearch.trim(), category: catalogCategory, images: catalogImages })
       .then(function (j) {
         var list = (j && j.products) || [];
+
+        /* Cola de trabajo para el selector de fotos (admin-fotos.js): los que se
+           ven ahora mismo SIN ninguna foto, en el mismo orden de la tabla. Sirve
+           para encadenar uno tras otro sin volver a la lista — son ~264 productos
+           y hacerlos de a uno, cerrando y buscando el siguiente cada vez, es lo
+           que convierte un rato de trabajo en una tarde entera. */
+        catalogSinFoto = list.filter(function (p) { return p.images === 0; })
+          .map(function (p) { return { id: p.id, nombre: p.name, marca: p.brand || "" }; });
         var s = (j && j.stats) || {};
 
         /* El resumen es del catálogo COMPLETO, no del filtro: si cambiara al buscar,

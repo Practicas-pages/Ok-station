@@ -183,6 +183,7 @@ while (count($aProbar) < $muestra && $porMarcaLista) {
     }
 }
 $hits = 0;
+$probados = 0;
 $aciertoPorMarca = [];
 foreach ($aProbar as $p) {
     $bc = preg_replace('/\D/', '', (string) $p['barcode']);
@@ -193,7 +194,12 @@ foreach ($aProbar as $p) {
     $code = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
     curl_close($ch);
 
-    if ($code === 429) { echo "   (se agotó la cuota diaria de UPCitemdb; se corta la muestra)\n"; break; }
+    if ($code === 429) {
+        echo "   (se agotó la cuota diaria de UPCitemdb tras {$probados} consulta(s); se corta)\n";
+        break;
+    }
+    $probados++;   // se cuenta DESPUÉS del 429: si no, el resumen divide entre los
+                   // que se pensaba probar y no entre los que de verdad se probaron
     $j    = json_decode((string) $r, true);
     $item = $j['items'][0] ?? null;
     $imgs = $item ? count($item['images'] ?? []) : 0;
@@ -207,8 +213,14 @@ foreach ($aProbar as $p) {
     usleep(400000);   // no atropellar su servicio
 }
 
-$n = count($aProbar);
-echo "\n   Encontrados: {$hits} de {$n} probados.\n";
+/* Se divide entre los que DE VERDAD se consultaron, no entre los que se iban a
+   consultar. Cuando la cuota se agota a mitad, contar los planeados hunde el
+   porcentaje y hace parecer peor a la fuente de lo que es: 1 de 6 es 17%, y
+   presentarlo como 1 de 24 (4%) es una conclusión sacada de datos que no se
+   tomaron. */
+$n = max(1, $probados);
+echo "\n   Encontrados: {$hits} de {$probados} consultados"
+   . ($probados < count($aProbar) ? " (se iban a probar " . count($aProbar) . ")" : "") . ".\n";
 
 /* El desglose por marca importa más que el total: si acierta en todas las de una
    marca y en ninguna de otra, la decisión es habilitarla SOLO para esa marca, no
