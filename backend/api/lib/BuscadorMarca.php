@@ -143,19 +143,48 @@ final class BuscadorMarca
         if ($txt === null) return true;   // sin robots.txt accesible, se asume permitido
 
         $ruta = ($p['path'] ?? '/') . (isset($p['query']) ? '?' . $p['query'] : '');
+
+        /* OJO con los User-agent CONSECUTIVOS: un mismo bloque de reglas puede
+           declararse para varios agentes seguidos, y entonces aplica a todos.
+           El robots.txt de Google es justo así:
+
+               User-agent: *
+               User-agent: Yandex
+               Disallow: /search
+
+           La versión anterior de esta función reseteaba la bandera en cada línea
+           `User-agent:`, así que al ver "Yandex" daba por hecho que las reglas NO
+           eran para nosotros y devolvía "permitido" sobre una ruta prohibida.
+           Ahora la bandera se acumula mientras siguen llegando User-agent y solo
+           se reinicia cuando empieza un bloque nuevo (es decir, tras leer reglas). */
         $aplica = false;
+        $enCabecera = false;   // ¿venimos leyendo líneas User-agent seguidas?
         foreach (preg_split('/\R/', $txt) as $linea) {
             $linea = trim($linea);
             if ($linea === '' || $linea[0] === '#') continue;
+
             if (preg_match('/^user-agent:\s*(.+)$/i', $linea, $m)) {
-                $aplica = (trim($m[1]) === '*');
+                if (!$enCabecera) { $aplica = false; $enCabecera = true; }
+                if (trim($m[1]) === '*') $aplica = true;
                 continue;
             }
+            $enCabecera = false;
+
             if (!$aplica) continue;
             if (preg_match('/^disallow:\s*(.*)$/i', $linea, $m)) {
                 $dis = trim($m[1]);
                 if ($dis === '') continue;                 // "Disallow:" vacío = permite todo
-                if (str_starts_with($ruta, $dis)) return false;
+                /* Comodines: "Disallow: /*?" (el de DuckDuckGo para las páginas de
+                   resultados) no se cumple con str_starts_with. Se traduce a una
+                   expresión regular sencilla, que es como lo entienden los
+                   buscadores de verdad. */
+                if (str_contains($dis, '*') || str_ends_with($dis, '$')) {
+                    $fin = str_ends_with($dis, '$');
+                    $pat = '#^' . str_replace('\*', '.*', preg_quote(rtrim($dis, '$'), '#')) . ($fin ? '$' : '') . '#';
+                    if (preg_match($pat, $ruta)) return false;
+                } elseif (str_starts_with($ruta, $dis)) {
+                    return false;
+                }
             }
         }
         return true;

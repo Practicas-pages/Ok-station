@@ -52,7 +52,14 @@ if ($subido) {
     $origen = 'manual';
     $urlOrigen = null;
 } elseif ($url !== '') {
-    [$data, $motivo] = ImagenSegura::descargar($url);
+    /* true = la eligió una PERSONA en el panel, viendo la foto. Eso releva de la
+       lista blanca de dominios (que protege la procedencia frente a un proceso
+       automático, no la seguridad) pero NO de nada más: sigue exigiéndose https,
+       se sigue rechazando cualquier dirección de red interna, y la imagen se sigue
+       validando por tipo, tamaño y peso antes de guardarla.
+       Sin esto no se podría elegir ninguna candidata del buscador, que salen de
+       sitios distintos cada vez. */
+    [$data, $motivo] = ImagenSegura::descargar($url, true);
     if ($data === null) fail($motivo, 422);
     /* Se deduce del dominio real de donde salió, no de lo que diga el cliente.
        Tras la 0037 el valor se guarda tal cual, así que 'fabricante:3m' queda
