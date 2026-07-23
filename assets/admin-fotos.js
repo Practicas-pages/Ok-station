@@ -329,7 +329,10 @@
        no en un archivo de documentación porque es donde alguien se da cuenta de que
        faltan: cuando abre el diálogo y no hay ninguna foto que elegir. */
     var busc = (j && j.buscador) || {};
-    if (busc.configurado === false && (busc.pasos || []).length) {
+    /* OCULTO a pedido de Oscar (jul 2026): no mostrar la caja "Para que aparezcan
+       fotos aquí" con los pasos de Google CSE en el panel. Para restaurarlo, quita
+       el "false &&" de la condición. */
+    if (false && busc.configurado === false && (busc.pasos || []).length) {
       html += '<div class="fotos-setup"><b>Para que aparezcan fotos aquí</b>' +
               '<ol>' + busc.pasos.map(function (s) { return '<li>' + esc(s) + '</li>'; }).join("") + '</ol>' +
               '<div class="fotos-tip">Mientras tanto, busca la foto con los enlaces de arriba y pégala con Ctrl+V.</div>' +
