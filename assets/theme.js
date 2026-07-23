@@ -62,6 +62,7 @@
   /* Un botón por página, en el PRIMER encabezado que exista. El orden importa:
      primero los headers propios de tienda/fichas y al final el del sitio. */
   var SLOTS = [
+    ".oknav__actions",      // navbar unificado (el que reemplaza a los tres de abajo)
     ".shopbar__top",        // ficha de producto / páginas con barra de e-commerce
     "#site .tb-actions",    // catálogo de tienda.html
     ".td-top",              // compra rápida
