@@ -325,6 +325,11 @@ html[data-theme="dark"] #site .pimg--marca{background:#E9EEF7}
 #site .ac-item{display:flex; align-items:center; gap:11px; width:100%; text-align:left; border:none; background:none; padding:9px 14px; cursor:pointer; font:inherit}
 #site .ac-item:hover,#site .ac-item.sel{background:var(--paper,#f5f8fd)}
 #site .ac-emoji{flex:none; width:36px; height:36px; border-radius:10px; display:grid; place-items:center; font-size:20px; background:var(--grad-blue,linear-gradient(135deg,#066CFF,#00C6FF))}
+/* Miniatura REAL del producto en el buscador (antes salía un emoji/caja genérica). */
+#site .ac-thumb{flex:none; width:42px; height:42px; border-radius:9px; background:#fff; border:1px solid var(--line); display:grid; place-items:center; overflow:hidden}
+#site .ac-thumb img{width:100%; height:100%; object-fit:contain; padding:3px; box-sizing:border-box; display:block}
+#site .ac-thumb--ph img{padding:8px; opacity:.9}
+html[data-theme="dark"] #site .ac-thumb{background:#E9EEF7; border-color:transparent}
 #site .ac-txt{flex:1; min-width:0; display:flex; flex-direction:column; gap:1px}
 #site .ac-name{font-size:.9rem; font-weight:600; color:var(--ink,#12141C); white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
 #site .ac-name mark{background:#FFF0B8; color:inherit; border-radius:3px; padding:0 1px}
@@ -624,7 +629,7 @@ html.store-view .header-bar, html.store-view .site-header{display:none}
 #site .sline{display:flex; justify-content:space-between; font-size:.85rem; color:var(--muted); margin:5px 0}
 #site .sline.total{color:var(--ink); font-weight:800; font-size:1.1rem; margin-top:9px; padding-top:9px; border-top:1px solid var(--line)}
 #site .sline span:last-child{font-variant-numeric:tabular-nums}
-#site .checkout{width:100%; margin-top:12px; border:none; background:var(--grad); color:#fff; font-weight:600; padding:13px; border-radius:999px; box-shadow:var(--sh-blue,0 14px 40px rgba(6,108,255,.30)); transition:transform .15s, box-shadow .15s}
+#site .checkout{width:100%; margin-top:12px; border:none; background:#FFE200; color:#12141C; font-weight:700; padding:13px; border-radius:999px; box-shadow:0 12px 34px rgba(255,226,0,.30); transition:transform .15s, box-shadow .15s}
 #site .checkout:hover:not(:disabled){transform:translateY(-2px); box-shadow:0 18px 46px rgba(6,108,255,.36),0 8px 20px rgba(156,29,255,.22)}
 #site .checkout:disabled{opacity:.45; pointer-events:none}
 #site .taxnote{font-size:.68rem; color:var(--muted); text-align:center; margin-top:8px}
@@ -1109,10 +1114,12 @@ html[data-theme="dark"] #site :is(.tb-cuenta,.tb-fav,.tb-cart,.tb-filt):hover{ba
 #site .pbtns{display:flex; gap:7px; position:relative; z-index:2}
 #site .pbtns button{flex:1; border:none; border-radius:999px; padding:10px 8px; font-weight:700; font-size:.82rem; cursor:pointer; font-family:inherit; transition:transform .15s, filter .15s, background .15s}
 #site .pbtns button:active:not(:disabled){transform:translateY(0) scale(.97)}
-#site .addbuy{background:#FFC400; color:#12141C}                          /* Agregar: amarillo */
+/* Amarillo de compras (marca): #FFE200. Agregar filled; Pagar mismo amarillo con
+   borde interior sutil para distinguirlo del de al lado. */
+#site .addbuy{background:#FFE200; color:#12141C}                          /* Agregar */
 #site .addbuy:hover:not(:disabled){filter:brightness(1.05); transform:translateY(-1px)}
-#site .paynow{background:var(--blue); color:#fff}                          /* Pagar: azul de marca */
-#site .paynow:hover:not(:disabled){background:var(--blue-h,#0558CC); transform:translateY(-1px)}
+#site .paynow{background:#FFE200; color:#12141C; box-shadow:inset 0 0 0 1.6px rgba(18,20,28,.18)}  /* Pagar (ir a pagar) */
+#site .paynow:hover:not(:disabled){filter:brightness(1.05); transform:translateY(-1px)}
 #site .pbtns button:disabled{opacity:.5; cursor:not-allowed}
 /* En vista LISTA los botones no se estiran a todo lo ancho. */
 #site .grid.is-list .pfoot{margin-top:0}
@@ -1883,7 +1890,10 @@ html[data-theme="dark"] #site :is(.tb-cuenta,.tb-fav,.tb-cart,.tb-filt):hover{ba
   // ── Autocompletado del buscador ──
   function okEsc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];});}
   function acHi(name,q){var terms=okNorm(q).split(" ").filter(function(x){return x.length>=2;}); if(!terms.length)return okEsc(name); terms.sort(function(a,b){return b.length-a.length;}); var map={a:"[aáàä]",e:"[eéèë]",i:"[iíìï]",o:"[oóòö]",u:"[uúùü]",n:"[nñ]"}; for(var k=0;k<terms.length;k++){var pat=terms[k].replace(/[.*+?^${}()|[\]\\]/g,"\\$&").replace(/[aeioun]/g,function(c){return map[c]||c;}); try{var re=new RegExp(pat,"i"),m=name.match(re); if(m){var idx=m.index; return okEsc(name.slice(0,idx))+"<mark>"+okEsc(m[0])+"</mark>"+okEsc(name.slice(idx+m[0].length));}}catch(e){}} return okEsc(name);}
-  function acRow(p,q){return '<button type="button" class="ac-item" role="option" data-open="'+p.id+'"><span class="ac-emoji">'+(p.emoji||"📦")+'</span><span class="ac-txt"><span class="ac-name">'+(q?acHi(p.name,q):okEsc(p.name))+'</span><span class="ac-meta">'+okEsc((p.brand?p.brand+" · ":"")+catName(p.cat))+'</span></span><span class="ac-price">'+mxn(p.price)+'</span></button>';}
+  function acRow(p,q){var thumb=p.image
+      ? '<span class="ac-thumb"><img src="'+encodeURI(p.image)+'" alt="" loading="lazy"></span>'
+      : '<span class="ac-thumb ac-thumb--ph"><img src="assets/img/placeholder-producto.svg" alt="" loading="lazy"></span>';
+    return '<button type="button" class="ac-item" role="option" data-open="'+p.id+'">'+thumb+'<span class="ac-txt"><span class="ac-name">'+(q?acHi(p.name,q):okEsc(p.name))+'</span><span class="ac-meta">'+okEsc((p.brand?p.brand+" · ":"")+catName(p.cat))+'</span></span><span class="ac-price">'+mxn(p.price)+'</span></button>';}
   /* Búsqueda unificada. Con catálogo real va al SERVIDOR (busca en TODO el catálogo,
      no solo en la página cargada); con el respaldo usa el buscador local difuso.
      Devuelve siempre una promesa, para que quien la use no tenga que saber cuál es. */
