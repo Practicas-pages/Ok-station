@@ -3,3 +3,6 @@
 # (bash: "bad interpreter"), y este repo se edita también desde Windows/Laragon.
 *.sh              text eol=lf
 deploy/*.conf     text eol=lf
+
+# Certificado (Oscar): binario, sin conversión de finales de línea.
+backend/api/lib/certs/godaddy-g2.pem -text

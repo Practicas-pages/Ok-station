@@ -43,6 +43,11 @@ final class ImagenSegura
             'exeldelnorte.com.mx',   // el proveedor: fuente de nivel 1
             'icecat.biz',            // la base de fichas que ya se consulta
             'iceimg.net',            // CDN de imágenes de Icecat
+            /* NEXTEP sirve sus fotos desde su propio sitio. Es EL FABRICANTE —
+               fuente autorizada según la regla del negocio— y sus imágenes se
+               emparejan por número de parte, así que no puede colarse la de otro
+               producto. Ver lib/Nextep.php. */
+            'nextep.com.mx',
         ], $marcas, $extra);
     }
 
@@ -50,18 +55,34 @@ final class ImagenSegura
      * ¿Esta URL se puede pedir sin riesgo?
      * Devuelve [true, ''] o [false, 'motivo legible'].
      */
-    public static function urlPermitida(string $url): array
+    /**
+     * @param bool $elegidaPorPersona  true cuando un administrador la escogió en el
+     *        panel viéndola. Entonces NO se exige la lista blanca de dominios — sí
+     *        todo lo demás.
+     *
+     * Por qué esa distinción: la lista blanca protege la PROCEDENCIA, no la
+     * seguridad. Sirve para que un proceso automático no publique una foto de
+     * cualquier sitio. Pero cuando una persona ve la imagen y decide usarla, esa
+     * garantía ya la da ella — y de hecho ya puede pegar cualquier imagen con
+     * Ctrl+V, así que bloquear por dominio aquí no protege nada y solo impide
+     * elegir una candidata que tiene enfrente.
+     * Lo que NO se relaja nunca es la protección contra SSRF: solo https, y jamás
+     * una dirección de red interna, venga de donde venga.
+     */
+    public static function urlPermitida(string $url, bool $elegidaPorPersona = false): array
     {
         $p = parse_url($url);
         if (!$p || empty($p['scheme']) || empty($p['host'])) return [false, 'La dirección no es válida.'];
         if (strtolower($p['scheme']) !== 'https')            return [false, 'Solo se aceptan direcciones https.'];
 
         $host = strtolower($p['host']);
-        $ok = false;
-        foreach (self::dominiosPermitidos() as $d) {
-            if ($host === $d || str_ends_with($host, '.' . $d)) { $ok = true; break; }
+        if (!$elegidaPorPersona) {
+            $ok = false;
+            foreach (self::dominiosPermitidos() as $d) {
+                if ($host === $d || str_ends_with($host, '.' . $d)) { $ok = true; break; }
+            }
+            if (!$ok) return [false, "El dominio {$host} no está en la lista de fuentes autorizadas."];
         }
-        if (!$ok) return [false, "El dominio {$host} no está en la lista de fuentes autorizadas."];
 
         /* Resolver la IP y rechazar redes internas. Un dominio de la lista blanca
            podría apuntar (por error o por ataque) a 127.0.0.1 o a la IP de metadatos
@@ -79,9 +100,9 @@ final class ImagenSegura
      * NO sigue redirecciones: una redirección puede saltar fuera de la lista blanca y
      * ahí se pierde toda la protección de arriba.
      */
-    public static function descargar(string $url): array
+    public static function descargar(string $url, bool $elegidaPorPersona = false): array
     {
-        [$ok, $motivo] = self::urlPermitida($url);
+        [$ok, $motivo] = self::urlPermitida($url, $elegidaPorPersona);
         if (!$ok) return [null, $motivo];
 
         $ch = curl_init($url);
@@ -95,6 +116,19 @@ final class ImagenSegura
             CURLOPT_NOPROGRESS     => false,
             CURLOPT_PROGRESSFUNCTION => function ($r, $bajado) { return $bajado > self::MAX_BYTES ? 1 : 0; },
         ]);
+
+        /* Certificados intermedios que ALGUNOS servidores no mandan.
+           El de nextep.com.mx solo envía su certificado de hoja y se salta el
+           intermedio de GoDaddy, así que la verificación falla con el almacén
+           normal ("unable to get local issuer certificate"). La salida fácil sería
+           apagar CURLOPT_SSL_VERIFYPEER, y eso NO se hace nunca: dejaría la
+           conexión abierta a que alguien se meta en medio y nos devuelva otra
+           imagen. Se aporta el intermedio que falta y se verifica de verdad. */
+        $host = strtolower((string) parse_url($url, PHP_URL_HOST));
+        if (str_contains($host, 'nextep.com.mx') && is_file(__DIR__ . '/certs/godaddy-g2.pem')) {
+            curl_setopt($ch, CURLOPT_CAINFO, __DIR__ . '/certs/godaddy-g2.pem');
+        }
+
         $data = curl_exec($ch);
         $code = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
         curl_close($ch);

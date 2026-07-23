@@ -17,7 +17,19 @@
   var $ = function (s, c) { return (c || document).querySelector(s); };
   var $$ = function (s, c) { return Array.prototype.slice.call((c || document).querySelectorAll(s)); };
   function mxn(n) { return new Intl.NumberFormat("es-MX", { style: "currency", currency: "MXN", maximumFractionDigits: 0 }).format(n); }
-  function esc(s) { var d = document.createElement("div"); d.textContent = String(s == null ? "" : s); return d.innerHTML; }
+  /* Escapa para insertar con innerHTML. textContent cubre <, > y &, pero NO las
+     comillas, y aquí casi todo acaba DENTRO de un atributo. Se vio en el panel:
+     el producto «Arillo Fellowes 1" Plastico C/10 Negro» rompía
+     data-foto-nombre="…" en la comilla y el diálogo mostraba solo "Arillo
+     Fellowes 1". Peor que el corte: un nombre con `" onerror="…` se habría
+     ejecutado, y los nombres vienen de la API de Exel, no de nosotros.
+     Escapar las comillas es seguro también fuera de atributos: dentro de
+     innerHTML, &quot; se pinta como una comilla normal. */
+  function esc(s) {
+    var d = document.createElement("div");
+    d.textContent = String(s == null ? "" : s);
+    return d.innerHTML.replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+  }
 
   var STATUS = {
     recibido: "Recibido", en_revision: "En revisión", en_produccion: "En producción",
@@ -1700,8 +1712,12 @@
   }
 
   /* Se expone para que admin-fotos.js pueda refrescar la tabla tras guardar una
-     foto, sin recargar la página entera (van a ser ~282 productos de corrido). */
+     foto, sin recargar la página entera (van a ser ~264 productos de corrido). */
   window.okAdminRecargarCatalogo = function () { renderCatalog(); };
+
+  /* La cola de los que se ven SIN foto, para encadenarlos en el selector. */
+  var catalogSinFoto = [];
+  window.okAdminSinFoto = function () { return catalogSinFoto.slice(); };
 
   function renderCatalog() {
     var head = '<thead><tr><th>Producto</th><th>Marca</th><th>Categoría</th><th>Imágenes</th>' +
@@ -1713,6 +1729,14 @@
     DataSource.catalog({ q: catalogSearch.trim(), category: catalogCategory, images: catalogImages })
       .then(function (j) {
         var list = (j && j.products) || [];
+
+        /* Cola de trabajo para el selector de fotos (admin-fotos.js): los que se
+           ven ahora mismo SIN ninguna foto, en el mismo orden de la tabla. Sirve
+           para encadenar uno tras otro sin volver a la lista — son ~264 productos
+           y hacerlos de a uno, cerrando y buscando el siguiente cada vez, es lo
+           que convierte un rato de trabajo en una tarde entera. */
+        catalogSinFoto = list.filter(function (p) { return p.images === 0; })
+          .map(function (p) { return { id: p.id, nombre: p.name, marca: p.brand || "" }; });
         var s = (j && j.stats) || {};
 
         /* El resumen es del catálogo COMPLETO, no del filtro: si cambiara al buscar,

@@ -41,6 +41,11 @@ firebase-admin.json
 *.key
 *.pem
 *.p12
+# EXCEPCION: el intermedio de GoDaddy que nextep.com.mx no manda. NO es secreto:
+# es un certificado PUBLICO, publicado por GoDaddy en una URL abierta. Sin el, la
+# verificacion TLS contra NEXTEP falla en produccion y no se pueden traer sus fotos.
+# Va en el repo a proposito; la regla *.pem de arriba es para llaves PRIVADAS.
+!backend/api/lib/certs/godaddy-g2.pem
 id_rsa
 id_rsa.pub
 

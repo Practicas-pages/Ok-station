@@ -6693,7 +6693,11 @@ html[data-theme="dark"] .btn--light:hover { background: #1E2840; color: #fff; }
    franja enorme. Va el elemento por su lado y sus descendientes por el suyo. */
 html[data-theme="dark"],
 html[data-theme="dark"] :is(body, #top) { background: #0F1524 !important; }
-html[data-theme="dark"] :is(.section, .section--alt, .section--dark, .section--dark-2, .citas-section) { background: #131B2C !important; }
+html[data-theme="dark"] :is(.section, .section--alt, .section--dark, .section--dark-2, .citas-section, .okpromo-sec) { background: #131B2C !important; }
+/* FAQ: en oscuro la pregunta y la respuesta usaban un navy fijo (#0b1f3a/#2b3650)
+   que quedaba invisible sobre la tarjeta oscura. Se devuelven a los tokens claros. */
+html[data-theme="dark"] #faq .faq-question { color: var(--text-primary) !important; }
+html[data-theme="dark"] #faq .faq-answer__inner { color: var(--text-secondary) !important; }
 
 /* ── Superficies con blanco a mano que quedaban claras con texto claro
    (detectadas midiendo contraste en la página, no a ojo). Se agrupan por

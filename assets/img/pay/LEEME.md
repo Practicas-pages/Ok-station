@@ -8,16 +8,19 @@ logotipos de esta carpeta.
 | `visa.svg`         | Visa              | Provisional (ver abajo) |
 | `mastercard.svg`   | Mastercard        | Provisional (ver abajo) |
 | `amex.svg`         | American Express  | Provisional (ver abajo) |
-| `mercadopago.svg`  | Mercado Pago      | Provisional (ver abajo) |
+| `mercadopago.svg`  | Mercado Pago      | **Oficial** (SVG del kit de Mercado Pago) |
 
 ## Ojo: son provisionales, conviene cambiarlos
 
 Los que están aquí se dibujaron a mano para que la sección no se viera vacía. Se
 parecen y se entienden, pero **no son el arte oficial de cada marca**:
 
+- **Mercado Pago YA es el oficial**: se reemplazó por el SVG del kit de vendedor
+  (el logo del óvalo azul/cian + "Mercado Pago"). Fondo transparente, como pide
+  la sección de "Medidas".
 - Mastercard es el más fiel: son dos círculos y la geometría es exacta.
-- Visa y Mercado Pago llevan su nombre en su color, pero en una tipografía
-  común (Arial), no en la suya propia.
+- Visa lleva su nombre en su color, pero en una tipografía común (Arial), no en
+  la suya propia.
 - American Express dice "AMEX" y no "AMERICAN EXPRESS": a 32px de alto el
   nombre completo sale ilegible.
 
