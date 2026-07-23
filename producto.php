@@ -522,10 +522,11 @@ $ldCrumbs = [
            archivo oficial y, mientras no esté subido, el onerror deja una etiqueta de
            texto con el nombre. Así la sección se ve bien HOY y se actualiza sola en
            cuanto los .svg existan, sin tocar este archivo. */
+        /* Logos OFICIALES (con extensión, porque son formatos distintos). */
         $pagos = [
-            ['visa',       'Visa'],
-            ['mastercard', 'Mastercard'],
-            ['amex',       'American Express'],
+            ['visa.png',       'Visa'],
+            ['mastercard.svg', 'Mastercard'],
+            ['amex.jpg',       'American Express'],
         ];
         ?>
         <section class="pdp__pay" aria-label="Medios de pago">
@@ -535,8 +536,8 @@ $ldCrumbs = [
           <ul class="pdp__pay-list">
             <?php foreach ($pagos as [$slug, $label]): ?>
               <li class="pdp__pay-item">
-                <img src="/assets/img/pay/<?= e($slug) ?>.svg" alt="<?= e($label) ?>"
-                     width="52" height="32" loading="lazy" decoding="async"
+                <img src="/assets/img/pay/<?= e($slug) ?>" alt="<?= e($label) ?>"
+                     height="32" loading="lazy" decoding="async"
                      onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'pdp__pay-txt',textContent:this.alt}))">
               </li>
             <?php endforeach; ?>

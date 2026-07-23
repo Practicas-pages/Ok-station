@@ -5,29 +5,23 @@ logotipos de esta carpeta.
 
 | Archivo            | Se muestra como   | Estado                  |
 |--------------------|-------------------|-------------------------|
-| `visa.svg`         | Visa              | Provisional (ver abajo) |
-| `mastercard.svg`   | Mastercard        | Provisional (ver abajo) |
-| `amex.svg`         | American Express  | Provisional (ver abajo) |
+| `visa.png`         | Visa              | **Oficial** (brandmark) |
+| `mastercard.svg`   | Mastercard        | **Oficial** (SVG)       |
+| `amex.jpg`         | American Express  | **Oficial** (web logo)  |
 | `mercadopago.svg`  | Mercado Pago      | **Oficial** (SVG del kit de Mercado Pago) |
 
-## Ojo: son provisionales, conviene cambiarlos
+## Todos son OFICIALES (jul 2026)
 
-Los que están aquí se dibujaron a mano para que la sección no se viera vacía. Se
-parecen y se entienden, pero **no son el arte oficial de cada marca**:
+Se reemplazaron los dibujos provisionales por el arte OFICIAL de cada marca (las
+URLs las dio el dueño): Visa y Amex en imagen (PNG/JPG), Mastercard y Mercado
+Pago en SVG. Se usó el formato que da cada marca; por eso son mixtos.
 
-- **Mercado Pago YA es el oficial**: se reemplazó por el SVG del kit de vendedor
-  (el logo del óvalo azul/cian + "Mercado Pago"). Fondo transparente, como pide
-  la sección de "Medidas".
-- Mastercard es el más fiel: son dos círculos y la geometría es exacta.
-- Visa lleva su nombre en su color, pero en una tipografía común (Arial), no en
-  la suya propia.
-- American Express dice "AMEX" y no "AMERICAN EXPRESS": a 32px de alto el
-  nombre completo sale ilegible.
+El recuadro blanco, el borde y las esquinas los pone el CSS (`.pdp__pay-item`),
+así que el archivo va con fondo transparente donde el formato lo permite (PNG/SVG;
+el JPG de Amex trae su propio fondo).
 
-Son marcas registradas, así que lo correcto es sustituirlos por el archivo
-oficial de cada una. Se bajan de sus centros de marca (Visa Brand Center,
-Mastercard Brand Center, American Express Brand Hub) y el de Mercado Pago viene
-en su kit para vendedores.
+Para reemplazar uno: **sobrescribe el archivo**. Si cambia la extensión, ajusta
+`$pagos` en `producto.php` (ahí el nombre ya lleva la extensión completa).
 
 **Para cambiarlos solo hay que sobrescribir el archivo con el mismo nombre.** No
 se toca código ni hay que avisarle a nadie.
