@@ -270,15 +270,21 @@
         /* Las que ya tiene el producto NO se ofrecen para "volver a ponerlas": se
            muestran para que se vea qué hay, marcando si están descargadas. */
         var yaEs = c.origen === "actual";
-        var pie = yaEs ? (c.descargada ? "actual" : "actual · sin descargar") : c.fuente;
-        /* Las que vienen del sitio de la marca se marcan aparte: NADIE comprobó
-           que sean este producto exacto, y quien da el clic debe saberlo. */
+        var pie  = yaEs ? (c.descargada ? "actual" : "actual · sin descargar") : c.fuente;
+        /* Las que NO son del proveedor se marcan aparte: nadie comprobó que sean
+           este producto exacto, y quien da el clic debe saberlo. Se enseña el SITIO
+           de donde salen para poder preferir la del fabricante sobre la de una
+           tienda cualquiera, y las medidas para descartar las diminutas de un
+           vistazo. Se muestra la MINIATURA cuando viene: pesa mucho menos y así la
+           cuadrícula aparece de golpe en vez de ir cargando de a una. */
+        var esExterna = (c.origen === "marca" || c.origen === "buscador");
         html += '<figure class="fotos-cand' + (yaEs ? " es-actual" : "") +
-                  (c.origen === "marca" ? " es-marca" : "") + '"' +
-                  (yaEs ? "" : ' data-cand="' + esc(c.url) + '" title="Usar esta foto"') + '>' +
-                  '<img src="' + esc(c.url) + '" alt="" loading="lazy" ' +
+                  (esExterna ? " es-marca" : "") + '"' +
+                  (yaEs ? "" : ' data-cand="' + esc(c.url) + '" title="Usar esta foto — ' + esc(c.fuente || "") + '"') + '>' +
+                  '<img src="' + esc(c.miniatura || c.url) + '" alt="" loading="lazy" ' +
                     'onerror="this.closest(\'figure\').remove()">' +
-                  '<figcaption>' + esc(pie) + '</figcaption>' +
+                  '<figcaption>' + esc(pie) + (c.medidas ? ' <span class="fotos-med">' + esc(c.medidas) + '</span>' : '') +
+                  '</figcaption>' +
                 '</figure>';
       });
       html += '</div>';
@@ -319,11 +325,30 @@
             '<div class="fotos-tip">Abre el resultado, prefiere la página del fabricante, ' +
             'copia la imagen (clic derecho → Copiar imagen) y pégala aquí con <b>Ctrl+V</b>.</div></div>';
 
+    /* Los pasos para configurar el buscador, si aún no lo está. Se enseñan aquí y
+       no en un archivo de documentación porque es donde alguien se da cuenta de que
+       faltan: cuando abre el diálogo y no hay ninguna foto que elegir. */
+    var busc = (j && j.buscador) || {};
+    if (busc.configurado === false && (busc.pasos || []).length) {
+      html += '<div class="fotos-setup"><b>Para que aparezcan fotos aquí</b>' +
+              '<ol>' + busc.pasos.map(function (s) { return '<li>' + esc(s) + '</li>'; }).join("") + '</ol>' +
+              '<div class="fotos-tip">Mientras tanto, busca la foto con los enlaces de arriba y pégala con Ctrl+V.</div>' +
+              '</div>';
+    }
+
     ((j && j.notas) || []).forEach(function (n) {
+      /* 'no_configurado' es una señal para el panel, no un texto para leer: ya se
+         convirtió en la lista de pasos de arriba. */
+      if (n === 'no_configurado') return;
       html += '<div class="fotos-nota">' + esc(n) + '</div>';
     });
 
-    if (!cands.length && !url1) html = '<div class="fotos-cargando">Sin candidatas automáticas.</div>' + html;
+    /* OJO: aquí había `!url1`, una variable que quedó de una versión anterior y que
+       NO se declara en ninguna parte. En JavaScript leer una variable inexistente
+       lanza ReferenceError, así que esta línea reventaba la función entera y el
+       .catch lo enseñaba como "No se pudieron buscar candidatas" — un error de
+       servidor que nunca existió. Se fue media tarde detrás de un fantasma. */
+    if (!cands.length) html = '<div class="fotos-cargando">Sin candidatas automáticas para este producto.</div>' + html;
     body.innerHTML = html;
   }
 
