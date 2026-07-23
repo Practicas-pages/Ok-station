@@ -137,6 +137,88 @@ final class Nextep
         return $out;
     }
 
+    /**
+     * Catálogo completo CON nombre: [['clave','nombre','url'], …].
+     * Para emparejar por nombre los productos cuya clave NE-xxx no quedó guardada
+     * en el feed de Exel — que son la mayoría de los huecos de NEXTEP.
+     */
+    public static function catalogoDetallado(bool $forzar = false): array
+    {
+        $cache = sys_get_temp_dir() . '/okstation-nextep-det.json';
+        if (!$forzar && is_file($cache) && (time() - filemtime($cache)) < self::CACHE_HRS * 3600) {
+            $j = json_decode((string) file_get_contents($cache), true);
+            if (is_array($j) && $j) return $j;
+        }
+        $out = [];
+        for ($pagina = 1; $pagina <= 20; $pagina++) {
+            $j = self::pedir(self::API . '/products?page=' . $pagina . '&limit=50');
+            if (!is_array($j) || empty($j['data'])) break;
+            foreach ($j['data'] as $p) {
+                if (empty($p['image'])) continue;
+                $out[] = [
+                    'clave'  => strtoupper(trim((string) ($p['sku'] ?? ''))),
+                    'nombre' => trim((string) ($p['name'] ?? '') . ' ' . (string) ($p['short_description'] ?? '')),
+                    'url'    => self::urlImagen((string) $p['image']),
+                ];
+            }
+            if ($pagina >= (int) ($j['pages'] ?? 1)) break;
+        }
+        if ($out) @file_put_contents($cache, json_encode($out));
+        return $out;
+    }
+
+    /**
+     * Las mejores coincidencias por NOMBRE de un producto contra el catálogo de
+     * NEXTEP. Devuelve hasta $n candidatas ['clave','nombre','url','score'] ordenadas
+     * de mejor a peor, filtrando las que no llegan a un parecido mínimo.
+     *
+     * NUNCA se auto-aplica esto: el emparejamiento por nombre puede confundir
+     * variantes (el clip #1 con el #2), así que se PROPONE en el panel y la persona,
+     * que ve "#1 32MM" contra "#2 28MM", elige en dos segundos. Ahí desaparece el
+     * riesgo. Se comprobó contra el catálogo real que la correcta cae en el top-3.
+     */
+    public static function porNombre(string $nombre, int $n = 4, float $minimo = 0.30): array
+    {
+        $nombre = trim($nombre);
+        if ($nombre === '') return [];
+
+        $ranking = [];
+        foreach (self::catalogoDetallado() as $c) {
+            $s = self::parecido($nombre, $c['nombre']);
+            if ($s >= $minimo) $ranking[] = $c + ['score' => $s];
+        }
+        usort($ranking, fn($a, $b) => $b['score'] <=> $a['score']);
+        return array_slice($ranking, 0, $n);
+    }
+
+    /** Parecido 0..1 entre dos nombres por tokens compartidos. */
+    private static function parecido(string $a, string $b): float
+    {
+        $ta = self::tokens($a);
+        $tb = self::tokens($b);
+        if (!$ta || !$tb) return 0.0;
+        return count(array_intersect($ta, $tb)) / max(count($ta), count($tb));
+    }
+
+    /**
+     * Nombre → tokens comparables. La clave está en NO perder el número de variante:
+     * "#1", "No.7" se vuelven "num1", "num7" y sobreviven, porque ES lo que separa
+     * un clip del #1 del #2. La presentación (C/10 = piezas por paquete) sí se tira,
+     * porque no cambia la foto. Sin esto, las variantes empataban igual y proponía la
+     * equivocada de primera.
+     */
+    private static function tokens(string $s): array
+    {
+        $s = mb_strtolower($s, 'UTF-8');
+        $s = strtr($s, ['á'=>'a','é'=>'e','í'=>'i','ó'=>'o','ú'=>'u','ñ'=>'n','°'=>'']);
+        $s = preg_replace('/\bnextep\b/', '', $s);
+        $s = preg_replace('/(?:#|no\.?\s*)(\d+)/', 'num$1', $s);   // #1, No.7 → num1, num7
+        $s = preg_replace('/\bc\s*\/\s*\d+\b/', ' ', $s);          // C/10 fuera
+        $s = preg_replace('/[^a-z0-9 ]+/', ' ', $s);
+        $s = trim(preg_replace('/\s+/', ' ', $s));
+        return array_values(array_filter(explode(' ', $s), fn($t) => mb_strlen($t) >= 2));
+    }
+
     /** Ruta relativa → URL absoluta de la imagen. */
     private static function urlImagen(string $ruta): string
     {
