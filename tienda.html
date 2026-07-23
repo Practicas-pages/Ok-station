@@ -1086,6 +1086,10 @@ html[data-theme="dark"] #site :is(.tb-cuenta,.tb-fav,.tb-cart,.tb-filt):hover{ba
      a la reja completa, espejando el padding de .topbar. */
   #site .shell{display:grid; grid-template-columns:250px minmax(0,1fr); gap:22px; align-items:start;
     padding-inline:20px}
+  /* "Categorías" (navbar) alterna el sidebar. Cerrado → una columna, productos a todo
+     lo ancho. Abierto (por defecto) → sidebar sticky de cats + filtros a la izquierda. */
+  html.cats-closed #site .shell{grid-template-columns:minmax(0,1fr)}
+  html.cats-closed #site .store-side{display:none}
   #site .store-side{display:block; position:sticky; top:var(--oknav-h,150px); align-self:start;
     max-height:calc(100vh - var(--oknav-h,150px) - 14px); overflow-y:auto; overflow-x:hidden; padding-right:2px}
   #site .side-cats{display:block}
@@ -1572,7 +1576,7 @@ html[data-theme="dark"] #site :is(.tb-cuenta,.tb-fav,.tb-cart,.tb-filt):hover{ba
   var BOLT='<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M13 2L4 14h6l-1 8 9-12h-6l1-8z"/></svg>';
 
   // Cambio de vista
-  function showView(id){ ["tienda","store"].forEach(function(v){$(v).classList.toggle("on",v===id);}); document.documentElement.classList.toggle("store-view", id==="store"); window.scrollTo(0,0); okiEmit(id==="store"?"en-tienda":"en-landing"); if(id==="store"&&typeof filtEnsure==="function")filtEnsure(); }
+  function showView(id){ ["tienda","store"].forEach(function(v){$(v).classList.toggle("on",v===id);}); document.documentElement.classList.toggle("store-view", id==="store"); window.scrollTo(0,0); okiEmit(id==="store"?"en-tienda":"en-landing"); if(id==="store"){ if(typeof filtEnsure==="function")filtEnsure(); var _cb=$("oknavCats"); if(_cb) _cb.setAttribute("aria-expanded", String(!document.documentElement.classList.contains("cats-closed"))); } }
   document.addEventListener("click",function(e){
     if(e.target.closest("[data-open-tienda]")){e.preventDefault(); showView("tienda");}
     if(e.target.closest("[data-go-store]")){e.preventDefault(); showView("store");}
@@ -2833,6 +2837,12 @@ html[data-theme="dark"] #site :is(.tb-cuenta,.tb-fav,.tb-cart,.tb-filt):hover{ba
     abrirDeseados:function(){renderWishlist(); show("wishOv");},
     abrirCarrito:function(){showView("store"); var abierto=$("app").classList.toggle("cart-open"); okiEmit(abierto?"carrito-abierto":"carrito-cerrado");},
     entrarTienda:function(){showView("store");},
+    /* "Categorías" de la navbar: abre/cierra el sidebar (cats + filtros). Desde el
+       landing entra a la tienda con el sidebar abierto. */
+    toggleCategorias:function(){var h=document.documentElement;
+      if(!h.classList.contains("store-view")){ showView("store"); h.classList.remove("cats-closed"); }
+      else { h.classList.toggle("cats-closed"); }
+      var b=$("oknavCats"); if(b) b.setAttribute("aria-expanded", String(!h.classList.contains("cats-closed")));},
     /* Anadidos para el navbar unificado (oknav): sus botones entran a la tienda y actuan. */
     buscarEnTienda:function(texto){showView("store"); var qi=$("q"); if(qi) qi.value=texto; query=String(texto||"").trim(); reloadFromDB();},
     abrirUbicacion:function(){openLoc();},
