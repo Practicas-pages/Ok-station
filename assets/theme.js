@@ -67,8 +67,9 @@
      botones de tema en la misma pantalla (visto en pruebas). Son el mismo
      encabezado, así que van juntos y solo gana uno. */
   var SLOTS = [
+    [".oknav__actions"],            // navbar unificado (reemplaza a los de abajo)
     [".shopbar__top", ".td-top"],   // barra del e-commerce: ficha y compra rápida
-    ["#site .tb-actions"],          // catálogo de tienda.html
+    ["#site .tb-actions"],          // catálogo de tienda.html (vista tienda)
     ["nav.bar"],                    // páginas de categoría (barra propia)
     [".nav__actions"],              // header del sitio (index, servicios, perfil…)
   ];

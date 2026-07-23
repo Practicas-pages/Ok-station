@@ -1,29 +1,36 @@
 <!DOCTYPE html>
 <html lang="es-MX">
 <head>
-  <meta charset="UTF-8">
-
-  <!-- Modo mantenimiento: bloquea el acceso directo sin credenciales válidas -->
-  <script src="assets/site-guard.js?v=20260720a"></script>
-
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="robots" content="noindex, nofollow">
-  <title>Recuperar contraseña — Ok.station</title>
-  <link rel="icon" href="/assets/img/OKD-Isotipo-Azul-96.png?v=20260710" type="image/png" sizes="96x96">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap">
-  <!-- Tema (claro/oscuro): antes de la hoja para pintar ya con el tema elegido -->
-  <script src="assets/theme.js?v=20260721a"></script>
-  <link rel="stylesheet" href="styles.css?v=20260716b">
-  <!-- Mascota/chatbot OKi -->
-  <link rel="stylesheet" href="assets/oki.css?v=20260714d">
-  <link rel="stylesheet" href="assets/auth.css?v=20260625">
-  <link rel="stylesheet" href="/assets/oknav.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Navbar unificado — demo local · Ok.station</title>
+<meta name="robots" content="noindex, nofollow">
+<script src="/assets/theme.js"></script>
+<!-- Poppins: la tipografía del sitio. Sin esto la demo salía con la fuente
+     del sistema y el encabezado no se parecía al original. -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap">
+<!-- La hoja REAL del sitio: el navbar hereda los tokens de verdad y el modo
+     oscuro se ve como se verá en producción. -->
+<link rel="stylesheet" href="/styles.css">
+<link rel="stylesheet" href="/assets/oknav.css">
+<style>
+  body{margin:0;background:var(--surface-page);color:var(--text-primary);font-family:"Poppins",system-ui,sans-serif}
+  .demo{max-width:1280px;margin:0 auto;padding:28px 16px 80px}
+  .demo h1{font-size:1.3rem;margin:0 0 6px}
+  .demo > p{color:var(--text-muted);font-size:.9rem;margin:0 0 20px;line-height:1.6}
+  .caja{background:var(--surface-card);border:1px solid var(--border-light);border-radius:16px;padding:18px;margin-bottom:14px}
+  .caja b{display:block;margin-bottom:6px;font-size:.9rem}
+  .caja small{color:var(--text-muted);font-size:.82rem;line-height:1.6;display:block}
+  .alto{height:900px}
+  /* El botón de tema lo inyecta theme.js dentro de .oknav__actions. */
+  .oknav__actions .theme-toggle{width:40px;height:40px;border:1px solid var(--border-light);background:var(--surface-card);cursor:pointer;border-radius:99px;color:var(--text-primary);display:grid;place-items:center;transition:border-color .15s}
+  .oknav__actions .theme-toggle:hover{border-color:var(--border-medium)}
+</style>
 </head>
-<body class="auth-page">
-
-  <!-- ─────────────────────────────────────────────────────────────────────────
+<body>
+<!-- ─────────────────────────────────────────────────────────────────────────
      Ok.station — NAVBAR UNIFICADO · marcado canónico
      Esta es la COPIA MAESTRA. Va pegada tal cual en cada página (no se inyecta
      por JavaScript a propósito: los enlaces de navegación deben venir en el HTML
@@ -235,30 +242,26 @@
     </a>
   </div>
 </aside>
+<main class="demo">
+  <h1>Navbar unificado — banco de pruebas</h1>
+  <p>Página solo para revisar el encabezado antes de aplicarlo al sitio. Lleva <code>noindex</code> y no está enlazada desde ningún lado.</p>
 
+  <div class="caja"><b>Qué probar</b><small>
+    · Escribe 2+ letras en el buscador → sugerencias (necesita base de datos). Se envía con Enter.<br>
+    · Toca “Categorías” → desplegable con las categorías reales.<br>
+    · Angosta la ventana: a 1000px los servicios se van al cajón ☰; el buscador baja a su renglón.<br>
+    · Cambia a modo oscuro con el botón de la derecha (o desde el cajón en celular).<br>
+    · Carrito y favoritos leen el mismo localStorage que la tienda.
+  </small></div>
 
-  <main class="auth-main">
-    <div class="auth-card">
-      <div class="auth-head">
-        <h1>Recupera tu contraseña</h1>
-        <p>Escribe tu correo y te enviaremos un enlace para crear una nueva.</p>
-      </div>
-      <div class="auth-alert" id="forgot-alert" role="alert" hidden></div>
-      <form id="form-forgot" novalidate>
-        <div class="auth-field">
-          <label for="forgot-email">Correo electrónico</label>
-          <input type="email" id="forgot-email" name="email" autocomplete="email" required placeholder="tucorreo@ejemplo.com">
-        </div>
-        <button type="submit" class="btn btn--primary btn--block">Enviar enlace</button>
-      </form>
-      <p class="auth-foot">¿Ya la recordaste? <a href="cuenta.html">Inicia sesión</a></p>
-    </div>
-  </main>
+  <div class="caja"><b>Ojo con el logo</b><small>
+    Si sale roto es normal en local: <code>assets/img/okstation-logo.webp</code> no está en el repositorio
+    (las imágenes se suben directo en producción). En el servidor se ve bien, y va en blanco sobre el degradado.
+  </small></div>
 
-  <script src="assets/auth.js?v=20260715a" defer></script>
-<!-- Mascota/chatbot OKi (astronauta) -->
-<script src="assets/catalogo.js?v=20260714a" defer></script>
-<script src="assets/oki.js?v=20260714d" defer></script>
-  <script src="/assets/oknav.js" defer></script>
+  <div class="alto"></div>
+</main>
+
+<script src="/assets/oknav.js" defer></script>
 </body>
 </html>
