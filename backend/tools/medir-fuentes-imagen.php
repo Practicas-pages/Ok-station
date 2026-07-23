@@ -165,8 +165,25 @@ echo "\n── 4. Muestra contra UPCitemdb (gratis, sin llave, ~100 consultas/d�
 $conCodigo = array_values(array_filter($sinFoto, fn($p) => gtin_valido((string) ($p['barcode'] ?? ''))));
 if (!$conCodigo) { echo "   No hay productos con código válido que probar.\n"; exit(0); }
 
-$aProbar = array_slice($conCodigo, 0, $muestra);
+/* La muestra se REPARTE entre marcas, no se toman los primeros. La consulta
+   ordena por marca y nombre, así que tomar los primeros daba casi puros ACCO —
+   y con eso se concluiría "sirve" o "no sirve" mirando una sola marca. Aquí se
+   va tomando uno de cada marca por vuelta, así que con 10 consultas se ven 10
+   marcas distintas y el resultado sí dice algo del catálogo entero. */
+$porMarcaLista = [];
+foreach ($conCodigo as $p) {
+    $porMarcaLista[trim((string) ($p['brand'] ?? '')) ?: '(sin marca)'][] = $p;
+}
+$aProbar = [];
+while (count($aProbar) < $muestra && $porMarcaLista) {
+    foreach ($porMarcaLista as $m => $lista) {
+        if (count($aProbar) >= $muestra) break;
+        $aProbar[] = array_shift($porMarcaLista[$m]);
+        if (!$porMarcaLista[$m]) unset($porMarcaLista[$m]);
+    }
+}
 $hits = 0;
+$aciertoPorMarca = [];
 foreach ($aProbar as $p) {
     $bc = preg_replace('/\D/', '', (string) $p['barcode']);
     $ch = curl_init("https://api.upcitemdb.com/prod/trial/lookup?upc=" . urlencode($bc));
@@ -180,17 +197,34 @@ foreach ($aProbar as $p) {
     $j    = json_decode((string) $r, true);
     $item = $j['items'][0] ?? null;
     $imgs = $item ? count($item['images'] ?? []) : 0;
-    if ($imgs > 0) $hits++;
-    printf("   %-13s %-30s %s\n", $bc, mb_strimwidth((string) $p['name'], 0, 30, '…'),
+    $marca = trim((string) ($p['brand'] ?? '')) ?: '(sin marca)';
+    if (!isset($aciertoPorMarca[$marca])) $aciertoPorMarca[$marca] = ['si' => 0, 'no' => 0];
+    if ($imgs > 0) { $hits++; $aciertoPorMarca[$marca]['si']++; } else { $aciertoPorMarca[$marca]['no']++; }
+
+    printf("   %-13s %-16s %-26s %s\n", $bc, mb_strimwidth($marca, 0, 16, '…'),
+        mb_strimwidth((string) $p['name'], 0, 26, '…'),
         $imgs > 0 ? "✓ {$imgs} foto(s)" : ($code === 200 ? '— no lo tiene' : "HTTP {$code}"));
     usleep(400000);   // no atropellar su servicio
 }
 
 $n = count($aProbar);
 echo "\n   Encontrados: {$hits} de {$n} probados.\n";
-echo $hits === 0
-    ? "   ➤ Cero. Su base es de productos de Estados Unidos y no cubre papelería\n"
-    . "     mexicana. Integrarla sería trabajo sin resultado.\n"
-    : "   ➤ Sirve para " . (int) round($hits * 100 / $n) . "% de la muestra. OJO: sus fotos vienen de\n"
-    . "     TIENDAS (Walmart, Target…), no del fabricante. Habría que decidir si se\n"
-    . "     usan, porque son de terceros y eso es justo lo que se quiso evitar.\n";
+
+/* El desglose por marca importa más que el total: si acierta en todas las de una
+   marca y en ninguna de otra, la decisión es habilitarla SOLO para esa marca, no
+   para el catálogo entero. Ese matiz se pierde en un porcentaje global. */
+if (count($aciertoPorMarca) > 1) {
+    echo "\n   Por marca:\n";
+    foreach ($aciertoPorMarca as $m => $x) {
+        printf("     %-22s %d de %d\n", $m, $x['si'], $x['si'] + $x['no']);
+    }
+}
+
+echo "\n" . ($hits === 0
+    ? "   ➤ Cero. Su base es de productos de Estados Unidos y no cubre este\n"
+    . "     catálogo. Integrarla sería trabajo sin resultado.\n"
+    : "   ➤ Encuentra el " . (int) round($hits * 100 / $n) . "% de la muestra.\n"
+    . "     ANTES DE USARLA hay que decidir algo: sus fotos NO son del fabricante,\n"
+    . "     salen de tiendas (Walmart, Target…). Son de terceros, que es justo lo\n"
+    . "     que se descartó al principio. Vale la pena revisar a mano de dónde\n"
+    . "     viene una antes de darla por buena para todas.\n");
