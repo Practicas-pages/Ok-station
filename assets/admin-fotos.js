@@ -26,7 +26,14 @@
   /* MISMA llave que admin.js ("okstation.token"). Si se escribiera otra, el panel
      mandaría un Bearer vacío y todo respondería 401 sin explicar por qué. */
   function token() { try { return localStorage.getItem("okstation.token") || ""; } catch (e) { return ""; } }
-  function esc(s) { var d = document.createElement("div"); d.textContent = String(s == null ? "" : s); return d.innerHTML; }
+  /* Mismo criterio que admin.js: textContent NO escapa comillas y aquí casi todo
+     va dentro de un atributo (data-cand="…", href="…"). Un nombre como
+     «Arillo Fellowes 1" Plastico» rompía el atributo en la comilla. */
+  function esc(s) {
+    var d = document.createElement("div");
+    d.textContent = String(s == null ? "" : s);
+    return d.innerHTML.replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+  }
 
   var modal = null, actual = null;   // actual = { id, nombre, marca }
 
@@ -162,14 +169,44 @@
     modal.classList.add("on");
     msg("");
 
+    /* El .catch de antes tapaba TRES fallas distintas bajo el mismo mensaje: que
+       el servidor no respondiera, que devolviera algo que no es JSON (un error de
+       PHP se imprime como texto), o que reventara al pintar. Sin distinguirlas no
+       hay forma de arreglar nada — se ve "No se pudieron buscar candidatas" y a
+       adivinar. Ahora cada una dice lo suyo y el detalle queda en la consola. */
     fetch(API + "/admin/image-candidates.php?product_id=" + encodeURIComponent(id), {
       headers: { Authorization: "Bearer " + token() }
     })
-      .then(function (r) { return r.json(); })
-      .then(pintarCandidatas)
-      .catch(function () {
+      .then(function (r) {
+        return r.text().then(function (txt) {
+          if (!r.ok) {
+            var m = "";
+            try { m = (JSON.parse(txt) || {}).error || ""; } catch (e) {}
+            throw new Error(m || ("El servidor respondió " + r.status + "."));
+          }
+          try { return JSON.parse(txt); }
+          catch (e) {
+            /* Respuesta que no es JSON: casi siempre un error de PHP impreso. Se
+               enseña el principio, que es donde viene el mensaje útil. */
+            console.error("[fotos] respuesta no-JSON:", txt.slice(0, 800));
+            throw new Error("El servidor devolvió un error: " + txt.replace(/<[^>]*>/g, " ").trim().slice(0, 160));
+          }
+        });
+      })
+      .then(function (j) {
+        try { pintarCandidatas(j); }
+        catch (e) {
+          console.error("[fotos] falló al pintar:", e);
+          modal.querySelector("#fotos-body").innerHTML =
+            '<div class="fotos-cargando">Se encontraron datos pero no se pudieron mostrar (' + esc(e.message) + ').<br>' +
+            'Puedes pegar o subir la imagen abajo.</div>';
+        }
+      })
+      .catch(function (e) {
+        console.error("[fotos]", e);
         modal.querySelector("#fotos-body").innerHTML =
-          '<div class="fotos-cargando">No se pudieron buscar candidatas. Puedes pegar o subir la imagen abajo.</div>';
+          '<div class="fotos-cargando">' + esc(e.message || "No se pudo consultar al servidor.") +
+          '<br>Puedes pegar o subir la imagen abajo — esa vía no depende del buscador.</div>';
       });
   }
 

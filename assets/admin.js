@@ -17,7 +17,19 @@
   var $ = function (s, c) { return (c || document).querySelector(s); };
   var $$ = function (s, c) { return Array.prototype.slice.call((c || document).querySelectorAll(s)); };
   function mxn(n) { return new Intl.NumberFormat("es-MX", { style: "currency", currency: "MXN", maximumFractionDigits: 0 }).format(n); }
-  function esc(s) { var d = document.createElement("div"); d.textContent = String(s == null ? "" : s); return d.innerHTML; }
+  /* Escapa para insertar con innerHTML. textContent cubre <, > y &, pero NO las
+     comillas, y aquí casi todo acaba DENTRO de un atributo. Se vio en el panel:
+     el producto «Arillo Fellowes 1" Plastico C/10 Negro» rompía
+     data-foto-nombre="…" en la comilla y el diálogo mostraba solo "Arillo
+     Fellowes 1". Peor que el corte: un nombre con `" onerror="…` se habría
+     ejecutado, y los nombres vienen de la API de Exel, no de nosotros.
+     Escapar las comillas es seguro también fuera de atributos: dentro de
+     innerHTML, &quot; se pinta como una comilla normal. */
+  function esc(s) {
+    var d = document.createElement("div");
+    d.textContent = String(s == null ? "" : s);
+    return d.innerHTML.replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+  }
 
   var STATUS = {
     recibido: "Recibido", en_revision: "En revisión", en_produccion: "En producción",
