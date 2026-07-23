@@ -494,7 +494,7 @@ $ldCrumbs = [
         <?php else: ?>
           <!-- Agotado: el SISTEMA avisa por correo cuando el sync de Exel le devuelva
                existencia (stock_alerts + exel-sync). Ya no depende de WhatsApp manual. -->
-          <button type="button" class="pdp__add pdp__add--wa" id="pdpAlert" data-id="<?= (int) $row['id'] ?>">🔔 Avísame por correo cuando llegue</button>
+          <button type="button" class="pdp__add pdp__add--wa" id="pdpAlert" data-id="<?= (int) $row['id'] ?>"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-3px;margin-right:5px"><path d="M18 8a6 6 0 00-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>Avísame por correo cuando llegue</button>
           <div id="pdpAlertBox" hidden style="margin-top:10px;padding:14px;border:1.5px solid #e3e6ee;border-radius:14px;background:#fff">
             <p style="margin:0 0 8px;font-size:.86rem;font-weight:700">¿A qué correo te avisamos?</p>
             <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px">
@@ -508,10 +508,10 @@ $ldCrumbs = [
         <?php endif; ?>
 
         <ul class="pdp__perks">
-          <li><span aria-hidden="true">🏪</span> <b>Recoge GRATIS</b> en OK.station, Centro Comercial Otay</li>
-          <li><span aria-hidden="true">🚚</span> Envío a domicilio en todo México</li>
-          <li><span aria-hidden="true">🔒</span> Pago seguro con Mercado Pago</li>
-          <li><span aria-hidden="true">🧾</span> Facturamos: pídelo por WhatsApp</li>
+          <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex:none;color:var(--brand-blue,#066CFF);margin-top:1px"><path d="M3 9l1-5h16l1 5"/><path d="M4 9v11h16V9"/><path d="M9 20v-6h6v6"/></svg> <b>Recoge GRATIS</b> en OK.station, Centro Comercial Otay</li>
+          <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex:none;color:var(--brand-blue,#066CFF);margin-top:1px"><rect x="1" y="4" width="15" height="12" rx="1.5"/><path d="M16 8h3.6L23 11.4V16h-7z"/><circle cx="5.5" cy="18.5" r="1.8"/><circle cx="18.5" cy="18.5" r="1.8"/></svg> Envío a domicilio en todo México</li>
+          <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex:none;color:var(--brand-blue,#066CFF);margin-top:1px"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg> Pago seguro con Mercado Pago</li>
+          <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex:none;color:var(--brand-blue,#066CFF);margin-top:1px"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="16" y2="17"/></svg> Facturamos: pídelo por WhatsApp</li>
         </ul>
 
         <?php
