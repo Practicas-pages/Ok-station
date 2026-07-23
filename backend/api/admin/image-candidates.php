@@ -37,6 +37,7 @@ require __DIR__ . '/../lib/authz.php';
 require __DIR__ . '/../lib/Icecat.php';
 require __DIR__ . '/../lib/BuscadorMarca.php';    // antes que ImagenSegura: le aporta sus dominios
 require __DIR__ . '/../lib/BuscadorImagenes.php';
+require __DIR__ . '/../lib/Nextep.php';
 require __DIR__ . '/../lib/ImagenSegura.php';
 only_method('GET');
 
@@ -143,6 +144,41 @@ if ($marca !== '' && BuscadorMarca::config($marca)) {
         ];
     }
     if (!$hallado && $ultimaNota !== '') $notas[] = $ultimaNota;
+}
+
+/* ── NEXTEP: el fabricante, directo ───────────────────────────────────────────
+   NEXTEP es la marca con más huecos. Su API pública devuelve la foto por clave
+   NE-xxx (exacta) y, cuando esa clave no quedó guardada en el feed de Exel, por
+   parecido de NOMBRE (aquí sí puede confundir la variante, por eso se PROPONE y
+   la persona elige). Va antes que el buscador de Google: es el fabricante, la
+   fuente más confiable, y sus fotos deben salir primero. */
+if (Nextep::esNextep($marca)) {
+    $clave = '';
+    foreach ([(string) ($p['sku'] ?? ''), (string) ($p['supplier_ref'] ?? '')] as $c) {
+        if (Nextep::claveValida($c)) { $clave = Nextep::normalizarClave($c); break; }
+    }
+    $porClave = $clave !== '' ? Nextep::porClave($clave) : null;
+
+    if ($porClave && $porClave['imagenes']) {
+        /* Match EXACTO por número de parte: primero y sin advertencia de variante. */
+        foreach ($porClave['imagenes'] as $u) {
+            $cands[] = [
+                'origen' => 'nextep', 'fuente' => 'NEXTEP', 'url' => $u, 'principal' => false,
+                'nota'   => 'Del fabricante NEXTEP, por clave ' . $clave . ' (coincidencia exacta).',
+            ];
+        }
+    } else {
+        /* Sin clave: se proponen las que más se parecen por nombre. La persona
+           distingue la variante correcta viéndolas. */
+        foreach (Nextep::porNombre((string) $p['name']) as $m) {
+            $cands[] = [
+                'origen' => 'nextep', 'fuente' => 'NEXTEP · ' . $m['clave'], 'url' => $m['url'],
+                'medidas'=> '', 'principal' => false,
+                'nota'   => 'Del fabricante NEXTEP, por parecido de nombre (' . round($m['score'] * 100) . '%). '
+                          . 'CONFIRMA que sea la variante correcta: «' . mb_strimwidth($m['nombre'], 0, 70, '…') . '».',
+            ];
+        }
+    }
 }
 
 /* ── Buscador de imágenes (Google Custom Search) ──────────────────────────────

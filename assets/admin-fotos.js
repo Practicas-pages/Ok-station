@@ -277,7 +277,7 @@
            tienda cualquiera, y las medidas para descartar las diminutas de un
            vistazo. Se muestra la MINIATURA cuando viene: pesa mucho menos y así la
            cuadrícula aparece de golpe en vez de ir cargando de a una. */
-        var esExterna = (c.origen === "marca" || c.origen === "buscador");
+        var esExterna = (c.origen === "marca" || c.origen === "buscador" || c.origen === "nextep");
         html += '<figure class="fotos-cand' + (yaEs ? " es-actual" : "") +
                   (esExterna ? " es-marca" : "") + '"' +
                   (yaEs ? "" : ' data-cand="' + esc(c.url) + '" title="Usar esta foto — ' + esc(c.fuente || "") + '"') + '>' +
@@ -329,7 +329,10 @@
        no en un archivo de documentación porque es donde alguien se da cuenta de que
        faltan: cuando abre el diálogo y no hay ninguna foto que elegir. */
     var busc = (j && j.buscador) || {};
-    if (busc.configurado === false && (busc.pasos || []).length) {
+    /* OCULTO a pedido de Oscar (jul 2026): no mostrar la caja "Para que aparezcan
+       fotos aquí" con los pasos de Google CSE en el panel. Para restaurarlo, quita
+       el "false &&" de la condición. */
+    if (false && busc.configurado === false && (busc.pasos || []).length) {
       html += '<div class="fotos-setup"><b>Para que aparezcan fotos aquí</b>' +
               '<ol>' + busc.pasos.map(function (s) { return '<li>' + esc(s) + '</li>'; }).join("") + '</ol>' +
               '<div class="fotos-tip">Mientras tanto, busca la foto con los enlaces de arriba y pégala con Ctrl+V.</div>' +
