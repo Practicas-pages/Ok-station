@@ -372,9 +372,13 @@ html.store-view .header-bar, html.store-view .site-header{display:none}
    compacto (buscador + botón de Filtros, que en desktop viven en el sidebar), y oknav
    se oculta como antes. */
 @media(min-width:1001px){
+  html.store-view{--oknav-h:140px}
   html.store-view .oknav{display:block}
   html.store-view #site .topbar{display:none}
   html.store-view .oknav__wrap{max-width:none; padding-inline:24px}
+  /* El carrito arranca BAJO la navbar (sticky, z mayor), que si no le tapaba la
+     cabecera con la ✕ (no se podía cerrar) y el primer producto. */
+  html.store-view #site .cart{top:var(--oknav-h,140px); height:auto; bottom:0}
 }
 @media(max-width:1000px){ html.store-view .oknav{display:none} }
 #site .topbar,#site .popbar-row{font-family:"Poppins",system-ui,-apple-system,"Segoe UI",sans-serif}
@@ -1117,9 +1121,9 @@ html[data-theme="dark"] #site :is(.tb-cuenta,.tb-fav,.tb-cart,.tb-filt):hover{ba
 /* Amarillo de compras (marca): #FFE200. Agregar filled; Pagar mismo amarillo con
    borde interior sutil para distinguirlo del de al lado. */
 #site .addbuy{background:#FFE200; color:#12141C}                          /* Agregar */
-#site .addbuy:hover:not(:disabled){filter:brightness(1.05); transform:translateY(-1px)}
+#site .addbuy:hover:not(:disabled){background:#FFE200; filter:brightness(1.04); transform:translateY(-1px)}
 #site .paynow{background:#FFE200; color:#12141C; box-shadow:inset 0 0 0 1.6px rgba(18,20,28,.18)}  /* Pagar (ir a pagar) */
-#site .paynow:hover:not(:disabled){filter:brightness(1.05); transform:translateY(-1px)}
+#site .paynow:hover:not(:disabled){background:#FFE200; filter:brightness(1.04); transform:translateY(-1px)}
 #site .pbtns button:disabled{opacity:.5; cursor:not-allowed}
 /* En vista LISTA los botones no se estiran a todo lo ancho. */
 #site .grid.is-list .pfoot{margin-top:0}
@@ -2827,7 +2831,7 @@ html[data-theme="dark"] #site :is(.tb-cuenta,.tb-fav,.tb-cart,.tb-filt):hover{ba
     verCategoria:function(id,sub){showView("store"); selectCat(String(id||"all"), sub||""); return true;},
     verProducto:function(id){openProduct(+id);},
     abrirDeseados:function(){renderWishlist(); show("wishOv");},
-    abrirCarrito:function(){showView("store"); $("app").classList.add("cart-open"); okiEmit("carrito-abierto");},
+    abrirCarrito:function(){showView("store"); var abierto=$("app").classList.toggle("cart-open"); okiEmit(abierto?"carrito-abierto":"carrito-cerrado");},
     entrarTienda:function(){showView("store");},
     /* Anadidos para el navbar unificado (oknav): sus botones entran a la tienda y actuan. */
     buscarEnTienda:function(texto){showView("store"); var qi=$("q"); if(qi) qi.value=texto; query=String(texto||"").trim(); reloadFromDB();},
