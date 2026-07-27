@@ -99,7 +99,7 @@
   window.OKtienda = {
     productos: function () { return Object.keys(CACHE).map(function (k) { return CACHE[k]; }); },
     carrito: cartArr,
-    deseados: function () { return rd(WISH, []).map(prod).filter(Boolean).map(function (p) { return { id: p.id, name: p.name, price: p.price, emoji: p.emoji, image: p.image, grad: p.grad }; }); },
+    deseados: function () { return rd(WISH, []).map(prod).filter(Boolean).map(function (p) { return { id: p.id, name: p.name, price: p.price, stock: p.stock, emoji: p.emoji, image: p.image, grad: p.grad }; }); },
     total: function () { var t = 0; cartArr().forEach(function (it) { t += it.price * it.qty; }); return t; },
     /* Busca en TODO el catálogo (deja los resultados en caché para resolverlos luego). */
     buscar: function (q, limit) {

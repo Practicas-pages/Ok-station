@@ -189,6 +189,10 @@ html[data-theme="dark"] .side-back:hover{background:rgba(255,255,255,.08)}
 .td-di .lt{font-size:.86rem;font-weight:700}
 .td-di .lnk{border:0;background:none;color:var(--brand-blue,#066CFF);font:inherit;font-size:.78rem;font-weight:600;cursor:pointer;padding:0}
 .td-di .lnk.del{color:#c0342c}
+.td-wishall{display:block;width:100%;margin:0 0 12px;padding:12px 14px;border:0;border-radius:11px;
+  background:#066CFF;color:#fff;font:inherit;font-size:.86rem;font-weight:800;cursor:pointer}
+.td-wishall:hover{background:#0558CC}
+.td-wishall:disabled{opacity:.55;cursor:default}
 .td-dtot{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px;font-weight:800}
 .td-dtot .v{font-size:1.15rem}
 .td-dgo{display:block;width:100%;padding:13px;border:0;border-radius:12px;background:var(--brand-blue,#066CFF);color:#fff;font:inherit;font-weight:800;font-size:.95rem;cursor:pointer;text-align:center;text-decoration:none}
@@ -546,7 +550,6 @@ html[data-theme="dark"] :is(.td-panel,.td-drawer,.td-ci,.td-di,.td-ship,.td-filt
 html[data-theme="dark"] :is(.co-phone,.co-ship button){background:#101827; color:var(--text-primary,#E9EDF6); border-color:var(--border-light,#26314A)}
 html[data-theme="dark"] .td-head{background:var(--surface-card,#171F31); color:var(--text-muted,#8A94AB)}
 html[data-theme="dark"] .td-row{border-color:var(--border-light,#26314A)}
-.td-panel.is-offers .td-panelh{border-left:5px solid #FF7C19;padding-left:13px}
 .td-panel.is-offers .td-price{color:#FF7C19}
 /* ── Paneles que traían blanco a mano (detectados en capturas reales):
    categorías/filtros (.td-cats hace de contenedor de ambos), chips, el botón de
@@ -574,6 +577,14 @@ html[data-theme="dark"] .tdpv-sideh{ border-bottom-color:var(--border-light,#263
 html[data-theme="dark"] .tdpv-sideb .mfaq{ background:#101827; border-color:var(--border-light,#26314A) }
 html[data-theme="dark"] .tdpv-sideb .mfaq b{ color:var(--text-primary,#E9EDF6) }
 html[data-theme="dark"] .tdpv-sideb .mfaq span{ color:var(--text-secondary,#B6BFD3) }
+/* Botones secundarios: fondo y borde visibles sobre las tarjetas oscuras. Las fotos
+   y sus miniaturas permanecen blancas para no alterar el producto. */
+html[data-theme="dark"] :is(.tdpv-x,.td-dx,.td-di .qty button){
+  background:#101827; color:#A8B6D0; border:1px solid #3A4968
+}
+html[data-theme="dark"] :is(.tdpv-x,.td-dx,.td-di .qty button):hover{
+  background:#122447; color:#7FB4FF; border-color:#066CFF
+}
 
 /* 3) El botón de enviar al carrito cuando está deshabilitado se veía gris claro. */
 html[data-theme="dark"] .td-go:disabled{ background:#232D46; color:#67708A }
@@ -1419,9 +1430,9 @@ html[data-theme="dark"] .td-go:disabled{ background:#232D46; color:#67708A }
     }
     $("tdFilts").innerHTML =
       '<div class="td-fgroup"><h4>Ordenar por</h4>'+orden+'</div>'+
-      '<div class="td-fgroup td-fgroup--categories"><h4>Categorías</h4><div class="td-fcat-host"></div></div>'+
-      '<div class="td-fgroup td-fgroup--brands"><h4>Marca</h4>'+marcas+'</div>';
-    /* El nodo real de categorías queda entre orden y marcas. Al moverlo conserva
+      '<div class="td-fgroup td-fgroup--brands"><h4>Marca</h4>'+marcas+'</div>'+
+      '<div class="td-fgroup td-fgroup--categories"><h4>Categorías</h4><div class="td-fcat-host"></div></div>';
+    /* El nodo real de categorías queda después de orden y marcas. Al moverlo conserva
        listeners y selección; en móvil continúa mandando el carril independiente. */
     var catHost=$("tdFilts").querySelector(".td-fcat-host");
     if(catHost&&sideCats) catHost.appendChild(sideCats);
@@ -1893,8 +1904,14 @@ html[data-theme="dark"] .td-go:disabled{ background:#232D46; color:#67708A }
   }
   function renderWish(){
     var o = OK(), items = o ? o.deseados() : [];
+    var disponibles = items.filter(function(it){ return it.stock == null || it.stock > 0; });
+    var suma = disponibles.reduce(function(total,it){ return total + (+it.price || 0); }, 0);
     $("tdWishBody").innerHTML = items.length
-      ? items.map(wishRow).join("")
+      ? '<button type="button" class="td-wishall" data-waddall'+(disponibles.length?'':' disabled')+'>'+
+          (disponibles.length
+            ? 'Agregar todo al carrito ('+disponibles.length+' · '+mxn(suma)+')'
+            : 'Sin existencias por ahora')+
+        '</button>'+items.map(wishRow).join("")
       : '<div class="td-dempty">No tienes favoritos todavía.<br>Marca el <span style="color:#e11d48">'+ICO_HEART+'</span> en un producto desde la tienda.</div>';
   }
 
@@ -1973,6 +1990,13 @@ html[data-theme="dark"] .td-go:disabled{ background:#232D46; color:#67708A }
   });
   $("tdWishDrawer").addEventListener("click", function(e){
     var o = OK(); if (!o) return;
+    if (e.target.closest("[data-waddall]")){
+      var disponibles = o.deseados().slice().filter(function(it){ return it.stock == null || it.stock > 0; });
+      disponibles.forEach(function(it){ o.agregar(+it.id, 1); });
+      renderCart();
+      openDrawer($("tdCartDrawer"));
+      return;
+    }
     var t = e.target.closest("[data-wadd],[data-wrm]"); if (!t) return;
     if (t.hasAttribute("data-wadd")) o.agregar(+t.dataset.wadd, 1);   // pasa de favorito a carrito
     else if (t.hasAttribute("data-wrm")) o.toggleDeseado(+t.dataset.wrm);

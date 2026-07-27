@@ -597,7 +597,7 @@ html.store-view .header-bar, html.store-view .site-header{display:none}
 /* Vista de LISTA */
 #site .pdesc{display:none}
 #site .grid.is-list{grid-template-columns:1fr; gap:9px; max-width:var(--store-col); margin-inline:auto}
-#site .grid.is-list .prod{flex-direction:row; align-items:center; gap:16px; padding:12px 66px 12px 14px}
+#site .grid.is-list .prod{flex-direction:row; align-items:center; gap:16px; padding:12px 112px 12px 14px}
 #site .grid.is-list .prod .ph{width:76px; height:62px; margin:0; flex:none}
 #site .grid.is-list .prod .pemoji{font-size:28px}
 #site .grid.is-list .prod .pinfo{flex-direction:row; align-items:center; gap:18px}
@@ -1053,6 +1053,13 @@ html[data-theme="dark"] #site :is(.field input,.field select,.field textarea,.mo
    blancos gritaban en el censo). Con !important porque heartBtn() los pinta con
    ESTILO EN LÍNEA (style="background:#fff…") y ningún selector normal le gana. */
 html[data-theme="dark"] #site .wishbtn{background:#101827 !important; border-color:var(--line) !important}
+/* Los controles secundarios no deben perderse contra la tarjeta oscura. En especial,
+   la vista rápida necesita un borde y un fondo distintos a los de la tarjeta. */
+html[data-theme="dark"] #site .quick{
+  background:#101827; color:#A8B6D0; border-color:#3A4968; box-shadow:0 2px 8px rgba(0,0,0,.3)
+}
+html[data-theme="dark"] #site .quick:hover{background:#122447; color:#7FB4FF; border-color:#066CFF}
+html[data-theme="dark"] #site .viewtoggle button:not(.on){color:#A8B6D0}
 /* Botón ACTIVO del selector lista/cuadros: blanco, como el resto de lo activo. */
 html[data-theme="dark"] #site .viewtoggle button.on{background:#fff; color:#12141C}
 /* ── ENCABEZADO NOCHE ──
@@ -1150,7 +1157,6 @@ html[data-theme="dark"] #site .side-back:hover{background:rgba(255,255,255,.08)}
 #site .pmeta{display:flex; align-items:baseline; gap:8px; flex-wrap:wrap; margin:3px 0 9px}
 #site .pmeta .price{font-weight:800; font-size:1.02rem}
 #site .app.offers-view .ctitle,#site .app.offers-view .prod .price{color:#FF7C19}
-#site .app.offers-view .catbar{border-left:5px solid #FF7C19; padding-left:13px}
 #site .pmeta .stock{font-size:.72rem; color:var(--muted)}
 #site .pmeta .stock.low{color:var(--amber)}
 #site .pbtns{display:flex; gap:7px; position:relative; z-index:2}
@@ -2201,9 +2207,9 @@ html[data-theme="dark"] #site .side-back:hover{background:rgba(255,255,255,.08)}
     }
     $("fdrawBody").innerHTML=
       '<div class="fgroup"><h4>Ordenar por</h4>'+orden+'</div>'+
-      '<div class="fgroup fgroup--categories"><h4>Categorías</h4><div class="fcat-host"></div></div>'+
-      '<div class="fgroup fgroup--brands"><h4>Marca</h4>'+marcas+'</div>';
-    /* La lista real queda ENTRE orden y marcas. Mover el mismo nodo conserva su
+      '<div class="fgroup fgroup--brands"><h4>Marca</h4>'+marcas+'</div>'+
+      '<div class="fgroup fgroup--categories"><h4>Categorías</h4><div class="fcat-host"></div></div>';
+    /* La lista real queda DESPUÉS de orden y marcas. Mover el mismo nodo conserva su
        selección y listeners; en móvil continúa oculta aquí y manda su cajón propio. */
     var catHost=$("fdrawBody").querySelector(".fcat-host");
     if(catHost&&sideCats) catHost.appendChild(sideCats);
