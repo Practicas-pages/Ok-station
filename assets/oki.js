@@ -528,6 +528,17 @@
 
     // Recomendación / consejo
     if (/recomienda|recomiendas|recomendacion|sugiere|sugerencia|que compro|que me llevo|que mas llevo|aconseja|un consejo/.test(t)) {
+      /* Si piden algo ESPECÍFICO ("recomiéndame un tóner", "sugiéreme algo para mi
+         impresora"), eso lo contesta mejor la IA del servidor (sabe compatibilidades
+         y qué es cada cosa); la regla local solo atiende el "¿qué me recomiendas?"
+         GENÉRICO del carrito. Se recorta el verbo y las muletillas: si sobra un
+         sustantivo que NO empata con el catálogo local, se deja pasar al servidor. */
+      var resto = t
+        .replace(/\b(me|que|puedes|podrias|oki)\b/g, " ")
+        .replace(/recomienda(s|me|rias)?|recomendacion(es)?|sugiere(me)?|sugerencia(s)?|aconseja(me|s)?|un consejo|que compro|que me llevo|que mas llevo/g, " ")
+        .replace(/\b(algo|para|comprar|llevar|llevarme|de|del|la|el|los|las|un|una|unos|unas|mi|mis|tu|hoy|ahora|porfa|por favor|mejor|bueno|buena)\b/g, " ")
+        .replace(/\s+/g, " ").trim();
+      if (resto.length >= 3 && !okiMatchProd(resto)) return null;   // → servidor (Gemini)
       var r = okiRecommend();
       if (!r) return "Ya llevas de todo 😄 ¿Te muestro el carrito o quieres ver otra categoría?";
       return "Te recomiendo " + (r.emoji ? r.emoji + " " : "") + r.name + " — " + okiMxn(r.price) + (r.old ? " (¡en oferta! 🔥)" : "") + "\nDime \"agrégalo\" y lo pongo en tu carrito. 🛒";

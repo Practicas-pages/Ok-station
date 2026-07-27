@@ -191,7 +191,7 @@ $ldCrumbs = [
   <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"></noscript>
   <!-- Tema (claro/oscuro): antes de la hoja para pintar ya con el tema elegido -->
   <script src="/assets/theme.js?v=20260721a"></script>
-  <link rel="stylesheet" href="/styles.css?v=20260716b">
+  <link rel="stylesheet" href="/styles.css?v=20260727b">
   <link rel="stylesheet" href="/assets/shop-header.css?v=20260717f">
   <link rel="stylesheet" href="/assets/producto.css?v=20260716b">
   <link rel="stylesheet" href="/assets/oki.css?v=20260716d">
@@ -691,7 +691,7 @@ $ldCrumbs = [
 <script src="/assets/address-book.js?v=20260727a" defer></script>
 <script src="/assets/catalogo.js?v=20260716a" defer></script>
 <script src="/assets/ok-anim.js?v=20260727a" defer></script>
-<script src="/assets/oki.js?v=20260727a" defer></script>
+<script src="/assets/oki.js?v=20260727b" defer></script>
   <script src="/assets/oknav.js?v=20260724a" defer></script>
 </body>
 </html>

@@ -36,22 +36,19 @@
 /* Cintilla de la compra rápida: azul de marca PLANO (antes el degradado arcoíris de la
    tienda). Encaja con la navbar de arriba, que también es plana, y quita el degradado
    más grande de la página. */
-.td-band{background:var(--brand-blue,#066CFF)}
-.td-band__in{max-width:var(--sb-col,1200px);margin:0 auto;padding:11px max(14px,16px);
-  display:flex;align-items:center;gap:12px;flex-wrap:wrap}
-/* En OSCURO no lleva degradado: ZequiDev dejó las tres barras del sitio lisas en
-   modo noche (--nav-top arriba, --nav-bottom en la fila de abajo). La cintilla es
-   fila de abajo, así que toma --nav-bottom; si no, quedaría una franja brillante
-   colgando de una barra apagada. El tema claro conserva el degradado. */
-html[data-theme="dark"] .td-band{background:var(--nav-bottom,#151D34);
-  border-top:1px solid var(--nav-line,rgba(255,255,255,.10))}
-html[data-theme="dark"] .td-band :is(.td-back,.td-catbtn){
-  background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.30)}
-html[data-theme="dark"] .td-band :is(.td-back,.td-catbtn):hover{background:rgba(255,255,255,.16)}
-/* ── Barra superior: categorías + filtros ──
+/* Fila superior (móvil/tablet): Volver + Categorías + Filtros, sin cinta de color.
+   En escritorio se esconde entera: Volver vive en el sidebar y los botones sobran. */
+.td-topbar{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+.td-topbar .td-back{margin-bottom:0}
+/* "Volver a la tienda" del sidebar (solo escritorio). */
+.side-back{display:none;align-items:center;gap:7px;color:var(--muted,#667085);text-decoration:none;
+  font-size:.85rem;font-weight:700;padding:8px 11px;margin-bottom:6px;border-radius:10px}
+.side-back:hover{color:var(--brand-blue,#066CFF);background:var(--soft,#f2f5fb)}
+html[data-theme="dark"] .side-back:hover{background:rgba(255,255,255,.08)}
+/* ── Botones categorías + filtros (móvil) ──
    El buscador salió de aquí: ahora es el de la navbar (#oknavQ), que filtra esta
-   tabla en vivo. Los dos botones se quedan a la DERECHA de la cintilla (junto a
-   "Volver a la tienda", que va a la izquierda), en vez de estirarse a todo lo ancho. */
+   tabla en vivo. Los dos botones van a la DERECHA de la fila superior (junto a
+   "Volver a la tienda", que va a la izquierda). */
 .td-top{display:flex;gap:10px;align-items:center;justify-content:flex-end;
   flex:1 1 auto;min-width:0;flex-wrap:wrap}
 .td-catbtn{
@@ -274,6 +271,7 @@ html[data-theme="dark"] .side-cat.on{background:rgba(6,108,255,.20);color:#7cc0f
   .store-side{display:block;position:sticky;top:calc(var(--oknav-h) + 14px);align-self:start;
     max-height:calc(100vh - var(--oknav-h) - 28px);overflow-y:auto;overflow-x:hidden;padding-right:2px}
   .side-cats{display:block}
+  .side-back{display:flex}
   .side-h{display:block;font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.05em;color:var(--muted,#667085);margin:2px 0 8px 4px}
   /* Los botones del listón y el panel de chips ya no hacen falta: viven en el sidebar. */
   .td-top,#tdCats{display:none}
@@ -290,6 +288,24 @@ html[data-theme="dark"] .side-cat.on{background:rgba(6,108,255,.20);color:#7cc0f
   html[data-theme="dark"] .store-side .td-fopt{background:transparent}
   .store-side .td-fopt .n{margin-left:auto;color:var(--muted,#667085)}
   .store-side .td-fsearch,.store-side .td-fbsearch{width:100%;box-sizing:border-box}
+}
+
+/* ═══ AJUSTE A LA PANTALLA (escritorio): la compra rápida CABE COMPLETA en el
+   viewport, sin scroll de página (pedido del dueño: la página se adapta a la
+   resolución del dispositivo). Solo scrollean POR DENTRO la columna de
+   categorías/filtros, la tabla de productos y el pre-carrito. --oknav-h es la
+   altura real de la navbar (medida por oknav.js), así el cálculo cuadra en
+   cualquier resolución. En móvil se conserva el scroll normal de página. ═══ */
+@media(min-width:981px){
+  html,body{height:100%;overflow:hidden}
+  .td-wrap{height:calc(100dvh - var(--oknav-h,158px));box-sizing:border-box;
+    display:flex;flex-direction:column;overflow:hidden;padding-top:14px;padding-bottom:14px}
+  .td-topbar{display:none}   /* Volver vive en el sidebar; Categorías/Filtros, también */
+  .td-grid{flex:1 1 auto;min-height:0;grid-template-rows:minmax(0,1fr)}
+  .store-side{position:static;top:auto;max-height:100%;height:100%;overflow-y:auto}
+  .td-panel{height:100%;min-height:0;display:flex;flex-direction:column}
+  .td-scroll{flex:1 1 auto;min-height:0;max-height:none}
+  .td-cart{position:static;top:auto;height:100%;min-height:0;overflow-y:auto}
 }
 
 /* ── Panel de productos ── */
@@ -465,19 +481,8 @@ body.td-predrag .td-trash{display:flex}
 .td-msg{font-size:.76rem;text-align:center;margin-top:8px;min-height:1em;color:#b42318;font-weight:600}
 .td-msg.ok{color:#067647}
 
-/* Volver */
-/* "Volver a la tienda" copia a .shopbar__back: píldora translúcida con borde blanco
-   sobre el degradado. Va DESPUÉS de la regla vieja para ganarle sin tener que
-   borrarla (la de abajo sigue sirviendo si algún día sale de la cintilla). */
-.td-band .td-back{flex:none;color:#fff;font-weight:700;font-size:.82rem;margin:0;
-  padding:8px 14px;border-radius:10px;background:rgba(9,14,34,.42);
-  border:1.5px solid rgba(255,255,255,.6);backdrop-filter:blur(8px);transition:background .15s}
-.td-band .td-back:hover{background:rgba(9,14,34,.56);color:#fff}
-/* Sobre la cintilla los botones dejan el degradado (competía con el fondo) y pasan a
-   la píldora sólida, igual que .shopbar .pop sobre el carril de la tienda. */
-.td-band .td-catbtn{height:46px;background:rgba(9,14,34,.42);border:1.5px solid rgba(255,255,255,.6);
-  backdrop-filter:blur(8px);box-shadow:none}
-.td-band .td-catbtn:hover{background:rgba(9,14,34,.62);transform:translateY(-1px);box-shadow:none}
+/* Volver (la cintilla azul ya no existe: el enlace vive en la fila superior en
+   móvil y en el sidebar en escritorio). */
 .td-back{display:inline-flex;align-items:center;gap:6px;color:var(--muted,#667085);text-decoration:none;
   font-size:.85rem;font-weight:600;margin-bottom:12px}
 .td-back:hover{color:var(--brand-blue,#066CFF)}
@@ -502,10 +507,6 @@ body.td-predrag .td-trash{display:flex}
      lo que antes ocupaba la fila de abajo, y así siguen siendo cómodos de tocar. */
   .td-top{flex:1 0 100%}
   .td-top > .td-catbtn{flex:1 1 0;min-width:0}
-  /* En el teléfono la cintilla aprieta márgenes y "Volver" se va a su propia fila
-     pegado a la izquierda, para no robarle ancho a los botones. */
-  .td-band__in{padding:9px 14px;gap:8px}
-  .td-band .td-back{padding:6px 12px;font-size:.78rem}
   .td-catbtn{height:46px;padding:0 12px;font-size:.86rem;justify-content:center}
   /* La 5ª columna del corazón no cabe: vuelve a 4 columnas y el corazón se monta
      SOBRE la imagen (como en las tarjetas de la tienda). Así nada se desborda. */
@@ -804,33 +805,31 @@ html[data-theme="dark"] .td-go:disabled{ background:#232D46; color:#67708A }
        compra rápida (botón "Categorías" de la página). El carril navegaba a la tienda
        normal, que sacaba al usuario de aquí. "Volver a la tienda" queda en el cuerpo. -->
 </header>
-<!-- CINTILLA: la misma franja que la tienda cuelga bajo su navbar. Va FUERA de
-     .td-wrap porque el fondo tiene que ir a todo lo ancho; el contenido de adentro
-     se vuelve a alinear con .td-band__in al mismo ancho de columna del sitio. -->
-<div class="td-band">
- <div class="td-band__in">
-  <a class="td-back" href="tienda.html">
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>
-    Volver a la tienda
-  </a>
-
-  <!-- Categorías + filtros. El BUSCADOR es el de la navbar (#oknavQ): tener aquí otro
-       campo dejaba dos buscadores casi idénticos uno encima del otro. Ahora ese único
-       campo filtra esta tabla mientras escribes (ver OKtienda.buscarEnVivo, abajo). -->
-  <div class="td-top">
-    <button class="td-catbtn" id="tdCatBtn" type="button" aria-expanded="false">
-      Categorías
-      <svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M6 9l6 6 6-6"/></svg>
-    </button>
-    <button class="td-catbtn td-filtbtn" id="tdFiltBtn" type="button" aria-expanded="false">
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="6" x2="20" y2="6"/><line x1="7" y1="12" x2="17" y2="12"/><line x1="10" y1="18" x2="14" y2="18"/></svg>
-      Filtros<span class="fct" id="tdFiltCount" hidden>0</span>
-      <svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M6 9l6 6 6-6"/></svg>
-    </button>
-  </div>
- </div>
-</div>
+<!-- La CINTILLA azul se eliminó (pedido del dueño): robaba una franja de alto a la
+     página. "Volver a la tienda" vive ahora en el sidebar (escritorio) y en esta
+     fila ligera (móvil), que también carga los botones Categorías/Filtros. -->
 <main class="td-wrap">
+  <div class="td-topbar">
+    <a class="td-back" href="tienda.html">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>
+      Volver a la tienda
+    </a>
+
+    <!-- Categorías + filtros. El BUSCADOR es el de la navbar (#oknavQ): tener aquí otro
+         campo dejaba dos buscadores casi idénticos uno encima del otro. Ese único
+         campo filtra esta tabla mientras escribes (ver OKtienda.buscarEnVivo, abajo). -->
+    <div class="td-top">
+      <button class="td-catbtn" id="tdCatBtn" type="button" aria-expanded="false">
+        Categorías
+        <svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M6 9l6 6 6-6"/></svg>
+      </button>
+      <button class="td-catbtn td-filtbtn" id="tdFiltBtn" type="button" aria-expanded="false">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="6" x2="20" y2="6"/><line x1="7" y1="12" x2="17" y2="12"/><line x1="10" y1="18" x2="14" y2="18"/></svg>
+        Filtros<span class="fct" id="tdFiltCount" hidden>0</span>
+        <svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M6 9l6 6 6-6"/></svg>
+      </button>
+    </div>
+  </div>
   <div class="td-cats" id="tdCats"><div class="row" id="tdCatsRow"></div></div>
   <div class="td-cats" id="tdFilts"></div>
 
@@ -840,6 +839,10 @@ html[data-theme="dark"] .td-go:disabled{ background:#232D46; color:#67708A }
          igual que la tienda muda su fdraw al sidebar. En móvil no se ve: mandan los
          desplegables del listón. -->
     <aside class="store-side" id="tdSide">
+      <a class="side-back" href="tienda.html">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>
+        Volver a la tienda
+      </a>
       <p class="side-h">Categorías</p>
       <nav class="side-cats" id="tdSideCats" aria-label="Categorías de la tienda"></nav>
     </aside>
@@ -2202,7 +2205,7 @@ html[data-theme="dark"] .td-go:disabled{ background:#232D46; color:#67708A }
 <!-- OKi (astronauta): se auto-inyecta. Va DESPUÉS de shop-cart.js, que define
      window.OKtienda (el puente del carrito/deseados compartido que OKi lee). -->
 <script src="assets/ok-anim.js?v=20260727a" defer></script>
-<script src="assets/oki.js?v=20260727a" defer></script>
+<script src="assets/oki.js?v=20260727b" defer></script>
 <script src="/assets/oknav.js?v=20260724a" defer></script>
 </body>
 </html>

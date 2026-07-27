@@ -203,6 +203,15 @@ svg:where(:not([width]):not([height])) {
   flex-shrink: 0;
 }
 
+/* Los iconos SVG EN LÍNEA (los que traen width/height puestos, como los que
+   sustituyeron a los emojis 📍🔥❤🛒) fluyen CON el texto: el display:block del
+   reset de arriba los aventaba a su propio renglón (se vio en la lista de OKi).
+   Va en :where() para que cualquier regla con clase le siga ganando. */
+svg:where([width][height]) {
+  display: inline-block;
+  vertical-align: -0.125em;
+}
+
 a {
   color: inherit;
   text-decoration: none;
