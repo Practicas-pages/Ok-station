@@ -46,17 +46,19 @@
   --brand-black:       #000000;
 
   /* ── Gradientes OFICIALES (segmentos del gradiente oficial del Brand Book) ── */
-  --grad-azul-cyan:         linear-gradient(135deg, #066CFF 0%, #00C6FF 100%);
-  --grad-naranja-purpura:   linear-gradient(135deg, #FF7C19 0%, #9C1DFF 100%);
-  --grad-purpura-azul-cyan: linear-gradient(135deg, #9C1DFF 0%, #066CFF 55%, #00C6FF 100%);
-  --grad-oficial:           linear-gradient(135deg, #00C6FF 0%, #066CFF 32%, #9C1DFF 66%, #FF7C19 100%);
+  /* SIN degradados (acuerdo jul 2026): los tokens conservan su nombre para no tocar
+     cada uso, pero ahora valen COLORES PLANOS de la paleta azul existente. */
+  --grad-azul-cyan:         #066CFF;
+  --grad-naranja-purpura:   #FF7C19;
+  --grad-purpura-azul-cyan: #066CFF;
+  --grad-oficial:           #066CFF;
   /* Alias de compatibilidad → mapeados a los oficiales */
   --grad-brand:   var(--grad-purpura-azul-cyan);
   --grad-blue:    var(--grad-azul-cyan);
   --grad-purple:  var(--grad-purpura-azul-cyan);
   --grad-warm:    var(--grad-naranja-purpura);
-  --grad-hero-overlay: linear-gradient(135deg, rgba(6,108,255,0.92) 0%, rgba(156,29,255,0.85) 100%);
-  --grad-dark:    linear-gradient(180deg, #000000 0%, #0B0B12 100%);
+  --grad-hero-overlay: rgba(6,108,255,0.90);
+  --grad-dark:    #0B0B12;
 
   /* ── Superficies y fondos ── */
   --surface-bg:       #F2F4F8;
@@ -414,8 +416,8 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .tag--purple {
-  background: rgba(156,29,255,0.1);
-  color: var(--brand-purple-hover);
+  background: rgba(6,108,255,0.1);
+  color: var(--brand-blue-hover);
 }
 
 .tag--white {
@@ -501,7 +503,7 @@ h1, h2, h3, h4, h5, h6 {
 
 .btn--brand:hover {
   transform: translateY(-2px);
-  box-shadow: 0 16px 44px rgba(6,108,255,0.36), 0 8px 20px rgba(156,29,255,0.22);
+  box-shadow: 0 16px 44px rgba(6,108,255,0.36), 0 8px 20px rgba(6,108,255,0.22);
 }
 
 /* Outline sobre oscuro */
@@ -535,14 +537,14 @@ h1, h2, h3, h4, h5, h6 {
 /* WhatsApp — verde de marca VIVO (degradado) con sombra de texto para legibilidad
    del blanco encima (el degradado + text-shadow lo hacen legible sin apagar el verde). */
 .btn--wa {
-  background: linear-gradient(135deg, #25D366 0%, #0FB84F 100%);
+  background: #25D366;
   color: #fff;
   text-shadow: 0 1px 2px rgba(4, 40, 20, 0.35);
   box-shadow: 0 8px 22px rgba(37,211,102,0.42);
 }
 
 .btn--wa:hover {
-  background: linear-gradient(135deg, #2FE472 0%, #16C95E 100%);
+  background: #2FE472;
   transform: translateY(-3px) scale(1.03);
   box-shadow: 0 18px 46px rgba(37,211,102,0.55);
 }
@@ -740,7 +742,7 @@ h1, h2, h3, h4, h5, h6 {
   gap: 7px;
   border: 0 !important;
   color: #fff !important;
-  background: linear-gradient(115deg, #0552C8 0%, #066CFF 34%, #00A6FF 66%, #00C6FF 100%) !important;
+  background: #066CFF !important;
   background-size: 200% 200% !important;
   animation: navTiendaFlow 8s ease infinite !important;
   box-shadow: 0 6px 18px rgba(6, 108, 255, .32) !important;
@@ -757,15 +759,15 @@ h1, h2, h3, h4, h5, h6 {
   gap: 7px;
   border: 0 !important;
   color: #fff !important;
-  background: linear-gradient(115deg, #7A12E0 0%, #9C1DFF 38%, #6A2BF5 72%, #066CFF 100%) !important;
+  background: #066CFF !important;
   background-size: 200% 200% !important;
   animation: navTiendaFlow 8s ease infinite !important;
-  box-shadow: 0 6px 18px rgba(124, 18, 224, .30) !important;
+  box-shadow: 0 6px 18px rgba(6, 108, 255, .30) !important;
   transition: transform .18s ease, box-shadow .18s ease !important;
 }
 .nav__rapida:hover {
   transform: translateY(-1px);
-  box-shadow: 0 10px 26px rgba(124, 18, 224, .42) !important;
+  box-shadow: 0 10px 26px rgba(6, 108, 255, .42) !important;
 }
 @media (max-width: 768px) { .nav__rapida { padding: 9px 12px; } }
 @media (max-width: 380px) { .nav__rapida { padding: 9px 10px; } }
@@ -778,7 +780,7 @@ h1, h2, h3, h4, h5, h6 {
   line-height: 1;
   padding: 3px 7px;
   border-radius: var(--radius-full);
-  background: linear-gradient(135deg, #FF7C19, #FF9A3D);
+  background: #FF7C19;
   color: #fff;
   box-shadow: 0 3px 8px rgba(255, 124, 25, .4);
 }
@@ -995,7 +997,7 @@ h1, h2, h3, h4, h5, h6 {
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(ellipse 60% 60% at 80% 50%, rgba(156,29,255,0.30) 0%, transparent 65%),
+    radial-gradient(ellipse 60% 60% at 80% 50%, rgba(6,108,255,0.30) 0%, transparent 65%),
     radial-gradient(ellipse 50% 70% at 20% 30%, rgba(6,108,255,0.35) 0%, transparent 60%),
     linear-gradient(160deg, rgba(10,10,15,0.85) 0%, rgba(12,10,20,0.75) 100%);
 }
@@ -1649,7 +1651,7 @@ h1, h2, h3, h4, h5, h6 {
 .tramite-btn[data-tramite="visa"],
 .tramite-btn[data-tramite="i94"],
 .tramite-btn[data-tramite="ine"],
-.tramite-btn[data-tramite="apostille"] { --taccent:#9C1DFF; --tgrad:var(--grad-purple); --ttext:#cba0ff; --ttagbg:rgba(156,29,255,0.22); }
+.tramite-btn[data-tramite="apostille"] { --taccent:#066CFF; --tgrad:var(--grad-blue); --ttext:#8fb8ff; --ttagbg:rgba(6,108,255,0.20); }
 
 .tramite-btn__icon {
   width: 56px;
@@ -2994,7 +2996,7 @@ h1, h2, h3, h4, h5, h6 {
   align-items: center;
   justify-content: center;
   gap: var(--space-2);
-  background: linear-gradient(135deg, #E8F0FF 0%, #F0E8FF 100%);
+  background: #E8F0FF;
   color: var(--text-muted);
   font-size: 0.8125rem;
   font-weight: 500;
@@ -3914,10 +3916,10 @@ body::before {
   z-index: -1;
   pointer-events: none;
   background:
-    radial-gradient(circle at 20% 25%, rgba(156, 29, 255, 0.12), transparent 45%),
+    radial-gradient(circle at 20% 25%, rgba(6, 108, 255, 0.12), transparent 45%),
     radial-gradient(circle at 82% 30%, rgba(6, 108, 255, 0.12), transparent 45%),
     radial-gradient(circle at 55% 92%, rgba(0, 198, 255, 0.10), transparent 45%),
-    radial-gradient(circle at 90% 85%, rgba(255, 124, 25, 0.07), transparent 40%);
+    radial-gradient(circle at 90% 85%, rgba(0, 166, 255, 0.056), transparent 40%);
   will-change: transform;
   animation: aurora-float 30s ease-in-out infinite alternate;
 }
@@ -3948,7 +3950,7 @@ body::before {
   max-height: 720px;
   top: -12%;
   left: -6%;
-  background: radial-gradient(circle, rgba(156, 29, 255, 0.65) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(6, 108, 255, 0.65) 0%, transparent 70%);
   animation: blob-drift-a 20s ease-in-out infinite;
 }
 
@@ -3980,7 +3982,7 @@ body::before {
   opacity: 0.30;
   pointer-events: none;
   mix-blend-mode: screen;
-  background: radial-gradient(circle, rgba(255, 124, 25, 0.55) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(0, 166, 255, 0.44) 0%, transparent 70%);
   will-change: transform;
   animation: blob-drift-c 26s ease-in-out infinite;
 }
@@ -4016,7 +4018,7 @@ body::before {
   z-index: 0;
   pointer-events: none;
   background:
-    radial-gradient(60% 80% at 12% 18%, rgba(156, 29, 255, 0.20), transparent 60%),
+    radial-gradient(60% 80% at 12% 18%, rgba(6, 108, 255, 0.20), transparent 60%),
     radial-gradient(55% 75% at 88% 28%, rgba(6, 108, 255, 0.22), transparent 60%),
     radial-gradient(55% 70% at 60% 100%, rgba(0, 198, 255, 0.16), transparent 60%);
   background-size: 170% 170%;
@@ -4038,7 +4040,7 @@ body::before {
   z-index: 0;
   pointer-events: none;
   background:
-    radial-gradient(55% 75% at 15% 15%, rgba(156, 29, 255, 0.08), transparent 60%),
+    radial-gradient(55% 75% at 15% 15%, rgba(6, 108, 255, 0.08), transparent 60%),
     radial-gradient(55% 75% at 85% 25%, rgba(6, 108, 255, 0.09), transparent 60%),
     radial-gradient(50% 70% at 55% 100%, rgba(0, 198, 255, 0.07), transparent 60%);
   background-size: 170% 170%;
@@ -4075,7 +4077,7 @@ body::before {
   overflow: hidden;
   isolation: isolate;
   padding: clamp(44px, 6vw, 80px) 0;
-  background: linear-gradient(180deg, #FFFFFF 0%, #F5F3FF 60%, #EFF3FF 100%);
+  background: #FFFFFF;
   border-top: 1px solid var(--border-light);
   border-bottom: 1px solid var(--border-light);
 }
@@ -4121,11 +4123,7 @@ body::before {
 
 /* Resaltado elegante (Stripe/Linear): solo las palabras clave en gradiente */
 .brand-band__accent {
-  background: linear-gradient(95deg, #9C1DFF 0%, #066CFF 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  -webkit-text-fill-color: transparent;
+  color: #066CFF;
 }
 
 .brand-band__lead {
@@ -4332,22 +4330,22 @@ body {
 
 /* ── Secciones antes oscuras → gradiente profundo de marca ── */
 .hero {
-  background: linear-gradient(120deg, #3C0E9E 0%, #1A37B4 52%, #0E5CE6 100%);
+  background: #1A37B4;
 }
 /* Overlay del hero: glows de marca y oscurecido más ligero (look vibrante) */
 .hero__bg-overlay {
   background:
     radial-gradient(ellipse 60% 60% at 82% 45%, rgba(0,198,255,0.34) 0%, transparent 62%),
-    radial-gradient(ellipse 55% 70% at 16% 30%, rgba(156,29,255,0.42) 0%, transparent 60%),
+    radial-gradient(ellipse 55% 70% at 16% 30%, rgba(6,108,255,0.42) 0%, transparent 60%),
     linear-gradient(150deg, rgba(40,12,110,0.42) 0%, rgba(10,38,140,0.50) 100%);
 }
 
 .citas-section {
-  background: linear-gradient(160deg, #2E0E86 0%, #16267F 55%, #0E2E9E 100%);
+  background: #16267F;
 }
 
 .site-footer {
-  background: linear-gradient(160deg, #230B5E 0%, #142A7E 58%, #0B2E9E 100%);
+  background: #142A7E;
 }
 
 /* ── Secciones alternas → gris muy suave (descanso visual, bloque diferenciado) ── */
@@ -4598,7 +4596,7 @@ body {
   inset: 0;
   z-index: 0;
   pointer-events: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 320' preserveAspectRatio='none'%3E%3Cpath d='M-40 180 C 300 40 620 300 960 170 S 1480 60 1620 190' fill='none' stroke='%239C1DFF' stroke-width='80' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 320' preserveAspectRatio='none'%3E%3Cpath d='M-40 180 C 300 40 620 300 960 170 S 1480 60 1620 190' fill='none' stroke='%23066CFF' stroke-width='80' stroke-linecap='round'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: center;
   background-size: 135% auto;
@@ -4611,7 +4609,7 @@ body {
    28. HERO EN ESTILO CLARO (manifiesto): poco azul, fondo claro + swish
    ============================================================ */
 .hero {
-  background: linear-gradient(180deg, #FFFFFF 0%, #F5F4FF 55%, #EDF1FF 100%);
+  background: #FFFFFF;
 }
 /* Quitar blobs vibrantes (eran para fondo oscuro) */
 .hero__bg::before,
@@ -4621,9 +4619,9 @@ body {
 /* Overlay claro: blobs pastel + onda suave */
 .hero__bg-overlay {
   background:
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 360' preserveAspectRatio='none'%3E%3Cpath d='M-40 210 C 320 70 640 330 980 200 S 1480 80 1620 220' fill='none' stroke='%239C1DFF' stroke-opacity='0.45' stroke-width='72' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat center 80% / 135% auto,
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 360' preserveAspectRatio='none'%3E%3Cpath d='M-40 210 C 320 70 640 330 980 200 S 1480 80 1620 220' fill='none' stroke='%23066CFF' stroke-opacity='0.45' stroke-width='72' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat center 80% / 135% auto,
     radial-gradient(46% 56% at 82% 20%, rgba(6, 108, 255, 0.08), transparent 62%),
-    radial-gradient(42% 56% at 12% 30%, rgba(156, 29, 255, 0.09), transparent 62%);
+    radial-gradient(42% 56% at 12% 30%, rgba(6, 108, 255, 0.09), transparent 62%);
 }
 
 /* Texto oscuro */
@@ -4853,13 +4851,7 @@ body {
 
 /* ── 4. HERO BACKGROUND: degradado azul-cyan de marca ── */
 .hero {
-  background: linear-gradient(
-    135deg,
-    #ddeeff 0%,
-    #e4f0ff 30%,
-    #e8f5ff 60%,
-    #ddf0ff 100%
-  ) !important;
+  background: #ddeeff !important;
 }
 
 .hero__bg-overlay {
@@ -5206,7 +5198,7 @@ body:not(.admin)::before {
   inset: 0;
   z-index: -2;
   pointer-events: none;
-  background: linear-gradient(135deg, #07153a 0%, #0c2358 28%, #143c88 50%, #0c2358 72%, #07153a 100%);
+  background: #07153a;
   background-size: 280% 280%;
   /* !important para que el fondo SIEMPRE se mueva, aun con "reducir movimiento"
      activado (el reset global *::before lo apagaba). Es más específico que *. */
@@ -5222,7 +5214,7 @@ body:not(.admin)::after {
   pointer-events: none;
   background:
     radial-gradient(38% 42% at 22% 26%, rgba(0, 198, 255, 0.30), transparent 60%),
-    radial-gradient(42% 48% at 82% 40%, rgba(156, 47, 255, 0.28), transparent 62%),
+    radial-gradient(42% 48% at 82% 40%, rgba(6, 108, 255, 0.28), transparent 62%),
     radial-gradient(46% 52% at 58% 90%, rgba(6, 108, 255, 0.32), transparent 64%);
   background-size: 200% 200%;
   animation: oks-water-blobs 26s ease-in-out infinite !important;
@@ -5275,7 +5267,7 @@ body.admin::before, body.admin::after { display: none !important; }
 .citas-section::before,
 .site-footer::before {
   background:
-    radial-gradient(60% 80% at 12% 18%, rgba(156, 29, 255, 0.18), transparent 60%),
+    radial-gradient(60% 80% at 12% 18%, rgba(6, 108, 255, 0.18), transparent 60%),
     radial-gradient(55% 75% at 88% 28%, rgba(6, 108, 255, 0.20), transparent 60%) !important;
 }
 
@@ -5425,10 +5417,7 @@ body.admin::before, body.admin::after { display: none !important; }
 .hero__title { font-size: clamp(2.8rem, 5.6vw, 4.7rem) !important; }
 /* Acento "Tú lo imaginas," más brillante y vibrante (no apagado) */
 .hero__title .accent {
-  background: linear-gradient(95deg, #7a4dff 0%, #2f9bff 45%, #35e0ff 100%) !important;
-  -webkit-background-clip: text !important; background-clip: text !important;
-  -webkit-text-fill-color: transparent !important; color: transparent !important;
-  filter: brightness(1.18) saturate(1.15);
+  color: #00A6FF !important;
 }
 .hero__lead  { font-size: clamp(1.12rem, 1.9vw, 1.4rem) !important; max-width: 600px !important; }
 .hero__eyebrow { font-size: 0.9rem !important; }
@@ -5478,7 +5467,7 @@ body.admin::before, body.admin::after { display: none !important; }
 
 /* ── FAQ sobre el fondo animado oscuro: tarjetas blancas + texto azul-marino + botón "+" ── */
 #faq .eyebrow { color: #7fd4ff !important; text-transform: uppercase; letter-spacing: 0.12em; }
-#faq .hl { background: linear-gradient(95deg, #9C2FFF 0%, #00C8FF 100%) !important; -webkit-background-clip: text !important; background-clip: text !important; -webkit-text-fill-color: transparent !important; color: transparent !important; }
+#faq .hl { color: #00A6FF !important; }
 /* Respaldo: si el navegador no recorta el degradado al texto, las letras se ven en azul brillante en vez de quedar invisibles */
 @supports not ((-webkit-background-clip: text) or (background-clip: text)) {
   #faq .hl { background: none !important; -webkit-text-fill-color: #2fa8ff !important; color: #2fa8ff !important; }
@@ -5696,7 +5685,7 @@ body.admin::before, body.admin::after { display: none !important; }
   background: radial-gradient(circle,
     rgba(0, 198, 255, 0.18) 0%,
     rgba(6, 108, 255, 0.12) 38%,
-    rgba(156, 47, 255, 0.07) 58%,
+    rgba(6, 108, 255, 0.07) 58%,
     transparent 72%);
   filter: blur(34px);
   transition: opacity 0.4s ease;
@@ -5888,7 +5877,7 @@ body:has(.cita-drawer:not([hidden])) .citas-section > .wrap { z-index: 130; }
    inactivos están en display:none y no incrementan el contador (marcaba
    siempre "PASO 1"). */
 .citas-section .cita-step.is-active .cita-step__title {
-  background: linear-gradient(100deg, #066CFF 0%, #00C6FF 45%, #9C1DFF 100%);
+  background: #066CFF;
   color: #FFFFFF !important;
   margin: calc(-1 * clamp(20px,3vw,30px)) calc(-1 * clamp(18px,3vw,32px)) clamp(18px,2.5vw,24px);
   padding: clamp(16px,2.4vw,20px) clamp(18px,3vw,28px);
@@ -6056,6 +6045,34 @@ body:has(.cita-drawer:not([hidden])) .citas-section > .wrap { z-index: 130; }
   background: var(--brand-blue) !important;
   border-color: var(--brand-blue) !important;
   color: #fff !important;
+}
+/* ── MODO OSCURO del paso "Datos de cada persona" ──
+   Las reglas de arriba fijan blanco/tonos claros con !important porque el paso se
+   rediseñó para fondo claro; en oscuro ese blanco forzado dejaba la tarjeta BLANCA
+   con títulos casi blancos (invisibles) e inputs negros encima, y "Elegir archivo"
+   quedaba azul sobre azul marino. Aquí se devuelve todo a superficies oscuras y
+   textos claros (mismo !important para ganarles). */
+html[data-theme="dark"] .persona-card {
+  background: var(--surface-card, #171F31) !important;
+  border-color: var(--border-light, #26314A) !important;
+}
+html[data-theme="dark"] .doc-field {
+  background: #101827 !important;
+  border-color: var(--border-light, #26314A) !important;
+}
+html[data-theme="dark"] .doc-field__btn {
+  background: rgba(6, 108, 255, 0.20) !important;
+  border-color: rgba(6, 108, 255, 0.40) !important;
+  color: #7cc0ff !important;
+}
+html[data-theme="dark"] .doc-field__btn:hover {
+  background: var(--brand-blue) !important;
+  border-color: var(--brand-blue) !important;
+  color: #fff !important;
+}
+html[data-theme="dark"] .cita-extra__chip {
+  background: rgba(6, 108, 255, 0.20) !important;
+  color: #7cc0ff !important;
 }
 /* Resumen de reseñas (sección testimonios, ahora sobre blanco) */
 .rating-summary__label,

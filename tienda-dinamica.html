@@ -247,6 +247,51 @@ html[data-theme="dark"] .td-band :is(.td-back,.td-catbtn):hover{background:rgba(
 /* ── Layout: productos + pre-carrito ── */
 .td-grid{display:grid;grid-template-columns:1fr 330px;gap:18px;align-items:start}
 
+/* ═══ Columna lateral de categorías + filtros — la MISMA de la tienda ═══
+   En escritorio (≥981px) los botones "Categorías" y "Filtros" del listón se van y su
+   contenido vive en esta columna sticky a la izquierda, idéntica a la de tienda.html
+   (mismas clases side-*). El botón "Categorías" de la NAVBAR la muestra y la esconde
+   (html.cats-closed), igual que en la tienda. En móvil la columna se neutraliza
+   (display:contents) y los desplegables de siempre siguen mandando. */
+.store-side{display:contents}
+.side-cats,.side-h{display:none}
+.side-cat,.side-sub{display:flex;align-items:center;gap:9px;width:100%;text-align:left;border:0;background:none;cursor:pointer;font:inherit;padding:9px 11px;border-radius:10px;color:var(--ink,#111);font-weight:600;font-size:.9rem;line-height:1.2}
+.side-cat__nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.side-cat:hover,.side-sub:hover{background:var(--soft,#f2f5fb)}
+.side-cat.on{background:var(--blue-l,#EAF1FF);color:#066CFF}
+.side-cat.hot{color:#FF7C19}
+.side-dot{width:9px;height:9px;border-radius:50%;flex:none}
+.side-n{font-size:.72rem;color:var(--muted,#667085);font-weight:700}
+.side-subs{margin:1px 0 6px 18px;display:flex;flex-direction:column;gap:1px;border-left:1px solid var(--line,#e3e6ee);padding-left:6px}
+.side-sub{font-size:.84rem;font-weight:500;padding:6px 9px}
+.side-sub.on{color:#066CFF;font-weight:700}
+html[data-theme="dark"] :is(.side-cat,.side-sub):hover{background:rgba(255,255,255,.08)}
+html[data-theme="dark"] .side-cat.on{background:rgba(6,108,255,.20);color:#7cc0ff}
+@media(min-width:981px){
+  .td-grid{grid-template-columns:250px minmax(0,1fr) 330px}
+  html.cats-closed .td-grid{grid-template-columns:minmax(0,1fr) 330px}
+  html.cats-closed .store-side{display:none}
+  .store-side{display:block;position:sticky;top:calc(var(--oknav-h) + 14px);align-self:start;
+    max-height:calc(100vh - var(--oknav-h) - 28px);overflow-y:auto;overflow-x:hidden;padding-right:2px}
+  .side-cats{display:block}
+  .side-h{display:block;font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.05em;color:var(--muted,#667085);margin:2px 0 8px 4px}
+  /* Los botones del listón y el panel de chips ya no hacen falta: viven en el sidebar. */
+  .td-top,#tdCats{display:none}
+  /* El panel de filtros (el MISMO nodo #tdFilts, que se muda al sidebar en el
+     arranque) pasa de desplegable a bloque SIEMPRE visible, con su encabezado. */
+  .store-side .td-cats{display:block;background:transparent;border:0;border-radius:0;box-shadow:none;padding:0;margin:16px 0 0;border-top:1px solid var(--line,#e3e6ee)}
+  html[data-theme="dark"] .store-side .td-cats{background:transparent;border-color:var(--border-light,#26314A)}
+  .store-side .td-cats::before{content:"Filtros";display:block;padding:12px 0 4px;font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.05em;color:var(--muted,#667085)}
+  .store-side .td-fgroup{padding:14px 0 12px;border-bottom:1px solid var(--line,#e3e6ee)}
+  .store-side .td-fgroup:last-child{border-bottom:0}
+  /* Opciones como RENGLONES (idéntico a .fopt de la tienda), no píldoras. */
+  .store-side .td-fopt{display:flex;align-items:center;gap:9px;padding:7px 2px;margin:0;border:0;border-radius:8px;font-size:.9rem;font-weight:500;background:transparent}
+  .store-side .td-fopt:hover{background:var(--soft,#f2f5fb)}
+  html[data-theme="dark"] .store-side .td-fopt{background:transparent}
+  .store-side .td-fopt .n{margin-left:auto;color:var(--muted,#667085)}
+  .store-side .td-fsearch,.store-side .td-fbsearch{width:100%;box-sizing:border-box}
+}
+
 /* ── Panel de productos ── */
 .td-panel{background:#fff;border:1px solid var(--line,#e3e6ee);border-radius:18px;overflow:hidden;
   box-shadow:0 2px 10px rgba(16,24,40,.05)}
@@ -790,6 +835,14 @@ html[data-theme="dark"] .td-go:disabled{ background:#232D46; color:#67708A }
   <div class="td-cats" id="tdFilts"></div>
 
   <div class="td-grid">
+    <!-- Columna lateral IDÉNTICA a la de la tienda (categorías + filtros). El panel de
+         filtros #tdFilts se muda aquí en el arranque (mismo nodo, mismos listeners),
+         igual que la tienda muda su fdraw al sidebar. En móvil no se ve: mandan los
+         desplegables del listón. -->
+    <aside class="store-side" id="tdSide">
+      <p class="side-h">Categorías</p>
+      <nav class="side-cats" id="tdSideCats" aria-label="Categorías de la tienda"></nav>
+    </aside>
     <!-- Productos -->
     <section class="td-panel">
       <!-- El botón va FUERA del <h2>: dentro, su texto pasaba a formar parte del nombre
@@ -1202,6 +1255,8 @@ html[data-theme="dark"] .td-go:disabled{ background:#232D46; color:#67708A }
   });
   fetch("backend/api/shop/categories.php").then(function(r){ return r.json(); }).then(function(j){
     if (!j || !j.ok) return;
+    tdCatList = j.categories || [];
+    sideCatsRender();
     var row = $("tdCatsRow");
     var all = '<button class="td-chip on" data-cat="">Todos</button>';
     row.innerHTML = all + j.categories.map(function(c){
@@ -1232,7 +1287,71 @@ html[data-theme="dark"] .td-go:disabled{ background:#232D46; color:#67708A }
     tdSubQuery = ""; tdSubMore = false;   // búsquedas del panel: de cero en cada categoría
     tdBrandQuery = ""; tdBrandMore = false;
     guardaEstado(); load(true);
+    /* El sidebar (siempre a la vista en escritorio) se repinta y recarga sus listas. */
+    sideCatsRender(); filtRender(); asegurarDatosFiltros();
   }
+
+  /* ═══ Columna lateral (la MISMA de la tienda) ═══
+     Categorías en vertical con conteo; las subcategorías salen SOLO bajo la categoría
+     activa (patrón Amazon, igual que tienda.html). El panel de filtros no se duplica:
+     el nodo #tdFilts entero se muda aquí y conserva sus listeners. */
+  var tdCatList = [];
+  var TD_BOLT = '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M13 2L4 14h6l-1 8 9-12h-6l1-8z"/></svg>';
+  function sideCatsRender(){
+    var sc = $("tdSideCats"); if (!sc) return;
+    var html = '<button type="button" class="side-cat hot" data-side-ofertas>'+TD_BOLT+'<span class="side-cat__nm">Ofertas del día</span></button>';
+    html += '<button type="button" class="side-cat'+(cat===""?" on":"")+'" data-side-cat=""><span class="side-dot" style="background:#66748a"></span><span class="side-cat__nm">Todos</span></button>';
+    html += tdCatList.map(function(c){
+      var on = cat === c.name;
+      var head = '<button type="button" class="side-cat'+(on && !fSubcats.length ? ' on' : '')+'" data-side-cat="'+esc(c.name)+'"><span class="side-dot" style="background:'+esc(c.color||'#66748a')+'"></span><span class="side-cat__nm">'+esc(c.name)+'</span>'+(c.count?'<span class="side-n">'+c.count+'</span>':'')+'</button>';
+      if (on && fSubcatsLoaded && fSubcatList.length){
+        head += '<div class="side-subs">'+fSubcatList.map(function(s){
+          return '<button type="button" class="side-sub'+(fSubcats.length===1 && fSubcats[0]===s.name ? ' on' : '')+'" data-side-sub="'+esc(s.name)+'">'+esc(s.name)+(s.count?'<span class="side-n">'+s.count+'</span>':'')+'</button>';
+        }).join("")+'</div>';
+      }
+      return head;
+    }).join("");
+    sc.innerHTML = html;
+  }
+  /* Marcas y tipos del panel: en escritorio el panel está SIEMPRE a la vista, así que
+     se cargan al entrar y al cambiar de categoría (no solo al abrir el desplegable). */
+  function asegurarDatosFiltros(){
+    var qs = cat ? "?category="+encodeURIComponent(cat) : "";
+    if (!fBrandsLoaded){
+      fetch("backend/api/shop/brands.php" + qs).then(function(r){ return r.json(); }).then(function(j){
+        if (j && j.ok){ fBrandList = j.brands || []; fBrandsLoaded = true; filtRender(); }
+      }).catch(function(e){ console.error("Filtros (marcas):", e); });
+    }
+    if (!fSubcatsLoaded){
+      fetch("backend/api/shop/subcategories.php" + qs).then(function(r){ return r.json(); }).then(function(j){
+        if (j && j.ok){ fSubcatList = j.subcategories || []; fSubcatsLoaded = true; filtRender(); sideCatsRender(); }
+      }).catch(function(e){ console.error("Filtros (tipos):", e); });
+    }
+  }
+  $("tdSideCats").addEventListener("click", function(e){
+    var of = e.target.closest("[data-side-ofertas]");
+    if (of){
+      /* Las ofertas del día viven en la tienda normal (misma decisión que el botón
+         "Ofertas" de la navbar): se navega dejando el recado de la categoría. */
+      try { sessionStorage.setItem("okstation_ir_cat", "ofertas"); } catch (err) {}
+      location.href = "/tienda.html#store";
+      return;
+    }
+    var c = e.target.closest("[data-side-cat]");
+    if (c){ eligeCategoria(c.getAttribute("data-side-cat") || ""); return; }
+    var s = e.target.closest("[data-side-sub]");
+    if (s){
+      var nombre = s.getAttribute("data-side-sub") || "";
+      /* Tocar la sub activa la quita (mismo toggle que la tienda). */
+      fSubcats = (fSubcats.length === 1 && fSubcats[0] === nombre) ? [] : [nombre];
+      filtCount(); guardaEstado(); load(true); filtRender(); sideCatsRender();
+    }
+  });
+  /* El panel de filtros entero se muda al sidebar (mismo nodo → mismos listeners).
+     En móvil .store-side es display:contents y #tdFilts vuelve a ser el desplegable. */
+  (function(){ var side = $("tdSide"), f = $("tdFilts"); if (side && f) side.appendChild(f); })();
+  /* Primer pintado del panel: tras restaurar el estado guardado (por eso el timeout). */
+  setTimeout(function(){ filtRender(); asegurarDatosFiltros(); sideCatsRender(); }, 0);
 
   /* ═══ Filtros (marca + orden), dentro de la compra rápida ═══
      Filtra en el SERVIDOR (ver load): el catálogo se pagina, así que filtrar en el
@@ -1323,17 +1442,7 @@ html[data-theme="dark"] .td-go:disabled{ background:#232D46; color:#67708A }
     $("tdFiltBtn").setAttribute("aria-expanded", open ? "true" : "false");
     if (!open) return;
     filtRender();
-    var qs = cat ? "?category="+encodeURIComponent(cat) : "";
-    if (!fBrandsLoaded){
-      fetch("backend/api/shop/brands.php" + qs).then(function(r){ return r.json(); }).then(function(j){
-        if (j && j.ok){ fBrandList = j.brands || []; fBrandsLoaded = true; filtRender(); }
-      }).catch(function(e){ console.error("Filtros (marcas):", e); });
-    }
-    if (!fSubcatsLoaded){
-      fetch("backend/api/shop/subcategories.php" + qs).then(function(r){ return r.json(); }).then(function(j){
-        if (j && j.ok){ fSubcatList = j.subcategories || []; fSubcatsLoaded = true; filtRender(); }
-      }).catch(function(e){ console.error("Filtros (tipos):", e); });
-    }
+    asegurarDatosFiltros();
   }
   $("tdFiltBtn").addEventListener("click", filtOpen);
   /* Buscadores y "ver todos" de tipos y marcas (delegados: el panel se repinta al llegar datos). */
@@ -1354,6 +1463,7 @@ html[data-theme="dark"] .td-go:disabled{ background:#232D46; color:#67708A }
       fSubcats = [].slice.call($("tdFilts").querySelectorAll(".tdsubcat:checked")).map(function(c){ return c.value; });
     } else return;
     filtCount(); guardaEstado(); load(true);
+    sideCatsRender();   // las sub del sidebar reflejan lo marcado en "Tipo"
   });
 
   /* ═══ Buscador ═══
@@ -1415,7 +1525,9 @@ html[data-theme="dark"] .td-go:disabled{ background:#232D46; color:#67708A }
     var row = $("tdCatsRow");
     if (row) row.querySelectorAll("[data-cat]").forEach(function(x){ x.classList.toggle("on", x.dataset.cat === ""); });
     filtCount();
-    if ($("tdFilts").classList.contains("open")) filtRender();   // desmarca lo elegido a la vista
+    filtRender();          // desmarca lo elegido a la vista (el sidebar siempre está visible)
+    sideCatsRender();
+    asegurarDatosFiltros();
     guardaEstado();
     load(true);
   }
@@ -1806,10 +1918,18 @@ html[data-theme="dark"] .td-go:disabled{ background:#232D46; color:#67708A }
        memoria). "Ofertas" sí sigue llevando a la tienda normal a propósito: la sección
        de ofertas del día vive allí, no aquí. */
     window.OKtienda.toggleCategorias = function(){
+      var b = document.getElementById("oknavCats");
+      /* En escritorio el botón muestra/esconde la COLUMNA lateral (html.cats-closed),
+         exactamente igual que en la tienda. En móvil sigue abriendo el desplegable. */
+      if (window.matchMedia && window.matchMedia("(min-width:981px)").matches){
+        var h = document.documentElement;
+        h.classList.toggle("cats-closed");
+        if (b) b.setAttribute("aria-expanded", String(!h.classList.contains("cats-closed")));
+        return;
+      }
       $("tdCatBtn").click();
       /* El botón que el usuario pulsó es el de la navbar: es el suyo el que tiene que
          decir si el panel quedó abierto o cerrado. */
-      var b = document.getElementById("oknavCats");
       if (b) b.setAttribute("aria-expanded", String($("tdCats").classList.contains("open")));
     };
     window.OKtienda.verCategoria = function(nombre){ eligeCategoria(String(nombre||"")); };

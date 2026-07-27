@@ -21,7 +21,7 @@
 
 /* ── Galería ── */
 .pdp__gallery { position: relative; background: #fff; border: 1px solid var(--border-light, #e6eaf2); border-radius: var(--radius-lg, 18px); padding: clamp(14px, 2vw, 22px); box-shadow: 0 1px 3px rgba(4, 12, 40, .06); }
-.pdp__off { position: absolute; top: 14px; left: 14px; z-index: 3; background: linear-gradient(100deg, #FF8A00, #FF5E3A); color: #fff; font-size: .78rem; font-weight: 800; padding: 5px 10px; border-radius: 9px; box-shadow: 0 6px 16px rgba(255, 94, 58, .38); }
+.pdp__off { position: absolute; top: 14px; left: 14px; z-index: 3; background: #FF7C19; color: #fff; font-size: .78rem; font-weight: 800; padding: 5px 10px; border-radius: 9px; box-shadow: 0 6px 16px rgba(255, 124, 25, .38); }
 /* Fondo BLANCO (antes un degradado azul-gris): la foto viene sobre blanco, así el
    marco desaparece y la imagen se ve "sin fondo" sobre la página. */
 .pdp__stage { position: relative; overflow: hidden; border-radius: var(--radius-md, 14px); background: #fff; aspect-ratio: 1 / 1; }
@@ -143,7 +143,7 @@
 .pdp__add::after, .pdp__wish::after { content: ""; position: absolute; inset: -5px; border-radius: inherit; transition: transform .18s cubic-bezier(.34, 1.56, .64, 1); }
 .pdp__add:hover::after, .pdp__wish:hover::after { transform: translateY(2px); }
 .pdp__add.is-done { filter: saturate(.6); }
-.pdp__add--wa { background: linear-gradient(135deg, #25D366, #0FB84F); box-shadow: 0 2px 8px rgba(37, 211, 102, .30); }
+.pdp__add--wa { background: #25D366; box-shadow: 0 2px 8px rgba(37, 211, 102, .30); }
 
 .pdp__wish { position: relative; width: 46px; height: 46px; flex: none; border: 1.5px solid var(--border-light, #e6eaf2); background: #fff; border-radius: 50%; display: grid; place-items: center; cursor: pointer; color: var(--text-muted, #6B7280); transition: transform .18s cubic-bezier(.34, 1.56, .64, 1), border-color .15s, color .15s; }
 .pdp__wish svg { width: 21px; height: 21px; }
@@ -176,9 +176,9 @@
 .pdp__pay-note { margin: 12px 0 0; font-size: .78rem; color: var(--text-muted, #6B7280); line-height: 1.45; }
 
 /* Puente con OKi: la ficha ya está en la página, así que puede responder sobre ELLA. */
-.pdp__oki { width: 100%; margin-top: 16px; display: flex; align-items: center; gap: 12px; text-align: left; padding: 13px 15px; border-radius: var(--radius-md, 14px); border: 1.5px dashed #c9d8f2; background: linear-gradient(135deg, #f7faff, #eef4ff); cursor: pointer; font: inherit; transition: border-color .15s, transform .15s, box-shadow .15s; }
+.pdp__oki { width: 100%; margin-top: 16px; display: flex; align-items: center; gap: 12px; text-align: left; padding: 13px 15px; border-radius: var(--radius-md, 14px); border: 1.5px dashed #c9d8f2; background: #f7faff; cursor: pointer; font: inherit; transition: border-color .15s, transform .15s, box-shadow .15s; }
 .pdp__oki:hover { border-color: var(--brand-blue, #066CFF); transform: translateY(-2px); box-shadow: 0 4px 12px rgba(6, 108, 255, .14); }
-.pdp__oki-ico { width: 34px; height: 34px; flex: none; border-radius: 50%; display: grid; place-items: center; background: var(--grad-brand, linear-gradient(135deg, #9C1DFF, #00C6FF)); font-size: 1rem; }
+.pdp__oki-ico { width: 34px; height: 34px; flex: none; border-radius: 50%; display: grid; place-items: center; background: var(--grad-brand, #066CFF); color: #fff; font-size: 1rem; }
 .pdp__oki span span, .pdp__oki > span:last-child { display: flex; flex-direction: column; gap: 1px; }
 .pdp__oki b { font-size: .9rem; color: var(--text-primary, #12141C); }
 .pdp__oki small { font-size: .78rem; color: var(--text-muted, #6B7280); }
@@ -212,7 +212,7 @@
 .pdp__rel-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(155px, 1fr)); gap: 13px; }
 .pdp__rel { position: relative; background: #fff; border: 1px solid var(--border-light, #e6eaf2); border-radius: var(--radius-md, 14px); padding: 12px; text-decoration: none; display: flex; flex-direction: column; gap: 8px; transition: transform .15s, border-color .15s, box-shadow .15s; }
 .pdp__rel:hover { transform: translateY(-3px); border-color: #c9d8f2; box-shadow: 0 6px 16px rgba(4, 12, 40, .10); }
-.pdp__rel-off { position: absolute; top: 9px; left: 9px; z-index: 2; background: linear-gradient(100deg, #FF8A00, #FF5E3A); color: #fff; font-size: .64rem; font-weight: 800; padding: 3px 7px; border-radius: 8px; }
+.pdp__rel-off { position: absolute; top: 9px; left: 9px; z-index: 2; background: #FF7C19; color: #fff; font-size: .64rem; font-weight: 800; padding: 3px 7px; border-radius: 8px; }
 /* Mismo caso que .pdp__stage: la imagen va absoluta contra la caja, porque `height:100%`
    dentro de un grid de fila automática se resuelve como `auto` y la foto salía a tamaño
    natural (150px en una caja de 104px), desbordándose y quedando DEBAJO del nombre. */

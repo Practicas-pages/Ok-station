@@ -1159,11 +1159,12 @@
     <style>
       .okpromo-sec{padding-block:clamp(28px,5vw,54px)}
       /* Gradiente de marca que fluye (como el simulador). !important para ganarle al reset de reduce-motion. */
-      .okpromo{position:relative;border-radius:32px;overflow:hidden;background:linear-gradient(115deg,#0552C8 0%,#066CFF 34%,#00A6FF 66%,#00C6FF 100%);background-size:200% 200%;animation:okpromoFlow 9s ease infinite !important;color:#fff;display:grid;grid-template-columns:1.12fr .88fr;min-height:236px;box-shadow:0 26px 60px rgba(6,108,255,.32);text-decoration:none}
+      /* SIN degradado (acuerdo jul 2026): azul plano de la marca, sin animación de fondo. */
+      .okpromo{position:relative;border-radius:32px;overflow:hidden;background:#066CFF;color:#fff;display:grid;grid-template-columns:1.12fr .88fr;min-height:236px;box-shadow:0 26px 60px rgba(6,108,255,.32);text-decoration:none}
       @keyframes okpromoFlow{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
-      .okpromo__glow{position:absolute;width:420px;height:420px;border-radius:50%;background:radial-gradient(circle,rgba(255,124,25,.5),transparent 65%);top:-140px;right:-60px;pointer-events:none}
+      .okpromo__glow{position:absolute;width:420px;height:420px;border-radius:50%;background:radial-gradient(circle,rgba(0,166,255,.4),transparent 65%);top:-140px;right:-60px;pointer-events:none}
       .okpromo__txt{padding:clamp(26px,4vw,40px) clamp(24px,4vw,44px);display:flex;flex-direction:column;justify-content:center;z-index:2}
-      .okpromo__tag{display:inline-flex;align-items:center;gap:8px;background:linear-gradient(135deg,#FF7C19,#FF9A3D);color:#fff;border-radius:9999px;padding:6px 15px;font-size:.68rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;width:max-content;margin-bottom:14px;box-shadow:0 8px 20px rgba(255,124,25,.35)}
+      .okpromo__tag{display:inline-flex;align-items:center;gap:8px;background:#FF7C19;color:#fff;border-radius:9999px;padding:6px 15px;font-size:.68rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;width:max-content;margin-bottom:14px;box-shadow:0 8px 20px rgba(255,124,25,.35)}
       .okpromo__txt h3{margin:0;font-size:clamp(1.5rem,3vw,2.2rem);font-weight:800;letter-spacing:-.02em;line-height:1.12;color:#fff;text-shadow:0 2px 12px rgba(0,0,0,.18)}
       .okpromo__txt p{margin:10px 0 22px;max-width:46ch;font-size:clamp(.92rem,1.6vw,.98rem);color:rgba(255,255,255,.95);line-height:1.5}
       .okpromo__cta{background:#fff;color:#066CFF;border-radius:9999px;padding:13px 28px;font-weight:800;font-size:1rem;width:max-content;box-shadow:0 12px 30px rgba(0,0,0,.22);display:inline-flex;align-items:center;gap:10px;transition:transform .18s ease,box-shadow .18s ease}

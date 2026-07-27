@@ -29,9 +29,9 @@
   --c-wa-dark:     #128C4E;
 
   /* ── Gradients ── */
-  --g-brand:       linear-gradient(135deg, #9C1DFF 0%, #066CFF 55%, #00C6FF 100%);
-  --g-blue-cyan:   linear-gradient(135deg, #066CFF 0%, #00C6FF 100%);
-  --g-purple-blue: linear-gradient(135deg, #9C1DFF 0%, #066CFF 100%);
+  --g-brand:       #066CFF;
+  --g-blue-cyan:   #066CFF;
+  --g-purple-blue: #066CFF;
   --g-dark:        linear-gradient(135deg, #0f1117 0%, #1a1c28 100%);
 
   /* ── Spacing scale ── */

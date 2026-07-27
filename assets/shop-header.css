@@ -10,8 +10,8 @@
    día se unifican en un solo lugar, esta es la copia canónica.
    ───────────────────────────────────────────────────────────────────────── */
 .shopbar {
-  --sb-grad: linear-gradient(100deg,#9C1DFF 0%,#6A2BF5 22%,#066CFF 52%,#0EA6FF 78%,#00C6FF 100%);
-  --sb-grad-brand: linear-gradient(135deg,#9C1DFF 0%,#066CFF 55%,#00C6FF 100%);
+  --sb-grad: #066CFF;   /* SIN degradado: azul plano de la marca */
+  --sb-grad-brand: #066CFF;
   --sb-blue:#066CFF; --sb-blue-h:#0558CC; --sb-cyan:#00C6FF; --sb-amber:#FF8A00;
   --sb-line:#E3E8F1; --sb-muted:#5b6474; --sb-paper:#F5F8FD; --sb-ink:#12141C;
   --sb-col:1200px;   /* ancho de contenido; casa con .pdp .wrap */
@@ -78,7 +78,7 @@
 .shopbar .tb-cuenta[aria-expanded="true"] .tb-avatar { background: var(--sb-cyan); color: #0A2A5E; }
 
 /* WhatsApp (verde de marca) */
-.shopbar .tb-wa { position: relative; flex: none; display: grid; place-items: center; width: 40px; height: 40px; border-radius: 99px; background: linear-gradient(135deg,#25D366,#0FB84F); border: none; box-shadow: 0 6px 16px rgba(37,211,102,.42); transition: transform .18s cubic-bezier(.34,1.56,.64,1), box-shadow .18s; }
+.shopbar .tb-wa { position: relative; flex: none; display: grid; place-items: center; width: 40px; height: 40px; border-radius: 99px; background: #25D366; border: none; box-shadow: 0 6px 16px rgba(37,211,102,.42); transition: transform .18s cubic-bezier(.34,1.56,.64,1), box-shadow .18s; }
 .shopbar .tb-wa svg { width: 21px; height: 21px; color: #fff; transition: transform .2s; }
 .shopbar .tb-wa:hover { box-shadow: 0 12px 30px rgba(37,211,102,.55); transform: translateY(-2px) scale(1.06); }
 .shopbar .tb-wa:hover svg { transform: scale(1.12); }
@@ -132,7 +132,7 @@
 .shopbar .pop { position: relative; white-space: nowrap; border: 1px solid rgba(8,12,30,.14); background: var(--sb-paper); border-radius: 99px; padding: 7px 14px; font-size: .84rem; font-weight: 600; color: #33404f; flex: none; display: flex; align-items: center; gap: 6px; text-decoration: none; box-shadow: 0 2px 8px rgba(8,12,30,.20); transition: background .15s, box-shadow .18s, transform .18s cubic-bezier(.34,1.56,.64,1); }
 .shopbar .pop:not(.hot):hover { background: #fff; box-shadow: 0 6px 16px rgba(8,12,30,.28); transform: translateY(-2px); }
 .shopbar .pop::after { content: ""; position: absolute; inset: -4px; border-radius: inherit; }
-.shopbar .pop.hot { border: none; color: #fff; font-weight: 800; background: linear-gradient(100deg,#FF8A00,#FF5E3A); }
+.shopbar .pop.hot { border: none; color: #fff; font-weight: 800; background: #FF7C19; }
 .shopbar .pop .dot { width: 8px; height: 8px; border-radius: 3px; flex: none; }
 .shopbar__railnavs { flex: none; display: none; align-items: center; gap: 6px; padding-left: 20px; margin-left: 8px; border-left: 1px solid rgba(255,255,255,.25); }
 .shopbar__cats.can-scroll .shopbar__railnavs { display: flex; }
@@ -179,7 +179,7 @@
 .sb-panel { position: fixed; top: 0; right: 0; height: 100%; width: min(400px,92vw); background: #fff; display: flex; flex-direction: column; transform: translateX(100%); transition: transform .3s cubic-bezier(.4,0,.2,1); z-index: 120; box-shadow: -18px 0 50px rgba(18,20,28,.22); font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
 .sb-panel.show { transform: translateX(0); }
 /* Cabecera con el degradado de la barra (como el carrito de la tienda) */
-.sb-panel__head { display: flex; align-items: center; gap: 8px; padding: 16px 18px; color: #fff; font-weight: 800; font-size: 1.02rem; letter-spacing: -.01em; flex: none; background-image: linear-gradient(100deg,#9C1DFF 0%,#6A2BF5 22%,#066CFF 52%,#0EA6FF 78%,#00C6FF 100%); background-size: 100vw 100%; background-position: right center; background-repeat: no-repeat; }
+.sb-panel__head { display: flex; align-items: center; gap: 8px; padding: 16px 18px; color: #fff; font-weight: 800; font-size: 1.02rem; letter-spacing: -.01em; flex: none; background: #066CFF; }
 .sb-panel__close { margin-left: auto; flex: none; width: 32px; height: 32px; padding: 0; border: 1px solid rgba(255,255,255,.4); background: rgba(255,255,255,.16); color: #fff; border-radius: 50%; font-size: 1.15rem; line-height: 1; display: grid; place-items: center; cursor: pointer; transition: background .15s, transform .15s; }
 .sb-panel__close:hover { background: rgba(255,255,255,.34); transform: scale(1.08); }
 .sb-panel__body { flex: 1; overflow-y: auto; padding: 10px 14px; }
@@ -209,7 +209,7 @@
 .sb-sline { display: flex; justify-content: space-between; font-size: .85rem; color: #5b6474; margin: 5px 0; }
 .sb-sline.total { color: #12141C; font-weight: 800; font-size: 1.12rem; margin-top: 9px; padding-top: 9px; border-top: 1px solid #E3E8F1; }
 .sb-sline span:last-child { font-variant-numeric: tabular-nums; }
-.sb-checkout { width: 100%; margin-top: 12px; border: none; background: linear-gradient(100deg,#9C1DFF 0%,#6A2BF5 22%,#066CFF 52%,#0EA6FF 78%,#00C6FF 100%); color: #fff; font-weight: 700; font-size: .98rem; padding: 13px; border-radius: 999px; box-shadow: 0 14px 40px rgba(6,108,255,.30); cursor: pointer; transition: transform .15s, box-shadow .15s; text-decoration: none; display: block; text-align: center; }
+.sb-checkout { width: 100%; margin-top: 12px; border: none; background: #066CFF; color: #fff; font-weight: 700; font-size: .98rem; padding: 13px; border-radius: 999px; box-shadow: 0 14px 40px rgba(6,108,255,.30); cursor: pointer; transition: transform .15s, box-shadow .15s; text-decoration: none; display: block; text-align: center; }
 .sb-checkout:hover { transform: translateY(-2px); box-shadow: 0 18px 46px rgba(6,108,255,.36); }
 .sb-panel__note { font-size: .74rem; color: #5b6474; text-align: center; margin: 9px 0 0; }
 

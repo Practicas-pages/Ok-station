@@ -83,13 +83,13 @@
     --blue:#066CFF; --cyan:#00C6FF; --purple:#9C1DFF; --green:#0E9F6E; --amber:#FF8A00;
     --store-col:1360px; /* ancho de la columna del catalogo (buscador, categorias, productos) */
     --blue-dark:#0560e0; /* azul apenas mas oscuro para la fila de categorias */
-    --grad:linear-gradient(100deg,#9C1DFF 0%,#6A2BF5 22%,#066CFF 52%,#0EA6FF 78%,#00C6FF 100%);
+    --grad:#066CFF;   /* SIN degradados: azul plano de la marca */
     --sans:"Inter","Segoe UI",system-ui,-apple-system,Roboto,Arial,sans-serif;
     --sh:0 1px 2px rgba(18,20,28,.05); --sh2:0 3px 12px rgba(18,20,28,.07);
     
     --blue-l:#EAF1FF; --blue-h:#0558CC; --ink2:#4A5068; --line2:#C8CEDF; --soft:#F4F6FD;
     --good:#0F7B4D; --bad:#B91C1C; --wa:#25D366; --orange:#FF7C19;
-    --grad-blue:linear-gradient(135deg,#066CFF,#00C6FF); --grad-cyan:linear-gradient(135deg,#0096FF,#00C6FF); --grad-deep:linear-gradient(135deg,#0558CC,#066CFF);
+    --grad-blue:#066CFF; --grad-cyan:#0096FF; --grad-deep:#0552C8;   /* planos, sin degradado */
     --r-full:9999px; --r-md:16px; --r-sm:10px; --r-xs:6px;
     /* Sombras FINAS: se busca profundidad sutil, no cajas flotando. Antes eran
        difusiones de 32-40px muy marcadas; ahora 1-3px pegadas al elemento. */
@@ -108,7 +108,7 @@
 #site .view{display:none}
 #site .view.on{display:block}
 #site .wrap{max-width:1180px; margin:0 auto; padding:0 clamp(14px,4vw,40px)}
-#site .ph{background:linear-gradient(135deg,#eef2f8,#e5ebf4); border:2px dashed #b9c6da; border-radius:14px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px; color:#8b99b0; position:relative; overflow:hidden; text-align:center; padding:8px}
+#site .ph{background:#eef2f8; border:2px dashed #b9c6da; border-radius:14px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px; color:#8b99b0; position:relative; overflow:hidden; text-align:center; padding:8px}
 #site .ph svg{width:clamp(26px,5vw,38px); height:auto}
 #site .ph small{font-size:.62rem; font-weight:700; letter-spacing:.08em; text-transform:uppercase}
 #site .ph.lg svg{width:clamp(40px,7vw,58px)}
@@ -155,7 +155,7 @@ html[data-theme="dark"] #site .pimg--marca{background:#E9EEF7}
 #site .hactions{display:flex; gap:9px; flex:none}
 #site .btnlight{border:1px solid var(--line); background:#fff; border-radius:99px; padding:9px 15px; font-weight:600; font-size:.85rem; display:flex; gap:6px; align-items:center; white-space:nowrap; transition:transform .15s, box-shadow .15s}
 #site .btnlight:hover{transform:translateY(-2px); box-shadow:var(--sh-sm,0 4px 12px rgba(12,20,50,.10))}
-#site .btnwa{border:none; background:linear-gradient(135deg,#25D366 0%,#0FB84F 100%); color:#fff; text-shadow:0 1px 2px rgba(4,40,20,.35); border-radius:99px; padding:9px 16px; font-weight:700; font-size:.85rem; display:flex; gap:6px; align-items:center; white-space:nowrap; transition:transform .18s cubic-bezier(.34,1.56,.64,1), box-shadow .18s; box-shadow:0 8px 22px rgba(37,211,102,.42)}
+#site .btnwa{border:none; background:#25D366; color:#fff; text-shadow:0 1px 2px rgba(4,40,20,.35); border-radius:99px; padding:9px 16px; font-weight:700; font-size:.85rem; display:flex; gap:6px; align-items:center; white-space:nowrap; transition:transform .18s cubic-bezier(.34,1.56,.64,1), box-shadow .18s; box-shadow:0 8px 22px rgba(37,211,102,.42)}
 #site .btnwa:hover{transform:translateY(-3px) scale(1.03); box-shadow:0 18px 46px rgba(37,211,102,.55)}
 #site .home-hero{position:relative; min-height:clamp(400px,60vh,600px); display:flex; align-items:center; padding:clamp(24px,5vw,56px) clamp(14px,4vw,40px)}
 #site .home-hero .ph{position:absolute; inset:0; border-radius:0; border-width:0; border-bottom:2px dashed #b9c6da}
@@ -242,7 +242,7 @@ html[data-theme="dark"] #site .pimg--marca{background:#E9EEF7}
 #site .mech li b{display:block}
 #site .mech li span{color:rgba(255,255,255,.72); font-size:.86rem}
 #site .sol-media{position:relative; min-height:280px}
-#site .sol-media .ph{position:absolute; inset:0; border-radius:0; border-width:0; background:linear-gradient(135deg,#12244f,#0a1a3a); border-left:2px dashed rgba(255,255,255,.2); color:rgba(255,255,255,.5)}
+#site .sol-media .ph{position:absolute; inset:0; border-radius:0; border-width:0; background:#12244f; border-left:2px dashed rgba(255,255,255,.2); color:rgba(255,255,255,.5)}
 /* La foto real va en el style del propio .ph (assets/img/tienda-en-accion.webp), asi que se
    apagan el icono y el texto de relleno que iban encima. VA DESPUES de la regla de arriba a
    proposito: puesta antes, aquella gana y los marcadores siguen saliendo.
@@ -254,7 +254,7 @@ html[data-theme="dark"] #site .pimg--marca{background:#E9EEF7}
 #site .ctile .ph{height:92px; margin-bottom:10px}
 #site .ctile b{font-size:.88rem; font-weight:800; display:block}
 #site .ctile span{font-size:.72rem; color:var(--blue); font-weight:700}
-#site .deal-band{background:linear-gradient(100deg,#FF8A00,#FF5E3A); color:#fff; border-radius:22px; padding:clamp(20px,4vw,32px); display:grid; grid-template-columns:1fr auto; gap:18px; align-items:center; box-shadow:0 12px 30px rgba(255,94,58,.25)}
+#site .deal-band{background:#FF7C19; color:#fff; border-radius:22px; padding:clamp(20px,4vw,32px); display:grid; grid-template-columns:1fr auto; gap:18px; align-items:center; box-shadow:0 12px 30px rgba(255,94,58,.25)}
 #site .deal-band h2{color:#fff; margin:0}
 #site .deal-band p{color:rgba(255,255,255,.92); margin:6px 0 0}
 #site .countdown{display:flex; gap:7px; margin-top:12px}
@@ -277,7 +277,7 @@ html[data-theme="dark"] #site .pimg--marca{background:#E9EEF7}
 #site .fcard{position:relative; background:#fff; border:1px solid var(--line); border-radius:16px; padding:12px; box-shadow:var(--sh); cursor:pointer; transition:transform .12s; display:flex; flex-direction:column}
 #site .fcard:hover{transform:translateY(-2px)}
 #site .fcard .ph{height:118px; margin-bottom:10px}
-#site .fcard .off{position:absolute; top:9px; left:9px; z-index:2; background:linear-gradient(100deg,#FF8A00,#FF5E3A); color:#fff; font-size:.66rem; font-weight:800; padding:3px 8px; border-radius:8px}
+#site .fcard .off{position:absolute; top:9px; left:9px; z-index:2; background:#FF7C19; color:#fff; font-size:.66rem; font-weight:800; padding:3px 8px; border-radius:8px}
 #site .fcard h4{font-size:.86rem; font-weight:700; margin:0 0 5px; line-height:1.25}
 #site .fcard .fp{font-weight:800; font-variant-numeric:tabular-nums}
 #site .fcard .fp s{color:var(--muted); font-weight:500; font-size:.78em; margin-left:3px}
@@ -293,9 +293,9 @@ html[data-theme="dark"] #site .pimg--marca{background:#E9EEF7}
 #site .faq .qa.open .a{max-height:240px}
 #site .faq .a p{margin:0; padding:0 18px 16px}
 #site .finalcta{position:relative; overflow:hidden; border-radius:24px; padding:clamp(44px,6vw,80px) clamp(22px,5vw,52px); text-align:center; color:#fff; min-height:clamp(320px,42vw,460px); display:grid; place-items:center; border:2px dashed #9fb2cc}
-#site .finalcta .ph{position:absolute; inset:0; border-radius:0; border-width:0; background:linear-gradient(135deg,#e9eef6,#d8e1ee)}
+#site .finalcta .ph{position:absolute; inset:0; border-radius:0; border-width:0; background:#e9eef6}
 #site .finalcta .ph svg{width:clamp(46px,8vw,72px); color:#a9b7cd; opacity:.7}
-#site .finalcta .ph::after{content:""; position:absolute; inset:0; background:linear-gradient(120deg,rgba(6,20,60,.8),rgba(11,58,168,.66))}
+#site .finalcta .ph::after{content:""; position:absolute; inset:0; background:rgba(9,30,90,.74)}
 #site .finalcta .imgtag{position:absolute; top:14px; left:14px; z-index:3; display:flex; align-items:center; gap:6px; background:rgba(255,255,255,.85); color:#5b6474; font-size:.62rem; font-weight:800; letter-spacing:.08em; text-transform:uppercase; padding:5px 10px; border-radius:8px}
 #site .finalcta .c{position:relative; z-index:2; max-width:640px}
 #site .finalcta h2{color:#fff; margin:0 0 12px; font-size:clamp(1.8rem,4.5vw,2.8rem)}
@@ -331,7 +331,7 @@ html[data-theme="dark"] #site .pimg--marca{background:#E9EEF7}
 #site .ac-head{font-size:.68rem; font-weight:800; letter-spacing:.07em; text-transform:uppercase; color:var(--muted,#6b7280); padding:11px 14px 5px}
 #site .ac-item{display:flex; align-items:center; gap:11px; width:100%; text-align:left; border:none; background:none; padding:9px 14px; cursor:pointer; font:inherit}
 #site .ac-item:hover,#site .ac-item.sel{background:var(--paper,#f5f8fd)}
-#site .ac-emoji{flex:none; width:36px; height:36px; border-radius:10px; display:grid; place-items:center; font-size:20px; background:var(--grad-blue,linear-gradient(135deg,#066CFF,#00C6FF))}
+#site .ac-emoji{flex:none; width:36px; height:36px; border-radius:10px; display:grid; place-items:center; font-size:20px; background:var(--grad-blue,#066CFF)}
 /* Miniatura REAL del producto en el buscador (antes salía un emoji/caja genérica). */
 #site .ac-thumb{flex:none; width:42px; height:42px; border-radius:9px; background:#fff; border:1px solid var(--line); display:grid; place-items:center; overflow:hidden}
 #site .ac-thumb img{width:100%; height:100%; object-fit:contain; padding:3px; box-sizing:border-box; display:block}
@@ -520,7 +520,7 @@ html.store-view .header-bar, html.store-view .site-header{display:none}
 #site .fapply{flex:1; padding:11px 15px; border:0; border-radius:10px; background:var(--blue); color:#fff; font:inherit; font-weight:800; font-size:.9rem; cursor:pointer}
 #site .fapply:hover{background:var(--blue-h,#0558CC)}
 /* WhatsApp verde de marca (.btn--wa del home) */
-#site .tb-wa{flex:none; display:grid; place-items:center; width:40px; height:40px; border-radius:99px; background:linear-gradient(135deg,#25D366,#0FB84F); border:none; box-shadow:0 2px 6px rgba(37,211,102,.30); transition:transform .18s cubic-bezier(.34,1.56,.64,1), box-shadow .18s}
+#site .tb-wa{flex:none; display:grid; place-items:center; width:40px; height:40px; border-radius:99px; background:#25D366; border:none; box-shadow:0 2px 6px rgba(37,211,102,.30); transition:transform .18s cubic-bezier(.34,1.56,.64,1), box-shadow .18s}
 #site .tb-wa svg{width:21px; height:21px; color:#fff; transition:transform .2s}
 #site .tb-wa:hover{box-shadow:0 12px 30px rgba(37,211,102,.55); transform:translateY(-2px) scale(1.06)}
 #site .tb-wa:hover svg{transform:scale(1.1)}
@@ -558,7 +558,7 @@ html.store-view .header-bar, html.store-view .site-header{display:none}
 #site .pop.on{border-color:#fff; background:var(--blue); color:#fff; font-weight:700; box-shadow:0 8px 20px rgba(6,108,255,.45); transform:translateY(-1px)}
 #site .pop.on .dot{background:#fff !important; box-shadow:none}
 #site .pop.on:hover{background:var(--blue-h,#0558CC); box-shadow:0 10px 24px rgba(6,108,255,.55)}
-#site .pop.hot{border:none; color:#fff; font-weight:800; background:linear-gradient(100deg,#FF8A00,#FF5E3A)}
+#site .pop.hot{border:none; color:#fff; font-weight:800; background:#FF7C19}
 #site .pop .dot{width:8px; height:8px; border-radius:3px; flex:none}
 #site .shell{display:block}
 #site .catalog{display:block}
@@ -572,7 +572,7 @@ html.store-view .header-bar, html.store-view .site-header{display:none}
 #site .prod{transition:transform .12s, box-shadow .15s, border-color .15s}
 #site .prod:hover{transform:translateY(-2px); border-color:#c9d8f2; box-shadow:0 6px 16px rgba(12,20,50,.08)}
 #site .prod .ph{height:92px; margin-bottom:10px}
-#site .deal-badge{position:absolute; top:8px; left:8px; z-index:3; pointer-events:none; background:linear-gradient(100deg,#FF8A00,#FF5E3A); color:#fff; font-size:.64rem; font-weight:800; padding:3px 7px; border-radius:8px}
+#site .deal-badge{position:absolute; top:8px; left:8px; z-index:3; pointer-events:none; background:#FF7C19; color:#fff; font-size:.64rem; font-weight:800; padding:3px 7px; border-radius:8px}
 #site .prod h3{font-size:.84rem; font-weight:700; margin:0 0 3px; line-height:1.25}
 #site .prod .cat{font-size:.66rem; color:var(--muted); text-transform:uppercase; margin-bottom:7px}
 #site .prod .row{margin-top:auto; display:flex; align-items:center; justify-content:space-between; gap:6px}
@@ -678,7 +678,7 @@ html.store-view .header-bar, html.store-view .site-header{display:none}
 #site .dlist button:hover{background:var(--paper)}
 #site .dlist button.on{background:#eef4ff; color:var(--blue); font-weight:700}
 #site .dlist button .dot{width:9px; height:9px; border-radius:3px; flex:none}
-#site .dlist button.hot{background:linear-gradient(100deg,#FF8A00,#FF5E3A); color:#fff; font-weight:800; margin-bottom:6px}
+#site .dlist button.hot{background:#FF7C19; color:#fff; font-weight:800; margin-bottom:6px}
 /* Subcategorías dentro del cajón: sangradas bajo su categoría, con guía vertical. */
 #site .dlist .dsubs{margin:1px 0 6px 20px; padding-left:11px; border-left:2px solid var(--line); display:flex; flex-direction:column}
 #site .dlist .dsub{padding:8px 10px; font-size:.85rem; font-weight:500; color:#5b6879; border-radius:8px}
@@ -746,7 +746,7 @@ html.q-lock, html.q-lock body{overflow:hidden}
 /* Vista previa enriquecida con Icecat: galería de imágenes reales + ficha clave-valor */
 #site .mh.mh-photo{height:auto; background:#fff; border-radius:18px 18px 0 0}
 #site .pvgal{padding:18px 18px 6px}
-#site .pvmain{width:100%; height:clamp(230px,40vw,290px); object-fit:contain; display:block; background:linear-gradient(135deg,#f4f8ff,#e9f0fb); border-radius:18px; padding:14px; box-sizing:border-box}
+#site .pvmain{width:100%; height:clamp(230px,40vw,290px); object-fit:contain; display:block; background:#f4f8ff; border-radius:18px; padding:14px; box-sizing:border-box}
 #site .pvthumbs{display:flex; gap:8px; margin-top:10px; flex-wrap:wrap}
 #site .pvthumb{width:56px; height:56px; border-radius:13px; border:2px solid var(--line); background:#f4f6fd center/cover no-repeat; cursor:pointer; padding:0; transition:border-color .15s, transform .15s}
 #site .pvthumb:hover{transform:translateY(-2px)}
@@ -1387,23 +1387,23 @@ html[data-theme="dark"] #site :is(.tb-cuenta,.tb-fav,.tb-cart,.tb-filt):hover{ba
   <div class="view" id="tienda">
     <!-- 1) HERO — carrusel full-width estilo Compustar -->
     <section class="hero-slider" id="heroSlider">
-      <div class="hs-slide on"><div class="hs-bg" style="background:url('assets/img/hero-tienda.webp') center/cover no-repeat, linear-gradient(135deg,#e9eef6,#dbe4f0)"><span class="hs-tag"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>Imagen de fondo</span><div class="hs-fill"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg><span class="lbl">Tienda OK.station</span></div></div><div class="hs-shade"></div><div class="hs-content"><div class="wrap"><div class="hs-inner sh-copy"><span class="eyebrow">Papelería · Tinta y tóner · Oficina y escuela</span>
+      <div class="hs-slide on"><div class="hs-bg" style="background:url('assets/img/hero-tienda.webp') center/cover no-repeat, #e9eef6"><span class="hs-tag"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>Imagen de fondo</span><div class="hs-fill"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg><span class="lbl">Tienda OK.station</span></div></div><div class="hs-shade"></div><div class="hs-content"><div class="wrap"><div class="hs-inner sh-copy"><span class="eyebrow">Papelería · Tinta y tóner · Oficina y escuela</span>
         <h1>Una tienda local, con respaldo de verdad, <span class="hl">ahora en línea</span></h1>
         <p>Todo lo que tu oficina, escuela o negocio necesita. Pídelo y págalo en línea, y <b>recógelo en la tienda OK.station o recíbelo a domicilio en todo México</b>. Te avisamos por WhatsApp.</p>
         <div class="sh-cta"><button class="gostore" data-go-store>Comprar ahora <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></button><span class="sh-mini"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Recoge en tienda o envío nacional</span></div></div></div></div></div>
-      <div class="hs-slide"><div class="hs-bg" style="background:url('assets/img/hero-tinta-toner.webp') center/cover no-repeat, linear-gradient(135deg,#e6f4f1,#d6ece5)"><span class="hs-tag"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>Imagen de fondo</span><div class="hs-fill"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8" rx="1"/></svg><span class="lbl">Tinta y tóner</span></div></div><div class="hs-shade"></div><div class="hs-content"><div class="wrap"><div class="hs-inner sh-copy"><span class="eyebrow">Tinta y tóner</span>
+      <div class="hs-slide"><div class="hs-bg" style="background:url('assets/img/hero-tinta-toner.webp') center/cover no-repeat, #e6f4f1"><span class="hs-tag"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>Imagen de fondo</span><div class="hs-fill"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8" rx="1"/></svg><span class="lbl">Tinta y tóner</span></div></div><div class="hs-shade"></div><div class="hs-content"><div class="wrap"><div class="hs-inner sh-copy"><span class="eyebrow">Tinta y tóner</span>
         <h2>Tinta y tóner <span class="hl">al mejor precio</span></h2>
         <p>Cartuchos y tóner originales para que nunca pares de imprimir — recógelos el mismo día en Otay o recíbelos a domicilio.</p>
         <div class="sh-cta"><button class="gostore" data-go-store data-cat="consumibles">¡Recarga ya! <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></button></div></div></div></div></div>
-      <div class="hs-slide"><div class="hs-bg" style="background:url('assets/img/hero-papel-cuadernos.webp') center/cover no-repeat, linear-gradient(135deg,#eaf1fb,#dbe8fa)"><span class="hs-tag"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>Imagen de fondo</span><div class="hs-fill"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8"/><path d="M12 17v4"/></svg><span class="lbl">Papel y cuadernos</span></div></div><div class="hs-shade"></div><div class="hs-content"><div class="wrap"><div class="hs-inner sh-copy"><span class="eyebrow">Papel y cuadernos</span>
+      <div class="hs-slide"><div class="hs-bg" style="background:url('assets/img/hero-papel-cuadernos.webp') center/cover no-repeat, #eaf1fb"><span class="hs-tag"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>Imagen de fondo</span><div class="hs-fill"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8"/><path d="M12 17v4"/></svg><span class="lbl">Papel y cuadernos</span></div></div><div class="hs-shade"></div><div class="hs-content"><div class="wrap"><div class="hs-inner sh-copy"><span class="eyebrow">Papel y cuadernos</span>
         <h2>Papel y cuadernos <span class="hl">para no parar</span></h2>
         <p>Hojas, cuadernos, folders y todo lo del día a día — con alguien que te responde en persona, no un chat anónimo.</p>
         <div class="sh-cta"><button class="gostore" data-go-store data-cat="papel">¡Surte tu oficina! <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></button></div></div></div></div></div>
-      <div class="hs-slide"><div class="hs-bg" style="background:url('assets/img/hero-ofertas.webp') center/cover no-repeat, linear-gradient(135deg,#fdf1e6,#f7e6d3)"><span class="hs-tag"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>Imagen de fondo</span><div class="hs-fill"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg><span class="lbl">Ofertas de la semana</span></div></div><div class="hs-shade"></div><div class="hs-content"><div class="wrap"><div class="hs-inner sh-copy"><span class="eyebrow">Ofertas del día</span>
+      <div class="hs-slide"><div class="hs-bg" style="background:url('assets/img/hero-ofertas.webp') center/cover no-repeat, #fdf1e6"><span class="hs-tag"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>Imagen de fondo</span><div class="hs-fill"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg><span class="lbl">Ofertas de la semana</span></div></div><div class="hs-shade"></div><div class="hs-content"><div class="wrap"><div class="hs-inner sh-copy"><span class="eyebrow">Ofertas del día</span>
         <h2>Ofertas del día, <span class="hl">todos los días</span></h2>
         <p>Descuentos en productos seleccionados. Aprovecha antes de que se agoten.</p>
         <div class="sh-cta"><button class="gostore" data-go-store data-cat="ofertas">¡Aprovecha ya! <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></button></div></div></div></div></div>
-      <div class="hs-slide"><div class="hs-bg" style="background:url('assets/img/hero-entrega.webp') center/cover no-repeat, linear-gradient(135deg,#efeaf8,#e6dcf4)"><span class="hs-tag"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>Imagen de fondo</span><div class="hs-fill"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l1-5h16l1 5"/><path d="M4 9v11h16V9"/><path d="M9 20v-6h6v6"/></svg><span class="lbl">Recoger o envío</span></div></div><div class="hs-shade"></div><div class="hs-content"><div class="wrap"><div class="hs-inner sh-copy"><span class="eyebrow">Recoger o a domicilio</span>
+      <div class="hs-slide"><div class="hs-bg" style="background:url('assets/img/hero-entrega.webp') center/cover no-repeat, #efeaf8"><span class="hs-tag"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>Imagen de fondo</span><div class="hs-fill"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l1-5h16l1 5"/><path d="M4 9v11h16V9"/><path d="M9 20v-6h6v6"/></svg><span class="lbl">Recoger o envío</span></div></div><div class="hs-shade"></div><div class="hs-content"><div class="wrap"><div class="hs-inner sh-copy"><span class="eyebrow">Recoger o a domicilio</span>
         <h2>Recíbelo <span class="hl">el mismo día</span></h2>
         <p>Pídelo en línea y recógelo gratis en Otay, o recíbelo a domicilio en todo México. Te avisamos por WhatsApp.</p>
         <div class="sh-cta"><button class="gostore" data-go-store>¡Lo quiero! <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></button></div></div></div></div></div>
@@ -1464,7 +1464,7 @@ html[data-theme="dark"] #site :is(.tb-cuenta,.tb-fav,.tb-cart,.tb-filt):hover{ba
           Compra rápida
         </a>
       </div>
-      <div class="sol-media"><div class="ph" style="background:url('assets/img/tienda-en-accion.webp') center/cover no-repeat, linear-gradient(135deg,#12244f,#0a1a3a)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg><small>Equipo / tienda en acción</small></div></div>
+      <div class="sol-media"><div class="ph" style="background:url('assets/img/tienda-en-accion.webp') center/cover no-repeat, #12244f"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg><small>Equipo / tienda en acción</small></div></div>
     </div></div></div>
 
     <!-- Categorías -->
@@ -1646,7 +1646,7 @@ html[data-theme="dark"] #site :is(.tb-cuenta,.tb-fav,.tb-cart,.tb-filt):hover{ba
   // Datos
   /* Respaldo SOLO papelería (el catálogo real de la BD trae sus propias categorías). */
   var CATS=[{id:"ofertas",name:"Ofertas del día",hot:true},{id:"all",name:"Todos",color:"#66748a"},{id:"consumibles",name:"Tinta y tóner",color:"#066CFF"},{id:"papel",name:"Papel y cuadernos",color:"#9C1DFF"},{id:"escritura",name:"Escritura",color:"#0596b8"},{id:"oficina",name:"Oficina y escolar",color:"#0E9F6E"}];
-  var GRADC={consumibles:"var(--grad-blue)",papel:"var(--grad-cyan)",escritura:"var(--grad-deep)",oficina:"linear-gradient(135deg,#0E9F6E,#00C6FF)"};
+  var GRADC={consumibles:"var(--grad-blue)",papel:"var(--grad-cyan)",escritura:"var(--grad-deep)",oficina:"#0E9F6E"};
   // Catálogo desde la fuente compartida (assets/catalogo.js). Fallback a [] por si no cargó.
   var P=(window.OK_PRODUCTS||[]).slice();
   P.forEach(function(p){p.grad=GRADC[p.cat]||"var(--grad-blue)";});
