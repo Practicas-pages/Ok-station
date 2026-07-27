@@ -98,6 +98,26 @@
   });
   window.addEventListener("pageshow", refresh);    // volver con "atrás"
 
+  /* ── Alto real de la barra → --oknav-h ────────────────────────────────
+     La tienda cuelga cosas de la navbar (el carrito y la columna de categorías
+     son sticky bajo ella) y ese alto estaba escrito a mano en el CSS: al cambiar
+     el espaciado de la barra, esos paneles se descuadraban. Aquí se MIDE y se
+     publica, así no hay dos fuentes de verdad. El valor del CSS queda como
+     respaldo para el primer pintado y para cuando no corre el JS.
+     Si la barra está oculta (en la tienda, en móvil) el alto es 0 y no se toca:
+     las reglas que la usan viven en @media(min-width:1001px). */
+  function medirAlto() {
+    var h = Math.round(nav.getBoundingClientRect().height);
+    /* Oculta (la tienda esconde la barra en móvil) → se RETIRA la variable en línea en
+       vez de dejar clavado el alto de escritorio: si no, un panel que colgara de ella
+       en móvil se separaría 158px de la nada. Sin valor en línea vuelve a mandar el CSS. */
+    if (h > 0) document.documentElement.style.setProperty("--oknav-h", h + "px");
+    else document.documentElement.style.removeProperty("--oknav-h");
+  }
+  medirAlto();
+  window.addEventListener("resize", medirAlto);
+  if (window.ResizeObserver) new ResizeObserver(medirAlto).observe(nav);
+
   /* ── Cuenta ───────────────────────────────────────────────────────────── */
   var acct = $("oknavAcct");
   function paintAcct() {
@@ -153,37 +173,55 @@
   function acCerrar() {
     if (!ac) return;
     ac.hidden = true; ac.innerHTML = ""; acItems = []; acSel = -1;
-    if (q) q.setAttribute("aria-expanded", "false");
+    if (q) { q.setAttribute("aria-expanded", "false"); q.removeAttribute("aria-activedescendant"); }
   }
   function buscar(texto) {
     texto = (texto || "").trim();
-    if (!texto) return;
+    /* Enter gana a lo que estuviera a punto de dispararse: sin esto, el filtrado en
+       vivo pendiente volvía a lanzar la misma búsqueda un cuarto de segundo después. */
+    clearTimeout(acTimer);
     var S = store();
-    /* Dentro de la tienda se busca SIN recargar. Fuera, se deja el recado y la
-       tienda lo levanta al arrancar (mismo mecanismo que ya existía). */
+    /* Buscador VACÍO + Enter = "quiero ver todo otra vez". Sin esto había que borrar
+       el texto y además ir a buscar el botón "Ver todos los productos". */
+    if (!texto) {
+      if (S && typeof S.limpiarBusqueda === "function") { S.limpiarBusqueda(); acCerrar(); }
+      return;
+    }
+    /* Dentro de una tienda (la normal o la compra rápida) se busca SIN recargar: cada
+       una publica su propio buscarEnTienda, así el mismo campo sirve para las dos y la
+       búsqueda nunca salta de una tienda a la otra. Fuera, se deja el recado y la
+       tienda normal lo levanta al arrancar (mismo mecanismo que ya existía). */
     if (S && typeof S.buscarEnTienda === "function") { S.buscarEnTienda(texto); acCerrar(); return; }
     ss("okstation_q", texto);
     location.href = TIENDA + "#store";
   }
   function acPinta(items) {
     if (!ac) return;
+    /* OJO: innerHTML destruye las sugerencias anteriores. Si acItems se quedara
+       apuntando a ellas, un Enter con una fila marcada haría click() sobre un enlace
+       que ya no está en la página y navegaría a un producto que el usuario no ve.
+       Por eso se reinician SIEMPRE, también cuando no hay resultados. */
+    acItems = []; acSel = -1;
     if (!items.length) {
       ac.innerHTML = '<div class="oknav__acempty">Sin resultados. Prueba con otra palabra.</div>';
-      ac.hidden = false; return;
+      ac.hidden = false;
+      if (q) { q.setAttribute("aria-expanded", "true"); q.removeAttribute("aria-activedescendant"); }
+      return;
     }
-    ac.innerHTML = items.map(function (p) {
+    ac.innerHTML = items.map(function (p, i) {
       var img = p.image
         ? '<span class="oknav__acth"><img src="' + encodeURI(p.image) + '" alt="" loading="lazy"></span>'
         : '<span class="oknav__acth"><img src="/assets/img/placeholder-producto.svg" alt="" loading="lazy" class="ph-logo"></span>';
-      return '<a class="oknav__acitem" role="option" href="/producto.php?id=' + p.id + '">' + img +
+      /* tabindex=-1: con role=option el recorrido es con las flechas desde el campo, no
+         con Tab. Sin esto, tabular metía el foco una por una en las sugerencias. */
+      return '<a class="oknav__acitem" role="option" tabindex="-1" id="oknav-ac-' + i + '" href="/producto.php?id=' + p.id + '">' + img +
         '<span class="oknav__actxt"><span class="oknav__acname">' + esc(p.name) + '</span>' +
         '<span class="oknav__acmeta">' + esc((p.brand ? p.brand + " · " : "") + (p.category || "")) + "</span></span>" +
         '<span class="oknav__acprice">' + mxn(p.price) + "</span></a>";
     }).join("");
     ac.hidden = false;
     acItems = [].slice.call(ac.querySelectorAll(".oknav__acitem"));
-    acSel = -1;
-    if (q) q.setAttribute("aria-expanded", "true");
+    if (q) { q.setAttribute("aria-expanded", "true"); q.removeAttribute("aria-activedescendant"); }
   }
   function acBuscar(texto) {
     var token = ++acToken;
@@ -192,16 +230,33 @@
       .then(function (j) {
         if (token !== acToken) return;              // llegó tarde
         acPinta((j && j.ok && j.items) ? j.items : []);
-      }).catch(acCerrar);
+      }).catch(function () {
+        /* Solo cierra si el que falló es el desplegable que se está viendo: si no, una
+           petición vieja que caduca borraba los resultados buenos ya pintados. */
+        if (token === acToken) acCerrar();
+      });
   }
   if (q) {
     q.addEventListener("input", function () {
       var t = q.value.trim();
       clearTimeout(acTimer);
+      /* Páginas que filtran SU PROPIA lista mientras escribes (la compra rápida) lo
+         avisan publicando buscarEnVivo. Ahí el desplegable sobra: serían dos búsquedas
+         a la vez y el menú taparía justo los resultados que la lista ya está filtrando
+         —es la misma razón por la que la compra rápida apagó su desplegable propio. */
+      var S = store();
+      if (S && typeof S.buscarEnVivo === "function") {
+        acCerrar();
+        acTimer = setTimeout(function () { S.buscarEnVivo(t); }, 250);
+        return;
+      }
       if (t.length < 2) { acCerrar(); return; }
       acTimer = setTimeout(function () { acBuscar(t); }, 220);   // no una petición por tecla
     });
     q.addEventListener("keydown", function (e) {
+      /* Escape va PRIMERO: antes lo cortaba el guard de "sin sugerencias" de abajo y
+         el panel de "Sin resultados" se quedaba abierto tapando la fila de categorías. */
+      if (e.key === "Escape") { acCerrar(); return; }
       if (e.key === "Enter" && acSel < 0) { e.preventDefault(); buscar(q.value); return; }
       if (!acItems.length) return;
       if (e.key === "ArrowDown" || e.key === "ArrowUp") {
@@ -212,14 +267,45 @@
           : (acSel <= 0 ? acItems.length - 1 : acSel - 1);
         acItems[acSel].classList.add("is-on");
         acItems[acSel].scrollIntoView({ block: "nearest" });
+        /* Con role=combobox el foco NO se mueve del campo: hay que decirle al lector de
+           pantalla cuál es la fila marcada, o no anuncia nada al bajar con las flechas. */
+        q.setAttribute("aria-activedescendant", acItems[acSel].id || "");
       } else if (e.key === "Enter" && acSel >= 0) {
         e.preventDefault(); acItems[acSel].click();
-      } else if (e.key === "Escape") { acCerrar(); }
+      }
     });
   }
   document.addEventListener("click", function (e) {
     if (ac && !ac.hidden && !e.target.closest(".oknav__search")) acCerrar();
   });
+  /* Salir del buscador con Tab también cierra: si no, el desplegable se quedaba abierto
+     (y anunciándose) con el foco ya en otro botón de la barra. */
+  document.addEventListener("focusin", function (e) {
+    if (ac && !ac.hidden && !e.target.closest(".oknav__search")) acCerrar();
+  });
+
+  /* ── Páginas que filtran su propia lista (la compra rápida) ──────────────
+     Ahí el desplegable no se abre nunca, así que el campo NO debe anunciarse como un
+     combobox con lista de sugerencias: un lector de pantalla prometería algo que no
+     existe. Se ajusta desde aquí y no en el HTML porque ese marcado está duplicado en
+     29 páginas y solo esta se comporta distinto. */
+  function ajustaRolBuscador() {
+    if (!q) return;
+    var S = store();
+    if (!S || typeof S.buscarEnVivo !== "function") return;
+    q.removeAttribute("role");
+    q.removeAttribute("aria-autocomplete");
+    q.removeAttribute("aria-controls");
+    q.removeAttribute("aria-expanded");
+    q.setAttribute("aria-label", "Buscar productos (la lista se filtra mientras escribes)");
+  }
+  /* El puente lo publica la página en su propio DOMContentLoaded, y el orden entre
+     manejadores de ese evento no es de fiar (los de `document` corren antes que los de
+     `window`, que es donde lo registran las tiendas). Se espera un turno más con
+     setTimeout(0): para entonces han corrido todos, sin importar dónde se registraron. */
+  function ajustaLuego() { setTimeout(ajustaRolBuscador, 0); }
+  if (document.readyState === "complete") ajustaLuego();
+  else document.addEventListener("DOMContentLoaded", ajustaLuego);
 
   /* ── Categorías ───────────────────────────────────────────────────────── */
   var catsBtn = $("oknavCats"), catsMenu = $("oknavCatsMenu"), catsCargadas = false;
@@ -357,6 +443,14 @@
   /* Arranque */
   refresh(); paintAcct(); cargaLoc(); pintaTema();
 
-  /* Para que el resto del sitio pueda refrescar la barra si cambia algo. */
-  window.OKNav = { refrescar: refresh, cerrarTodo: function () { acCerrar(); catsCerrar(); cajonCerrar(); } };
+  /* Para que el resto del sitio pueda refrescar la barra si cambia algo.
+     setBusqueda: deja el campo mostrando el término que la página tiene aplicado (al
+     llegar desde otra página, al restaurar el estado o al limpiar la búsqueda). No
+     dispara eventos a propósito: solo refleja, no vuelve a buscar. */
+  window.OKNav = {
+    refrescar: refresh,
+    cerrarTodo: function () { acCerrar(); catsCerrar(); cajonCerrar(); },
+    setBusqueda: function (texto) { if (q) q.value = texto == null ? "" : String(texto); acCerrar(); },
+    getBusqueda: function () { return q ? q.value : ""; }
+  };
 })();

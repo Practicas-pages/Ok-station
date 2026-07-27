@@ -1,0 +1,28 @@
+-- ============================================================================
+-- 0038 — Índice (product_id, is_primary) en `product_images`
+-- ----------------------------------------------------------------------------
+-- Las búsquedas del catálogo ordenan poniendo delante los productos QUE TIENEN
+-- foto (ver backend/api/shop/products.php: el ORDER BY antepone un
+-- EXISTS(... WHERE product_id = ? AND is_primary = 1)). Ese EXISTS se evalúa una
+-- vez por producto candidato, así que se ejecuta muchísimo:
+--
+--   · la compra rápida consulta el endpoint en CADA tecleo del buscador,
+--   · el autocompletado de la navbar hace lo propio en las 28 páginas del sitio,
+--   · y la tienda lo llama en cada búsqueda y en cada página del scroll infinito.
+--
+-- Con el índice actual (solo product_id) el motor encuentra las filas del producto
+-- por índice pero tiene que ir a la tabla a mirar is_primary de cada una. Son hasta
+-- 5 imágenes por producto (el límite lo aplica el runner de imágenes), o sea 5
+-- lecturas evitables por producto y por búsqueda.
+--
+-- Con las dos columnas en el índice, la respuesta sale del propio índice.
+-- El mismo índice sirve para la otra consulta del endpoint, la que trae la imagen
+-- principal de la página (WHERE is_primary = 1 AND product_id IN (…)).
+--
+-- ADITIVA Y REVERSIBLE: no cambia ni una fila ni el esquema de columnas; solo
+-- añade un índice. Para deshacer: DROP INDEX idx_pimg_primary ON product_images.
+-- Se conserva idx_pimg_product porque la clave foránea fk_pimg_product se apoya en
+-- él (borrarlo obligaría a recrear la FK).
+-- ============================================================================
+
+CREATE INDEX idx_pimg_primary ON product_images (product_id, is_primary);

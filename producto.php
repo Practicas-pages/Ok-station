@@ -71,7 +71,10 @@ if ($reqPath !== '' && rtrim($reqPath, '/') !== $canonPath && strpos($reqPath, '
 
 $images  = ShopProduct::images(db(), (int) $row['id']);
 $specs   = ShopProduct::specs($row);
-$related = ShopProduct::related(db(), $row, 6);
+/* "Completa tu compra": productos que COMPLEMENTAN a éste (otras categorías que van
+   juntas: una tinta pide papel, una carpeta pide etiquetas). Si no alcanzan, se
+   rellena con la misma categoría. Ver ShopProduct::complementary. */
+$related = ShopProduct::complementary(db(), $row, 6);
 
 $price   = ShopProduct::price($row);
 $old     = ShopProduct::oldPrice($row);
@@ -178,8 +181,8 @@ $ldCrumbs = [
   <link rel="icon" href="/assets/img/OKD-Isotipo-Azul-96.png?v=20260710" type="image/png" sizes="96x96">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" media="print" onload="this.media='all'">
-  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap"></noscript>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" media="print" onload="this.media='all'">
+  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"></noscript>
   <!-- Tema (claro/oscuro): antes de la hoja para pintar ya con el tema elegido -->
   <script src="/assets/theme.js?v=20260721a"></script>
   <link rel="stylesheet" href="/styles.css?v=20260716b">
@@ -190,7 +193,7 @@ $ldCrumbs = [
 
   <script type="application/ld+json"><?= json_encode($ld, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?></script>
   <script type="application/ld+json"><?= json_encode($ldCrumbs, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?></script>
-  <link rel="stylesheet" href="/assets/oknav.css">
+  <link rel="stylesheet" href="/assets/oknav.css?v=20260724a">
 </head>
 
 <body id="top">
@@ -205,8 +208,8 @@ $ldCrumbs = [
      por JavaScript a propósito: los enlaces de navegación deben venir en el HTML
      para que Google los siga, que es justo por lo que la ficha se arma en el
      servidor).
-     Necesita:  <link rel="stylesheet" href="/assets/oknav.css">
-                <script src="/assets/oknav.js" defer></script>
+     Necesita:  <link rel="stylesheet" href="/assets/oknav.css?v=20260724a">
+                <script src="/assets/oknav.js?v=20260724a" defer></script>
      Todos los <svg> llevan width/height propios: sin tamaño intrínseco un icono
      se pinta gigante mientras el CSS va en camino (ya pasó con el del correo).
      ───────────────────────────────────────────────────────────────────────── -->
@@ -498,11 +501,11 @@ $ldCrumbs = [
           <div id="pdpAlertBox" hidden style="margin-top:10px;padding:14px;border:1.5px solid #e3e6ee;border-radius:14px;background:#fff">
             <p style="margin:0 0 8px;font-size:.86rem;font-weight:700">¿A qué correo te avisamos?</p>
             <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px">
-              <button type="button" class="pdp-alert-opt" id="paMio" style="max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:8px 14px;border:1.5px solid #066CFF;border-radius:999px;background:#eef5ff;color:#066CFF;font:inherit;font-size:.83rem;font-weight:600;cursor:pointer"></button>
-              <button type="button" class="pdp-alert-opt" id="paOtro" style="padding:8px 14px;border:1.5px solid #e3e6ee;border-radius:999px;background:#fff;font:inherit;font-size:.83rem;font-weight:600;cursor:pointer">Otro correo</button>
+              <button type="button" class="pdp-alert-opt" id="paMio" style="max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:8px 14px;border:1.5px solid #066CFF;border-radius:10px;background:#eef5ff;color:#066CFF;font:inherit;font-size:.83rem;font-weight:600;cursor:pointer"></button>
+              <button type="button" class="pdp-alert-opt" id="paOtro" style="padding:8px 14px;border:1.5px solid #e3e6ee;border-radius:10px;background:#fff;font:inherit;font-size:.83rem;font-weight:600;cursor:pointer">Otro correo</button>
             </div>
             <input id="paEmail" type="email" maxlength="190" placeholder="correo@ejemplo.com" hidden style="width:100%;padding:9px 12px;border:1.5px solid #e3e6ee;border-radius:10px;font:inherit;font-size:.86rem;margin-bottom:8px">
-            <button type="button" id="paGo" style="width:100%;padding:11px;border:0;border-radius:999px;background:#066CFF;color:#fff;font:inherit;font-weight:700;cursor:pointer">Avisarme</button>
+            <button type="button" id="paGo" style="width:100%;padding:11px;border:0;border-radius:12px;background:#066CFF;color:#fff;font:inherit;font-weight:700;cursor:pointer">Avisarme</button>
             <p id="paMsg" style="margin:8px 0 0;font-size:.8rem" hidden></p>
           </div>
         <?php endif; ?>
@@ -602,11 +605,11 @@ $ldCrumbs = [
       <?php endif; ?>
     </div>
 
-    <!-- ── Relacionados ── -->
+    <!-- ── Completa tu compra: productos que complementan a éste ── -->
     <?php if ($related): ?>
-    <section class="pdp__related" aria-label="Productos relacionados">
+    <section class="pdp__related" aria-label="Completa tu compra">
       <div class="pdp__related-head">
-        <h2>También de <?= e($cat !== '' ? $cat : 'la tienda') ?></h2>
+        <h2>Completa tu compra</h2>
         <a href="/tienda#store" class="pdp__seeall">Ver toda la tienda →</a>
       </div>
       <div class="pdp__rel-grid">
@@ -675,6 +678,6 @@ $ldCrumbs = [
 <script src="/assets/catalogo.js?v=20260716a" defer></script>
 <script src="/assets/ok-anim.js?v=20260722a" defer></script>
 <script src="/assets/oki.js?v=20260717d" defer></script>
-  <script src="/assets/oknav.js" defer></script>
+  <script src="/assets/oknav.js?v=20260724a" defer></script>
 </body>
 </html>

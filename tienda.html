@@ -33,12 +33,12 @@
 <link rel="icon" href="/assets/img/OKD-Isotipo-Azul-96.png" type="image/png" sizes="96x96">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
 <!-- Tema (claro/oscuro): antes de la hoja para pintar ya con el tema elegido -->
 <script src="assets/theme.js?v=20260721a"></script>
 <link rel="stylesheet" href="styles.css">
 <link rel="stylesheet" href="assets/oki.css?v=20260716d">
-<link rel="stylesheet" href="/assets/oknav.css">
+<link rel="stylesheet" href="/assets/oknav.css?v=20260724a">
 
 <script type="application/ld+json">
 {
@@ -84,17 +84,19 @@
     --store-col:1360px; /* ancho de la columna del catalogo (buscador, categorias, productos) */
     --blue-dark:#0560e0; /* azul apenas mas oscuro para la fila de categorias */
     --grad:linear-gradient(100deg,#9C1DFF 0%,#6A2BF5 22%,#066CFF 52%,#0EA6FF 78%,#00C6FF 100%);
-    --sans:"Segoe UI",system-ui,-apple-system,Roboto,Arial,sans-serif;
-    --sh:0 1px 3px rgba(18,20,28,.06); --sh2:0 8px 26px rgba(18,20,28,.1);
+    --sans:"Inter","Segoe UI",system-ui,-apple-system,Roboto,Arial,sans-serif;
+    --sh:0 1px 2px rgba(18,20,28,.05); --sh2:0 3px 12px rgba(18,20,28,.07);
     
     --blue-l:#EAF1FF; --blue-h:#0558CC; --ink2:#4A5068; --line2:#C8CEDF; --soft:#F4F6FD;
     --good:#0F7B4D; --bad:#B91C1C; --wa:#25D366; --orange:#FF7C19;
     --grad-blue:linear-gradient(135deg,#066CFF,#00C6FF); --grad-cyan:linear-gradient(135deg,#0096FF,#00C6FF); --grad-deep:linear-gradient(135deg,#0558CC,#066CFF);
     --r-full:9999px; --r-md:16px; --r-sm:10px; --r-xs:6px;
-    --sh-sm:0 4px 12px rgba(12,20,50,.07),0 2px 4px rgba(12,20,50,.04); --sh-md:0 12px 32px rgba(12,20,50,.09),0 4px 12px rgba(12,20,50,.05); --sh-blue:0 14px 40px rgba(6,108,255,.30),0 4px 16px rgba(6,108,255,.18);
+    /* Sombras FINAS: se busca profundidad sutil, no cajas flotando. Antes eran
+       difusiones de 32-40px muy marcadas; ahora 1-3px pegadas al elemento. */
+    --sh-sm:0 1px 3px rgba(12,20,50,.08); --sh-md:0 3px 12px rgba(12,20,50,.08); --sh-blue:0 2px 8px rgba(6,108,255,.22);
   }
 #site *{box-sizing:border-box; min-width:0}
-#site{font-family:var(--sans); color:var(--ink); background:var(--paper); font-size:15px; min-height:100vh; overflow-x:clip}
+#site{font-family:var(--sans); color:var(--ink); background:var(--paper); font-size:14px; min-height:100vh; overflow-x:clip}
 #site button{font-family:inherit; cursor:pointer}
 #site img,#site svg{max-width:100%}
 #site :focus-visible{outline:2px solid var(--blue); outline-offset:2px}
@@ -112,6 +114,11 @@
 #site .ph.lg svg{width:clamp(40px,7vw,58px)}
 /* Imagen del producto = su emoji sobre el gradiente de su categoría (mientras no haya foto real). */
 #site .pimg{border:0 !important; color:#fff; box-shadow:inset 0 0 40px rgba(255,255,255,.08)}
+/* Producto CON foto: la caja va BLANCA (no el gris azulado de .ph). Las fotos vienen
+   recortadas sobre blanco, así que el marco desaparece y se ve "sin fondo" sobre la
+   tarjeta —que también es blanca—. Solo los productos SIN foto conservan su caja de
+   marca (.pimg--marca), que es un tratamiento a propósito. */
+#site .ph.has-img{background:#fff}
 #site .pimg .pemoji{font-size:clamp(34px,7vw,48px); line-height:1; filter:drop-shadow(0 3px 6px rgba(10,20,60,.30))}
 /* Producto SIN foto: el logo de OK.station centrado sobre el gris suave. Se ve
    intencional (una marca), no un hueco. El logo no se estira: conserva su alto. */
@@ -165,7 +172,7 @@ html[data-theme="dark"] #site .pimg--marca{background:#E9EEF7}
 #site .promostrip .ps-txt{display:flex; align-items:center; gap:9px}
 #site .promostrip .k{background:#FFE000; color:#0a1a3a; font-size:.62rem; font-weight:800; padding:2px 7px; border-radius:6px; letter-spacing:.04em}
 #site .promostrip .gostore{margin-left:auto}
-#site .gostore{border:none; background:var(--blue); color:#fff; font-weight:600; padding:10px 22px; border-radius:999px; font-size:.9rem; display:inline-flex; align-items:center; gap:7px; box-shadow:var(--sh-blue,0 14px 40px rgba(6,108,255,.30)); transition:transform .15s, box-shadow .15s, background .15s}
+#site .gostore{border:none; background:var(--blue); color:#fff; font-weight:600; padding:10px 22px; border-radius:12px; font-size:.9rem; display:inline-flex; align-items:center; gap:7px; box-shadow:var(--sh-blue,0 14px 40px rgba(6,108,255,.30)); transition:transform .15s, box-shadow .15s, background .15s}
 #site .gostore:hover{background:var(--blue-h,#0558CC); transform:translateY(-2px); box-shadow:0 16px 44px rgba(6,108,255,.38)}
 #site .sec{padding:clamp(34px,5.5vw,60px) 0}
 #site .eyebrow{font-size:.72rem; font-weight:800; letter-spacing:.14em; text-transform:uppercase; color:var(--blue)}
@@ -252,7 +259,7 @@ html[data-theme="dark"] #site .pimg--marca{background:#E9EEF7}
 #site .deal-band p{color:rgba(255,255,255,.92); margin:6px 0 0}
 #site .countdown{display:flex; gap:7px; margin-top:12px}
 #site .countdown b{background:rgba(255,255,255,.2); border-radius:8px; padding:6px 10px; font-variant-numeric:tabular-nums; font-size:1.05rem; min-width:42px; text-align:center}
-#site .btn-w{background:#fff; color:#FF5E3A; border:none; font-weight:800; padding:14px 26px; border-radius:999px; white-space:nowrap; align-self:center; transition:transform .15s, box-shadow .15s}
+#site .btn-w{background:#fff; color:#FF5E3A; border:none; font-weight:800; padding:14px 26px; border-radius:12px; white-space:nowrap; align-self:center; transition:transform .15s, box-shadow .15s}
 #site .btn-w:hover{transform:translateY(-2px); box-shadow:var(--sh-md,0 12px 32px rgba(12,20,50,.12))}
 #site .feat-wrap{position:relative}
 #site .feat{display:flex; gap:14px; overflow-x:auto; overflow-y:hidden; scroll-behavior:smooth; scrollbar-width:none; -ms-overflow-style:none; -webkit-overflow-scrolling:touch; overscroll-behavior-x:contain; padding:6px 2px; scroll-snap-type:x proximity}
@@ -275,7 +282,7 @@ html[data-theme="dark"] #site .pimg--marca{background:#E9EEF7}
 #site .fcard .fp{font-weight:800; font-variant-numeric:tabular-nums}
 #site .fcard .fp s{color:var(--muted); font-weight:500; font-size:.78em; margin-left:3px}
 #site .fcard .scarce{margin-top:6px; font-size:.68rem; font-weight:700; color:#c2410c}
-#site .fcard .fadd{margin-top:10px; border:none; background:var(--blue); color:#fff; border-radius:999px; padding:9px; font-weight:600; font-size:.82rem; box-shadow:var(--sh-blue,0 14px 40px rgba(6,108,255,.30)); transition:transform .15s, background .15s}
+#site .fcard .fadd{margin-top:10px; border:none; background:var(--blue); color:#fff; border-radius:10px; padding:9px; font-weight:600; font-size:.82rem; box-shadow:var(--sh-blue,0 14px 40px rgba(6,108,255,.30)); transition:transform .15s, background .15s}
 #site .fcard .fadd:hover{background:var(--blue-h,#0558CC); transform:translateY(-2px)}
 #site .faq{max-width:760px; margin:0 auto}
 #site .faq .qa{border:1px solid var(--line); background:#fff; border-radius:13px; margin-bottom:10px; overflow:hidden; box-shadow:var(--sh)}
@@ -372,16 +379,21 @@ html.store-view .header-bar, html.store-view .site-header{display:none}
    compacto (buscador + botón de Filtros, que en desktop viven en el sidebar), y oknav
    se oculta como antes. */
 @media(min-width:1001px){
-  html.store-view{--oknav-h:140px}
+  /* Respaldo para el primer pintado: el valor REAL lo mide y publica oknav.js
+     (--oknav-h en el <html>), así el carrito y la columna lateral siguen a la
+     navbar aunque cambie su espaciado. */
+  html.store-view{--oknav-h:158px}
   html.store-view .oknav{display:block}
   html.store-view #site .topbar{display:none}
-  html.store-view .oknav__wrap{max-width:none; padding-inline:24px}
+  /* La navbar conserva las MISMAS medidas que en el resto del sitio (max-width 1280px
+     y padding de oknav.css): antes aquí se estiraba a todo lo ancho y la tienda se
+     veía con un encabezado de otras proporciones. */
   /* El carrito arranca BAJO la navbar (sticky, z mayor), que si no le tapaba la
      cabecera con la ✕ (no se podía cerrar) y el primer producto. */
-  html.store-view #site .cart{top:var(--oknav-h,140px); height:auto; bottom:0}
+  html.store-view #site .cart{top:var(--oknav-h,158px); height:auto; bottom:0}
 }
 @media(max-width:1000px){ html.store-view .oknav{display:none} }
-#site .topbar,#site .popbar-row{font-family:"Poppins",system-ui,-apple-system,"Segoe UI",sans-serif}
+#site .topbar,#site .popbar-row{font-family:"Inter",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
 #site .topbar{align-items:center}
 #site .tb-logo{flex:none; display:flex; align-items:center; color:#fff; font-weight:800; font-size:1.18rem; letter-spacing:-.02em; text-decoration:none; white-space:nowrap}
 #site .tb-logo img{height:26px; width:auto; display:block; filter:brightness(0) invert(1)}
@@ -393,8 +405,8 @@ html.store-view .header-bar, html.store-view .site-header{display:none}
      · Favoritos→ cristal, solo ícono = secundario.
      · WhatsApp → verde de siempre.
      · Carrito  → el ÚNICO sólido con peso: es a donde tiene que ir el ojo. */
-#site .tb-cuenta,#site .tb-fav,#site .tb-cart{flex:none; display:flex; align-items:center; gap:7px; padding:8px 15px; border-radius:99px; border:1.5px solid var(--line); background:#fff; color:#12141C; font-weight:600; font-size:.85rem; white-space:nowrap; text-decoration:none; cursor:pointer; position:relative; box-shadow:0 4px 14px rgba(8,12,30,.16); transition:transform .18s cubic-bezier(.34,1.56,.64,1), box-shadow .18s, border-color .15s, background .15s}
-#site .tb-cuenta:hover,#site .tb-fav:hover,#site .tb-cart:hover{border-color:#d5deee; box-shadow:0 12px 28px rgba(8,12,30,.24); transform:translateY(-2px)}
+#site .tb-cuenta,#site .tb-fav,#site .tb-cart{flex:none; display:flex; align-items:center; gap:7px; padding:8px 15px; border-radius:99px; border:1.5px solid var(--line); background:#fff; color:#12141C; font-weight:600; font-size:.85rem; white-space:nowrap; text-decoration:none; cursor:pointer; position:relative; box-shadow:0 1px 3px rgba(8,12,30,.10); transition:transform .18s cubic-bezier(.34,1.56,.64,1), box-shadow .18s, border-color .15s, background .15s}
+#site .tb-cuenta:hover,#site .tb-fav:hover,#site .tb-cart:hover{border-color:#d5deee; box-shadow:0 4px 12px rgba(8,12,30,.14); transform:translateY(-2px)}
 #site .tb-cuenta svg,#site .tb-cart svg{width:17px; height:17px; flex:none; color:var(--blue)}
 /* Cuenta: el MISMO chip que el home (avatar con tu inicial en degradado de marca +
    nombre + flecha). Antes era un ícono genérico de persona y sin flecha, aunque sí
@@ -436,8 +448,8 @@ html.store-view .header-bar, html.store-view .site-header{display:none}
 #site .tb-fav.on{box-shadow:0 6px 18px rgba(6,108,255,.4)}
 #site .tb-cart.on .ct,#site .tb-fav.on .ct{border-color:#fff}
 /* Carrito: el único macizo. Más aire, monto en negritas y sombra fuerte. */
-#site .tb-cart{font-weight:800; padding:9px 17px; font-size:.9rem; box-shadow:0 8px 22px rgba(8,12,30,.28)}
-#site .tb-cart:hover{box-shadow:0 16px 34px rgba(8,12,30,.34)}
+#site .tb-cart{font-weight:800; padding:9px 17px; font-size:.9rem; box-shadow:0 2px 6px rgba(8,12,30,.18)}
+#site .tb-cart:hover{box-shadow:0 6px 16px rgba(8,12,30,.22)}
 #site .tb-cart svg{width:19px; height:19px}
 /* ══ Parpadeo del hover en los bordes ══
    Estos botones SUBEN al pasar el cursor. Si el puntero está en el borde, el botón se
@@ -501,7 +513,7 @@ html.store-view .header-bar, html.store-view .site-header{display:none}
 #site .fapply{flex:1; padding:11px 15px; border:0; border-radius:10px; background:var(--blue); color:#fff; font:inherit; font-weight:800; font-size:.9rem; cursor:pointer}
 #site .fapply:hover{background:var(--blue-h,#0558CC)}
 /* WhatsApp verde de marca (.btn--wa del home) */
-#site .tb-wa{flex:none; display:grid; place-items:center; width:40px; height:40px; border-radius:99px; background:linear-gradient(135deg,#25D366,#0FB84F); border:none; box-shadow:0 6px 16px rgba(37,211,102,.42); transition:transform .18s cubic-bezier(.34,1.56,.64,1), box-shadow .18s}
+#site .tb-wa{flex:none; display:grid; place-items:center; width:40px; height:40px; border-radius:99px; background:linear-gradient(135deg,#25D366,#0FB84F); border:none; box-shadow:0 2px 6px rgba(37,211,102,.30); transition:transform .18s cubic-bezier(.34,1.56,.64,1), box-shadow .18s}
 #site .tb-wa svg{width:21px; height:21px; color:#fff; transition:transform .2s}
 #site .tb-wa:hover{box-shadow:0 12px 30px rgba(37,211,102,.55); transform:translateY(-2px) scale(1.06)}
 #site .tb-wa:hover svg{transform:scale(1.1)}
@@ -543,12 +555,15 @@ html.store-view .header-bar, html.store-view .site-header{display:none}
 #site .pop .dot{width:8px; height:8px; border-radius:3px; flex:none}
 #site .shell{display:block}
 #site .catalog{display:block}
-#site .catbar{display:flex; align-items:baseline; justify-content:space-between; gap:10px; padding:14px max(18px,calc((100% - var(--store-col))/2)) 8px; flex:none}
-#site .catbar .ctitle{font-size:1.02rem; font-weight:800}
+/* flex-wrap: con una búsqueda larga el título ya no aplasta al botón "Ver todos los
+   productos" —que nunca se encoge—; si no caben juntos, el botón baja de renglón. */
+#site .catbar{display:flex; align-items:baseline; justify-content:space-between; gap:10px; flex-wrap:wrap; padding:14px max(18px,calc((100% - var(--store-col))/2)) 8px; flex:none}
+#site .catbar .ctitle{font-size:1.02rem; font-weight:800; min-width:0}
 #site .catbar .cnt{font-size:.8rem; color:var(--muted); white-space:nowrap}
 #site .grid{padding:14px 18px 44px; display:grid; grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); gap:13px; max-width:var(--store-col); margin-inline:auto}
 #site .prod{position:relative; background:var(--card); border:1px solid var(--line); border-radius:15px; padding:11px; box-shadow:var(--sh); display:flex; flex-direction:column; transition:transform .12s}
-#site .prod:hover{transform:translateY(-2px); border-color:#c9d8f2}
+#site .prod{transition:transform .12s, box-shadow .15s, border-color .15s}
+#site .prod:hover{transform:translateY(-2px); border-color:#c9d8f2; box-shadow:0 6px 16px rgba(12,20,50,.08)}
 #site .prod .ph{height:92px; margin-bottom:10px}
 #site .deal-badge{position:absolute; top:8px; left:8px; z-index:3; pointer-events:none; background:linear-gradient(100deg,#FF8A00,#FF5E3A); color:#fff; font-size:.64rem; font-weight:800; padding:3px 7px; border-radius:8px}
 #site .prod h3{font-size:.84rem; font-weight:700; margin:0 0 3px; line-height:1.25}
@@ -581,6 +596,12 @@ html.store-view .header-bar, html.store-view .site-header{display:none}
 #site .grid.is-list .prod .wishbtn{top:50% !important; right:16px !important; transform:translateY(-50%) !important}
 /* Botón cambiar vista (lista / cuadros) */
 #site .catbar-right{display:flex; align-items:center; gap:12px}
+/* "Ver todos los productos": aparece SOLO con una búsqueda activa, junto al título
+   "Resultados de …". Un clic limpia la búsqueda y restaura el catálogo completo. */
+#site .clearq{flex:none; margin-right:auto; /* pegado al título; el hueco libre queda entre él y el conteo */
+  border:1.5px solid var(--blue); background:var(--card,#fff); color:var(--blue); font:inherit; font-size:.78rem; font-weight:700; padding:6px 13px; border-radius:10px; cursor:pointer; white-space:nowrap; transition:background .15s, color .15s}
+#site .clearq:hover{background:var(--blue); color:#fff}
+#site .clearq[hidden]{display:none}
 #site .viewtoggle{display:inline-flex; gap:2px; background:var(--paper); border:1px solid var(--line); border-radius:10px; padding:2px}
 #site .viewtoggle button{border:none; background:none; width:32px; height:28px; border-radius:8px; display:grid; place-items:center; color:var(--muted); cursor:pointer}
 #site .viewtoggle button.on{background:#fff; color:var(--blue); box-shadow:var(--sh)}
@@ -589,7 +610,7 @@ html.store-view .header-bar, html.store-view .site-header{display:none}
 #site .prod .price s{color:var(--muted); font-weight:500; font-size:.76em; margin-left:2px}
 #site .prod .stock{font-size:.64rem; color:var(--green); font-weight:600}
 #site .prod .stock.low{color:#c2410c}
-#site .add{border:none; background:var(--blue); color:#fff; border-radius:999px; padding:7px 12px; font-weight:600; font-size:.78rem; flex:none; position:relative; z-index:2; box-shadow:var(--sh-sm,0 4px 12px rgba(12,20,50,.10)); transition:transform .15s, background .15s}
+#site .add{border:none; background:var(--blue); color:#fff; border-radius:10px; padding:7px 12px; font-weight:600; font-size:.78rem; flex:none; position:relative; z-index:2; box-shadow:var(--sh-sm,0 4px 12px rgba(12,20,50,.10)); transition:transform .15s, background .15s}
 #site .add:hover{background:var(--blue-h,#0558CC); transform:translateY(-1px)}
 #site .empty{grid-column:1/-1; text-align:center; color:var(--muted); padding:50px 20px}
 /* Separador entre vueltas del catálogo (scroll infinito): discreto, pero deja claro
@@ -633,8 +654,8 @@ html.store-view .header-bar, html.store-view .site-header{display:none}
 #site .sline{display:flex; justify-content:space-between; font-size:.85rem; color:var(--muted); margin:5px 0}
 #site .sline.total{color:var(--ink); font-weight:800; font-size:1.1rem; margin-top:9px; padding-top:9px; border-top:1px solid var(--line)}
 #site .sline span:last-child{font-variant-numeric:tabular-nums}
-#site .checkout{width:100%; margin-top:12px; border:none; background:#FFE200; color:#12141C; font-weight:700; padding:13px; border-radius:999px; box-shadow:0 12px 34px rgba(255,226,0,.30); transition:transform .15s, box-shadow .15s}
-#site .checkout:hover:not(:disabled){transform:translateY(-2px); box-shadow:0 18px 46px rgba(6,108,255,.36),0 8px 20px rgba(156,29,255,.22)}
+#site .checkout{width:100%; margin-top:12px; border:none; background:#FFE200; color:#12141C; font-weight:700; padding:13px; border-radius:12px; box-shadow:0 2px 6px rgba(255,226,0,.30); transition:transform .15s, box-shadow .15s}
+#site .checkout:hover:not(:disabled){transform:translateY(-1px); box-shadow:0 6px 16px rgba(255,226,0,.34)}
 #site .checkout:disabled{opacity:.45; pointer-events:none}
 #site .taxnote{font-size:.68rem; color:var(--muted); text-align:center; margin-top:8px}
 #site .drawer{position:fixed; top:0; left:0; height:100%; width:min(300px,86vw); background:#fff; transform:translateX(-100%); transition:transform .25s; z-index:60; box-shadow:12px 0 44px rgba(18,20,28,.22); display:flex; flex-direction:column}
@@ -734,7 +755,7 @@ html.q-lock, html.q-lock body{overflow:hidden}
 #site #prodModal .pvmain{height:clamp(220px,42vw,300px)}
 /* Descripción recortada + "ver más" (la ficha de Icecat es muy larga) */
 #site .desc.clamp{display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden}
-#site .descmore,#site .specsmore{display:inline-flex; align-items:center; gap:6px; margin:4px 0 16px; border:1.5px solid var(--line); background:var(--paper); color:var(--blue); font-weight:700; font-size:.85rem; cursor:pointer; padding:9px 16px; border-radius:99px; transition:background .15s, box-shadow .15s, transform .15s}
+#site .descmore,#site .specsmore{display:inline-flex; align-items:center; gap:6px; margin:4px 0 16px; border:1.5px solid var(--line); background:var(--paper); color:var(--blue); font-weight:700; font-size:.85rem; cursor:pointer; padding:9px 16px; border-radius:10px; transition:background .15s, box-shadow .15s, transform .15s}
 #site .descmore:hover,#site .specsmore:hover{background:#fff; box-shadow:0 8px 20px rgba(6,108,255,.16); transform:translateY(-1px)}
 /* Ficha: muestra las primeras y colapsa el resto */
 #site .specs.specs-collapsed li:nth-child(n+9){display:none}
@@ -778,7 +799,7 @@ html.q-lock, html.q-lock body{overflow:hidden}
 #site .mfaq{background:var(--soft,#F4F6FD); border:1px solid var(--line); border-radius:12px; padding:10px 13px; margin-bottom:9px}
 #site .mfaq b{display:block; font-size:.84rem; color:var(--ink); margin-bottom:2px}
 #site .mfaq span{font-size:.82rem; color:#4A5068; line-height:1.4}
-#site .maddbtn{width:100%; border:none; background:var(--blue); color:#fff; font-weight:600; padding:13px; border-radius:999px; box-shadow:var(--sh-blue,0 14px 40px rgba(6,108,255,.30)); transition:transform .15s, background .15s}
+#site .maddbtn{width:100%; border:none; background:var(--blue); color:#fff; font-weight:600; padding:13px; border-radius:12px; box-shadow:var(--sh-blue,0 14px 40px rgba(6,108,255,.30)); transition:transform .15s, background .15s}
 #site .maddbtn:hover{background:var(--blue-h,#0558CC); transform:translateY(-2px)}
 
 /* ── Botones del e-commerce: PRESIÓN y ANILLO DE FOCO (jul 2026) ──
@@ -836,7 +857,7 @@ html.q-lock, html.q-lock body{overflow:hidden}
 #site #afMap{height:230px; border-radius:12px; border:1px solid var(--line); z-index:1}
 /* Chips del correo de avisos (checkout, paso Contacto) */
 #site .comail{display:flex; gap:8px; flex-wrap:wrap}
-#site .comail-opt{max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; padding:9px 14px; border:1.5px solid var(--line); border-radius:999px; background:#fff; font:inherit; font-size:.84rem; font-weight:600; cursor:pointer; transition:border-color .15s, background .15s}
+#site .comail-opt{max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; padding:9px 14px; border:1.5px solid var(--line); border-radius:10px; background:#fff; font:inherit; font-size:.84rem; font-weight:600; cursor:pointer; transition:border-color .15s, background .15s}
 #site .comail-opt.on{border-color:var(--blue); background:#eef5ff; color:var(--blue)}
 #site #locModal{max-height:86vh; overflow-y:auto}
 @media(max-width:480px){ #site .afrow{grid-template-columns:1fr} }
@@ -1090,8 +1111,8 @@ html[data-theme="dark"] #site :is(.tb-cuenta,.tb-fav,.tb-cart,.tb-filt):hover{ba
      lo ancho. Abierto (por defecto) → sidebar sticky de cats + filtros a la izquierda. */
   html.cats-closed #site .shell{grid-template-columns:minmax(0,1fr)}
   html.cats-closed #site .store-side{display:none}
-  #site .store-side{display:block; position:sticky; top:var(--oknav-h,150px); align-self:start;
-    max-height:calc(100vh - var(--oknav-h,150px) - 14px); overflow-y:auto; overflow-x:hidden; padding-right:2px}
+  #site .store-side{display:block; position:sticky; top:var(--oknav-h,158px); align-self:start;
+    max-height:calc(100vh - var(--oknav-h,158px) - 14px); overflow-y:auto; overflow-x:hidden; padding-right:2px}
   #site .side-cats{display:block}
   #site .side-h{display:block; font-size:.72rem; font-weight:800; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); margin:2px 0 8px 4px}
   /* El catálogo llena su columna (sin su centrado propio, que ahora lo da .shell). */
@@ -1112,7 +1133,7 @@ html[data-theme="dark"] #site :is(.tb-cuenta,.tb-fav,.tb-cart,.tb-filt):hover{ba
 }
 @media(min-width:1441px){ #site .grid{grid-template-columns:repeat(auto-fill,minmax(265px,1fr))} }
 
-/* ═══ Tarjeta de producto: imagen completa + nombre + [Agregar amarillo][Pagar] ═══ */
+/* ═══ Tarjeta de producto: imagen completa + nombre + [Agregar al carrito] ═══ */
 #site .prod .pinfo{display:flex; flex-direction:column; flex:1 1 auto; min-width:0}
 #site .pfoot{margin-top:auto}
 #site .pmeta{display:flex; align-items:baseline; gap:8px; flex-wrap:wrap; margin:3px 0 9px}
@@ -1120,14 +1141,14 @@ html[data-theme="dark"] #site :is(.tb-cuenta,.tb-fav,.tb-cart,.tb-filt):hover{ba
 #site .pmeta .stock{font-size:.72rem; color:var(--muted)}
 #site .pmeta .stock.low{color:var(--amber)}
 #site .pbtns{display:flex; gap:7px; position:relative; z-index:2}
-#site .pbtns button{flex:1; border:none; border-radius:999px; padding:10px 8px; font-weight:700; font-size:.82rem; cursor:pointer; font-family:inherit; transition:transform .15s, filter .15s, background .15s}
+/* Una sola acción, de ancho completo. El texto no se parte en dos renglones: en las
+   tarjetas más angostas (160px) se recorta con puntos suspensivos antes que estirar
+   la tarjeta. */
+#site .pbtns button{flex:1; min-width:0; border:none; border-radius:10px; padding:10px 6px; font-weight:700; font-size:.8rem; cursor:pointer; font-family:inherit; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; transition:transform .15s, filter .15s, background .15s}
 #site .pbtns button:active:not(:disabled){transform:translateY(0) scale(.97)}
-/* Amarillo de compras (marca): #FFE200. Agregar filled; Pagar mismo amarillo con
-   borde interior sutil para distinguirlo del de al lado. */
-#site .addbuy{background:#FFE200; color:#12141C}                          /* Agregar */
+/* Amarillo de compras (marca): #FFE200. Única acción de la tarjeta. */
+#site .addbuy{background:#FFE200; color:#12141C}                          /* Agregar al carrito */
 #site .addbuy:hover:not(:disabled){background:#FFE200; filter:brightness(1.04); transform:translateY(-1px)}
-#site .paynow{background:#FFE200; color:#12141C; box-shadow:inset 0 0 0 1.6px rgba(18,20,28,.18)}  /* Pagar (ir a pagar) */
-#site .paynow:hover:not(:disabled){background:#FFE200; filter:brightness(1.04); transform:translateY(-1px)}
 #site .pbtns button:disabled{opacity:.5; cursor:not-allowed}
 /* En vista LISTA los botones no se estiran a todo lo ancho. */
 #site .grid.is-list .pfoot{margin-top:0}
@@ -1142,8 +1163,8 @@ html[data-theme="dark"] #site :is(.tb-cuenta,.tb-fav,.tb-cart,.tb-filt):hover{ba
      por JavaScript a propósito: los enlaces de navegación deben venir en el HTML
      para que Google los siga, que es justo por lo que la ficha se arma en el
      servidor).
-     Necesita:  <link rel="stylesheet" href="/assets/oknav.css">
-                <script src="/assets/oknav.js" defer></script>
+     Necesita:  <link rel="stylesheet" href="/assets/oknav.css?v=20260724a">
+                <script src="/assets/oknav.js?v=20260724a" defer></script>
      Todos los <svg> llevan width/height propios: sin tamaño intrínseco un icono
      se pinta gigante mientras el CSS va en camino (ya pasó con el del correo).
      ───────────────────────────────────────────────────────────────────────── -->
@@ -1513,7 +1534,7 @@ html[data-theme="dark"] #site :is(.tb-cuenta,.tb-fav,.tb-cart,.tb-filt):hover{ba
         <!-- La vista predeterminada es LISTA: `is-list` y el botón activo vienen puestos
              desde el HTML, así no hace falta un setView() al arrancar (ese pintaba el
              catálogo de respaldo encima del "Cargando…" hasta que contestaba la BD). -->
-        <div class="catalog"><div class="catbar"><span class="ctitle" id="catTitle">Todos los productos</span><div class="catbar-right"><span class="cnt" id="catCount"></span><div class="viewtoggle"><button type="button" data-view="list" title="Lista" aria-label="Ver como lista"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="8" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="20" y2="12"/><line x1="8" y1="18" x2="20" y2="18"/><line x1="3.5" y1="6" x2="3.51" y2="6"/><line x1="3.5" y1="12" x2="3.51" y2="12"/><line x1="3.5" y1="18" x2="3.51" y2="18"/></svg></button><button type="button" data-view="grid" class="on" title="Cuadros" aria-label="Ver como cuadros"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg></button></div></div></div><div class="grid" id="grid"></div></div>
+        <div class="catalog"><div class="catbar"><span class="ctitle" id="catTitle">Todos los productos</span><button type="button" class="clearq" id="clearQ" data-clearq hidden>Ver todos los productos</button><div class="catbar-right"><!-- region viva: al filtrar desde la navbar no hay cambio de página que anunciar --><span class="cnt" id="catCount" role="status" aria-live="polite"></span><div class="viewtoggle"><button type="button" data-view="list" title="Lista" aria-label="Ver como lista"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="8" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="20" y2="12"/><line x1="8" y1="18" x2="20" y2="18"/><line x1="3.5" y1="6" x2="3.51" y2="6"/><line x1="3.5" y1="12" x2="3.51" y2="12"/><line x1="3.5" y1="18" x2="3.51" y2="18"/></svg></button><button type="button" data-view="grid" class="on" title="Cuadros" aria-label="Ver como cuadros"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg></button></div></div></div><div class="grid" id="grid"></div></div>
         <aside class="cart" id="cart"><div class="ch">Tu carrito <button class="close" id="cartClose">×</button></div><div class="items" id="items"></div>
           <div class="sum"><div class="ship"><button class="on" data-ship="retiro"><b>Recoger en OK.station</b>Gratis</button><button data-ship="envio"><b>Envío a domicilio</b>$99</button></div>
             <div class="sline"><span>Subtotal</span><span id="sub">$0.00</span></div><div class="sline"><span>Entrega</span><span id="shipCost">Recoge en tienda</span></div><div class="sline total"><span>Total</span><span id="total">$0.00</span></div>
@@ -1817,7 +1838,9 @@ html[data-theme="dark"] #site :is(.tb-cuenta,.tb-fav,.tb-cart,.tb-filt):hover{ba
       for(var w=0;w<e.words.length;w++){var wd=e.words[w]; if(wd.length>=3&&okLev(term,wd,mx)<=mx){score+=22;found=true;break;}}}
     if(!found)return -1;   // TODOS los términos deben coincidir (AND)
   } return score;}
-  function okSearch(q,limit){var terms=okNorm(q).split(" ").filter(Boolean); if(!terms.length)return []; var idx=searchIndex(),res=[]; for(var i=0;i<idx.length;i++){var s=okScore(idx[i],terms); if(s>=0)res.push({p:idx[i].p,s:s});} res.sort(function(a,b){return b.s-a.s||a.p.name.localeCompare(b.p.name);}); res=res.map(function(x){return x.p;}); return limit?res.slice(0,limit):res;}
+  /* Empatada la relevancia, el que TIENE foto va primero (mismo criterio que el
+     servidor en products.php): ninguno se oculta, solo cambia el orden. */
+  function okSearch(q,limit){var terms=okNorm(q).split(" ").filter(Boolean); if(!terms.length)return []; var idx=searchIndex(),res=[]; for(var i=0;i<idx.length;i++){var s=okScore(idx[i],terms); if(s>=0)res.push({p:idx[i].p,s:s});} res.sort(function(a,b){return b.s-a.s||((b.p.image?1:0)-(a.p.image?1:0))||a.p.name.localeCompare(b.p.name);}); res=res.map(function(x){return x.p;}); return limit?res.slice(0,limit):res;}
   function filtered(){
     /* Con el catálogo real el SERVIDOR ya aplicó categoría/subcategoría/ofertas/búsqueda
        (ver dbParams): lo que hay en P es justo lo que toca pintar. Solo el respaldo
@@ -1849,14 +1872,26 @@ html[data-theme="dark"] #site :is(.tb-cuenta,.tb-fav,.tb-cart,.tb-filt):hover{ba
       return '<div class="prod">'+(p.old?'<span class="deal-badge">−'+Math.round((1-p.price/p.old)*100)+'%</span>':'')+pimg(p)+heartBtn(p.id,'position:absolute;top:10px;right:10px;z-index:4;width:36px;height:36px;padding:0;')+
         '<div class="pinfo"><div class="pnametext"><div class="cat">'+catName(p.cat)+'</div><h3>'+p.name+'</h3></div>'+
         '<div class="pfoot"><div class="pmeta"><span class="price">'+mxn(p.price)+(p.old?' <s>'+mxn(p.old)+'</s>':'')+'</span><span class="stock'+(low?' low':'')+'">'+(p.stock<=0?"Agotado":(low?"¡Últimas "+p.stock+"!":p.stock+" en stock"))+'</span></div>'+
-        '<div class="pbtns"><button class="add addbuy" data-add="'+p.id+'"'+(p.stock<=0?' disabled':'')+'>Agregar</button><button class="paynow" data-buy="'+p.id+'"'+(p.stock<=0?' disabled':'')+'>Pagar</button></div></div></div>'+
+        /* Una sola acción en la tarjeta: agregar. La compra se hace desde el carrito
+           o desde la ficha del producto (el "Pagar" directo salió de las tarjetas). */
+        '<div class="pbtns"><button class="add addbuy" data-add="'+p.id+'"'+(p.stock<=0?' disabled':'')+'>Agregar al carrito</button></div></div></div>'+
         /* La tarjeta entera es un ENLACE a la ficha (clic normal, abrir en pestaña nueva,
            y Google la sigue). La vista rápida quedó en su propio botón. */
         (url ? '<a class="pcover" href="'+url+'" aria-label="Ver '+okEsc(p.name)+'"></a>'
              : '<button class="pcover" data-open="'+p.id+'" aria-label="Ver '+okEsc(p.name)+'"></button>')+
         '</div>';}).join("");}
   function renderGrid(){var list=filtered();
-    $("catTitle").textContent=query.length>=2?'Resultados de "'+query+'"':(activeSub||catName(activeCat));
+    var buscando=query.length>=2;
+    $("catTitle").textContent=buscando?'Resultados de "'+query+'"':(activeSub||catName(activeCat));
+    /* Con una búsqueda activa siempre hay una salida a la vista: volver al catálogo
+       completo sin tener que borrar a mano lo escrito en el buscador. */
+    var cq=$("clearQ");
+    if(cq){
+      /* Si se esconde teniendo el foco, el foco cae al <body>: se devuelve al buscador,
+         que es de donde vino quien navega con teclado. */
+      if(!buscando && !cq.hidden && document.activeElement===cq){ var ni=document.getElementById("oknavQ")||$("q"); if(ni) ni.focus(); }
+      cq.hidden=!buscando;
+    }
     /* El conteo es el TOTAL del filtro (lo que dice el servidor), no lo que ya se
        paginó: si no, diría "12 productos" hasta que hicieras scroll. */
     var total=dbMode?dbTotal:list.length;
@@ -1874,6 +1909,13 @@ html[data-theme="dark"] #site :is(.tb-cuenta,.tb-fav,.tb-cart,.tb-filt):hover{ba
           +'<p style="margin:0 0 6px;font-weight:700;color:var(--ink)">Aquí no hay nada con los filtros puestos</p>'
           +'<p style="margin:0 0 14px">Sigues filtrando por '+act.join(" y ")+'. Los filtros se mantienen al cambiar de categoría.</p>'
           +'<button type="button" class="maddbtn" id="emptyClear" style="width:auto;padding:11px 20px">Quitar filtros y ver todo</button>'
+          +'</div>';
+      } else if(buscando){
+        /* Una búsqueda sin resultados es justo donde más se necesita la salida al
+           catálogo completo (arriba el botón podría haber quedado fuera de pantalla). */
+        $("grid").innerHTML='<div class="empty">'
+          +'<p style="margin:0 0 14px">No encontramos productos para «'+okEsc(query)+'».</p>'
+          +'<button type="button" class="maddbtn" data-clearq style="width:auto;padding:11px 20px">Ver todos los productos</button>'
           +'</div>';
       } else {
         $("grid").innerHTML='<div class="empty">No encontramos productos.</div>';
@@ -1895,7 +1937,7 @@ html[data-theme="dark"] #site :is(.tb-cuenta,.tb-fav,.tb-cart,.tb-filt):hover{ba
   }
   $("grid").addEventListener("click",function(e){
     if(e.target.closest("#emptyClear")){ filtClear(); return; }
-    var w=e.target.closest("[data-wish]"); if(w){e.stopPropagation(); toggleWishlist(+w.dataset.wish); return;} var a=e.target.closest("[data-add]"); if(a){e.stopPropagation(); addToCart(+a.dataset.add,1); return;} var b=e.target.closest("[data-buy]"); if(b){e.stopPropagation(); comprarAhora(+b.dataset.buy); return;} var o=e.target.closest("[data-open]"); if(o){openProduct(+o.dataset.open);}});
+    var w=e.target.closest("[data-wish]"); if(w){e.stopPropagation(); toggleWishlist(+w.dataset.wish); return;} var a=e.target.closest("[data-add]"); if(a){e.stopPropagation(); addToCart(+a.dataset.add,1); return;} var o=e.target.closest("[data-open]"); if(o){openProduct(+o.dataset.open);}});
   // ── Autocompletado del buscador ──
   function okEsc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];});}
   function acHi(name,q){var terms=okNorm(q).split(" ").filter(function(x){return x.length>=2;}); if(!terms.length)return okEsc(name); terms.sort(function(a,b){return b.length-a.length;}); var map={a:"[aáàä]",e:"[eéèë]",i:"[iíìï]",o:"[oóòö]",u:"[uúùü]",n:"[nñ]"}; for(var k=0;k<terms.length;k++){var pat=terms[k].replace(/[.*+?^${}()|[\]\\]/g,"\\$&").replace(/[aeioun]/g,function(c){return map[c]||c;}); try{var re=new RegExp(pat,"i"),m=name.match(re); if(m){var idx=m.index; return okEsc(name.slice(0,idx))+"<mark>"+okEsc(m[0])+"</mark>"+okEsc(name.slice(idx+m[0].length));}}catch(e){}} return okEsc(name);}
@@ -1929,6 +1971,38 @@ html[data-theme="dark"] #site :is(.tb-cuenta,.tb-fav,.tb-cart,.tb-filt):hover{ba
       if(ideas.length)acOpen('<div class="ac-head">Populares</div>'+ideas.map(function(p){return acRow(p,"");}).join(""),ideas); else acHide();}
     else acHide();}
   function acMove(d){if(!acItems.length)return; acSel=(acSel+d+acItems.length)%acItems.length; var els=$("acBox").querySelectorAll(".ac-item"); [].forEach.call(els,function(el,i){el.classList.toggle("sel",i===acSel); if(i===acSel)el.scrollIntoView({block:"nearest"});});}
+  /* Quitar la BÚSQUEDA (y solo la búsqueda). Es lo que hace Enter con el campo vacío,
+     y significa lo mismo en la compra rápida: el mismo gesto, el mismo resultado.
+     Se vacían los DOS campos —el del topbar móvil y el de la navbar, que es el visible
+     en escritorio—: dejar el texto escrito haría creer que el filtro sigue puesto. */
+  function clearQuery(){
+    clearTimeout(t);
+    var qi=$("q"); if(qi) qi.value="";
+    syncNavQuery("");
+    acHide();
+    if(!query) return;                       // ya no había búsqueda
+    query=""; reloadFromDB();
+  }
+  /* "Ver todos los productos": el catálogo COMPLETO, como promete el botón. Además de
+     la búsqueda suelta la categoría y los filtros; si no, seguirías dentro de "Tinta y
+     tóner" con un botón que dice "todos". */
+  function verTodoElCatalogo(){
+    clearTimeout(t);
+    /* El botón puede ser el del mensaje de "no encontramos nada", que vive DENTRO de la
+       reja: al repintarla desaparece y el foco caería al <body>. Se devuelve al
+       buscador antes de tocar nada. */
+    var ae=document.activeElement, g=$("grid");
+    if(ae && g && g.contains(ae)){ var ni=document.getElementById("oknavQ")||$("q"); if(ni) ni.focus(); }
+    var qi=$("q"); if(qi) qi.value="";
+    syncNavQuery(""); acHide();
+    query=""; activeCat="all"; activeSub="";
+    fBrands=[]; fSubcats=[]; fSort="name";
+    fBrandsLoaded=false; fSubcatsLoaded=false;
+    fSubQuery=""; fSubMore=false; fBrandQuery=""; fBrandMore=false;
+    filtCountUpdate(); filtRender();          // el panel de filtros, desmarcado a la vista
+    renderCats(); reloadFromDB();
+  }
+  document.addEventListener("click",function(e){ if(e.target.closest("[data-clearq]")) verTodoElCatalogo(); });
   var t; $("q").addEventListener("input",function(e){var v=e.target.value; clearTimeout(t); t=setTimeout(function(){query=v.trim(); reloadFromDB();},250); acUpdate(v);});
   $("q").addEventListener("focus",function(e){acUpdate(e.target.value);});
   $("q").addEventListener("keydown",function(e){ if(e.key==="ArrowDown"){e.preventDefault(); acMove(1);} else if(e.key==="ArrowUp"){e.preventDefault(); acMove(-1);} else if(e.key==="Enter"){ if(acSel>=0&&acItems[acSel]){e.preventDefault(); acHide(); openProduct(acItems[acSel].id);} else acHide();} else if(e.key==="Escape"){acHide();}});
@@ -2150,9 +2224,8 @@ html[data-theme="dark"] #site :is(.tb-cuenta,.tb-fav,.tb-cart,.tb-filt):hover{ba
   function addToCart(id,q){var p=prod(id); if(!p)return; var c=cart[id]||{p:p,qty:0}; c.qty=Math.min(p.stock,c.qty+q); cart[id]=c; renderCart(); flash(p.name+" agregado");
     // Si estaba en deseados, se "gradúa" al carrito y SALE de deseados.
     var wi=wishlist.indexOf(+id); if(wi>=0){wishlist.splice(wi,1); saveWishlist(); updateWishBadge(); renderGrid(); if($("wishOv").classList.contains("show")) renderWishlist(); okiEmit("deseados");}}
-  /* "Pagar" desde la tarjeta = comprar ahora: agrega el producto y abre directo el
-     checkout (que pide cuenta, igual que "Finalizar compra" del carrito). */
-  function comprarAhora(id){var p=prod(id); if(!p||p.stock<=0)return; addToCart(id,1); $("app").classList.remove("cart-open"); coStep=1; renderCheckout(); show("coOv");}
+  /* Las tarjetas del catálogo tienen UNA sola acción: agregar al carrito. La compra se
+     hace desde el carrito ("Finalizar compra") o desde la ficha del producto. */
   function changeQty(id,d){var c=cart[id]; if(!c)return; c.qty+=d; if(c.qty<=0)delete cart[id]; else c.qty=Math.min(c.p.stock,c.qty); renderCart();}
   function removeItem(id){delete cart[id]; renderCart();}
   function totals(){var sub=0,n=0; for(var k in cart){sub+=cart[k].p.price*cart[k].qty; n+=cart[k].qty;} var ship=(n>0&&shipMode==="envio")?99:0; return {sub:sub,ship:ship,total:sub+ship,n:n};}
@@ -2845,7 +2918,11 @@ html[data-theme="dark"] #site :is(.tb-cuenta,.tb-fav,.tb-cart,.tb-filt):hover{ba
       else { h.classList.toggle("cats-closed"); }
       var b=$("oknavCats"); if(b) b.setAttribute("aria-expanded", String(!h.classList.contains("cats-closed")));},
     /* Anadidos para el navbar unificado (oknav): sus botones entran a la tienda y actuan. */
-    buscarEnTienda:function(texto){showView("store"); var qi=$("q"); if(qi) qi.value=texto; query=String(texto||"").trim(); reloadFromDB();},
+    buscarEnTienda:function(texto){showView("store"); var qi=$("q"); if(qi) qi.value=texto; syncNavQuery(texto); query=String(texto||"").trim(); reloadFromDB();},
+    /* Quitar solo la búsqueda (Enter con el campo vacío). El catálogo completo, con
+       filtros incluidos, es verTodoElCatalogo() —el botón "Ver todos los productos"—. */
+    limpiarBusqueda:function(){ if(!document.documentElement.classList.contains("store-view")) showView("store"); clearQuery(); },
+    verTodo:function(){showView("store"); verTodoElCatalogo();},
     abrirUbicacion:function(){openLoc();},
     verOfertas:function(){showView("store"); selectCat("ofertas");},
     entrega:"recoger_en_tienda"  /* sin envíos ni entregas a domicilio */
@@ -2861,6 +2938,8 @@ html[data-theme="dark"] #site :is(.tb-cuenta,.tb-fav,.tb-cart,.tb-filt):hover{ba
      una, sin esperar al scroll. Cuando el catálogo real de Exel traiga miles, esto
      sigue paginando de 60 en 60 conforme se baja, en vez de tumbar la página. */
   var PER_PAGE=60, dbMode=false, dbPage=1, dbPages=1, dbTotal=0, dbLoading=false;
+  /* Se levanta si la categoría con la que arrancó la primera petición ya no existe. */
+  var catNormalizada=false;
   /* Estado del panel de filtros. fSort="name" es el orden por defecto del API:
      mientras esté así no se manda, para no ensuciar la URL de la petición. */
   var fBrands=[], fSort="name", fBrandsLoaded=false;
@@ -2918,7 +2997,14 @@ html[data-theme="dark"] #site :is(.tb-cuenta,.tb-fav,.tb-cart,.tb-filt):hover{ba
             return {id:c.name, name:c.name, color:CATCOLORS[i%CATCOLORS.length],
                     count:c.count||0, image:c.image||null, subs:c.subcategories||[]};
           }));
-        if(activeCat!=="all" && activeCat!=="ofertas" && !CATS.some(function(c){return c.id===activeCat;})){ activeCat="all"; activeSub=""; }
+        if(activeCat!=="all" && activeCat!=="ofertas" && !CATS.some(function(c){return c.id===activeCat;})){
+          activeCat="all"; activeSub="";
+          /* La categoría venía de un estado restaurado (o de un atajo viejo) y ya no
+             existe en el catálogo: la petición que acaba de salir se hizo con ella y
+             volvió vacía. Sin este aviso quedaba "Todos · 0 productos" con el catálogo
+             entero detrás. Se recarga con la categoría ya normalizada. */
+          catNormalizada=true;
+        }
       }
       return true;
     }).catch(function(){ return false; });
@@ -2947,6 +3033,9 @@ html[data-theme="dark"] #site :is(.tb-cuenta,.tb-fav,.tb-cart,.tb-filt):hover{ba
   var filterToken=0;
   function reloadFromDB(){
     loops=1;                                    // filtro nuevo → el bucle arranca de cero
+    /* Por aquí pasan TODOS los cambios de filtro (categoría, búsqueda, marcas, tipos,
+       orden): es el único sitio donde hace falta apuntar el estado para el "atrás". */
+    if(typeof saveStoreState==="function") saveStoreState();
     /* Filtro nuevo = resultados nuevos: hay que verlos desde arriba. Si no, te quedas
        donde estabas (a media pantalla o hasta abajo) y parece que no pasó nada. */
     if(window.scrollY>0 && document.documentElement.classList.contains("store-view")) window.scrollTo(0,0);
@@ -2982,11 +3071,82 @@ html[data-theme="dark"] #site :is(.tb-cuenta,.tb-fav,.tb-cart,.tb-filt):hover{ba
       .catch(function(){ return false; });
   }
 
+  /* ── Volver de la ficha del producto con lo que estabas viendo ──
+     Las tarjetas enlazan a /producto/<id>-<slug>, que es otra página. Al volver con
+     "atrás" el navegador suele restaurar esta de su caché y no hay nada que hacer;
+     pero si la rehace desde cero (memoria justa, pestaña vieja, recarga), se perdían
+     la búsqueda y los filtros y aterrizabas en el catálogo completo.
+     Por eso el estado se guarda en sessionStorage (dura lo que la pestaña) y SOLO se
+     recupera cuando la carga viene de una vuelta atrás: entrar de nuevo a la tienda
+     por el menú abre el catálogo completo, como se espera de una entrada normal. */
+  var STORE_KEY="okstation_tienda_estado";
+  function estadoActual(){
+    return {
+      query:query, cat:activeCat, sub:activeSub,
+      fBrands:fBrands, fSubcats:fSubcats, fSort:fSort,
+      vista:$("grid").classList.contains("is-list")?"list":"grid"
+    };
+  }
+  function saveStoreState(){
+    var s=estadoActual();
+    /* Se apunta en DOS sitios a propósito:
+       · history.state — va pegado a ESTA entrada del historial, así que un "atrás"
+         de varios pasos recupera lo que había en aquella visita y no lo último.
+       · sessionStorage — respaldo para navegadores que no devuelven history.state.
+       replaceState (no pushState): no se crea una entrada nueva por cada filtro, que
+       obligaría a pulsar "atrás" veinte veces para salir de la tienda. */
+    try{ history.replaceState({okTienda:s}, ""); }catch(e){}
+    try{ sessionStorage.setItem(STORE_KEY, JSON.stringify(s)); }catch(e){}
+  }
+  function esVueltaAtras(){
+    try{
+      var n=performance.getEntriesByType && performance.getEntriesByType("navigation")[0];
+      if(n && n.type) return n.type==="back_forward";
+      return performance.navigation && performance.navigation.type===2;   // navegadores viejos
+    }catch(e){ return false; }
+  }
+  /* true si dejó estado puesto: entonces applyIncoming no debe pisarlo. */
+  function restoreStoreState(){
+    if(!esVueltaAtras()){ try{ sessionStorage.removeItem(STORE_KEY); }catch(e){} return false; }
+    var s=null;
+    /* El de la entrada del historial manda: es el de ESTA visita. */
+    try{ s=(history.state && history.state.okTienda) || null; }catch(e){}
+    if(!s){ try{ s=JSON.parse(sessionStorage.getItem(STORE_KEY)||"null"); }catch(e){} }
+    if(!s) return false;
+    query=s.query||""; activeCat=s.cat||"all"; activeSub=s.sub||"";
+    fBrands=s.fBrands||[]; fSubcats=s.fSubcats||[]; fSort=s.fSort||"name";
+    fBrandsLoaded=false; fSubcatsLoaded=false;
+    var qi=$("q"); if(qi) qi.value=query;
+    syncNavQuery(query);
+    /* Simétrico a propósito: si mañana el HTML arrancara en modo lista, restaurar
+       "cuadros" tiene que poder quitar la clase. */
+    $("grid").classList.toggle("is-list", s.vista==="list");
+    [].forEach.call(document.querySelectorAll(".viewtoggle button"),function(b){ b.classList.toggle("on", b.dataset.view===(s.vista==="list"?"list":"grid")); });
+    if(typeof filtCountUpdate==="function") filtCountUpdate();   // el globito de "Filtros"
+    return true;
+  }
+  /* El campo visible en escritorio es el de la navbar, no #q: si no se le pone el
+     término, el usuario ve "Resultados de papel" con el buscador vacío y no puede
+     corregir lo que escribió sin volver a teclearlo entero. */
+  function syncNavQuery(texto){
+    if(window.OKNav && typeof window.OKNav.setBusqueda==="function"){ window.OKNav.setBusqueda(texto); return; }
+    var n=document.getElementById("oknavQ"); if(n) n.value=texto==null?"":String(texto);
+  }
+  var estadoRestaurado=restoreStoreState();
+
   loadCart(); updateWishBadge(); renderCart();
   renderLandCats(); renderLandFeat();          // con el respaldo, para que el landing nunca salga vacío
   $("grid").innerHTML=okSkel();
+  var arranqueToken=filterToken;               // ver más abajo: quién manda si se cruzan
   loadCatalogFromDB().then(function(){
-    renderCats(); renderGrid(); renderLandCats(); renderLandFeat();
+    /* Si mientras cargaba el catálogo el usuario ya buscó o cambió de categoría, esa
+       petición es la buena y NO se repinta la reja (borraría sus resultados). El resto
+       —categorías, carrito, deseados— sí tiene que seguir su curso. */
+    renderCats(); renderLandCats(); renderLandFeat();
+    if(filterToken===arranqueToken) renderGrid();
+    /* La categoría restaurada ya no existe: la primera petición salió con ella y volvió
+       vacía, así que hay que volver a pedir con "Todos". */
+    if(catNormalizada){ catNormalizada=false; reloadFromDB(); }
     if(!dbMode){ catalogReady=true; return; }  // sin BD manda el respaldo, que ya está en memoria
     return hydrateSaved().then(function(ok){
       cart={};
@@ -3015,8 +3175,21 @@ html[data-theme="dark"] #site :is(.tb-cuenta,.tb-fav,.tb-cart,.tb-filt):hover{ba
       if(location.hash==="#deseados"){ showView("store"); renderWishlist(); show("wishOv"); }
       /* #ubicacion NO se maneja aquí: lo hace routeHash() (síncrono al init y en hashchange).
          Si se abriera aquí TAMBIÉN, openLoc() correría dos veces (doble fetch de direcciones). */
+      /* Los paneles de arriba (carrito, pago, deseados) SÍ se abren aunque se venga de
+         una vuelta atrás: son la URL, no un recado. Lo que no debe pisarse es el filtro
+         restaurado, así que a partir de aquí se sale —eso sí, consumiendo los recados
+         viejos, o quedarían esperando para saltar en la siguiente visita. */
+      if(estadoRestaurado){
+        ["okstation_q","okstation_ir_cat","okstation_ir_brand"].forEach(function(k){
+          try{ sessionStorage.removeItem(k); }catch(e){}
+        });
+        renderCats(); return;
+      }
       var q=sessionStorage.getItem("okstation_q");
-      if(q){ sessionStorage.removeItem("okstation_q"); showView("store"); var qi=$("q"); if(qi) qi.value=q; query=q; reloadFromDB(); return; }
+      /* Búsqueda hecha desde otra página del sitio: el término se deja escrito en LOS
+         DOS campos (el de la navbar es el visible en escritorio) para poder corregirlo
+         sin volver a teclearlo. */
+      if(q){ sessionStorage.removeItem("okstation_q"); showView("store"); var qi=$("q"); if(qi) qi.value=q; syncNavQuery(q); query=q; reloadFromDB(); return; }
       var cat=sessionStorage.getItem("okstation_ir_cat");
       if(cat){ sessionStorage.removeItem("okstation_ir_cat"); showView("store"); selectCat(cat); return; }
       /* Marca desde la ficha del producto (el "EPSON" azul). No es una pantalla nueva:
@@ -3039,7 +3212,7 @@ html[data-theme="dark"] #site :is(.tb-cuenta,.tb-fav,.tb-cart,.tb-filt):hover{ba
      aquí SOLO se atienden los clics: antes se llamaba setView("list") al arrancar y ese
      renderGrid() pintaba el catálogo de RESPALDO encima del "Cargando…" hasta que
      contestaba la BD. Ahora el grid no se toca hasta que llegan los datos reales. */
-  function setView(m){ var g=$("grid"); if(g) g.classList.toggle("is-list", m==="list"); [].forEach.call(document.querySelectorAll(".viewtoggle button"),function(b){ b.classList.toggle("on", b.dataset.view===m); }); renderGrid(); if(window.__fillMore) window.__fillMore(); }
+  function setView(m){ var g=$("grid"); if(g) g.classList.toggle("is-list", m==="list"); [].forEach.call(document.querySelectorAll(".viewtoggle button"),function(b){ b.classList.toggle("on", b.dataset.view===m); }); renderGrid(); if(typeof saveStoreState==="function") saveStoreState(); if(window.__fillMore) window.__fillMore(); }
   [].forEach.call(document.querySelectorAll(".viewtoggle button"),function(b){ b.addEventListener("click",function(){ setView(b.dataset.view); }); });
   okiEmit("en-tienda");
 
@@ -3166,6 +3339,6 @@ html[data-theme="dark"] #site :is(.tb-cuenta,.tb-fav,.tb-cart,.tb-filt):hover{ba
 <!-- OKi, el astronauta ayudante. Conectado a la tienda vía el contrato window.OKtienda (ver OKi-tienda-integracion.md). -->
 <script src="assets/ok-anim.js?v=20260722a" defer></script>
 <script src="assets/oki.js?v=20260717d" defer></script>
-<script src="/assets/oknav.js" defer></script>
+<script src="/assets/oknav.js?v=20260724a" defer></script>
 </body>
 </html>

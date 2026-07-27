@@ -137,6 +137,112 @@ final class ShopProduct
      * Productos relacionados: de la MISMA subcategoría primero y, si no llenan, del
      * resto de su categoría. Solo con existencia y nunca él mismo.
      */
+    /* ── Qué se COMPLEMENTA con qué ──────────────────────────────────────────
+       Para la ficha: "Completa tu compra" sugiere productos de OTRAS categorías que
+       suelen ir juntos (una tinta pide papel; una carpeta pide etiquetas). Es un mapa
+       curado a mano —no hay histórico de compras— con las categorías reales del
+       catálogo, en orden de prioridad. Si una categoría no está aquí, se cae a
+       "también de la misma categoría" (related), así la ficha nunca queda sin fila. */
+    private const COMPLEMENTOS = [
+        'Consumibles'            => ['Papel', 'Archivo y Carpetas', 'Oficina y Escolar'],
+        'Papel'                  => ['Consumibles', 'Archivo y Carpetas', 'Engrapado y Perforado'],
+        'Archivo y Carpetas'     => ['Etiquetas y Rotulación', 'Papel', 'Adhesivos y Cintas', 'Engrapado y Perforado'],
+        'Engrapado y Perforado'  => ['Papel', 'Archivo y Carpetas', 'Oficina y Escolar'],
+        'Adhesivos y Cintas'     => ['Oficina y Escolar', 'Archivo y Carpetas', 'Etiquetas y Rotulación'],
+        'Calculadoras'           => ['Oficina y Escolar', 'Papel', 'Consumibles'],
+        'Oficina y Escolar'      => ['Papel', 'Adhesivos y Cintas', 'Archivo y Carpetas', 'Engrapado y Perforado'],
+        'Etiquetas y Rotulación' => ['Archivo y Carpetas', 'Oficina y Escolar', 'Papel'],
+    ];
+
+    /** Productos que COMPLEMENTAN a éste (otras categorías que van juntas). Si faltan
+     *  para llenar la fila, se completa con productos de la misma categoría. Mismo
+     *  formato de salida que related(). */
+    public static function complementary(PDO $pdo, array $row, int $limit = 6): array
+    {
+        $cat  = (string) ($row['category'] ?? '');
+        $self = (int) $row['id'];
+        $comp = self::COMPLEMENTOS[$cat] ?? [];
+        $rows = [];
+
+        if ($comp) {
+            // Candidatos de TODAS las categorías complementarias, cada una ya ordenada
+            // por ofertas y existencias. Se piden de sobra para poder repartir variedad.
+            $ph = implode(',', array_fill(0, count($comp), '?'));
+            $st = $pdo->prepare(
+                "SELECT id, name, brand, price, old_price, stock, subcategory, category
+                   FROM products
+                  WHERE is_active = 1 AND stock > 0 AND id <> ? AND category IN ($ph)
+                  ORDER BY (old_price > price) DESC, stock DESC
+                  LIMIT " . (int) ($limit * 6)
+            );
+            $st->execute(array_merge([$self], $comp));
+            $cand = $st->fetchAll();
+
+            // Round-robin por categoría (en orden de prioridad): 1º el mejor de cada
+            // categoría, luego el 2º de cada una… así la fila muestra VARIEDAD (papel,
+            // carpeta, etiqueta…) en vez de seis del mismo tipo.
+            $byCat = [];
+            foreach ($cand as $r) { $byCat[$r['category']][] = $r; }
+            for ($i = 0; count($rows) < $limit; $i++) {
+                $añadido = false;
+                foreach ($comp as $c) {
+                    if (isset($byCat[$c][$i])) {
+                        $rows[] = $byCat[$c][$i];
+                        $añadido = true;
+                        if (count($rows) >= $limit) break;
+                    }
+                }
+                if (!$añadido) break;   // ya no queda nada en ninguna categoría
+            }
+        }
+
+        // Si no se llenó la fila, se completa con la misma categoría (sin repetir).
+        if (count($rows) < $limit) {
+            $have = array_map('intval', array_column($rows, 'id'));
+            $have[] = $self;
+            $ph2 = implode(',', array_fill(0, count($have), '?'));
+            $st2 = $pdo->prepare(
+                "SELECT id, name, brand, price, old_price, stock, subcategory, category
+                   FROM products
+                  WHERE is_active = 1 AND stock > 0 AND category = ? AND id NOT IN ($ph2)
+                  ORDER BY (subcategory = ?) DESC, (old_price > price) DESC, stock DESC
+                  LIMIT " . (int) ($limit - count($rows))
+            );
+            $st2->execute(array_merge([$cat], $have, [(string) ($row['subcategory'] ?? '')]));
+            $rows = array_merge($rows, $st2->fetchAll());
+        }
+
+        return self::attachImages($pdo, $rows);
+    }
+
+    /** Imagen principal de cada fila + formato de salida común (related/complementary). */
+    private static function attachImages(PDO $pdo, array $rows): array
+    {
+        if (!$rows) return [];
+        $ids = array_column($rows, 'id');
+        $in  = implode(',', array_fill(0, count($ids), '?'));
+        $sti = $pdo->prepare(
+            "SELECT product_id, COALESCE(stored_path, url) AS src
+               FROM product_images WHERE is_primary = 1 AND product_id IN ($in)"
+        );
+        $sti->execute($ids);
+        $img = [];
+        foreach ($sti->fetchAll() as $r) $img[(int) $r['product_id']] = $r['src'];
+
+        return array_map(function ($r) use ($img) {
+            return [
+                'id'    => (int) $r['id'],
+                'name'  => $r['name'],
+                'brand' => $r['brand'],
+                'price' => self::price($r),
+                'old'   => self::oldPrice($r),
+                'stock' => (int) $r['stock'],
+                'image' => $img[(int) $r['id']] ?? null,
+                'url'   => self::url((int) $r['id'], (string) $r['name']),
+            ];
+        }, $rows);
+    }
+
     public static function related(PDO $pdo, array $row, int $limit = 6): array
     {
         $st = $pdo->prepare(

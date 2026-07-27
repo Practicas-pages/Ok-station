@@ -20,9 +20,11 @@
 .pdp__grid { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, .95fr); gap: clamp(18px, 3vw, 40px); align-items: start; }
 
 /* ── Galería ── */
-.pdp__gallery { position: relative; background: #fff; border: 1px solid var(--border-light, #e6eaf2); border-radius: var(--radius-lg, 18px); padding: clamp(14px, 2vw, 22px); box-shadow: 0 12px 40px rgba(4, 12, 40, .08); }
+.pdp__gallery { position: relative; background: #fff; border: 1px solid var(--border-light, #e6eaf2); border-radius: var(--radius-lg, 18px); padding: clamp(14px, 2vw, 22px); box-shadow: 0 1px 3px rgba(4, 12, 40, .06); }
 .pdp__off { position: absolute; top: 14px; left: 14px; z-index: 3; background: linear-gradient(100deg, #FF8A00, #FF5E3A); color: #fff; font-size: .78rem; font-weight: 800; padding: 5px 10px; border-radius: 9px; box-shadow: 0 6px 16px rgba(255, 94, 58, .38); }
-.pdp__stage { position: relative; overflow: hidden; border-radius: var(--radius-md, 14px); background: linear-gradient(135deg, #f4f8ff, #eaf2fb); aspect-ratio: 1 / 1; }
+/* Fondo BLANCO (antes un degradado azul-gris): la foto viene sobre blanco, así el
+   marco desaparece y la imagen se ve "sin fondo" sobre la página. */
+.pdp__stage { position: relative; overflow: hidden; border-radius: var(--radius-md, 14px); background: #fff; aspect-ratio: 1 / 1; }
 /* La imagen va ABSOLUTA contra su caja. Con `height:100%` a secas NO funciona: dentro de
    un grid/flex de fila automática, el 100% no tiene una altura definida contra la cual
    resolverse, el navegador lo trata como `auto` y la foto sale a su tamaño natural. Aquí
@@ -37,12 +39,8 @@
    ajusta el aire. El padding en % se resuelve contra el ANCHO, así que el logo
    crece y encoge en proporción al marco. */
 .pdp__stage--empty .ph-logo { padding: 22%; opacity: .9; }
-/* Zoom tipo tienda grande: SOLO con mouse (con el dedo estorba y bloquea el scroll).
-   La foto principal ya NO se agranda sola: ahora se marca con un recuadro (.pdp__lens)
-   la zona señalada y esa zona sale ampliada en el panel de al lado (.pdp__zoom). */
-@media (hover: hover) and (pointer: fine) {
-  .pdp__stage { cursor: crosshair; }
-}
+/* Zoom (lupa) desactivado: la foto ya no se amplía al pasar el cursor, así que el
+   escenario no lleva cursor de "crosshair" que invitaría a algo que ya no ocurre. */
 /* Recuadro de lo que se está viendo. pointer-events:none es indispensable: si atrapara
    el mouse, se robaría el mousemove del escenario y la lupa se trabaría al moverse. */
 .pdp__lens {
@@ -95,8 +93,10 @@
 /* ── Buy box ── */
 .pdp__buy { position: relative; }
 @media (min-width: 981px) {
-  /* Se queda a la vista mientras lees la ficha larga (como Amazon). */
-  .pdp__buy { position: sticky; top: 96px; }
+  /* Se queda a la vista mientras lees la ficha larga (como Amazon). Se pega JUSTO
+     bajo la navbar: su alto lo publica oknav.js en --oknav-h, así que no hay que
+     perseguir este número cada vez que cambia el espaciado de la barra. */
+  .pdp__buy { position: sticky; top: calc(var(--oknav-h, 158px) + 16px); }
 }
 .pdp__meta { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: .78rem; color: var(--text-muted, #6B7280); text-transform: uppercase; letter-spacing: .04em; }
 .pdp__meta b, .pdp__meta .pdp__brand { color: var(--brand-blue, #066CFF); font-weight: 800; }
@@ -119,14 +119,14 @@
 .pdp__stock.is-low { color: #c2410c; }
 
 .pdp__actions { display: flex; align-items: stretch; gap: 10px; flex-wrap: wrap; }
-.pdp__qty { display: flex; align-items: center; border: 1.5px solid var(--border-light, #e6eaf2); border-radius: var(--radius-full, 9999px); background: #fff; padding: 3px; flex: none; }
-.pdp__qty button { width: 36px; height: 38px; border: none; background: none; font-size: 1.15rem; font-weight: 800; color: var(--brand-blue, #066CFF); cursor: pointer; border-radius: 99px; transition: background .15s; }
+.pdp__qty { display: flex; align-items: center; border: 1.5px solid var(--border-light, #e6eaf2); border-radius: 12px; background: #fff; padding: 3px; flex: none; }
+.pdp__qty button { width: 36px; height: 38px; border: none; background: none; font-size: 1.15rem; font-weight: 800; color: var(--brand-blue, #066CFF); cursor: pointer; border-radius: 8px; transition: background .15s; }
 .pdp__qty button:hover { background: var(--brand-blue-light, #eef4ff); }
 .pdp__qty input { width: 46px; border: none; text-align: center; font: inherit; font-weight: 700; font-size: .95rem; background: none; color: var(--text-primary, #12141C); -moz-appearance: textfield; }
 .pdp__qty input::-webkit-outer-spin-button, .pdp__qty input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
 
-.pdp__add { flex: 1 1 200px; min-height: 46px; border: none; border-radius: var(--radius-full, 9999px); background: #FFE200; color: #12141C; font: inherit; font-weight: 700; font-size: .98rem; cursor: pointer; padding: 12px 20px; box-shadow: 0 12px 30px rgba(255, 226, 0, .30); transition: transform .18s cubic-bezier(.34, 1.56, .64, 1), box-shadow .18s, filter .15s; position: relative; text-decoration: none; display: inline-grid; place-items: center; text-align: center; }
-.pdp__add:hover { transform: translateY(-2px); box-shadow: 0 16px 38px rgba(255, 226, 0, .40); filter: brightness(1.03); }
+.pdp__add { flex: 1 1 200px; min-height: 46px; border: none; border-radius: 12px; background: #FFE200; color: #12141C; font: inherit; font-weight: 700; font-size: .98rem; cursor: pointer; padding: 12px 20px; box-shadow: 0 2px 6px rgba(255, 226, 0, .30); transition: transform .18s cubic-bezier(.34, 1.56, .64, 1), box-shadow .18s, filter .15s; position: relative; text-decoration: none; display: inline-grid; place-items: center; text-align: center; }
+.pdp__add:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(255, 226, 0, .34); filter: brightness(1.03); }
 
 /* ── Presión, anillo de foco y degradado que se DESPLAZA (jul 2026) ──
    El botón ya traía el degradado de marca; ahora se mueve al pasar el cursor en
@@ -143,7 +143,7 @@
 .pdp__add::after, .pdp__wish::after { content: ""; position: absolute; inset: -5px; border-radius: inherit; transition: transform .18s cubic-bezier(.34, 1.56, .64, 1); }
 .pdp__add:hover::after, .pdp__wish:hover::after { transform: translateY(2px); }
 .pdp__add.is-done { filter: saturate(.6); }
-.pdp__add--wa { background: linear-gradient(135deg, #25D366, #0FB84F); box-shadow: 0 14px 34px rgba(37, 211, 102, .34); }
+.pdp__add--wa { background: linear-gradient(135deg, #25D366, #0FB84F); box-shadow: 0 2px 8px rgba(37, 211, 102, .30); }
 
 .pdp__wish { position: relative; width: 46px; height: 46px; flex: none; border: 1.5px solid var(--border-light, #e6eaf2); background: #fff; border-radius: 50%; display: grid; place-items: center; cursor: pointer; color: var(--text-muted, #6B7280); transition: transform .18s cubic-bezier(.34, 1.56, .64, 1), border-color .15s, color .15s; }
 .pdp__wish svg { width: 21px; height: 21px; }
@@ -177,7 +177,7 @@
 
 /* Puente con OKi: la ficha ya está en la página, así que puede responder sobre ELLA. */
 .pdp__oki { width: 100%; margin-top: 16px; display: flex; align-items: center; gap: 12px; text-align: left; padding: 13px 15px; border-radius: var(--radius-md, 14px); border: 1.5px dashed #c9d8f2; background: linear-gradient(135deg, #f7faff, #eef4ff); cursor: pointer; font: inherit; transition: border-color .15s, transform .15s, box-shadow .15s; }
-.pdp__oki:hover { border-color: var(--brand-blue, #066CFF); transform: translateY(-2px); box-shadow: 0 12px 26px rgba(6, 108, 255, .16); }
+.pdp__oki:hover { border-color: var(--brand-blue, #066CFF); transform: translateY(-2px); box-shadow: 0 4px 12px rgba(6, 108, 255, .14); }
 .pdp__oki-ico { width: 34px; height: 34px; flex: none; border-radius: 50%; display: grid; place-items: center; background: var(--grad-brand, linear-gradient(135deg, #9C1DFF, #00C6FF)); font-size: 1rem; }
 .pdp__oki span span, .pdp__oki > span:last-child { display: flex; flex-direction: column; gap: 1px; }
 .pdp__oki b { font-size: .9rem; color: var(--text-primary, #12141C); }
@@ -185,7 +185,7 @@
 
 /* ── Descripción y ficha ── */
 .pdp__info { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 380px), 1fr)); gap: clamp(16px, 2vw, 24px); margin-top: clamp(26px, 4vw, 44px); align-items: start; }
-.pdp__card { background: #fff; border: 1px solid var(--border-light, #e6eaf2); border-radius: var(--radius-lg, 18px); padding: clamp(18px, 2.4vw, 28px); box-shadow: 0 10px 34px rgba(4, 12, 40, .06); }
+.pdp__card { background: #fff; border: 1px solid var(--border-light, #e6eaf2); border-radius: var(--radius-lg, 18px); padding: clamp(18px, 2.4vw, 28px); box-shadow: 0 1px 3px rgba(4, 12, 40, .06); }
 .pdp__card h2 { font-size: 1.1rem; margin: 0 0 14px; color: var(--text-primary, #12141C); }
 .pdp__desc { color: var(--text-secondary, #475569); font-size: .92rem; line-height: 1.62; }
 .pdp__desc p { margin: 0; }
@@ -200,7 +200,7 @@
 .pdp__spec dd { margin: 0; color: var(--text-primary, #12141C); font-size: .875rem; font-weight: 600; overflow-wrap: anywhere; }
 .pdp__specs:not(.is-open) .pdp__spec.is-extra { display: none; }
 
-.pdp__more { margin-top: 14px; border: 1.5px solid var(--border-light, #e6eaf2); background: #fff; color: var(--brand-blue, #066CFF); font: inherit; font-weight: 700; font-size: .84rem; padding: 9px 16px; border-radius: var(--radius-full, 9999px); cursor: pointer; transition: background .15s, border-color .15s; }
+.pdp__more { margin-top: 14px; border: 1.5px solid var(--border-light, #e6eaf2); background: #fff; color: var(--brand-blue, #066CFF); font: inherit; font-weight: 700; font-size: .84rem; padding: 9px 16px; border-radius: 10px; cursor: pointer; transition: background .15s, border-color .15s; }
 .pdp__more:hover { background: var(--brand-blue-light, #eef4ff); border-color: #c9d8f2; }
 
 /* ── Relacionados ── */
@@ -211,12 +211,12 @@
 .pdp__seeall:hover { text-decoration: underline; }
 .pdp__rel-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(155px, 1fr)); gap: 13px; }
 .pdp__rel { position: relative; background: #fff; border: 1px solid var(--border-light, #e6eaf2); border-radius: var(--radius-md, 14px); padding: 12px; text-decoration: none; display: flex; flex-direction: column; gap: 8px; transition: transform .15s, border-color .15s, box-shadow .15s; }
-.pdp__rel:hover { transform: translateY(-3px); border-color: #c9d8f2; box-shadow: 0 14px 30px rgba(4, 12, 40, .12); }
+.pdp__rel:hover { transform: translateY(-3px); border-color: #c9d8f2; box-shadow: 0 6px 16px rgba(4, 12, 40, .10); }
 .pdp__rel-off { position: absolute; top: 9px; left: 9px; z-index: 2; background: linear-gradient(100deg, #FF8A00, #FF5E3A); color: #fff; font-size: .64rem; font-weight: 800; padding: 3px 7px; border-radius: 8px; }
 /* Mismo caso que .pdp__stage: la imagen va absoluta contra la caja, porque `height:100%`
    dentro de un grid de fila automática se resuelve como `auto` y la foto salía a tamaño
    natural (150px en una caja de 104px), desbordándose y quedando DEBAJO del nombre. */
-.pdp__rel-img { position: relative; height: 104px; border-radius: 10px; background: linear-gradient(135deg, #f4f8ff, #eaf2fb); display: grid; place-items: center; font-size: 2rem; overflow: hidden; }
+.pdp__rel-img { position: relative; height: 104px; border-radius: 10px; background: #fff; display: grid; place-items: center; font-size: 2rem; overflow: hidden; }
 .pdp__rel-img img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; padding: 9px; box-sizing: border-box; }
 /* Producto SIN foto: el logo de Ok.station centrado (antes salía un 📦 genérico).
    Hereda a propósito el inset:0 + object-fit:contain de la regla de arriba, que ya

@@ -16,7 +16,7 @@
   --sb-line:#E3E8F1; --sb-muted:#5b6474; --sb-paper:#F5F8FD; --sb-ink:#12141C;
   --sb-col:1200px;   /* ancho de contenido; casa con .pdp .wrap */
   position: sticky; top: 0; z-index: 60;
-  font-family: "Poppins", system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
 }
 
 /* ── Fila 1: buscador + acciones (degradado de marca) ── */
@@ -176,7 +176,7 @@
 .sb-scrim { position: fixed; inset: 0; background: rgba(18,20,28,.45); z-index: 118; opacity: 0; pointer-events: none; transition: opacity .25s; }
 .sb-scrim.show { opacity: 1; pointer-events: auto; }
 
-.sb-panel { position: fixed; top: 0; right: 0; height: 100%; width: min(400px,92vw); background: #fff; display: flex; flex-direction: column; transform: translateX(100%); transition: transform .3s cubic-bezier(.4,0,.2,1); z-index: 120; box-shadow: -18px 0 50px rgba(18,20,28,.22); font-family: "Poppins", system-ui, -apple-system, "Segoe UI", sans-serif; }
+.sb-panel { position: fixed; top: 0; right: 0; height: 100%; width: min(400px,92vw); background: #fff; display: flex; flex-direction: column; transform: translateX(100%); transition: transform .3s cubic-bezier(.4,0,.2,1); z-index: 120; box-shadow: -18px 0 50px rgba(18,20,28,.22); font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
 .sb-panel.show { transform: translateX(0); }
 /* Cabecera con el degradado de la barra (como el carrito de la tienda) */
 .sb-panel__head { display: flex; align-items: center; gap: 8px; padding: 16px 18px; color: #fff; font-weight: 800; font-size: 1.02rem; letter-spacing: -.01em; flex: none; background-image: linear-gradient(100deg,#9C1DFF 0%,#6A2BF5 22%,#066CFF 52%,#0EA6FF 78%,#00C6FF 100%); background-size: 100vw 100%; background-position: right center; background-repeat: no-repeat; }
