@@ -193,6 +193,37 @@ html[data-theme="dark"] .side-back:hover{background:rgba(255,255,255,.08)}
   background:#066CFF;color:#fff;font:inherit;font-size:.86rem;font-weight:800;cursor:pointer}
 .td-wishall:hover{background:#0558CC}
 .td-wishall:disabled{opacity:.55;cursor:default}
+/* Favoritos replica el modal aprobado de tienda.html: introducción dentro de la
+   tarjeta, filas cerradas, acción azul y corazón para retirar el producto. */
+#tdWishDrawer{background:var(--surface-card,#fff)}
+#tdWishDrawer .td-dh{display:block;position:relative;padding:24px 26px 0;border-bottom:0}
+#tdWishDrawer .td-dh>b{display:flex;align-items:center;gap:7px;font-size:1.22rem;line-height:1.2}
+#tdWishDrawer .td-wish-title-icon{display:inline-grid;place-items:center;color:#066CFF}
+#tdWishDrawer .td-wish-title-icon svg{width:17px;height:17px;display:block}
+#tdWishDrawer .td-dh>.td-dx{position:absolute;top:14px;right:14px}
+#tdWishDrawer .td-wishdesc{margin:6px 38px 0 0;color:var(--muted,#667085);font-size:.86rem;line-height:1.55}
+#tdWishDrawer .td-dbody{padding:14px 26px 26px}
+#tdWishDrawer .td-di{grid-template-columns:46px minmax(0,1fr) auto;gap:12px;padding:10px 12px;
+  margin-bottom:10px;border:1px solid var(--line,#e3e6ee);border-radius:14px;background:var(--surface-card,#fff)}
+#tdWishDrawer .td-di:last-child{margin-bottom:0;border-bottom:1px solid var(--line,#e3e6ee)}
+#tdWishDrawer .td-di .im{border-radius:12px}
+#tdWishDrawer .td-di .nm{font-size:.93rem;font-weight:700;line-height:1.45}
+#tdWishDrawer .td-di .pu{font-size:.85rem}
+#tdWishDrawer .td-di .rgt{flex-direction:row;align-items:center;gap:10px}
+#tdWishDrawer .td-wadd{border:0;border-radius:11px;background:#066CFF;color:#fff;font:inherit;
+  font-size:.85rem;font-weight:800;padding:10px 14px;cursor:pointer}
+#tdWishDrawer .td-wadd:hover{background:#0558CC}
+#tdWishDrawer .td-wremove{width:38px;height:38px;padding:0;display:grid;place-items:center;border-radius:50%;
+  border:1px solid var(--line,#e3e6ee);background:var(--paper,#f4f6fa);color:#E11D48;cursor:pointer}
+#tdWishDrawer .td-wremove svg{width:17px;height:17px;display:block}
+#tdWishDrawer .td-wremove:hover{border-color:#E11D48;transform:scale(1.06)}
+@media(max-width:520px){
+  #tdWishDrawer .td-dh{padding:22px 18px 0}
+  #tdWishDrawer .td-dbody{padding:12px 18px 20px}
+  #tdWishDrawer .td-di{grid-template-columns:42px minmax(0,1fr);gap:10px}
+  #tdWishDrawer .td-di .im{width:42px;height:42px}
+  #tdWishDrawer .td-di .rgt{grid-column:2;justify-content:flex-end}
+}
 .td-dtot{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px;font-weight:800}
 .td-dtot .v{font-size:1.15rem}
 .td-dgo{display:block;width:100%;padding:13px;border:0;border-radius:12px;background:var(--brand-blue,#066CFF);color:#fff;font:inherit;font-weight:800;font-size:.95rem;cursor:pointer;text-align:center;text-decoration:none}
@@ -585,6 +616,9 @@ html[data-theme="dark"] :is(.tdpv-x,.td-dx,.td-di .qty button){
 html[data-theme="dark"] :is(.tdpv-x,.td-dx,.td-di .qty button):hover{
   background:#122447 !important; color:#7FB4FF !important; border-color:#066CFF !important
 }
+html[data-theme="dark"] #tdWishDrawer .td-wremove{
+  background:#101827;color:#E11D48;border-color:var(--border-light,#26314A)
+}
 
 /* 3) El botón de enviar al carrito cuando está deshabilitado se veía gris claro. */
 html[data-theme="dark"] .td-go:disabled{ background:#232D46; color:#67708A }
@@ -931,7 +965,11 @@ html[data-theme="dark"] .td-go:disabled{ background:#232D46; color:#67708A }
   <div class="td-dfoot" id="tdCartFoot"></div>
 </aside>
 <aside class="td-drawer" id="tdWishDrawer" aria-label="Tus favoritos" aria-hidden="true">
-  <div class="td-dh"><b>Tus favoritos</b><button type="button" class="td-dx" data-dclose aria-label="Cerrar">×</button></div>
+  <div class="td-dh">
+    <b><span class="td-wish-title-icon"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg></span>Tus deseados</b>
+    <p class="td-wishdesc">Guarda lo que te gusta y págalo cuando quieras. Recoge gratis en OK.station o recíbelo a domicilio en todo México.</p>
+    <button type="button" class="td-dx" data-dclose aria-label="Cerrar">×</button>
+  </div>
   <div class="td-dbody" id="tdWishBody"></div>
 </aside>
 <aside class="td-drawer" id="tdLocDrawer" aria-label="Ubicación de entrega" aria-hidden="true">
@@ -1900,7 +1938,8 @@ html[data-theme="dark"] .td-go:disabled{ background:#232D46; color:#67708A }
     var img = it.image ? '<span class="im" style="background-image:url('+encodeURI(it.image)+')"></span>' : '<span class="im td-noimg"></span>';
     return '<div class="td-di" data-id="'+it.id+'">'+img+
       '<div><div class="nm">'+esc(it.name)+'</div><div class="pu">'+mxn(it.price)+'</div></div>'+
-      '<div class="rgt"><button class="lnk" data-wadd="'+it.id+'">Agregar</button><button class="lnk del" data-wrm="'+it.id+'">Quitar</button></div></div>';
+      '<div class="rgt"><button class="td-wadd" data-wadd="'+it.id+'">Agregar</button>'+
+      '<button class="td-wremove" data-wrm="'+it.id+'" aria-label="Quitar de deseados" title="Quitar de deseados">'+ICO_HEART+'</button></div></div>';
   }
   function renderWish(){
     var o = OK(), items = o ? o.deseados() : [];
