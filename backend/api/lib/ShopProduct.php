@@ -137,52 +137,64 @@ final class ShopProduct
      * Productos relacionados: de la MISMA subcategoría primero y, si no llenan, del
      * resto de su categoría. Solo con existencia y nunca él mismo.
      */
-    /* ── Qué se COMPLEMENTA con qué ──────────────────────────────────────────
-       Para la ficha: "Completa tu compra" sugiere productos de OTRAS categorías que
-       suelen ir juntos (una tinta pide papel; una carpeta pide etiquetas). Es un mapa
-       curado a mano —no hay histórico de compras— con las categorías reales del
-       catálogo, en orden de prioridad. Si una categoría no está aquí, se cae a
-       "también de la misma categoría" (related), así la ficha nunca queda sin fila. */
+    /* ── Qué se COMPLEMENTA con qué (cross-selling) ──────────────────────────
+       Alimenta el carrusel "También te puede interesar" de la ficha: productos de
+       OTRAS categorías que suelen comprarse junto con éste (una tinta pide papel; una
+       calculadora pide pilas y cuadernos). Mapa curado —no hay histórico de compras—
+       con las categorías reales del catálogo, en orden de prioridad.
+
+       ESCALABLE: para añadir o afinar relaciones basta editar ESTE mapa; la lógica de
+       abajo no cambia. La clave y los valores son NOMBRES de categoría tal cual están
+       en la BD. Si una categoría no aparece aquí, entra el fallback inteligente. */
     private const COMPLEMENTOS = [
         'Consumibles'            => ['Papel', 'Archivo y Carpetas', 'Oficina y Escolar'],
-        'Papel'                  => ['Consumibles', 'Archivo y Carpetas', 'Engrapado y Perforado'],
+        'Papel'                  => ['Consumibles', 'Archivo y Carpetas', 'Engrapado y Perforado', 'Oficina y Escolar'],
         'Archivo y Carpetas'     => ['Etiquetas y Rotulación', 'Papel', 'Adhesivos y Cintas', 'Engrapado y Perforado'],
         'Engrapado y Perforado'  => ['Papel', 'Archivo y Carpetas', 'Oficina y Escolar'],
-        'Adhesivos y Cintas'     => ['Oficina y Escolar', 'Archivo y Carpetas', 'Etiquetas y Rotulación'],
+        'Adhesivos y Cintas'     => ['Oficina y Escolar', 'Archivo y Carpetas', 'Etiquetas y Rotulación', 'Papel'],
         'Calculadoras'           => ['Oficina y Escolar', 'Papel', 'Consumibles'],
         'Oficina y Escolar'      => ['Papel', 'Adhesivos y Cintas', 'Archivo y Carpetas', 'Engrapado y Perforado'],
         'Etiquetas y Rotulación' => ['Archivo y Carpetas', 'Oficina y Escolar', 'Papel'],
     ];
 
-    /** Productos que COMPLEMENTAN a éste (otras categorías que van juntas). Si faltan
-     *  para llenar la fila, se completa con productos de la misma categoría. Mismo
-     *  formato de salida que related(). */
-    public static function complementary(PDO $pdo, array $row, int $limit = 6): array
+    /**
+     * Productos que COMPLEMENTAN a éste (cross-selling) para el carrusel "También te
+     * puede interesar". Formato de salida idéntico a related().
+     *
+     * @param array $exclude  Ids que NO se deben mostrar (p. ej. los que ya salieron
+     *                        en el carrusel de "Productos similares"), para no repetir.
+     */
+    public static function complementary(PDO $pdo, array $row, int $limit = 6, array $exclude = []): array
     {
         $cat  = (string) ($row['category'] ?? '');
         $self = (int) $row['id'];
         $comp = self::COMPLEMENTOS[$cat] ?? [];
+
+        // Nunca se repite: ni el producto actual ni nada de la lista de exclusión
+        // (los "similares" ya mostrados). En stock siempre (WHERE stock > 0).
+        $skip = array_values(array_unique(array_merge([$self], array_map('intval', $exclude))));
         $rows = [];
 
         if ($comp) {
-            // Candidatos de TODAS las categorías complementarias, cada una ya ordenada
-            // por ofertas y existencias. Se piden de sobra para poder repartir variedad.
-            $ph = implode(',', array_fill(0, count($comp), '?'));
+            // Candidatos de TODAS las categorías complementarias, ordenados por ofertas
+            // y existencias. Se piden de sobra para poder repartir variedad.
+            $phCat  = implode(',', array_fill(0, count($comp), '?'));
+            $phSkip = implode(',', array_fill(0, count($skip), '?'));
             $st = $pdo->prepare(
                 "SELECT id, name, brand, price, old_price, stock, subcategory, category
                    FROM products
-                  WHERE is_active = 1 AND stock > 0 AND id <> ? AND category IN ($ph)
+                  WHERE is_active = 1 AND stock > 0
+                    AND category IN ($phCat) AND id NOT IN ($phSkip)
                   ORDER BY (old_price > price) DESC, stock DESC
                   LIMIT " . (int) ($limit * 6)
             );
-            $st->execute(array_merge([$self], $comp));
-            $cand = $st->fetchAll();
+            $st->execute(array_merge($comp, $skip));
 
             // Round-robin por categoría (en orden de prioridad): 1º el mejor de cada
             // categoría, luego el 2º de cada una… así la fila muestra VARIEDAD (papel,
             // carpeta, etiqueta…) en vez de seis del mismo tipo.
             $byCat = [];
-            foreach ($cand as $r) { $byCat[$r['category']][] = $r; }
+            foreach ($st->fetchAll() as $r) { $byCat[$r['category']][] = $r; }
             for ($i = 0; count($rows) < $limit; $i++) {
                 $añadido = false;
                 foreach ($comp as $c) {
@@ -196,19 +208,22 @@ final class ShopProduct
             }
         }
 
-        // Si no se llenó la fila, se completa con la misma categoría (sin repetir).
+        // Fallback INTELIGENTE: si aún falta (categoría sin complementos definidos, o
+        // pocas existencias en las complementarias), se traen de CUALQUIER OTRA
+        // categoría —nunca la del propio producto, que es el carrusel de "similares"—
+        // priorizando ofertas y existencias. Así la fila nunca queda a medias.
         if (count($rows) < $limit) {
-            $have = array_map('intval', array_column($rows, 'id'));
-            $have[] = $self;
-            $ph2 = implode(',', array_fill(0, count($have), '?'));
+            $skip2   = array_values(array_unique(array_merge($skip, array_map('intval', array_column($rows, 'id')))));
+            $phSkip2 = implode(',', array_fill(0, count($skip2), '?'));
             $st2 = $pdo->prepare(
                 "SELECT id, name, brand, price, old_price, stock, subcategory, category
                    FROM products
-                  WHERE is_active = 1 AND stock > 0 AND category = ? AND id NOT IN ($ph2)
-                  ORDER BY (subcategory = ?) DESC, (old_price > price) DESC, stock DESC
+                  WHERE is_active = 1 AND stock > 0
+                    AND category <> ? AND id NOT IN ($phSkip2)
+                  ORDER BY (old_price > price) DESC, stock DESC
                   LIMIT " . (int) ($limit - count($rows))
             );
-            $st2->execute(array_merge([$cat], $have, [(string) ($row['subcategory'] ?? '')]));
+            $st2->execute(array_merge([$cat], $skip2));
             $rows = array_merge($rows, $st2->fetchAll());
         }
 
