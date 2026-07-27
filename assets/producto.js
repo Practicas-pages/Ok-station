@@ -46,8 +46,11 @@
       });
     });
 
-    /* Zoom tipo lupa. Solo con puntero fino: con el dedo estorbaría el scroll
-       (el CSS ya lo limita, esto evita hasta registrar los listeners). */
+    /* Zoom (lupa) DESACTIVADO a propósito: se prefiere la foto tal cual, sin ampliarla
+       al pasar el cursor. El cambio de miniaturas de arriba se conserva. Los recuadros
+       #pdpLens/#pdpZoom arrancan hidden y ya no se muestran nunca. */
+    return;
+    /* eslint-disable no-unreachable */
     if (!stage || !lens || !panel ||
         !window.matchMedia || !window.matchMedia("(hover: hover) and (pointer: fine)").matches) return;
 

@@ -29,7 +29,9 @@
   position: sticky; top: 0; z-index: 200;
   background: var(--surface-card, #FFFFFF);
   border-bottom: 1px solid var(--border-light, #E4E7F0);
-  font-family: "Poppins", system-ui, -apple-system, "Segoe UI", sans-serif;
+  /* Sombra FINA: apenas despega la barra del contenido al hacer scroll, sin cajón. */
+  box-shadow: 0 1px 3px rgba(12, 20, 50, .06);
+  font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
 }
 
 .oknav__wrap {
@@ -59,8 +61,12 @@
 }
 .oknav__beltsocial a:hover { background: rgba(255,255,255,0.30); }
 
-/* ── FILA 1 ───────────────────────────────────────────────────────────── */
-.oknav__row--main > .oknav__wrap { min-height: 60px; }
+/* ── FILA 1 ─────────────────────────────────────────────────────────────
+   Alto de fila = altura del control más alto (el buscador, 45px) + aire arriba y
+   abajo. Con 60px quedaban 7.5px por lado y la barra se leía apretada; con 68px
+   son 11.5px. Solo cambia el respiro vertical: ni el diseño ni la distribución
+   horizontal se tocan. */
+.oknav__row--main > .oknav__wrap { min-height: 68px; }
 
 .oknav__burger {
   display: none;                  /* solo en pantallas chicas */
@@ -212,7 +218,9 @@
   background: var(--surface-bg, #F2F4F8);
   border-top: 1px solid var(--border-light, #E4E7F0);
 }
-.oknav__row--nav > .oknav__wrap { min-height: 44px; gap: var(--space-2, 8px); }
+/* Misma idea que la fila 1: sus píldoras miden 38px y con 44px de fila les
+   quedaban 4.5px por lado —la fila que peor se veía—; con 54px son 8px. */
+.oknav__row--nav > .oknav__wrap { min-height: 54px; gap: var(--space-2, 8px); }
 
 .oknav__cats, .oknav__ofertas, .oknav__links a {
   white-space: nowrap; border: 1px solid var(--border-light, #E4E7F0);
@@ -283,7 +291,7 @@
   background: var(--surface-card, #fff); z-index: 310; overflow-y: auto; padding: var(--space-4, 16px);
   transform: translateX(-100%); transition: transform .22s ease;
   box-shadow: 18px 0 50px rgba(12,20,50,.28);
-  font-family: "Poppins", system-ui, sans-serif;
+  font-family: "Inter", system-ui, sans-serif;
 }
 .oknav__drawer.is-open { transform: translateX(0); }
 .oknav__drawer[hidden] { display: none; }
@@ -339,7 +347,9 @@
     grid-template-columns: auto minmax(0, 1fr) auto;
     grid-template-areas: "burger logo actions" "search search search";
     align-items: center; row-gap: var(--space-2, 8px);
-    padding-top: var(--space-2, 8px); padding-bottom: var(--space-2, 8px);
+    /* Mismo respiro que en escritorio: aquí la fila 1 son DOS renglones (logo/acciones
+       y buscador), así que el aire va en el padding en vez del min-height. */
+    padding-top: var(--space-3, 12px); padding-bottom: var(--space-3, 12px);
   }
   .oknav__burger  { grid-area: burger; }
   .oknav__logo    { grid-area: logo; min-width: 0; }

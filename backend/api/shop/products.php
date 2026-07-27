@@ -76,6 +76,19 @@ $order = [
     'name'       => 'name ASC',
 ][(string) ($_GET['sort'] ?? 'name')] ?? 'name ASC';
 
+/* En una BÚSQUEDA, los productos CON foto van primero: una lista encabezada por
+   recuadros vacíos se lee como catálogo incompleto. Los que no tienen foto no se
+   quitan ni se ocultan, solo bajan; entre ellos y entre los que sí la tienen se
+   respeta el orden elegido ($order).
+   Dos condiciones, y las dos importan: solo con búsqueda (en el catálogo normal manda
+   el orden del catálogo) y solo con el orden POR OMISIÓN. Si el cliente pidió
+   expresamente "precio: menor a mayor", el más barato tiene que salir primero aunque
+   no tenga foto: para eso lo eligió. */
+if ($q !== '' && ($_GET['sort'] ?? 'name') === 'name') {
+    $order = 'EXISTS(SELECT 1 FROM product_images pi'
+           . ' WHERE pi.product_id = products.id AND pi.is_primary = 1) DESC, ' . $order;
+}
+
 $st = db()->prepare(
     "SELECT id, sku, name, brand, category, subcategory, price, old_price, stock
        FROM products WHERE $wsql ORDER BY $order LIMIT ? OFFSET ?"

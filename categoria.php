@@ -154,14 +154,14 @@ function mxn($n): string { return '$' . number_format((float) $n, 2); }
   <link rel="icon" href="/assets/img/OKD-Isotipo-Azul-96.png" type="image/png" sizes="96x96">
   <!-- Tema (claro/oscuro): antes de los estilos para pintar ya con el tema elegido -->
   <script src="/assets/theme.js?v=20260721a"></script>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" media="print" onload="this.media='all'">
-  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap"></noscript>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" media="print" onload="this.media='all'">
+  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"></noscript>
   <script type="application/ld+json"><?= json_encode($ldList, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?></script>
   <script type="application/ld+json"><?= json_encode($ldCrumbs, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?></script>
   <style>
     *{box-sizing:border-box}
     body{margin:0;background:#F5F8FD;color:#12141C;
-      font-family:"Poppins",system-ui,-apple-system,"Segoe UI",sans-serif}
+      font-family:"Inter",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
     .bar{background:#066CFF;color:#fff;padding:14px max(16px,calc((100% - 1180px)/2));
       display:flex;align-items:center;gap:16px}
     .bar a{color:#fff;text-decoration:none;font-weight:700}
@@ -208,7 +208,7 @@ function mxn($n): string { return '$' . number_format((float) $n, 2); }
       border:1.5px solid rgba(255,255,255,.55);background:transparent;color:#fff}
     .bar .theme-toggle:hover{background:rgba(255,255,255,.16);border-color:#fff;color:#fff}
   </style>
-  <link rel="stylesheet" href="/assets/oknav.css">
+  <link rel="stylesheet" href="/assets/oknav.css?v=20260724a">
 </head>
 <body>
   <!-- ─────────────────────────────────────────────────────────────────────────
@@ -217,8 +217,8 @@ function mxn($n): string { return '$' . number_format((float) $n, 2); }
      por JavaScript a propósito: los enlaces de navegación deben venir en el HTML
      para que Google los siga, que es justo por lo que la ficha se arma en el
      servidor).
-     Necesita:  <link rel="stylesheet" href="/assets/oknav.css">
-                <script src="/assets/oknav.js" defer></script>
+     Necesita:  <link rel="stylesheet" href="/assets/oknav.css?v=20260724a">
+                <script src="/assets/oknav.js?v=20260724a" defer></script>
      Todos los <svg> llevan width/height propios: sin tamaño intrínseco un icono
      se pinta gigante mientras el CSS va en camino (ya pasó con el del correo).
      ───────────────────────────────────────────────────────────────────────── -->
@@ -468,6 +468,6 @@ function mxn($n): string { return '$' . number_format((float) $n, 2); }
     </section>
     <?php endif; ?>
   </main>
-  <script src="/assets/oknav.js" defer></script>
+  <script src="/assets/oknav.js?v=20260724a" defer></script>
 </body>
 </html>

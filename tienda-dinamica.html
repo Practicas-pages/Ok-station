@@ -9,7 +9,7 @@
 <meta name="description" content="Arma tu pedido de papelería en segundos: busca, agrega y paga. Compra rápida de Ok.station.">
 <meta name="robots" content="noindex, follow">
 <link rel="icon" href="favicon.ico">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
 <!-- Tema (claro/oscuro): antes de la hoja para pintar ya con el tema elegido -->
 <script src="assets/theme.js?v=20260721a"></script>
 <link rel="stylesheet" href="styles.css">
@@ -33,7 +33,10 @@
    sus categorías siguen filtrando dentro de la página, no navegando a la tienda.
    Las variables --sb-grad y --sb-col vienen de assets/shop-header.css, así que si
    la marca cambia de degradado, cintilla y navbar se mueven juntas. */
-.td-band{background:linear-gradient(rgba(8,12,30,.16),rgba(8,12,30,.16)),var(--sb-grad,linear-gradient(100deg,#9C1DFF 0%,#6A2BF5 22%,#066CFF 52%,#0EA6FF 78%,#00C6FF 100%))}
+/* Cintilla de la compra rápida: azul de marca PLANO (antes el degradado arcoíris de la
+   tienda). Encaja con la navbar de arriba, que también es plana, y quita el degradado
+   más grande de la página. */
+.td-band{background:var(--brand-blue,#066CFF)}
 .td-band__in{max-width:var(--sb-col,1200px);margin:0 auto;padding:11px max(14px,16px);
   display:flex;align-items:center;gap:12px;flex-wrap:wrap}
 /* En OSCURO no lleva degradado: ZequiDev dejó las tres barras del sitio lisas en
@@ -45,38 +48,15 @@ html[data-theme="dark"] .td-band{background:var(--nav-bottom,#151D34);
 html[data-theme="dark"] .td-band :is(.td-back,.td-catbtn){
   background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.30)}
 html[data-theme="dark"] .td-band :is(.td-back,.td-catbtn):hover{background:rgba(255,255,255,.16)}
-html[data-theme="dark"] .td-band .td-search input{border-color:rgba(255,255,255,.18)}
-/* ── Barra superior: buscador + categorías + filtros ── */
-/* Tres columnas: buscador, Categorías y Filtros. El botón de tema NO vive aquí — a
-   partir del arreglo de ZequiDev en theme.js las ranuras van por grupo y en esta
-   página gana .shopbar__top, así que el tema queda en la barra de arriba. */
-.td-top{display:grid;grid-template-columns:1fr auto auto;gap:10px;align-items:center;
-  flex:1 1 420px;min-width:0}
-.td-search{position:relative}
-.td-search input{
-  width:100%;height:52px;border-radius:999px;border:1px solid var(--line,#e3e6ee);
-  background:#fff;padding:0 18px 0 48px;font:inherit;font-size:.98rem;color:var(--ink,#111);
-  box-shadow:0 1px 2px rgba(16,24,40,.04);transition:border-color .15s,box-shadow .15s}
-.td-search input:focus{outline:none;border-color:var(--brand-blue,#066CFF);box-shadow:0 0 0 4px rgba(6,108,255,.12)}
-.td-search svg{position:absolute;left:17px;top:50%;transform:translateY(-50%);color:var(--muted,#667085);pointer-events:none}
-/* ── Autocompletado: sugerencias bajo el buscador ── */
-.td-ac{display:none;position:absolute;top:calc(100% + 8px);left:0;right:0;z-index:40;
-  background:#fff;border:1px solid var(--line,#e3e6ee);border-radius:16px;overflow:hidden;
-  box-shadow:0 16px 42px rgba(16,24,40,.16);max-height:min(60vh,420px);overflow-y:auto}
-.td-ac.show{display:block}
-.td-ac__h{padding:9px 16px 6px;font-size:.7rem;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--muted,#667085)}
-.td-ac__i{display:grid;grid-template-columns:38px 1fr auto;gap:11px;align-items:center;width:100%;
-  padding:9px 14px;border:0;background:none;font:inherit;text-align:left;cursor:pointer;color:var(--ink,#111)}
-.td-ac__i:hover,.td-ac__i.sel{background:var(--brand-blue-light,#EAF1FF)}
-.td-ac__im{width:38px;height:38px;border-radius:8px;background:#f4f6fa center/contain no-repeat;border:1px solid var(--line,#e3e6ee)}
-.td-ac__nm{font-size:.88rem;font-weight:600;line-height:1.25}
-.td-ac__nm mark{background:#fde68a;color:inherit;padding:0 1px;border-radius:3px}
-.td-ac__mt{font-size:.75rem;color:var(--muted,#667085)}
-.td-ac__pr{font-size:.85rem;font-weight:700;white-space:nowrap}
-.td-ac__none{padding:16px;text-align:center;font-size:.86rem;color:var(--muted,#667085)}
+/* ── Barra superior: categorías + filtros ──
+   El buscador salió de aquí: ahora es el de la navbar (#oknavQ), que filtra esta
+   tabla en vivo. Los dos botones se quedan a la DERECHA de la cintilla (junto a
+   "Volver a la tienda", que va a la izquierda), en vez de estirarse a todo lo ancho. */
+.td-top{display:flex;gap:10px;align-items:center;justify-content:flex-end;
+  flex:1 1 auto;min-width:0;flex-wrap:wrap}
 .td-catbtn{
-  height:52px;padding:0 20px;border-radius:999px;border:0;cursor:pointer;
-  background:var(--grad-brand);color:#fff;font:inherit;font-weight:700;font-size:.92rem;
+  height:52px;padding:0 20px;border-radius:12px;border:0;cursor:pointer;
+  background:var(--brand-blue,#066CFF);color:#fff;font:inherit;font-weight:700;font-size:.92rem;
   display:inline-flex;align-items:center;gap:8px;white-space:nowrap;
   box-shadow:0 4px 14px rgba(6,108,255,.22);transition:transform .12s,box-shadow .12s}
 .td-catbtn:hover{transform:translateY(-1px);box-shadow:0 6px 18px rgba(6,108,255,.3)}
@@ -91,10 +71,10 @@ html[data-theme="dark"] .td-band .td-search input{border-color:rgba(255,255,255,
 .td-cats .row{display:flex;flex-wrap:wrap;gap:8px}
 .td-chip{
   border:1px solid var(--line,#e3e6ee);background:#fff;color:var(--ink,#111);
-  border-radius:999px;padding:8px 14px;font:inherit;font-size:.85rem;font-weight:600;cursor:pointer;
+  border-radius:10px;padding:8px 14px;font:inherit;font-size:.85rem;font-weight:600;cursor:pointer;
   transition:all .14s}
 .td-chip:hover{border-color:var(--brand-blue,#066CFF);color:var(--brand-blue,#066CFF)}
-.td-chip.on{background:var(--grad-brand);border-color:transparent;color:#fff}
+.td-chip.on{background:var(--brand-blue,#066CFF);border-color:transparent;color:#fff}
 .td-chip .n{opacity:.65;font-weight:500;margin-left:5px;font-size:.78rem}
 /* Botón de Filtros: secundario (contorno), para no competir con Categorías. */
 .td-filtbtn{background:#fff !important;color:var(--ink,#111) !important;border:1.5px solid var(--line,#e3e6ee) !important;box-shadow:0 1px 2px rgba(16,24,40,.04) !important}
@@ -104,7 +84,7 @@ html[data-theme="dark"] .td-band .td-search input{border-color:rgba(255,255,255,
 .td-fgroup{padding:4px 2px 12px;border-bottom:1px solid var(--line,#eef1f6)}
 .td-fgroup:last-child{border-bottom:0;padding-bottom:2px}
 .td-fgroup h4{margin:0 0 8px;font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.04em;color:var(--muted,#667085)}
-.td-fopt{display:inline-flex;align-items:center;gap:7px;padding:6px 10px;margin:0 6px 6px 0;border:1px solid var(--line,#e3e6ee);border-radius:999px;font-size:.85rem;font-weight:600;cursor:pointer}
+.td-fopt{display:inline-flex;align-items:center;gap:7px;padding:6px 10px;margin:0 6px 6px 0;border:1px solid var(--line,#e3e6ee);border-radius:10px;font-size:.85rem;font-weight:600;cursor:pointer}
 .td-fopt input{accent-color:var(--brand-blue,#066CFF);margin:0}
 .td-fopt:hover{border-color:var(--brand-blue,#066CFF)}
 .td-fopt .n{opacity:.6;font-weight:500;font-size:.78rem}
@@ -167,7 +147,7 @@ html[data-theme="dark"] .td-band .td-search input{border-color:rgba(255,255,255,
   .tdpv-card{flex:0 0 auto;max-height:none}
 }
 .tdpv-body{min-width:0;padding:18px 18px 18px}
-.tdpv-img{height:210px;background:#f4f6fa;border-radius:14px;margin:14px 0 4px;background-size:contain;background-position:center;background-repeat:no-repeat}
+.tdpv-img{height:210px;background:#fff;border-radius:14px;margin:14px 0 4px;background-size:contain;background-position:center;background-repeat:no-repeat}
 .tdpv-thumbs{display:flex;gap:8px;margin:8px 0 2px}
 .tdpv-thumbs button{width:52px;height:52px;border:1.5px solid var(--line,#e3e6ee);border-radius:10px;background:#fff center/cover no-repeat;cursor:pointer;padding:0}
 .tdpv-thumbs button.on{border-color:#066CFF}
@@ -183,7 +163,7 @@ html[data-theme="dark"] .td-band .td-search input{border-color:rgba(255,255,255,
 .tdpv-specs .sk{color:var(--muted,#667085)}
 .tdpv-specs .sv{text-align:right;font-weight:600}
 .tdpv-full{display:block;text-align:center;font-size:.85rem;font-weight:700;color:#066CFF;text-decoration:none;padding:9px;margin-bottom:8px}
-.tdpv-add{width:100%;border:0;border-radius:999px;background:#066CFF;color:#fff;font:inherit;font-weight:700;padding:13px;cursor:pointer}
+.tdpv-add{width:100%;border:0;border-radius:12px;background:#066CFF;color:#fff;font:inherit;font-weight:700;padding:13px;cursor:pointer}
 .tdpv-add:disabled{opacity:.5;cursor:default}
 .td-dh{display:flex;align-items:center;justify-content:space-between;padding:16px 18px;border-bottom:1px solid var(--line,#e3e6ee);font-size:1.05rem}
 .td-dx{width:34px;height:34px;border:0;background:var(--paper,#f4f6fa);border-radius:50%;font-size:1.2rem;line-height:1;cursor:pointer;color:var(--muted,#667085)}
@@ -193,7 +173,7 @@ html[data-theme="dark"] .td-band .td-search input{border-color:rgba(255,255,255,
 .td-dempty{text-align:center;color:var(--muted,#667085);font-size:.9rem;padding:40px 12px}
 .td-di{display:grid;grid-template-columns:46px 1fr auto;gap:11px;align-items:center;padding:10px 4px;border-bottom:1px solid #f1f3f8}
 .td-di:last-child{border-bottom:0}
-.td-di .im{width:46px;height:46px;border-radius:8px;background:#f4f6fa center/contain no-repeat;border:1px solid var(--line,#e3e6ee)}
+.td-di .im{width:46px;height:46px;border-radius:8px;background:#fff center/contain no-repeat;border:1px solid var(--line,#e3e6ee)}
 .td-di .nm{font-size:.86rem;font-weight:600;line-height:1.2}
 .td-di .pu{font-size:.78rem;color:var(--muted,#667085);margin-top:2px}
 .td-di .qty{display:inline-flex;align-items:center;gap:8px;margin-top:5px}
@@ -204,7 +184,7 @@ html[data-theme="dark"] .td-band .td-search input{border-color:rgba(255,255,255,
 .td-di .lnk.del{color:#c0342c}
 .td-dtot{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px;font-weight:800}
 .td-dtot .v{font-size:1.15rem}
-.td-dgo{display:block;width:100%;padding:13px;border:0;border-radius:12px;background:var(--grad-brand);color:#fff;font:inherit;font-weight:800;font-size:.95rem;cursor:pointer;text-align:center;text-decoration:none}
+.td-dgo{display:block;width:100%;padding:13px;border:0;border-radius:12px;background:var(--brand-blue,#066CFF);color:#fff;font:inherit;font-weight:800;font-size:.95rem;cursor:pointer;text-align:center;text-decoration:none}
 .td-dnote{text-align:center;font-size:.76rem;color:var(--muted,#667085);margin-top:8px}
 /* Checkout dentro del panel de carrito */
 .co-ship{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
@@ -252,7 +232,7 @@ html[data-theme="dark"] .td-band .td-search input{border-color:rgba(255,255,255,
 .afmaphint{font-size:.78rem;color:var(--muted,#667085);margin:6px 0 10px}
 .afchk{display:flex;align-items:center;gap:8px;margin-top:10px;font-size:.83rem;cursor:pointer}
 .afchk input{width:auto;margin:0}
-.afsave{display:block;width:100%;margin-top:14px;padding:13px;border:0;border-radius:12px;background:var(--grad-brand);color:#fff;font:inherit;font-weight:800;font-size:.95rem;cursor:pointer}
+.afsave{display:block;width:100%;margin-top:14px;padding:13px;border:0;border-radius:12px;background:var(--brand-blue,#066CFF);color:#fff;font:inherit;font-weight:800;font-size:.95rem;cursor:pointer}
 .afback{display:block;width:100%;margin-top:10px;padding:9px;border:0;background:none;color:var(--brand-blue,#066CFF);font:inherit;font-size:.85rem;font-weight:600;cursor:pointer}
 @media(max-width:480px){ .afrow{grid-template-columns:1fr} }
 
@@ -262,10 +242,29 @@ html[data-theme="dark"] .td-band .td-search input{border-color:rgba(255,255,255,
 /* ── Panel de productos ── */
 .td-panel{background:#fff;border:1px solid var(--line,#e3e6ee);border-radius:18px;overflow:hidden;
   box-shadow:0 2px 10px rgba(16,24,40,.05)}
-.td-panel h2{
-  margin:0;padding:14px 18px;font-size:1rem;font-weight:800;color:#fff;
-  background:var(--grad-brand);display:flex;justify-content:space-between;align-items:center;gap:10px}
+/* La franja del encabezado: el título a la izquierda y la salida al catálogo completo
+   a la derecha. El <h2> ya no es el contenedor (el botón se salía de su nombre
+   accesible), pero conserva exactamente el mismo aspecto. */
+.td-panelh{
+  padding:14px 18px;color:#fff;
+  background:var(--brand-blue,#066CFF);display:flex;justify-content:space-between;align-items:center;gap:10px;
+  /* En pantallas estrechas el botón baja a su propio renglón en vez de aplastar al
+     título: los dos textos son largos y juntos no caben. */
+  flex-wrap:wrap}
+.td-panelh h2{margin:0;padding:0;font-size:1rem;font-weight:800;color:inherit;background:none;min-width:0}
 .td-panel h2 .count{font-size:.78rem;font-weight:600;opacity:.9}
+/* "Ver todos los productos": solo aparece con una búsqueda o categoría activa. Un clic
+   deja el catálogo completo sin tener que borrar a mano lo escrito en el buscador. */
+/* Blanco SÓLIDO con el texto en azul de marca: la cabecera es un degradado que pasa
+   por el cian claro, y ahí un botón translúcido con texto blanco se quedaba en 1.8:1
+   de contraste (hace falta 4.5:1). Así se lee igual sobre cualquier tramo. */
+.td-clearq{flex:none;border:1.5px solid #fff;background:#fff;
+  color:var(--brand-blue,#066CFF);font:inherit;font-size:.78rem;font-weight:700;padding:6px 13px;border-radius:10px;
+  cursor:pointer;white-space:nowrap;transition:background .15s,color .15s}
+.td-clearq:hover{background:var(--brand-blue,#066CFF);color:#fff;border-color:#fff}
+/* Anillo oscuro: el blanco sobre el degradado claro no se distinguía del propio botón. */
+.td-clearq:focus-visible{outline:3px solid #0a1a3a;outline-offset:2px}
+.td-clearq[hidden]{display:none}
 
 /* Encabezado de la tabla */
 /* Columnas: imagen · descripción · precio · botón · corazón.
@@ -306,7 +305,7 @@ body.td-predrag .td-trash{display:flex}
 .td-trash.over{background:rgba(225,29,72,.16);border-color:#e11d48;transform:scale(1.03)}
 .td-ci[draggable="true"]{cursor:grab}
 .td-ci.dragging{opacity:.5;cursor:grabbing}
-.td-img{width:64px;height:64px;border-radius:10px;background:#f4f6fa center/contain no-repeat;
+.td-img{width:64px;height:64px;border-radius:10px;background:#fff center/contain no-repeat;
   border:1px solid var(--line,#e3e6ee);flex:none}
 /* Producto SIN foto: wordmark Ok.station (fondo transparente) en lugar de la caja vacía. */
 .td-noimg{background-image:url('assets/img/placeholder-producto.svg');background-size:82% auto}
@@ -321,7 +320,7 @@ body.td-predrag .td-trash{display:flex}
    discreta, acorde al resto de la interfaz; el degradado se reserva a las acciones
    principales (Categorías, Enviar al carrito) para no saturar la tabla. */
 .td-add{
-  width:100%;height:38px;border-radius:999px;border:0;cursor:pointer;
+  width:100%;height:38px;border-radius:10px;border:0;cursor:pointer;
   background:#FFE200;color:#12141C;
   font:inherit;font-weight:700;font-size:.82rem;letter-spacing:.01em;
   display:inline-flex;align-items:center;justify-content:center;gap:5px;white-space:nowrap;
@@ -339,13 +338,12 @@ body.td-predrag .td-trash{display:flex}
 .tdpv-add{transition:background .16s ease,transform .14s ease,box-shadow .2s ease}
 .tdpv-add:hover:not(:disabled){background:var(--brand-blue-hover,#0558CC);transform:translateY(-2px)}
 
-/* PAGAR: el degradado oficial que se desplaza al pasar el cursor (el "botón caro"). */
+/* PAGAR: azul de marca PLANO con una sombra fina (antes un degradado que se desplazaba
+   al pasar el cursor). En la compra rápida se buscan menos degradados. */
 .td-dgo{
-  background:var(--grad-purpura-azul-cyan,linear-gradient(135deg,#9C1DFF 0%,#066CFF 55%,#00C6FF 100%));
-  background-size:220% 100%; background-position:0% 50%;
-  box-shadow:0 12px 36px rgba(156,29,255,.30);
-  transition:background-position .55s ease, transform .15s ease, box-shadow .2s ease}
-.td-dgo:hover:not(:disabled){background-position:100% 50%; transform:translateY(-2px)}
+  box-shadow:0 2px 6px rgba(6,108,255,.22);
+  transition:background .15s ease, transform .15s ease, box-shadow .2s ease}
+.td-dgo:hover:not(:disabled){background:var(--brand-blue-hover,#0558CC); transform:translateY(-1px); box-shadow:0 6px 16px rgba(6,108,255,.28)}
 .td-dgo:disabled{opacity:.65; box-shadow:none}
 .td-add:focus-visible{outline:3px solid rgba(6,108,255,.4);outline-offset:2px}
 .td-add[disabled]{cursor:default}
@@ -374,8 +372,9 @@ body.td-predrag .td-trash{display:flex}
 
 /* ── Pre-carrito ── */
 .td-cart{position:sticky;top:16px}
-.td-cartbox{background:var(--grad-brand);border-radius:18px;padding:16px;color:#fff;
-  box-shadow:0 8px 24px rgba(6,108,255,.2)}
+/* Pre-carrito: azul de marca PLANO (antes el degradado morado-azul). Sombra fina. */
+.td-cartbox{background:var(--brand-blue,#066CFF);border-radius:18px;padding:16px;color:#fff;
+  box-shadow:0 2px 10px rgba(6,108,255,.16)}
 .td-cartbox h3{margin:0 0 12px;font-size:.95rem;font-weight:800;text-align:center}
 .td-citems{display:flex;flex-direction:column;gap:8px;max-height:46vh;overflow-y:auto;margin:0 -4px;padding:0 4px}
 .td-ci{background:rgba(255,255,255,.14);border-radius:10px;padding:8px 10px;display:grid;
@@ -404,7 +403,7 @@ body.td-predrag .td-trash{display:flex}
 .td-shipnote{font-size:.68rem;opacity:.85;margin-top:6px;text-align:center;line-height:1.4;min-height:1em}
 
 .td-go{
-  width:100%;margin-top:12px;height:52px;border-radius:14px;border:0;cursor:pointer;
+  width:100%;margin-top:12px;height:52px;border-radius:12px;border:0;cursor:pointer;
   background:var(--brand-orange,#FF7C19);color:#fff;font:inherit;font-weight:800;font-size:.95rem;
   box-shadow:0 6px 18px rgba(255,124,25,.32);transition:transform .12s,filter .12s}
 .td-go:hover:not([disabled]){transform:translateY(-1px);filter:brightness(1.06)}
@@ -417,13 +416,11 @@ body.td-predrag .td-trash{display:flex}
    sobre el degradado. Va DESPUÉS de la regla vieja para ganarle sin tener que
    borrarla (la de abajo sigue sirviendo si algún día sale de la cintilla). */
 .td-band .td-back{flex:none;color:#fff;font-weight:700;font-size:.82rem;margin:0;
-  padding:8px 14px;border-radius:99px;background:rgba(9,14,34,.42);
+  padding:8px 14px;border-radius:10px;background:rgba(9,14,34,.42);
   border:1.5px solid rgba(255,255,255,.6);backdrop-filter:blur(8px);transition:background .15s}
 .td-band .td-back:hover{background:rgba(9,14,34,.56);color:#fff}
-/* Dentro de la cintilla el buscador ya no necesita sombra propia: el velo oscuro le
-   da el contraste. Los botones dejan el degradado (competía con el fondo) y pasan a
+/* Sobre la cintilla los botones dejan el degradado (competía con el fondo) y pasan a
    la píldora sólida, igual que .shopbar .pop sobre el carril de la tienda. */
-.td-band .td-search input{height:46px;box-shadow:none;border-color:rgba(255,255,255,.5)}
 .td-band .td-catbtn{height:46px;background:rgba(9,14,34,.42);border:1.5px solid rgba(255,255,255,.6);
   backdrop-filter:blur(8px);box-shadow:none}
 .td-band .td-catbtn:hover{background:rgba(9,14,34,.62);transform:translateY(-1px);box-shadow:none}
@@ -445,13 +442,12 @@ body.td-predrag .td-trash{display:flex}
   .td-img{width:52px;height:52px}
   .td-scroll{max-height:none}
 }
-/* Móvil: el buscador ocupa su fila y los dos botones se reparten la de abajo. */
+/* Móvil: Categorías y Filtros se reparten el ancho en su propia fila. */
 @media(max-width:560px){
-  /* Buscador arriba a todo lo ancho; abajo Categorías, Filtros y el botón de tema.
-     El tema entra en la MISMA fila (no en una tercera, que le costaba a la cintilla
-     casi un tercio de la pantalla del teléfono antes de ver el primer producto). */
-  .td-top{grid-template-columns:1fr 1fr;gap:8px}
-  .td-search{grid-column:1 / -1}
+  /* Sin buscador aquí (vive en la navbar), los dos botones se estiran a mitades: es
+     lo que antes ocupaba la fila de abajo, y así siguen siendo cómodos de tocar. */
+  .td-top{flex:1 0 100%}
+  .td-top > .td-catbtn{flex:1 1 0;min-width:0}
   /* En el teléfono la cintilla aprieta márgenes y "Volver" se va a su propia fila
      pegado a la izquierda, para no robarle ancho a los botones. */
   .td-band__in{padding:9px 14px;gap:8px}
@@ -473,7 +469,7 @@ body.td-predrag .td-trash{display:flex}
    franja de degradado se quedan igual: funcionan en los dos temas. */
 html[data-theme="dark"] body{background:#0F1524; color:#E9EDF6}   /* la hoja propia pisaba el token */
 html[data-theme="dark"] :is(.td-panel,.td-drawer,.td-ci,.td-di,.td-ship,.td-filtbtn){background:var(--surface-card,#171F31); color:var(--text-primary,#E9EDF6)}
-html[data-theme="dark"] :is(.co-phone,.co-ship button,.td-q input,#tdQ){background:#101827; color:var(--text-primary,#E9EDF6); border-color:var(--border-light,#26314A)}
+html[data-theme="dark"] :is(.co-phone,.co-ship button){background:#101827; color:var(--text-primary,#E9EDF6); border-color:var(--border-light,#26314A)}
 html[data-theme="dark"] .td-head{background:var(--surface-card,#171F31); color:var(--text-muted,#8A94AB)}
 html[data-theme="dark"] .td-row{border-color:var(--border-light,#26314A)}
 /* ── Paneles que traían blanco a mano (detectados en capturas reales):
@@ -509,7 +505,7 @@ html[data-theme="dark"] .td-go:disabled{ background:#232D46; color:#67708A }
 /* La MINIATURA del producto conserva su fondo claro a propósito: las fotos
    vienen recortadas sobre blanco y sobre oscuro salen con un halo. */
 </style>
-<link rel="stylesheet" href="/assets/oknav.css">
+<link rel="stylesheet" href="/assets/oknav.css?v=20260724a">
 </head>
 <body>
 <!-- ─────────────────────────────────────────────────────────────────────────
@@ -518,8 +514,8 @@ html[data-theme="dark"] .td-go:disabled{ background:#232D46; color:#67708A }
      por JavaScript a propósito: los enlaces de navegación deben venir en el HTML
      para que Google los siga, que es justo por lo que la ficha se arma en el
      servidor).
-     Necesita:  <link rel="stylesheet" href="/assets/oknav.css">
-                <script src="/assets/oknav.js" defer></script>
+     Necesita:  <link rel="stylesheet" href="/assets/oknav.css?v=20260724a">
+                <script src="/assets/oknav.js?v=20260724a" defer></script>
      Todos los <svg> llevan width/height propios: sin tamaño intrínseco un icono
      se pinta gigante mientras el CSS va en camino (ya pasó con el del correo).
      ───────────────────────────────────────────────────────────────────────── -->
@@ -735,8 +731,8 @@ html[data-theme="dark"] .td-go:disabled{ background:#232D46; color:#67708A }
   </div>
   <div class="shopbar__top">
     <a class="shopbar__logo" href="index.html" aria-label="Ok.station — Ir al inicio"><img src="assets/img/okstation-logo.webp" alt="Ok.station" width="158" height="24"></a>
-    <!-- Sin buscador en la navbar: la compra rápida tiene el suyo propio (#tdQ), que
-         filtra la TABLA en el lugar. El de la navbar navegaba a la tienda (otra cosa). -->
+    <!-- Barra vieja, oculta: el encabezado real es oknav. Su buscador filtra la TABLA
+         de esta página (ver OKtienda.buscarEnVivo en el script de abajo). -->
     <div class="shopbar__spacer" aria-hidden="true"></div>
     <div class="shopbar__actions">
       <!-- Ubicación de entrega: abre la libreta de direcciones EN LA PÁGINA (mismas
@@ -764,13 +760,10 @@ html[data-theme="dark"] .td-go:disabled{ background:#232D46; color:#67708A }
     Volver a la tienda
   </a>
 
-  <!-- Buscador + categorías + filtros (todo dentro de la compra rápida) -->
+  <!-- Categorías + filtros. El BUSCADOR es el de la navbar (#oknavQ): tener aquí otro
+       campo dejaba dos buscadores casi idénticos uno encima del otro. Ahora ese único
+       campo filtra esta tabla mientras escribes (ver OKtienda.buscarEnVivo, abajo). -->
   <div class="td-top">
-    <div class="td-search">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
-      <input id="tdQ" type="search" placeholder="Busca papel, tinta, plumas, folders…" autocomplete="off" role="combobox" aria-expanded="false" aria-autocomplete="list" aria-controls="tdAc" aria-label="Buscar productos">
-      <div class="td-ac" id="tdAc" role="listbox" aria-label="Sugerencias"></div>
-    </div>
     <button class="td-catbtn" id="tdCatBtn" type="button" aria-expanded="false">
       Categorías
       <svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M6 9l6 6 6-6"/></svg>
@@ -790,7 +783,14 @@ html[data-theme="dark"] .td-go:disabled{ background:#232D46; color:#67708A }
   <div class="td-grid">
     <!-- Productos -->
     <section class="td-panel">
-      <h2>Productos <span class="count" id="tdCount"></span></h2>
+      <!-- El botón va FUERA del <h2>: dentro, su texto pasaba a formar parte del nombre
+           del encabezado y quien navega por encabezados oía "Productos 60 productos Ver
+           todos los productos". role=status en el conteo porque al filtrar con el
+           buscador de la navbar no hay cambio de página que anunciar. -->
+      <div class="td-panelh">
+        <h2>Productos <span class="count" id="tdCount" role="status" aria-live="polite"></span></h2>
+        <button type="button" class="td-clearq" id="tdClearQ" hidden>Ver todos los productos</button>
+      </div>
       <!-- El encabezado va DENTRO del contenedor con scroll (y pegado arriba): si queda
            fuera, la barra de scroll lo deja ~15px más ancho que las filas y las columnas
            PRECIO/AGREGAR se desalinean. Aquí comparte el ancho exacto en cualquier SO. -->
@@ -912,6 +912,7 @@ html[data-theme="dark"] .td-go:disabled{ background:#232D46; color:#67708A }
        cargas de "más" (reset=false) sí respetan el candado. */
     if (reset){ page=1; done=false; $("tdRows").innerHTML=""; }
     else if (loading || done) return;
+    tdSyncClearQ();
     var myToken = ++loadToken;   // invalida las respuestas que aún vengan en camino
     loading = true;
     /* Esqueleto en la PRIMERA página: anticipa la forma de la tabla en vez de un
@@ -955,9 +956,22 @@ html[data-theme="dark"] .td-go:disabled{ background:#232D46; color:#67708A }
       loading = false;
       if (!j || !j.ok){ $("tdState").textContent = "No se pudo cargar el catálogo."; return; }
       pages = j.pages || 1;
-      $("tdCount").textContent = j.total ? (j.total + (j.total===1?" producto":" productos")) : "";
+      /* #tdCount es región viva: se escribe SOLO si el número cambia (si no, el lector
+         repetiría "N productos" en cada página del scroll infinito) y nunca se deja
+         vacío, porque vaciar una región viva no anuncia nada — justo cuando más falta
+         hace, que es cuando la búsqueda no encontró ni un producto. */
+      var totalTxt = (j.total || 0) + ((j.total === 1) ? " producto" : " productos");
+      if ($("tdCount").textContent !== totalTxt) $("tdCount").textContent = totalTxt;
       if (!j.items.length && page===1){
-        $("tdState").textContent = q||cat ? "No encontramos nada con ese filtro." : "No hay productos.";
+        /* Sin resultados es donde más falta hace la salida: el botón del encabezado
+           puede haber quedado fuera de pantalla al hacer scroll. */
+        if (q || cat){
+          $("tdState").innerHTML = '<p style="margin:0 0 12px">No encontramos nada con ese filtro.</p>'+
+            '<button type="button" class="td-catbtn" id="tdClearQ2" style="height:42px">Ver todos los productos</button>';
+          var b2 = $("tdClearQ2"); if (b2) b2.addEventListener("click", tdClearQuery);
+        } else {
+          $("tdState").textContent = "No hay productos.";
+        }
         done = true; return;
       }
       j.items.forEach(addRow);
@@ -1179,19 +1193,32 @@ html[data-theme="dark"] .td-go:disabled{ background:#232D46; color:#67708A }
     row.innerHTML = all + j.categories.map(function(c){
       return '<button class="td-chip" data-cat="'+esc(c.name)+'">'+esc(c.name)+'<span class="n">'+c.count+'</span></button>';
     }).join("");
+    /* Los chips llegan por red; si esta carga viene de una vuelta atrás, la categoría
+       ya está en `cat` y hay que marcar SU chip (no "Todos"). Si esa categoría ya no
+       existe —Exel las renombra—, se vuelve a "Todos" y se recarga: si no, quedaría la
+       tabla vacía y ningún chip marcado, sin explicación. */
+    if (cat && !j.categories.some(function(c){ return c.name === cat; })){
+      cat = ""; guardaEstado(); load(true);
+    }
+    row.querySelectorAll("[data-cat]").forEach(function(x){ x.classList.toggle("on", x.dataset.cat === cat); });
     row.querySelectorAll("[data-cat]").forEach(function(b){
-      b.addEventListener("click", function(){
-        cat = b.dataset.cat;
-        row.querySelectorAll("[data-cat]").forEach(function(x){ x.classList.toggle("on", x===b); });
-        fBrandsLoaded = false;   // las marcas se acotan a la categoría → recargar al reabrir filtros
-        /* El "Tipo" es propio de cada categoría: recargar y limpiar lo elegido. */
-        fSubcatsLoaded = false; fSubcats = []; filtCount();
-        tdSubQuery = ""; tdSubMore = false;   // búsquedas del panel: de cero en cada categoría
-        tdBrandQuery = ""; tdBrandMore = false;
-        load(true);
-      });
+      b.addEventListener("click", function(){ eligeCategoria(b.dataset.cat); });
     });
   }).catch(function(){});
+  /* Elegir categoría: lo usan los chips de la página y también "Categorías" de la
+     navbar (vía OKtienda.verCategoria), para que ese botón filtre AQUÍ en vez de
+     llevarse al usuario a la tienda normal. */
+  function eligeCategoria(nombre){
+    cat = String(nombre == null ? "" : nombre);
+    var row = $("tdCatsRow");
+    if (row) row.querySelectorAll("[data-cat]").forEach(function(x){ x.classList.toggle("on", x.dataset.cat === cat); });
+    fBrandsLoaded = false;   // las marcas se acotan a la categoría → recargar al reabrir filtros
+    /* El "Tipo" es propio de cada categoría: recargar y limpiar lo elegido. */
+    fSubcatsLoaded = false; fSubcats = []; filtCount();
+    tdSubQuery = ""; tdSubMore = false;   // búsquedas del panel: de cero en cada categoría
+    tdBrandQuery = ""; tdBrandMore = false;
+    guardaEstado(); load(true);
+  }
 
   /* ═══ Filtros (marca + orden), dentro de la compra rápida ═══
      Filtra en el SERVIDOR (ver load): el catálogo se pagina, así que filtrar en el
@@ -1312,98 +1339,114 @@ html[data-theme="dark"] .td-go:disabled{ background:#232D46; color:#67708A }
     } else if (e.target.classList.contains("tdsubcat")){
       fSubcats = [].slice.call($("tdFilts").querySelectorAll(".tdsubcat:checked")).map(function(c){ return c.value; });
     } else return;
-    filtCount(); load(true);
+    filtCount(); guardaEstado(); load(true);
   });
 
-  /* ═══ Buscador + autocompletado ═══
-     Al escribir: (a) se filtra la tabla y (b) salen sugerencias abajo. Ambas usan el
-     mismo endpoint, así que heredan la búsqueda con SINÓNIMOS del servidor
-     (tinta↔cartucho, hojas↔papel…). Elegir una sugerencia filtra la tabla a ese producto.
+  /* ═══ Buscador ═══
+     La compra rápida YA NO tiene buscador propio: usa el ÚNICO de la navbar (#oknavQ).
+     Antes convivían dos campos casi idénticos, uno debajo del otro.
 
-     2026-07-21 — El desplegable de sugerencias queda APAGADO (TD_SUGERENCIAS=false):
-     la tabla YA filtra en vivo con los mismos sinónimos, así que eran dos búsquedas a
-     la vez y el menú tapaba justo los resultados que la tabla mostraba filtrados.
-     El código se conserva completo: para revivirlo basta poner el flag en true. */
-  var TD_SUGERENCIAS = false;
-  var tmr = null, acTmr = null, acItems = [], acSel = -1, acToken = 0;
+     El contrato con assets/oknav.js son tres métodos que se publican en el puente
+     window.OKtienda (el mismo sitio donde esta página ya redirige el carrito, los
+     favoritos y la ubicación para que abran EN LA PÁGINA):
 
-  function acClose(){
-    var b = $("tdAc"); b.classList.remove("show"); b.innerHTML = "";
-    acItems = []; acSel = -1; $("tdQ").setAttribute("aria-expanded", "false");
-  }
-  /* Resalta en el nombre lo que se tecleó (sin acentos, por término). */
-  function acNorm(s){ return String(s==null?"":s).toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,""); }
-  function acHi(name, term){
-    var terms = acNorm(term).split(/\s+/).filter(function(t){ return t.length >= 2; });
-    for (var i=0;i<terms.length;i++){
-      try{
-        var re = new RegExp(terms[i].replace(/[.*+?^${}()|[\]\\]/g,"\\$&"), "i");
-        var m = acNorm(name).match(re);
-        if (m && m.index != null){
-          return esc(name.slice(0,m.index)) + "<mark>" + esc(name.slice(m.index, m.index+m[0].length)) + "</mark>" + esc(name.slice(m.index+m[0].length));
-        }
-      }catch(e){}
-    }
-    return esc(name);
-  }
-  function acRender(term){
-    if (!TD_SUGERENCIAS) return;   // desplegable apagado: la tabla es la única búsqueda
-    var t = (term||"").trim();
-    if (t.length < 2){ acClose(); return; }
-    var token = ++acToken;
-    fetch("backend/api/shop/products.php?per_page=7&page=1&q=" + encodeURIComponent(t))
-      .then(function(r){ return r.json(); })
-      .then(function(j){
-        if (token !== acToken) return;                 // llegó tarde: ya se tecleó otra cosa
-        var items = (j && j.ok && j.items) ? j.items : [];
-        var box = $("tdAc");
-        if (!items.length){
-          box.innerHTML = '<div class="td-ac__none">No encontramos «' + esc(t) + '».<br>Prueba con otra palabra (marca o tipo).</div>';
-          acItems = []; acSel = -1; box.classList.add("show"); return;
-        }
-        box.innerHTML = '<div class="td-ac__h">Sugerencias</div>' + items.map(function(p){
-          var im = p.image ? '<span class="td-ac__im" style="background-image:url('+encodeURI(p.image)+')"></span>' : '<span class="td-ac__im td-noimg"></span>';
-          return '<button type="button" class="td-ac__i" role="option" data-ac="'+esc(p.name)+'">'+im+
-            '<span><span class="td-ac__nm">'+acHi(p.name,t)+'</span><br><span class="td-ac__mt">'+esc((p.brand?p.brand+" · ":"")+(p.category||""))+'</span></span>'+
-            '<span class="td-ac__pr">'+mxn(p.price)+'</span></button>';
-        }).join("");
-        acItems = [].slice.call(box.querySelectorAll(".td-ac__i"));
-        acSel = -1; box.classList.add("show"); $("tdQ").setAttribute("aria-expanded","true");
-      }).catch(function(){});
-  }
-  /* Elegir una sugerencia: pone ese nombre en el buscador y filtra la tabla. */
-  function acPick(nombre){
-    $("tdQ").value = nombre; acClose();
-    clearTimeout(tmr); q = nombre.trim(); load(true);
-  }
+       buscarEnVivo(t)   → filtra la tabla mientras se escribe. Publicarlo también le
+                           dice a la navbar que NO abra su desplegable de sugerencias:
+                           serían dos búsquedas a la vez y el menú taparía la tabla
+                           (es la misma razón por la que se apagó el desplegable propio).
+       buscarEnTienda(t) → Enter. Busca AQUÍ; sin esto la navbar se llevaba al usuario
+                           a la tienda normal, que es justo lo que no debe pasar.
+       limpiarBusqueda() → "Ver todos los productos" y Enter con el campo vacío.
 
-  $("tdQ").addEventListener("input", function(){
-    var v = $("tdQ").value;
+     La búsqueda de la tabla no cambia: mismo endpoint y mismos sinónimos del servidor. */
+  var tmr = null;
+  function navQ(){ return document.getElementById("oknavQ"); }
+  /* Deja el campo de la navbar mostrando lo que la tabla tiene aplicado (sin disparar
+     su listener). Si oknav.js aún no arrancó, se escribe el input directamente. */
+  function pintaBusqueda(texto){
+    if (window.OKNav && typeof window.OKNav.setBusqueda === "function") { window.OKNav.setBusqueda(texto); return; }
+    var i = navQ(); if (i) i.value = texto == null ? "" : String(texto);
+  }
+  function buscaTabla(texto){
+    var t = String(texto == null ? "" : texto).trim();
     clearTimeout(tmr);
-    /* 200 ms (antes 320): sin desplegable, la tabla es LA búsqueda y toma el papel
-       ágil que tenían las sugerencias. load(true) ya maneja la carrera entre teclas. */
-    tmr = setTimeout(function(){ q = v.trim(); load(true); }, 200);   // filtra la tabla
-    if (TD_SUGERENCIAS){
-      clearTimeout(acTmr);
-      acTmr = setTimeout(function(){ acRender(v); }, 180);            // sugerencias (más ágil)
+    /* Nunca se repite la búsqueda que ya está en pantalla: recargar la tabla entera
+       para acabar mostrando lo mismo hace parpadear la lista y pierde el scroll. */
+    if (t === q) return;
+    q = t; guardaEstado(); load(true);
+  }
+
+  /* ═══ "Ver todos los productos" ═══
+     Sale en cuanto algo está acotando la tabla (búsqueda, categoría, marca, tipo u
+     orden) y con un clic devuelve el catálogo completo. El texto del buscador se
+     limpia: dejarlo escrito hace creer que el filtro sigue puesto. */
+  function tdSyncClearQ(){
+    var b = $("tdClearQ"); if (!b) return;
+    var sobra = !(q || cat || fBrands.length || fSubcats.length || fSort !== "name");
+    /* Si el botón se esconde teniendo el foco, el foco cae al <body> y quien navega con
+       teclado se queda sin punto de partida: se devuelve al buscador, que es de donde
+       vino y desde donde puede seguir. */
+    if (sobra && !b.hidden && document.activeElement === b) { var i = navQ(); if (i) i.focus(); }
+    b.hidden = sobra;
+  }
+  function tdClearQuery(){
+    clearTimeout(tmr);
+    pintaBusqueda("");                 // el campo de la navbar es el buscador de esta página
+    q = ""; cat = "";
+    fBrands = []; fSubcats = []; fSort = "name";
+    /* Las listas de marca/tipo se acotan a la categoría: al volver a "Todos" hay que
+       recargarlas (si no, quedarían las de la categoría anterior). */
+    fBrandsLoaded = false; fSubcatsLoaded = false;
+    tdSubQuery = ""; tdSubMore = false; tdBrandQuery = ""; tdBrandMore = false;
+    var row = $("tdCatsRow");
+    if (row) row.querySelectorAll("[data-cat]").forEach(function(x){ x.classList.toggle("on", x.dataset.cat === ""); });
+    filtCount();
+    if ($("tdFilts").classList.contains("open")) filtRender();   // desmarca lo elegido a la vista
+    guardaEstado();
+    load(true);
+  }
+  $("tdClearQ").addEventListener("click", tdClearQuery);
+
+  /* ═══ Estado de la compra rápida entre idas y venidas ═══
+     Esta página NO abre la ficha del producto (el detalle sale en un panel aquí mismo),
+     así que el "atrás" del navegador casi siempre la restaura sola. Pero si el usuario
+     salió por otra puerta (Cuenta, un enlace del menú, WhatsApp…) y vuelve con atrás,
+     el navegador puede rehacer la página desde cero y perder lo que estaba viendo.
+     Se guarda en sessionStorage (vive lo que vive la pestaña) y SOLO se restaura si
+     esta carga es una vuelta atrás: entrar de nuevo por el menú abre el catálogo
+     completo, que es lo que se espera de una entrada normal. */
+  var TD_ESTADO = "okstation_td_estado";
+  function guardaEstado(){
+    var s = { q:q, cat:cat, fBrands:fBrands, fSubcats:fSubcats, fSort:fSort };
+    /* Igual que en la tienda normal: en la entrada del historial (para que un "atrás"
+       de varios pasos recupere lo de AQUELLA visita) y en sessionStorage de respaldo. */
+    try{ history.replaceState({ okRapida:s }, ""); }catch(e){}
+    try{ sessionStorage.setItem(TD_ESTADO, JSON.stringify(s)); }catch(e){}
+  }
+  function esVueltaAtras(){
+    try{
+      var n = performance.getEntriesByType && performance.getEntriesByType("navigation")[0];
+      if (n && n.type) return n.type === "back_forward";
+      return performance.navigation && performance.navigation.type === 2;   // navegadores viejos
+    }catch(e){ return false; }
+  }
+  /* Devuelve true si dejó estado puesto (para que el arranque no pise la restauración). */
+  function restauraEstado(){
+    if (!esVueltaAtras()) { try{ sessionStorage.removeItem(TD_ESTADO); }catch(e){} return false; }
+    var s = null;
+    try{ s = (history.state && history.state.okRapida) || null; }catch(e){}
+    if (!s) { try{ s = JSON.parse(sessionStorage.getItem(TD_ESTADO) || "null"); }catch(e){} }
+    if (!s) return false;
+    q = s.q || ""; cat = s.cat || "";
+    fBrands = s.fBrands || []; fSubcats = s.fSubcats || []; fSort = s.fSort || "name";
+    pintaBusqueda(q);
+    if (cat){
+      var row = $("tdCatsRow");
+      if (row) row.querySelectorAll("[data-cat]").forEach(function(x){ x.classList.toggle("on", x.dataset.cat === cat); });
     }
-  });
-  $("tdQ").addEventListener("keydown", function(e){
-    if (e.key === "ArrowDown" || e.key === "ArrowUp"){
-      if (!acItems.length) return;
-      e.preventDefault();
-      acSel = (acSel + (e.key === "ArrowDown" ? 1 : -1) + acItems.length) % acItems.length;
-      acItems.forEach(function(el,i){ el.classList.toggle("sel", i===acSel); if (i===acSel) el.scrollIntoView({block:"nearest"}); });
-    } else if (e.key === "Enter"){
-      if (acSel >= 0 && acItems[acSel]){ e.preventDefault(); acPick(acItems[acSel].dataset.ac); }
-      else acClose();
-    } else if (e.key === "Escape"){ acClose(); }
-  });
-  $("tdAc").addEventListener("click", function(e){
-    var it = e.target.closest("[data-ac]"); if (it) acPick(it.dataset.ac);
-  });
-  /* Clic fuera del buscador → cerrar sugerencias. */
-  document.addEventListener("click", function(e){ if (!e.target.closest(".td-search")) acClose(); });
+    filtCount();
+    return true;
+  }
 
   /* ═══ Scroll infinito ═══
      ¿El centinela del fondo está a la vista (o casi)? → carga la siguiente página. */
@@ -1529,6 +1572,20 @@ html[data-theme="dark"] .td-go:disabled{ background:#232D46; color:#67708A }
     var c=e.target.closest("[data-pvside]");
     if(c){ $(c.dataset.pvside).hidden=true; pv3Sync(); }
   });
+
+  /* Abrir la vista previa sabiendo SOLO el id (lo que manda OKi). Si el producto ya
+     está en la tabla se usa tal cual; si no, se pide al catálogo. Nunca navega: en la
+     compra rápida el detalle se ve aquí mismo. */
+  function abrePreviewPorId(id){
+    var p = byId[+id];
+    if (p) { openPreview(p); return; }
+    fetch("backend/api/shop/products.php?per_page=1&page=1&ids=" + encodeURIComponent(+id))
+      .then(function(r){ return r.json(); })
+      .then(function(j){
+        var it = (j && j.ok && j.items && j.items[0]) ? j.items[0] : null;
+        if (it) { byId[it.id] = it; openPreview(it); }
+      }).catch(function(){});
+  }
 
   var pvSeq=0;   // token anti-carrera: si abren A y luego B rápido, la respuesta tardía de A se descarta
   function openPreview(p){
@@ -1719,6 +1776,33 @@ html[data-theme="dark"] .td-go:disabled{ background:#232D46; color:#67708A }
     window.OKtienda.abrirCarrito   = function(){ renderCart(); openDrawer($("tdCartDrawer")); };
     window.OKtienda.abrirDeseados  = function(){ renderWish(); openDrawer($("tdWishDrawer")); };
     window.OKtienda.abrirUbicacion = function(){ openLoc(); };
+    /* El buscador de la navbar es EL buscador de esta página: filtra la tabla aquí
+       mismo (buscarEnVivo mientras escribes, buscarEnTienda al pulsar Enter) en vez
+       de llevarse al usuario a la tienda normal. Ver el bloque "Buscador". */
+    /* Sin retardo propio: oknav.js ya espera a que el usuario deje de teclear. Dos
+       esperas encadenadas hacían que la tabla tardase casi medio segundo en reaccionar. */
+    window.OKtienda.buscarEnVivo   = function(t){ buscaTabla(t); };
+    window.OKtienda.buscarEnTienda = function(t){ pintaBusqueda(t); buscaTabla(t); };
+    /* Enter con el campo vacío = quitar LA BÚSQUEDA, no los filtros: el mismo gesto
+       tiene que significar lo mismo en las dos tiendas. Tirar también categoría y
+       marcas es lo que hace el botón "Ver todos los productos", que sí lo anuncia. */
+    window.OKtienda.limpiarBusqueda = function(){ pintaBusqueda(""); buscaTabla(""); };
+    /* "Categorías" de la navbar abre el panel de categorías DE ESTA PÁGINA en vez de
+       saltar a la tienda normal (aquí se perdía el pre-carrito, que solo vive en
+       memoria). "Ofertas" sí sigue llevando a la tienda normal a propósito: la sección
+       de ofertas del día vive allí, no aquí. */
+    window.OKtienda.toggleCategorias = function(){
+      $("tdCatBtn").click();
+      /* El botón que el usuario pulsó es el de la navbar: es el suyo el que tiene que
+         decir si el panel quedó abierto o cerrado. */
+      var b = document.getElementById("oknavCats");
+      if (b) b.setAttribute("aria-expanded", String($("tdCats").classList.contains("open")));
+    };
+    window.OKtienda.verCategoria = function(nombre){ eligeCategoria(String(nombre||"")); };
+    /* La lista de OKi abre productos con verProducto(): sin esto caía al puente
+       genérico y navegaba a la ficha, sacando al usuario de la compra rápida (donde
+       el detalle se ve en un panel, no en otra página). */
+    window.OKtienda.verProducto = function(id){ abrePreviewPorId(+id); };
   });
   $("tdScrim").addEventListener("click", closeDrawers);
   document.addEventListener("keydown", function(e){ if (e.key === "Escape" && anyDrawerOpen()) closeDrawers(); });
@@ -1970,6 +2054,10 @@ html[data-theme="dark"] .td-go:disabled{ background:#232D46; color:#67708A }
     setTimeout(function(){ clearInterval(okiIv); }, 6000);
   }
 
+  /* Si esta carga es una vuelta atrás, se recupera lo que el usuario estaba viendo
+     (búsqueda, categoría y filtros) ANTES de la primera carga, para no pedir dos
+     veces al servidor: load(true) ya sale con el estado puesto. */
+  restauraEstado();
   renderPre(); load(true); renderLoc(); loadMe();   // loadMe() ya trae la dirección y pinta el chip
 })();
 </script>
@@ -1981,6 +2069,6 @@ html[data-theme="dark"] .td-go:disabled{ background:#232D46; color:#67708A }
      window.OKtienda (el puente del carrito/deseados compartido que OKi lee). -->
 <script src="assets/ok-anim.js?v=20260722a" defer></script>
 <script src="assets/oki.js?v=20260717d" defer></script>
-<script src="/assets/oknav.js" defer></script>
+<script src="/assets/oknav.js?v=20260724a" defer></script>
 </body>
 </html>

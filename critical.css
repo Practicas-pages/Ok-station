@@ -67,7 +67,7 @@
   --sh-brand: 0 16px 48px rgba(156,29,255,0.22);
 
   /* ── Typography ── */
-  --ff-base: "Poppins", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --ff-base: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --fw-regular: 400;
   --fw-medium:  500;
   --fw-semibold:600;
