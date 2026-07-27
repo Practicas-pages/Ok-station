@@ -138,85 +138,125 @@ final class ShopProduct
      * resto de su categoría. Solo con existencia y nunca él mismo.
      */
     /* ── Qué se COMPLEMENTA con qué (cross-selling) ──────────────────────────
-       Alimenta el carrusel "También te puede interesar" de la ficha: productos de
-       OTRAS categorías que suelen comprarse junto con éste (una tinta pide papel; una
-       calculadora pide pilas y cuadernos). Mapa curado —no hay histórico de compras—
-       con las categorías reales del catálogo, en orden de prioridad.
+       Alimenta el carrusel "También te puede interesar": familias que suelen comprarse
+       juntas (un bolígrafo pide cuadernos, correctores, resaltadores…).
 
-       ESCALABLE: para añadir o afinar relaciones basta editar ESTE mapa; la lógica de
-       abajo no cambia. La clave y los valores son NOMBRES de categoría tal cual están
-       en la BD. Si una categoría no aparece aquí, entra el fallback inteligente. */
-    private const COMPLEMENTOS = [
-        'Consumibles'            => ['Papel', 'Archivo y Carpetas', 'Oficina y Escolar'],
-        'Papel'                  => ['Consumibles', 'Archivo y Carpetas', 'Engrapado y Perforado', 'Oficina y Escolar'],
-        'Archivo y Carpetas'     => ['Etiquetas y Rotulación', 'Papel', 'Adhesivos y Cintas', 'Engrapado y Perforado'],
-        'Engrapado y Perforado'  => ['Papel', 'Archivo y Carpetas', 'Oficina y Escolar'],
-        'Adhesivos y Cintas'     => ['Oficina y Escolar', 'Archivo y Carpetas', 'Etiquetas y Rotulación', 'Papel'],
-        'Calculadoras'           => ['Oficina y Escolar', 'Papel', 'Consumibles'],
-        'Oficina y Escolar'      => ['Papel', 'Adhesivos y Cintas', 'Archivo y Carpetas', 'Engrapado y Perforado'],
-        'Etiquetas y Rotulación' => ['Archivo y Carpetas', 'Oficina y Escolar', 'Papel'],
+       La categoría REAL del catálogo es la SUBCATEGORÍA (familia): en producción todo el
+       catálogo cae bajo una sola `category` ("Oficina y Escolar") y lo que el cliente
+       distingue son las familias (BOLIGRAFOS, CUADERNO, CARPETAS, CORRECTORES…). Por eso
+       este mapa y la lógica de abajo trabajan sobre `subcategory`, no sobre `category`.
+
+       Las claves y valores son NOMBRES DE FAMILIA. La búsqueda es sin distinguir
+       mayúsculas (la BD las trae en MAYÚSCULAS). Familia que no esté aquí → fallback
+       inteligente (cualquier otra familia). ESCALABLE: para afinar, se edita este mapa. */
+    private const COMPLEMENTOS_SUB = [
+        // Escritura
+        'BOLIGRAFOS'  => ['CUADERNO', 'LIBRETAS', 'CORRECTORES', 'RESALTADOR', 'BORRADORES', 'REGLAS'],
+        'LAPICES'     => ['CUADERNO', 'SACAPUNTAS', 'BORRADORES', 'COLORES', 'REGLAS', 'LIBRETAS'],
+        'MARCADORES'  => ['PIZARRONES', 'CARTULINAS', 'CUADERNO', 'POST-IT', 'RESALTADOR', 'LIMPIADORES'],
+        'RESALTADOR'  => ['CUADERNO', 'BOLIGRAFOS', 'POST-IT', 'SEPARADORES', 'LIBRETAS'],
+        'COLORES'     => ['CUADERNO', 'SACAPUNTAS', 'BORRADORES', 'CARTULINAS', 'PLASTILINAS'],
+        'CORRECTORES' => ['BOLIGRAFOS', 'CUADERNO', 'MARCADORES', 'LIBRETAS'],
+        // Cuadernos / papel escolar
+        'CUADERNO'    => ['BOLIGRAFOS', 'LAPICES', 'MARCADORES', 'SEPARADORES', 'POST-IT', 'RESALTADOR'],
+        'LIBRETAS'    => ['BOLIGRAFOS', 'LAPICES', 'POST-IT', 'SEPARADORES', 'MARCADORES'],
+        'LIBRO'       => ['LIBRETAS', 'BOLIGRAFOS', 'SEPARADORES', 'MARCADORES'],
+        'BLOCKS'      => ['BOLIGRAFOS', 'CLIPS', 'FOLDERS', 'SEPARADORES'],
+        'CARTULINAS'  => ['MARCADORES', 'COLORES', 'TIJERAS', 'PEGAMENTOS', 'PINTURAS'],
+        'POST-IT'     => ['CUADERNO', 'BOLIGRAFOS', 'MARCADORES', 'SEPARADORES'],
+        // Archivo
+        'CARPETAS'    => ['SEPARADORES', 'FOLDERS', 'ETIQUETAS', 'MICAS', 'PERFORADORAS'],
+        'FOLDERS'     => ['CARPETAS', 'ETIQUETAS', 'CLIPS', 'SEPARADORES'],
+        'SEPARADORES' => ['CARPETAS', 'FOLDERS', 'ETIQUETAS', 'CUADERNO'],
+        'MICAS'       => ['CARPETAS', 'ENGRAPADORAS', 'FOLDERS'],
+        'SOBRES'      => ['ETIQUETAS', 'CLIPS', 'BOLIGRAFOS', 'FOLDERS'],
+        'ETIQUETAS'   => ['CARPETAS', 'FOLDERS', 'MARCADORES', 'SOBRES'],
+        'PORTA DOCUMENTOS' => ['CLIPS', 'FOLDERS', 'CARPETAS'],
+        'SUJETA DOCUMENTOS' => ['CLIPS', 'FOLDERS', 'CARPETAS'],
+        'ORGANIZADORES' => ['FOLDERS', 'CARPETAS', 'CLIPS', 'PORTA DOCUMENTOS'],
+        // Sujeción / escritorio
+        'ENGRAPADORAS' => ['FOLDERS', 'PERFORADORAS', 'CLIPS', 'CARPETAS'],
+        'PERFORADORAS' => ['CARPETAS', 'FOLDERS', 'ENGRAPADORAS'],
+        'CLIPS'        => ['FOLDERS', 'CARPETAS', 'SOBRES', 'SUJETA DOCUMENTOS'],
+        'TIJERAS'      => ['PEGAMENTOS', 'CINTA ADHESIVA', 'CARTULINAS', 'CUTTER'],
+        'PEGAMENTOS'   => ['TIJERAS', 'CARTULINAS', 'CINTA ADHESIVA', 'PLASTILINAS'],
+        'CINTA ADHESIVA'    => ['TIJERAS', 'PEGAMENTOS', 'SOBRES', 'CINTA TRANSPARENTE'],
+        'CINTA MASKING'     => ['CINTA ADHESIVA', 'PINTURAS', 'CARTULINAS'],
+        'CINTA TRANSPARENTE' => ['CINTA ADHESIVA', 'SOBRES', 'FOLDERS'],
+        'CUTTER'       => ['REGLAS', 'TIJERAS', 'CINTA ADHESIVA'],
+        'REGLAS'       => ['LAPICES', 'BOLIGRAFOS', 'CUTTER', 'CUADERNO'],
+        'TABLA'        => ['BOLIGRAFOS', 'FOLDERS', 'CLIPS'],
+        // Arte y escolar
+        'PINTURAS'     => ['CARTULINAS', 'PLASTILINAS', 'PEGAMENTOS'],
+        'PLASTILINAS'  => ['COLORES', 'CARTULINAS', 'TIJERAS'],
+        'SACAPUNTAS'   => ['LAPICES', 'COLORES', 'BORRADORES'],
+        'BORRADORES'   => ['LAPICES', 'SACAPUNTAS', 'CUADERNO'],
+        'PIZARRONES'   => ['MARCADORES', 'BORRADORES', 'LIMPIADORES'],
+        // Otros
+        'CALCULADORAS' => ['CUADERNO', 'BOLIGRAFOS', 'LAPICES', 'REGLAS'],
     ];
 
     /**
      * Productos que COMPLEMENTAN a éste (cross-selling) para el carrusel "También te
-     * puede interesar". Formato de salida idéntico a related().
+     * puede interesar". La categoría real es la SUBCATEGORÍA (familia). Formato de
+     * salida idéntico a related().
      *
      * @param array $exclude  Ids que NO se deben mostrar (p. ej. los que ya salieron
      *                        en el carrusel de "Productos similares"), para no repetir.
      */
     public static function complementary(PDO $pdo, array $row, int $limit = 6, array $exclude = []): array
     {
-        $cat  = (string) ($row['category'] ?? '');
+        $sub  = trim((string) ($row['subcategory'] ?? ''));   // la categoría REAL (familia)
         $self = (int) $row['id'];
-        $comp = self::COMPLEMENTOS[$cat] ?? [];
+        $comp = self::COMPLEMENTOS_SUB[mb_strtoupper($sub)] ?? [];
 
-        // Nunca se repite: ni el producto actual ni nada de la lista de exclusión
-        // (los "similares" ya mostrados).
-        // Se PRIORIZA el stock (ORDER BY stock>0 DESC), no se EXIGE: el requisito es
-        // "priorizar productos en stock". Si en las categorías complementarias no hay
-        // nada disponible (pasa cuando el inventario está casi todo agotado), se
-        // completa con agotados en vez de dejar el carrusel vacío. is_active=1 sí es
-        // obligatorio: nunca se muestran productos dados de baja.
+        // Nunca se repite: ni el producto actual ni nada de la lista de exclusión (los
+        // "similares" ya mostrados). Se PRIORIZA el stock (ORDER BY stock>0 DESC) pero no
+        // se EXIGE (el requisito es "priorizar", no "solo"): si una familia no tiene
+        // disponibles, se completa con agotados en vez de dejar el carrusel vacío.
+        // is_active=1 sí es obligatorio: nunca se muestran productos dados de baja.
         $skip = array_values(array_unique(array_merge([$self], array_map('intval', $exclude))));
         $rows = [];
 
         if ($comp) {
-            // Candidatos de TODAS las categorías complementarias, en stock primero,
-            // luego ofertas. Se piden de sobra para poder repartir variedad.
-            $phCat  = implode(',', array_fill(0, count($comp), '?'));
+            // Candidatos de TODAS las familias complementarias, en stock primero. Se
+            // piden de sobra para poder repartir variedad.
+            $phSub  = implode(',', array_fill(0, count($comp), '?'));
             $phSkip = implode(',', array_fill(0, count($skip), '?'));
             $st = $pdo->prepare(
                 "SELECT id, name, brand, price, old_price, stock, subcategory, category
                    FROM products
                   WHERE is_active = 1
-                    AND category IN ($phCat) AND id NOT IN ($phSkip)
+                    AND subcategory IN ($phSub) AND id NOT IN ($phSkip)
                   ORDER BY (stock > 0) DESC, (old_price > price) DESC, stock DESC
                   LIMIT " . (int) ($limit * 6)
             );
             $st->execute(array_merge($comp, $skip));
 
-            // Round-robin por categoría (en orden de prioridad): 1º el mejor de cada
-            // categoría, luego el 2º de cada una… así la fila muestra VARIEDAD (papel,
-            // carpeta, etiqueta…) en vez de seis del mismo tipo.
-            $byCat = [];
-            foreach ($st->fetchAll() as $r) { $byCat[$r['category']][] = $r; }
+            // Round-robin por familia (en orden de prioridad): 1º el mejor de cada una,
+            // luego el 2º… así la fila muestra VARIEDAD (cuaderno, corrector, regla…) en
+            // vez de seis del mismo tipo. La agrupación normaliza mayúsculas por si la BD
+            // mezcla "CUADERNO"/"Cuaderno".
+            $byFam = [];
+            foreach ($st->fetchAll() as $r) { $byFam[mb_strtoupper((string) $r['subcategory'])][] = $r; }
             for ($i = 0; count($rows) < $limit; $i++) {
                 $añadido = false;
                 foreach ($comp as $c) {
-                    if (isset($byCat[$c][$i])) {
-                        $rows[] = $byCat[$c][$i];
+                    $ck = mb_strtoupper($c);
+                    if (isset($byFam[$ck][$i])) {
+                        $rows[] = $byFam[$ck][$i];
                         $añadido = true;
                         if (count($rows) >= $limit) break;
                     }
                 }
-                if (!$añadido) break;   // ya no queda nada en ninguna categoría
+                if (!$añadido) break;   // ya no queda nada en ninguna familia
             }
         }
 
-        // Fallback INTELIGENTE: si aún falta (categoría sin complementos definidos, o
-        // pocas existencias en las complementarias), se traen de CUALQUIER OTRA
-        // categoría —nunca la del propio producto, que es el carrusel de "similares"—
-        // con stock primero. Así la fila nunca queda a medias.
+        // Fallback INTELIGENTE: si aún falta (familia sin complementos definidos, o pocas
+        // existencias), se traen de CUALQUIER OTRA familia —nunca la del propio producto,
+        // que es el carrusel de "similares"— con stock primero. Así la fila nunca queda a
+        // medias. Se pide de sobra y se reparte por familia para dar variedad.
         if (count($rows) < $limit) {
             $skip2   = array_values(array_unique(array_merge($skip, array_map('intval', array_column($rows, 'id')))));
             $phSkip2 = implode(',', array_fill(0, count($skip2), '?'));
@@ -224,12 +264,25 @@ final class ShopProduct
                 "SELECT id, name, brand, price, old_price, stock, subcategory, category
                    FROM products
                   WHERE is_active = 1
-                    AND category <> ? AND id NOT IN ($phSkip2)
+                    AND subcategory <> ? AND subcategory <> '' AND id NOT IN ($phSkip2)
                   ORDER BY (stock > 0) DESC, (old_price > price) DESC, stock DESC
-                  LIMIT " . (int) ($limit - count($rows))
+                  LIMIT " . (int) (($limit - count($rows)) * 8)
             );
-            $st2->execute(array_merge([$cat], $skip2));
-            $rows = array_merge($rows, $st2->fetchAll());
+            $st2->execute(array_merge([$sub], $skip2));
+            $porFam = [];
+            foreach ($st2->fetchAll() as $r) { $porFam[mb_strtoupper((string) $r['subcategory'])][] = $r; }
+            $fams = array_keys($porFam);
+            for ($i = 0; count($rows) < $limit && $fams; $i++) {
+                $añadido = false;
+                foreach ($fams as $f) {
+                    if (isset($porFam[$f][$i])) {
+                        $rows[] = $porFam[$f][$i];
+                        $añadido = true;
+                        if (count($rows) >= $limit) break;
+                    }
+                }
+                if (!$añadido) break;
+            }
         }
 
         return self::attachImages($pdo, $rows);
