@@ -171,21 +171,26 @@ final class ShopProduct
         $comp = self::COMPLEMENTOS[$cat] ?? [];
 
         // Nunca se repite: ni el producto actual ni nada de la lista de exclusión
-        // (los "similares" ya mostrados). En stock siempre (WHERE stock > 0).
+        // (los "similares" ya mostrados).
+        // Se PRIORIZA el stock (ORDER BY stock>0 DESC), no se EXIGE: el requisito es
+        // "priorizar productos en stock". Si en las categorías complementarias no hay
+        // nada disponible (pasa cuando el inventario está casi todo agotado), se
+        // completa con agotados en vez de dejar el carrusel vacío. is_active=1 sí es
+        // obligatorio: nunca se muestran productos dados de baja.
         $skip = array_values(array_unique(array_merge([$self], array_map('intval', $exclude))));
         $rows = [];
 
         if ($comp) {
-            // Candidatos de TODAS las categorías complementarias, ordenados por ofertas
-            // y existencias. Se piden de sobra para poder repartir variedad.
+            // Candidatos de TODAS las categorías complementarias, en stock primero,
+            // luego ofertas. Se piden de sobra para poder repartir variedad.
             $phCat  = implode(',', array_fill(0, count($comp), '?'));
             $phSkip = implode(',', array_fill(0, count($skip), '?'));
             $st = $pdo->prepare(
                 "SELECT id, name, brand, price, old_price, stock, subcategory, category
                    FROM products
-                  WHERE is_active = 1 AND stock > 0
+                  WHERE is_active = 1
                     AND category IN ($phCat) AND id NOT IN ($phSkip)
-                  ORDER BY (old_price > price) DESC, stock DESC
+                  ORDER BY (stock > 0) DESC, (old_price > price) DESC, stock DESC
                   LIMIT " . (int) ($limit * 6)
             );
             $st->execute(array_merge($comp, $skip));
@@ -211,16 +216,16 @@ final class ShopProduct
         // Fallback INTELIGENTE: si aún falta (categoría sin complementos definidos, o
         // pocas existencias en las complementarias), se traen de CUALQUIER OTRA
         // categoría —nunca la del propio producto, que es el carrusel de "similares"—
-        // priorizando ofertas y existencias. Así la fila nunca queda a medias.
+        // con stock primero. Así la fila nunca queda a medias.
         if (count($rows) < $limit) {
             $skip2   = array_values(array_unique(array_merge($skip, array_map('intval', array_column($rows, 'id')))));
             $phSkip2 = implode(',', array_fill(0, count($skip2), '?'));
             $st2 = $pdo->prepare(
                 "SELECT id, name, brand, price, old_price, stock, subcategory, category
                    FROM products
-                  WHERE is_active = 1 AND stock > 0
+                  WHERE is_active = 1
                     AND category <> ? AND id NOT IN ($phSkip2)
-                  ORDER BY (old_price > price) DESC, stock DESC
+                  ORDER BY (stock > 0) DESC, (old_price > price) DESC, stock DESC
                   LIMIT " . (int) ($limit - count($rows))
             );
             $st2->execute(array_merge([$cat], $skip2));
