@@ -58,8 +58,8 @@ $images = array_values(array_filter(array_column($sti->fetchAll(), 'src')));
 
 /* ── Ficha técnica ──
    Se delega en ShopProduct::specs(), la MISMA que usa la ficha completa: devuelve la
-   de Icecat si existe y, si no, una básica armada con lo que manda Exel (marca, tipo,
-   categoría, clave, código de barras, clave SAT).
+   de Icecat si existe y, si no, una básica armada con los datos comerciales de Exel
+   (marca, tipo y categoría). Los identificadores internos nunca salen en la ficha.
 
    Antes esto leía `specs_json` por su cuenta, y como Exel no manda especificaciones
    técnicas en ningún campo, la vista previa salía SIN ficha en casi todos los

@@ -3,7 +3,8 @@
  * GET /backend/api/admin/catalog.php — CATÁLOGO de productos de la tienda para el panel.
  * Lista los productos con el CONTEO DE IMÁGENES de cada uno para detectar de un vistazo
  * a qué productos les faltan fotos. Requiere el permiso 'shop.view'.
- * Filtros: ?q= (nombre/sku/referencia/marca) &category= &images=sin|pocas|ok &active=1|0
+ * Filtros: ?q= (nombre/sku/referencia/marca)
+ *          &category= &images=sin|pocas|ok|remotas &active=1|0
  */
 require __DIR__ . '/../_bootstrap.php';
 require __DIR__ . '/../lib/authz.php';
@@ -22,7 +23,8 @@ $active   = $_GET['active'] ?? null;   // '1' | '0'
      images        → filas registradas en product_images
      images_stored → las que YA se descargaron al servidor (stored_path)
    Se muestran por separado a propósito: un producto puede tener 5 imágenes registradas
-   y 0 descargadas — en la tienda se ve SIN FOTOS. "Tiene fotos" ≠ "las fotos cargan". */
+   y 0 descargadas; hoy depende por completo del CDN remoto. "Tiene fotos" no significa
+   que ya estén protegidas por una copia local. */
 $imgCount    = "(SELECT COUNT(*) FROM product_images i WHERE i.product_id = p.id)";
 $storedCount = "(SELECT COUNT(*) FROM product_images i WHERE i.product_id = p.id
                   AND i.stored_path IS NOT NULL AND i.stored_path <> '')";
@@ -66,6 +68,7 @@ if ($active === '1' || $active === '0') { $where[] = "p.is_active = ?"; $params[
 if ($images === 'sin')   $where[] = "$imgCount = 0";
 if ($images === 'pocas') $where[] = "$imgCount BETWEEN 1 AND 2";
 if ($images === 'ok')    $where[] = "$imgCount >= 3";
+if ($images === 'remotas') $where[] = "$imgCount > 0 AND $storedCount = 0";
 if ($where) $sql .= " WHERE " . implode(' AND ', $where);
 
 /* Orden por defecto: primero los que MENOS fotos tienen. Esta vista existe para

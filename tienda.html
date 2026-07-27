@@ -1131,7 +1131,7 @@ html[data-theme="dark"] #site :is(.tb-cuenta,.tb-fav,.tb-cart,.tb-filt):hover{ba
   #site .popbar-row,#site .topbar .tb-filt{display:none}
   /* El panel de filtros pasa de cajón a bloque inline dentro del sidebar. */
   #site .store-side .fdraw{position:static; width:auto; height:auto; transform:none;
-    box-shadow:none; background:transparent; z-index:auto; margin-top:16px; border-top:1px solid var(--line)}
+    box-shadow:none; background:transparent; z-index:auto; margin-top:0; border-top:0}
   #site .store-side .fdraw .fdh{padding:12px 0 4px; border-bottom:0; font-size:.72rem; text-transform:uppercase; letter-spacing:.05em; color:var(--muted)}
   #site .store-side .fdraw .fdh .x{display:none}
   #site .store-side .fdraw .fdbody{overflow:visible; padding:0; min-height:0}
@@ -1144,6 +1144,8 @@ html[data-theme="dark"] #site :is(.tb-cuenta,.tb-fav,.tb-cart,.tb-filt):hover{ba
 #site .pfoot{margin-top:auto}
 #site .pmeta{display:flex; align-items:baseline; gap:8px; flex-wrap:wrap; margin:3px 0 9px}
 #site .pmeta .price{font-weight:800; font-size:1.02rem}
+#site .app.offers-view .ctitle,#site .app.offers-view .prod .price{color:#FF7C19}
+#site .app.offers-view .catbar{border-left:5px solid #FF7C19; padding-left:13px}
 #site .pmeta .stock{font-size:.72rem; color:var(--muted)}
 #site .pmeta .stock.low{color:var(--amber)}
 #site .pbtns{display:flex; gap:7px; position:relative; z-index:2}
@@ -1534,7 +1536,6 @@ html[data-theme="dark"] #site :is(.tb-cuenta,.tb-fav,.tb-cart,.tb-filt):hover{ba
       </div>
       <div class="shell">
         <aside class="store-side" id="storeSide">
-          <p class="side-h">Categorías</p>
           <nav class="side-cats" id="sideCats" aria-label="Categorías de la tienda"></nav>
         </aside>
         <!-- La vista predeterminada es LISTA: `is-list` y el botón activo vienen puestos
@@ -1948,6 +1949,7 @@ html[data-theme="dark"] #site :is(.tb-cuenta,.tb-fav,.tb-cart,.tb-filt):hover{ba
              : '<button class="pcover" data-open="'+p.id+'" aria-label="Ver '+okEsc(p.name)+'"></button>')+
         '</div>';}).join("");}
   function renderGrid(){var list=filtered();
+    $("app").classList.toggle("offers-view",activeCat==="ofertas");
     var buscando=query.length>=2;
     $("catTitle").textContent=buscando?'Resultados de "'+query+'"':(activeSub||catName(activeCat));
     /* Con una búsqueda activa siempre hay una salida a la vista: volver al catálogo
@@ -2169,6 +2171,10 @@ html[data-theme="dark"] #site :is(.tb-cuenta,.tb-fav,.tb-cart,.tb-filt):hover{ba
   var fBrandList=[];
   var SORTS=[["name","Nombre (A-Z)"],["price_asc","Precio: menor a mayor"],["price_desc","Precio: mayor a menor"],["newest","Más nuevos"]];
   function filtRender(){
+    /* El repintado reemplaza todo fdrawBody. Se rescata antes el nodo real de
+       categorías para no destruirlo junto con el HTML anterior. */
+    var sideCats=$("sideCats"), side=$("storeSide"), drawer=$("fdraw");
+    if(sideCats&&side&&sideCats.parentNode!==side) side.insertBefore(sideCats,drawer||null);
     var orden=SORTS.map(function(s){
       return '<label class="fopt"><input type="radio" name="fsort" value="'+s[0]+'"'+(fSort===s[0]?" checked":"")+'>'+esc(s[1])+'</label>';
     }).join("");
@@ -2186,7 +2192,12 @@ html[data-theme="dark"] #site :is(.tb-cuenta,.tb-fav,.tb-cart,.tb-filt):hover{ba
     }
     $("fdrawBody").innerHTML=
       '<div class="fgroup"><h4>Ordenar por</h4>'+orden+'</div>'+
+      '<div class="fgroup fgroup--categories"><h4>Categorías</h4><div class="fcat-host"></div></div>'+
       '<div class="fgroup fgroup--brands"><h4>Marca</h4>'+marcas+'</div>';
+    /* La lista real queda ENTRE orden y marcas. Mover el mismo nodo conserva su
+       selección y listeners; en móvil continúa oculta aquí y manda su cajón propio. */
+    var catHost=$("fdrawBody").querySelector(".fcat-host");
+    if(catHost&&sideCats) catHost.appendChild(sideCats);
     applyBrandView();
   }
   /* Vista de la lista de MARCAS: espejo de applySubcatView (buscador + top 15 por

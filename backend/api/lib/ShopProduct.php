@@ -60,7 +60,7 @@ final class ShopProduct
      * Ficha técnica del producto, en formato [['name'=>, 'value'=>], …].
      *
      * Prioridad: la ficha de Icecat si existe. Si no, se arma una BÁSICA con los datos
-     * que sí manda Exel del Norte (marca, tipo, claves, código de barras, clave SAT).
+     * comerciales que sí manda Exel del Norte (marca, tipo y categoría).
      * Exel no expone especificaciones técnicas en su API —lo único cercano es
      * `descripcion_extendida`, y solo la trae el 22% del catálogo—, así que sin este
      * respaldo la mayoría de las fichas saldrían sin ningún dato del producto.
@@ -70,22 +70,45 @@ final class ShopProduct
     {
         $s = !empty($row['specs_json']) ? json_decode((string) $row['specs_json'], true) : null;
         if (is_array($s) && isset($s['specs'])) $s = $s['specs'];
-        if (is_array($s) && $s) return $s;
+        if (is_array($s) && $s) return self::withoutInternalIdentifiers($s);
 
         /* Respaldo con datos del proveedor. Solo se listan los que traen valor. */
         $basica = [
-            'Marca'            => trim((string) ($row['brand'] ?? '')),
-            'Tipo'             => trim((string) ($row['subcategory'] ?? '')),
-            'Categoría'        => trim((string) ($row['category'] ?? '')),
-            'Clave'            => trim((string) ($row['sku'] ?? '')),
-            'Código de barras' => trim((string) ($row['barcode'] ?? '')),
-            'Clave SAT'        => trim((string) ($row['sat_code'] ?? '')),
+            'Marca'     => trim((string) ($row['brand'] ?? '')),
+            'Tipo'      => trim((string) ($row['subcategory'] ?? '')),
+            'Categoría' => trim((string) ($row['category'] ?? '')),
         ];
         $out = [];
         foreach ($basica as $name => $value) {
             if ($value !== '') $out[] = ['name' => $name, 'value' => $value];
         }
         return $out;
+    }
+
+    /**
+     * Los identificadores del proveedor son útiles para sincronización, inventario y
+     * enriquecimiento, pero no aportan a la decisión de compra. Se conservan en BD y
+     * se omiten únicamente de la ficha pública. También se filtran cuando vienen
+     * incrustados en specs_json para que la regla valga para TODO el catálogo.
+     */
+    private static function withoutInternalIdentifiers(array $specs): array
+    {
+        $ocultos = ['clave', 'codigo de barras', 'clave sat'];
+        $out = [];
+        foreach ($specs as $spec) {
+            if (!is_array($spec)) {
+                $out[] = $spec;
+                continue;
+            }
+            $name = strtolower(trim((string) ($spec['name'] ?? '')));
+            $name = strtr($name, [
+                'á'=>'a', 'é'=>'e', 'í'=>'i', 'ó'=>'o', 'ú'=>'u', 'ü'=>'u',
+                'Á'=>'a', 'É'=>'e', 'Í'=>'i', 'Ó'=>'o', 'Ú'=>'u', 'Ü'=>'u',
+            ]);
+            if (in_array($name, $ocultos, true)) continue;
+            $out[] = $spec;
+        }
+        return array_values($out);
     }
 
     /** Precio de lista (con IVA incluido) y precio tachado si está en oferta. */
