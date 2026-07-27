@@ -193,14 +193,14 @@ html[data-theme="dark"] .side-back:hover{background:rgba(255,255,255,.08)}
 .td-dtot .v{font-size:1.15rem}
 .td-dgo{display:block;width:100%;padding:13px;border:0;border-radius:12px;background:var(--brand-blue,#066CFF);color:#fff;font:inherit;font-weight:800;font-size:.95rem;cursor:pointer;text-align:center;text-decoration:none}
 .td-dnote{text-align:center;font-size:.76rem;color:var(--muted,#667085);margin-top:8px}
-/* El carrito ocupa solo lo que necesita; con muchos artículos, únicamente su lista
-   hace scroll. La cabecera queda bajo la navbar y usa colores planos de la tienda. */
-#tdCartDrawer{bottom:auto;max-height:calc(100dvh - var(--oknav-h) - 12px)}
+/* El carrito siempre ocupa TODA la altura disponible bajo la navbar. Vacío o lleno
+   conserva el mismo tamaño; cuando hay muchos artículos solo su cuerpo hace scroll. */
+#tdCartDrawer{bottom:0;height:auto;max-height:none}
 #tdCartDrawer .td-dh{flex:none;min-height:56px;box-sizing:border-box;padding:11px 16px;background:#066CFF;color:#fff;border-bottom:0}
 #tdCartDrawer .td-dx{border:1px solid rgba(255,255,255,.4);background:rgba(255,255,255,.16);color:#fff}
 #tdCartDrawer .td-dx:hover{background:rgba(255,255,255,.3)}
-#tdCartDrawer .td-dbody{flex:0 1 auto;min-height:0;max-height:min(44vh,440px);display:flex;flex-direction:column;gap:8px}
-#tdCartDrawer.is-empty .td-dbody{max-height:none;padding:0 14px}
+#tdCartDrawer .td-dbody{flex:1 1 auto;min-height:0;max-height:none;display:flex;flex-direction:column;gap:8px}
+#tdCartDrawer.is-empty .td-dbody{max-height:none;padding:0 14px;justify-content:center}
 #tdCartDrawer.is-empty .td-dfoot{display:none}
 #tdCartDrawer .td-di{grid-template-columns:46px minmax(0,1fr) auto;padding:9px;border:1px solid var(--line,#e3e6ee);border-radius:11px;background:var(--surface-card,#fff)}
 #tdCartDrawer .td-di .nm{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}

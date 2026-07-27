@@ -6977,3 +6977,16 @@ html[data-theme="dark"] .input-prefix__tag {
   border-color: var(--border-light) !important;
 }
 html[data-theme="dark"] .input-prefix__cc { color: var(--text-primary); }
+html[data-theme="dark"] .order-summary .input-prefix { box-shadow: none; }
+html[data-theme="dark"] .order-summary .input-prefix input {
+  background: #101827 !important;
+  color: var(--text-primary) !important;
+  border-color: var(--border-light) !important;
+}
+html[data-theme="dark"] .order-summary .input-prefix input::placeholder {
+  color: var(--text-muted);
+}
+html[data-theme="dark"] .order-summary .input-prefix__cc option {
+  background: #101827;
+  color: var(--text-primary);
+}
