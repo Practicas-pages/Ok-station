@@ -499,7 +499,7 @@ html.store-view .header-bar, html.store-view .site-header{display:none}
 #site .tb-filt.on svg{color:var(--blue)}
 #site .tb-filt .ct{position:absolute; top:-6px; right:-4px; background:var(--amber); color:#fff; border-radius:99px; font-size:.66rem; font-weight:800; min-width:20px; height:20px; display:grid; place-items:center; padding:0 5px; border:2px solid var(--blue)}
 /* Cajón de filtros (derecha, como el carrito) */
-#site .fdraw{position:fixed; top:0; right:0; height:100%; width:min(340px,88vw); background:#fff; transform:translateX(100%); transition:transform .3s cubic-bezier(.4,0,.2,1); z-index:61; box-shadow:-12px 0 44px rgba(18,20,28,.22); display:flex; flex-direction:column}
+#site .fdraw{position:fixed; top:var(--shop-top,0px); right:0; height:calc(100dvh - var(--shop-top,0px)); width:min(340px,88vw); background:#fff; transform:translateX(100%); transition:transform .3s cubic-bezier(.4,0,.2,1); z-index:61; box-shadow:-12px 0 44px rgba(18,20,28,.22); display:flex; flex-direction:column}
 #site #app.filt-open .fdraw{transform:translateX(0)}
 #site .fdh{display:flex; align-items:center; justify-content:space-between; gap:8px; padding:15px 18px; border-bottom:1px solid var(--line); font-weight:800; flex:none}
 #site .fdbody{padding:6px 18px 18px; overflow-y:auto; flex:1 1 auto; min-height:0}
@@ -669,7 +669,7 @@ html.store-view .header-bar, html.store-view .site-header{display:none}
 #site .checkout:hover:not(:disabled){transform:translateY(-1px); box-shadow:0 6px 16px rgba(255,226,0,.34)}
 #site .checkout:disabled{opacity:.45; pointer-events:none}
 #site .taxnote{font-size:.68rem; color:var(--muted); text-align:center; margin-top:8px}
-#site .drawer{position:fixed; top:0; left:0; height:100%; width:min(300px,86vw); background:#fff; transform:translateX(-100%); transition:transform .25s; z-index:60; box-shadow:12px 0 44px rgba(18,20,28,.22); display:flex; flex-direction:column}
+#site .drawer{position:fixed; top:var(--shop-top,0px); left:0; height:calc(100dvh - var(--shop-top,0px)); width:min(300px,86vw); background:#fff; transform:translateX(-100%); transition:transform .25s; z-index:60; box-shadow:12px 0 44px rgba(18,20,28,.22); display:flex; flex-direction:column}
 #site #app.drawer-open .drawer{transform:translateX(0)}
 #site .drawer .dh{display:flex; align-items:center; gap:8px; padding:15px 18px; border-bottom:1px solid var(--line); font-weight:800; flex:none}
 #site .drawer .dh .x{margin-left:auto; border:none; background:none; font-size:1.4rem; color:var(--muted)}
@@ -1124,7 +1124,8 @@ html[data-theme="dark"] #site :is(.tb-cuenta,.tb-fav,.tb-cart,.tb-filt):hover{ba
   html.cats-closed #site .shell{grid-template-columns:minmax(0,1fr)}
   html.cats-closed #site .store-side{display:none}
   #site .store-side{display:block; position:sticky; top:var(--oknav-h,158px); align-self:start;
-    max-height:calc(100vh - var(--oknav-h,158px) - 14px); overflow-y:auto; overflow-x:hidden; padding-right:2px}
+    height:calc(100dvh - var(--oknav-h,158px)); max-height:calc(100dvh - var(--oknav-h,158px));
+    box-sizing:border-box; overflow-y:auto; overflow-x:hidden; padding-right:2px}
   #site .side-cats{display:block}
   #site .side-h{display:block; font-size:.72rem; font-weight:800; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); margin:2px 0 8px 4px}
   /* El catálogo llena su columna (sin su centrado propio, que ahora lo da .shell). */
@@ -1557,7 +1558,7 @@ html[data-theme="dark"] #site :is(.tb-cuenta,.tb-fav,.tb-cart,.tb-filt):hover{ba
       <aside class="fdraw" id="fdraw" role="dialog" aria-label="Filtros" aria-modal="false">
         <div class="fdh">Filtros <button class="x" id="fdrawClose" aria-label="Cerrar">×</button></div>
         <div class="fdbody" id="fdrawBody"></div>
-        <div class="fdfoot"><button type="button" class="fclear" id="fClear">Limpiar</button><button type="button" class="fapply" id="fApply">Ver resultados</button></div>
+        <div class="fdfoot"><button type="button" class="fclear" id="fClear">Limpiar</button></div>
       </aside>
       <button type="button" class="totop" id="toTop" aria-label="Subir al inicio" title="Subir al inicio"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg></button>
       <div class="scrim" id="scrim"></div>
@@ -1644,8 +1645,22 @@ html[data-theme="dark"] #site :is(.tb-cuenta,.tb-fav,.tb-cart,.tb-filt):hover{ba
   }
 
   // Datos
-  /* Respaldo SOLO papelería (el catálogo real de la BD trae sus propias categorías). */
-  var CATS=[{id:"ofertas",name:"Ofertas del día",hot:true},{id:"all",name:"Todos",color:"#66748a"},{id:"consumibles",name:"Tinta y tóner",color:"#066CFF"},{id:"papel",name:"Papel y cuadernos",color:"#9C1DFF"},{id:"escritura",name:"Escritura",color:"#0596b8"},{id:"oficina",name:"Oficina y escolar",color:"#0E9F6E"}];
+  /* El proveedor agrupa todo lo publicado bajo "Oficina y Escolar". Esa categoría
+     padre equivale a "Todos"; las divisiones útiles para el cliente son los Tipos. */
+  function esCategoriaGeneral(nombre){
+    var n=String(nombre || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+      .trim().toLowerCase();
+    return n==="oficina y escolar" || n==="oficina y escolares";
+  }
+  /* Respaldo SOLO papelería. Imita la misma jerarquía del API para que, aun si la BD
+     tarda o no responde, la barra conserve Todos + subcategorías (nunca categorías
+     paralelas inventadas). */
+  var CATS=[
+    {id:"all",name:"Todos",color:"#66748a"},
+    {id:"Oficina y Escolar",name:"Oficina y Escolar",color:"#0E9F6E",subs:[
+      {name:"Tinta y tóner"},{name:"Papel y cuadernos"},{name:"Escritura"}
+    ]}
+  ];
   var GRADC={consumibles:"var(--grad-blue)",papel:"var(--grad-cyan)",escritura:"var(--grad-deep)",oficina:"#0E9F6E"};
   // Catálogo desde la fuente compartida (assets/catalogo.js). Fallback a [] por si no cargó.
   var P=(window.OK_PRODUCTS||[]).slice();
@@ -1772,16 +1787,34 @@ html[data-theme="dark"] #site :is(.tb-cuenta,.tb-fav,.tb-cart,.tb-filt):hover{ba
   $("landFeat").addEventListener("click",function(e){var c=e.target.closest("[data-open-feat]"); if(c && !e.target.closest(".fadd")){var p=prod(+c.dataset.openFeat); showView("store"); if(p) selectCat(p.cat);}});
 
   // Tienda interactiva
+  /* La categoría padre de Exel es única. Para el cliente, la navegación útil son sus
+     familias: se aplanan como opciones hermanas sin cambiar la estructura del API. */
+  function categoriasNavegacion(){
+    var todos=CATS.filter(function(c){return c.id==="all";})[0] ||
+      {id:"all",name:"Todos",color:"#66748a"};
+    var padre=CATS.filter(function(c){return esCategoriaGeneral(c.name);})[0];
+    if(padre && padre.subs && padre.subs.length){
+      return [todos].concat(padre.subs.map(function(s){
+        return {id:padre.id, name:s.name, color:padre.color||"#66748a",
+                count:s.count||0, sub:s.name, subOnly:true};
+      }));
+    }
+    /* Respaldo local si el API no está disponible: mantiene Todos primero y omite
+       cualquier categoría padre redundante. */
+    return [todos].concat(CATS.filter(function(c){
+      return c.id!=="all" && !c.hot && !esCategoriaGeneral(c.name);
+    }));
+  }
   function renderCats(){
-    /* Carril (píldoras): categorías principales. El cajón "Categorías" muestra el
-       árbol completo (categoría + sus subcategorías), que es donde se ve la
-       estructura fina de la papelería sin saturar el carril. */
-    $("popbar").innerHTML=CATS.map(function(c){var on=activeCat===c.id;
+    var navCats=categoriasNavegacion();
+    /* El mismo conjunto plano (Todos + familias) alimenta carril, cajón y sidebar:
+       cambia la lógica, no las tres presentaciones responsive existentes. */
+    $("popbar").innerHTML=navCats.map(function(c){var on=c.subOnly?(activeCat===c.id&&activeSub===c.sub):(activeCat===c.id&&!activeSub);
       if(c.hot) return '<button class="pop hot'+(on?' on':'')+'" data-cat="ofertas">'+BOLT+okEsc(c.name)+'</button>';
-      return '<button class="pop'+(on?' on':'')+'" data-cat="'+okEsc(c.id)+'"><span class="dot" style="background:'+c.color+'"></span>'+okEsc(c.name)+'</button>';}).join("");
-    $("drawerList").innerHTML=CATS.map(function(c){var on=activeCat===c.id&&!activeSub;
+      return '<button class="pop'+(on?' on':'')+'" data-cat="'+okEsc(c.id)+'"'+(c.subOnly?' data-sub="'+okEsc(c.sub)+'"':'')+'><span class="dot" style="background:'+c.color+'"></span>'+okEsc(c.name)+'</button>';}).join("");
+    $("drawerList").innerHTML=navCats.map(function(c){var on=c.subOnly?(activeCat===c.id&&activeSub===c.sub):(activeCat===c.id&&!activeSub);
       if(c.hot) return '<button class="hot'+(activeCat==="ofertas"?" on":"")+'" data-cat="ofertas">'+BOLT+okEsc(c.name)+'</button>';
-      var head='<button class="'+(on?'on':'')+'" data-cat="'+okEsc(c.id)+'"><span class="dot" style="background:'+c.color+'"></span>'+okEsc(c.name)+(c.count?'<span class="dn">'+c.count+'</span>':'')+'</button>';
+      var head='<button class="'+(on?'on':'')+'" data-cat="'+okEsc(c.id)+'"'+(c.subOnly?' data-sub="'+okEsc(c.sub)+'"':'')+'><span class="dot" style="background:'+c.color+'"></span>'+okEsc(c.name)+(c.count?'<span class="dn">'+c.count+'</span>':'')+'</button>';
       var subs=(c.subs||[]);
       if(!subs.length) return head;
       return head+'<div class="dsubs">'+subs.map(function(s){
@@ -1789,13 +1822,12 @@ html[data-theme="dark"] #site :is(.tb-cuenta,.tb-fav,.tb-cart,.tb-filt):hover{ba
       }).join("")+'</div>';
     }).join("");
     /* Columna lateral (desktop): la MISMA lista, en vertical. El click se resuelve por
-       el manejador delegado de [data-cat], así que no hay que cablear nada nuevo. Las
-       subcategorías se muestran SOLO bajo la categoría activa (patrón tipo Amazon). */
+       el manejador delegado de [data-cat], sin listeners duplicados. */
     var sc=$("sideCats");
-    if(sc){ sc.innerHTML=CATS.map(function(c){
-      var on=activeCat===c.id&&!activeSub;
+    if(sc){ sc.innerHTML=navCats.map(function(c){
+      var on=c.subOnly?(activeCat===c.id&&activeSub===c.sub):(activeCat===c.id&&!activeSub);
       var ico=c.hot?BOLT:'<span class="side-dot" style="background:'+(c.color||'#66748a')+'"></span>';
-      var head='<button class="side-cat'+(on?' on':'')+(c.hot?' hot':'')+'" data-cat="'+okEsc(c.id)+'">'+ico+'<span class="side-cat__nm">'+okEsc(c.name)+'</span>'+(c.count?'<span class="side-n">'+c.count+'</span>':'')+'</button>';
+      var head='<button class="side-cat'+(on?' on':'')+(c.hot?' hot':'')+'" data-cat="'+okEsc(c.id)+'"'+(c.subOnly?' data-sub="'+okEsc(c.sub)+'"':'')+'>'+ico+'<span class="side-cat__nm">'+okEsc(c.name)+'</span>'+(c.count?'<span class="side-n">'+c.count+'</span>':'')+'</button>';
       var subs=(c.subs||[]);
       if(activeCat===c.id && subs.length){
         head+='<div class="side-subs">'+subs.map(function(s){
@@ -1831,6 +1863,9 @@ html[data-theme="dark"] #site :is(.tb-cuenta,.tb-fav,.tb-cart,.tb-filt):hover{ba
     if(window.ResizeObserver) new ResizeObserver(popSync).observe(bar);
   })();
   function selectCat(id,sub){
+    /* "Oficina y Escolar" es la categoría padre de TODO el catálogo real. En la
+       interfaz equivale a "Todos" y no debe aparecer como una opción duplicada. */
+    if(esCategoriaGeneral(id) && !sub){ id="all"; sub=""; }
     /* Con el catálogo de la BD las categorías son las de Exel; si llega un id que ya no
        existe (p. ej. un atajo del landing), mostramos TODO en vez de dejar el grid vacío. */
     if(id!=="all" && id!=="ofertas" && !CATS.some(function(c){return c.id===id;})){ id="all"; sub=""; }
@@ -2227,7 +2262,7 @@ html[data-theme="dark"] #site :is(.tb-cuenta,.tb-fav,.tb-cart,.tb-filt):hover{ba
     fSort=($("fdrawBody").querySelector('input[name="fsort"]:checked')||{}).value||"name";
     fBrands=[].slice.call($("fdrawBody").querySelectorAll(".fbrand:checked")).map(function(c){return c.value;});
     fSubcats=[].slice.call($("fdrawBody").querySelectorAll(".fsubcat:checked")).map(function(c){return c.value;});
-    filtCountUpdate(); filtClose(); reloadFromDB();
+    filtCountUpdate(); reloadFromDB();
   }
   function filtClear(){
     fBrands=[]; fSubcats=[]; fSort="name";
@@ -2237,8 +2272,13 @@ html[data-theme="dark"] #site :is(.tb-cuenta,.tb-fav,.tb-cart,.tb-filt):hover{ba
     $("app").classList.contains("filt-open") ? filtClose() : filtOpen();
   });
   $("fdrawClose").addEventListener("click",filtClose);
-  $("fApply").addEventListener("click",filtApply);
   $("fClear").addEventListener("click",filtClear);
+  /* Los filtros se aplican al cambiar: no hay paso de confirmación ni recarga de
+     página. reloadFromDB descarta respuestas anteriores si el usuario marca varias
+     opciones rápidamente, manteniendo la interacción fluida. */
+  $("fdrawBody").addEventListener("change",function(e){
+    if(e.target.matches('input[name="fsort"],.fbrand,.fsubcat')) filtApply();
+  });
   /* Buscadores y "ver todos" de tipos y marcas: delegados (el panel se repinta al llegar datos). */
   $("fdrawBody").addEventListener("input",function(e){
     if(e.target.classList.contains("fsubsearch")){ fSubQuery=e.target.value; applySubcatView(); }

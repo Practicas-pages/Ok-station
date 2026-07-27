@@ -40,7 +40,7 @@
    En escritorio se esconde entera: Volver vive en el sidebar y los botones sobran. */
 .td-topbar{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:12px}
 .td-topbar .td-back{margin-bottom:0}
-/* "Volver a la tienda" del sidebar (solo escritorio). */
+/* "Volver al inicio" del sidebar (solo escritorio). */
 .side-back{display:none;align-items:center;gap:7px;color:var(--muted,#667085);text-decoration:none;
   font-size:.85rem;font-weight:700;padding:8px 11px;margin-bottom:6px;border-radius:10px}
 .side-back:hover{color:var(--brand-blue,#066CFF);background:var(--soft,#f2f5fb)}
@@ -48,7 +48,7 @@ html[data-theme="dark"] .side-back:hover{background:rgba(255,255,255,.08)}
 /* ── Botones categorías + filtros (móvil) ──
    El buscador salió de aquí: ahora es el de la navbar (#oknavQ), que filtra esta
    tabla en vivo. Los dos botones van a la DERECHA de la fila superior (junto a
-   "Volver a la tienda", que va a la izquierda). */
+   "Volver al inicio", que va a la izquierda). */
 .td-top{display:flex;gap:10px;align-items:center;justify-content:flex-end;
   flex:1 1 auto;min-width:0;flex-wrap:wrap}
 .td-catbtn{
@@ -803,16 +803,16 @@ html[data-theme="dark"] .td-go:disabled{ background:#232D46; color:#67708A }
   </div>
   <!-- Sin carril de categorías en la navbar: filtrar por categoría se hace DENTRO de la
        compra rápida (botón "Categorías" de la página). El carril navegaba a la tienda
-       normal, que sacaba al usuario de aquí. "Volver a la tienda" queda en el cuerpo. -->
+       normal, que sacaba al usuario de aquí. "Volver al inicio" queda en el cuerpo. -->
 </header>
 <!-- La CINTILLA azul se eliminó (pedido del dueño): robaba una franja de alto a la
-     página. "Volver a la tienda" vive ahora en el sidebar (escritorio) y en esta
+     página. "Volver al inicio" vive ahora en el sidebar (escritorio) y en esta
      fila ligera (móvil), que también carga los botones Categorías/Filtros. -->
 <main class="td-wrap">
   <div class="td-topbar">
-    <a class="td-back" href="tienda.html">
+    <a class="td-back" href="index.html">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>
-      Volver a la tienda
+      Volver al inicio
     </a>
 
     <!-- Categorías + filtros. El BUSCADOR es el de la navbar (#oknavQ): tener aquí otro
@@ -839,9 +839,9 @@ html[data-theme="dark"] .td-go:disabled{ background:#232D46; color:#67708A }
          igual que la tienda muda su fdraw al sidebar. En móvil no se ve: mandan los
          desplegables del listón. -->
     <aside class="store-side" id="tdSide">
-      <a class="side-back" href="tienda.html">
+      <a class="side-back" href="index.html">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>
-        Volver a la tienda
+        Volver al inicio
       </a>
       <p class="side-h">Categorías</p>
       <nav class="side-cats" id="tdSideCats" aria-label="Categorías de la tienda"></nav>
@@ -1256,20 +1256,28 @@ html[data-theme="dark"] .td-go:disabled{ background:#232D46; color:#67708A }
     $("tdCatBtn").classList.toggle("on", open);
     $("tdCatBtn").setAttribute("aria-expanded", open ? "true" : "false");
   });
+  /* Todo el catálogo publicado pertenece a la categoría padre "Oficina y Escolar".
+     Mostrarla junto a "Todos" crea dos filtros idénticos; la interfaz omite esa
+     categoría técnica y conserva sus familias en el filtro "Tipo". */
+  function esCategoriaGeneral(nombre){
+    var n = String(nombre || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+      .trim().toLowerCase();
+    return n === "oficina y escolar" || n === "oficina y escolares";
+  }
   fetch("backend/api/shop/categories.php").then(function(r){ return r.json(); }).then(function(j){
     if (!j || !j.ok) return;
-    tdCatList = j.categories || [];
+    tdCatList = (j.categories || []).filter(function(c){ return !esCategoriaGeneral(c.name); });
     sideCatsRender();
     var row = $("tdCatsRow");
     var all = '<button class="td-chip on" data-cat="">Todos</button>';
-    row.innerHTML = all + j.categories.map(function(c){
+    row.innerHTML = all + tdCatList.map(function(c){
       return '<button class="td-chip" data-cat="'+esc(c.name)+'">'+esc(c.name)+'<span class="n">'+c.count+'</span></button>';
     }).join("");
     /* Los chips llegan por red; si esta carga viene de una vuelta atrás, la categoría
        ya está en `cat` y hay que marcar SU chip (no "Todos"). Si esa categoría ya no
        existe —Exel las renombra—, se vuelve a "Todos" y se recarga: si no, quedaría la
        tabla vacía y ningún chip marcado, sin explicación. */
-    if (cat && !j.categories.some(function(c){ return c.name === cat; })){
+    if (cat && (esCategoriaGeneral(cat) || !tdCatList.some(function(c){ return c.name === cat; }))){
       cat = ""; guardaEstado(); load(true);
     }
     row.querySelectorAll("[data-cat]").forEach(function(x){ x.classList.toggle("on", x.dataset.cat === cat); });
@@ -1281,7 +1289,7 @@ html[data-theme="dark"] .td-go:disabled{ background:#232D46; color:#67708A }
      navbar (vía OKtienda.verCategoria), para que ese botón filtre AQUÍ en vez de
      llevarse al usuario a la tienda normal. */
   function eligeCategoria(nombre){
-    cat = String(nombre == null ? "" : nombre);
+    cat = esCategoriaGeneral(nombre) ? "" : String(nombre == null ? "" : nombre);
     var row = $("tdCatsRow");
     if (row) row.querySelectorAll("[data-cat]").forEach(function(x){ x.classList.toggle("on", x.dataset.cat === cat); });
     fBrandsLoaded = false;   // las marcas se acotan a la categoría → recargar al reabrir filtros
