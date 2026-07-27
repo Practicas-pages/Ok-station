@@ -175,10 +175,12 @@ html[data-theme="dark"] .side-back:hover{background:rgba(255,255,255,.08)}
 .td-dx:hover{background:#e9edf5}
 .td-dbody{flex:1 1 auto;overflow-y:auto;padding:12px 14px}
 .td-dfoot{flex:none;border-top:1px solid var(--line,#e3e6ee);padding:14px 16px}
-.td-dempty{text-align:center;color:var(--muted,#667085);font-size:.9rem;padding:40px 12px}
+.td-dempty{text-align:center;color:var(--muted,#667085);font-size:.9rem;padding:24px 12px}
 .td-di{display:grid;grid-template-columns:46px 1fr auto;gap:11px;align-items:center;padding:10px 4px;border-bottom:1px solid #f1f3f8}
 .td-di:last-child{border-bottom:0}
-.td-di .im{width:46px;height:46px;border-radius:8px;background:#fff center/contain no-repeat;border:1px solid var(--line,#e3e6ee)}
+.td-di .im{width:46px;height:46px;border-radius:8px;background-color:#fff;background-position:50% 50%;
+  background-size:contain;background-repeat:no-repeat;background-origin:content-box;box-sizing:border-box;
+  padding:3px;border:1px solid var(--line,#e3e6ee)}
 .td-di .nm{font-size:.86rem;font-weight:600;line-height:1.2}
 .td-di .pu{font-size:.78rem;color:var(--muted,#667085);margin-top:2px}
 .td-di .qty{display:inline-flex;align-items:center;gap:8px;margin-top:5px}
@@ -198,6 +200,8 @@ html[data-theme="dark"] .side-back:hover{background:rgba(255,255,255,.08)}
 #tdCartDrawer .td-dx{border:1px solid rgba(255,255,255,.4);background:rgba(255,255,255,.16);color:#fff}
 #tdCartDrawer .td-dx:hover{background:rgba(255,255,255,.3)}
 #tdCartDrawer .td-dbody{flex:0 1 auto;min-height:0;max-height:min(44vh,440px);display:flex;flex-direction:column;gap:8px}
+#tdCartDrawer.is-empty .td-dbody{max-height:none;padding:0 14px}
+#tdCartDrawer.is-empty .td-dfoot{display:none}
 #tdCartDrawer .td-di{grid-template-columns:46px minmax(0,1fr) auto;padding:9px;border:1px solid var(--line,#e3e6ee);border-radius:11px;background:var(--surface-card,#fff)}
 #tdCartDrawer .td-di .nm{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 #tdCartDrawer .td-dgo{background:#FFE200;color:#12141C;box-shadow:0 2px 6px rgba(255,226,0,.30)}
@@ -384,8 +388,9 @@ body.td-predrag .td-trash{display:flex}
 .td-trash.over{background:rgba(225,29,72,.16);border-color:#e11d48;transform:scale(1.03)}
 .td-ci[draggable="true"]{cursor:grab}
 .td-ci.dragging{opacity:.5;cursor:grabbing}
-.td-img{width:64px;height:64px;border-radius:10px;background:#fff center/contain no-repeat;
-  border:1px solid var(--line,#e3e6ee);flex:none}
+.td-img{width:64px;height:64px;border-radius:10px;background-color:#fff;background-position:50% 50%;
+  background-size:contain;background-repeat:no-repeat;background-origin:content-box;
+  box-sizing:border-box;padding:4px;border:1px solid var(--line,#e3e6ee);flex:none}
 /* Producto SIN foto: wordmark Ok.station (fondo transparente) en lugar de la caja vacía. */
 .td-noimg{background-image:url('assets/img/placeholder-producto.svg');background-size:82% auto}
 .td-name{font-weight:600;font-size:.9rem;color:var(--ink,#111);line-height:1.35;
@@ -459,8 +464,9 @@ body.td-predrag .td-trash{display:flex}
 .td-citems{display:flex;flex-direction:column;gap:8px;max-height:46vh;overflow-y:auto;margin:0 -4px;padding:0 4px}
 .td-ci{background:rgba(255,255,255,.14);border-radius:10px;padding:8px 10px;display:grid;
   grid-template-columns:auto 1fr auto;gap:8px;align-items:center}
-.td-ci .th{width:38px;height:38px;flex:none;border-radius:8px;background:#fff center/contain no-repeat;
-  border:1px solid rgba(255,255,255,.55)}
+.td-ci .th{width:38px;height:38px;flex:none;border-radius:8px;background-color:#fff;
+  background-position:50% 50%;background-size:contain;background-repeat:no-repeat;
+  background-origin:content-box;box-sizing:border-box;padding:3px;border:1px solid rgba(255,255,255,.55)}
 .td-ci .nm{font-size:.78rem;font-weight:600;line-height:1.3;
   display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .td-ci .pu{font-size:.72rem;opacity:.85;margin-top:2px}
@@ -863,7 +869,7 @@ html[data-theme="dark"] .td-go:disabled{ background:#232D46; color:#67708A }
            todos los productos". role=status en el conteo porque al filtrar con el
            buscador de la navbar no hay cambio de página que anunciar. -->
       <div class="td-panelh">
-        <h2>Productos <span class="count" id="tdCount" role="status" aria-live="polite"></span></h2>
+        <h2><span id="tdPanelTitle">Productos</span> <span class="count" id="tdCount" role="status" aria-live="polite"></span></h2>
         <button type="button" class="td-clearq" id="tdClearQ" hidden>Ver todos los productos</button>
       </div>
       <!-- El encabezado va DENTRO del contenedor con scroll (y pegado arriba): si queda
@@ -942,11 +948,11 @@ html[data-theme="dark"] .td-go:disabled{ background:#232D46; color:#67708A }
   /* ═══ Estado ═══ */
   var PER = 24;                 // productos por página (scroll infinito)
   var page = 1, pages = 1, loading = false, done = false, loadToken = 0;
-  var q = "", cat = "";
+  var q = "", cat = "", soloOfertas = false;
   /* Estado del panel de filtros. fSort="name" es el orden por defecto del API (no se
      manda mientras esté así). fBrands: marcas elegidas. */
   var fBrands = [], fSort = "name", fBrandsLoaded = false, fBrandList = [];
-  /* Faceta "Tipo" = subcategoría (dato real de la BD: Tinta, Tóner, Carpetas, Papel Bond…). */
+  /* La categoría visible es una subcategoría real de la BD. Solo puede haber una activa. */
   var fSubcats = [], fSubcatsLoaded = false, fSubcatList = [];
   var pre = {};                 // pre-carrito local: { id: {p, qty} }
   /* Checkout DENTRO del panel de carrito: perfil + libreta de direcciones + envío. */
@@ -988,6 +994,7 @@ html[data-theme="dark"] .td-go:disabled{ background:#232D46; color:#67708A }
     if (reset){ page=1; done=false; $("tdRows").innerHTML=""; }
     else if (loading || done) return;
     tdSyncClearQ();
+    $("tdPanelTitle").textContent = soloOfertas ? "Ofertas del día" : "Productos";
     var myToken = ++loadToken;   // invalida las respuestas que aún vengan en camino
     loading = true;
     /* Esqueleto en la PRIMERA página: anticipa la forma de la tabla en vez de un
@@ -1012,6 +1019,7 @@ html[data-theme="dark"] .td-go:disabled{ background:#232D46; color:#67708A }
 
     var u = "backend/api/shop/products.php?per_page="+PER+"&page="+page
           + (q ? "&q="+encodeURIComponent(q) : "")
+          + (soloOfertas ? "&ofertas=1" : "")
           + (cat ? "&category="+encodeURIComponent(cat) : "")
           + (fSubcats.length ? "&subcategory="+encodeURIComponent(fSubcats.join(",")) : "")
           + (fBrands.length ? "&brand="+encodeURIComponent(fBrands.join(",")) : "")
@@ -1040,7 +1048,7 @@ html[data-theme="dark"] .td-go:disabled{ background:#232D46; color:#67708A }
       if (!j.items.length && page===1){
         /* Sin resultados es donde más falta hace la salida: el botón del encabezado
            puede haber quedado fuera de pantalla al hacer scroll. */
-        if (q || cat){
+        if (q || cat || soloOfertas){
           $("tdState").innerHTML = '<p style="margin:0 0 12px">No encontramos nada con ese filtro.</p>'+
             '<button type="button" class="td-catbtn" id="tdClearQ2" style="height:42px">Ver todos los productos</button>';
           var b2 = $("tdClearQ2"); if (b2) b2.addEventListener("click", tdClearQuery);
@@ -1266,20 +1274,20 @@ html[data-theme="dark"] .td-go:disabled{ background:#232D46; color:#67708A }
     $("tdCatBtn").classList.toggle("on", open);
     $("tdCatBtn").setAttribute("aria-expanded", open ? "true" : "false");
   });
-  /* Todo el catálogo publicado pertenece a la categoría padre "Oficina y Escolar".
-     Mostrarla junto a "Todos" crea dos filtros idénticos; la interfaz omite esa
-     categoría técnica y conserva sus familias en el filtro "Tipo". */
+  /* Todo el catálogo se navega por subcategorías reales, igual que tienda.html. */
   function esCategoriaGeneral(nombre){
     var n = String(nombre || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "")
       .trim().toLowerCase();
     return n === "oficina y escolar" || n === "oficina y escolares";
   }
-  fetch("backend/api/shop/categories.php").then(function(r){ return r.json(); }).then(function(j){
+  fetch("backend/api/shop/subcategories.php").then(function(r){ return r.json(); }).then(function(j){
     if (!j || !j.ok) return;
-    tdCatList = (j.categories || []).filter(function(c){ return !esCategoriaGeneral(c.name); });
+    tdCatList = j.subcategories || [];
+    fSubcatList = tdCatList.slice();
+    fSubcatsLoaded = true;
     sideCatsRender();
     var row = $("tdCatsRow");
-    var all = '<button class="td-chip on" data-cat="">Todos</button>';
+    var all = '<button class="td-chip'+(!soloOfertas && !fSubcats.length?" on":"")+'" data-cat="">Todos</button>';
     row.innerHTML = all + tdCatList.map(function(c){
       return '<button class="td-chip" data-cat="'+esc(c.name)+'">'+esc(c.name)+'<span class="n">'+c.count+'</span></button>';
     }).join("");
@@ -1287,10 +1295,11 @@ html[data-theme="dark"] .td-go:disabled{ background:#232D46; color:#67708A }
        ya está en `cat` y hay que marcar SU chip (no "Todos"). Si esa categoría ya no
        existe —Exel las renombra—, se vuelve a "Todos" y se recarga: si no, quedaría la
        tabla vacía y ningún chip marcado, sin explicación. */
-    if (cat && (esCategoriaGeneral(cat) || !tdCatList.some(function(c){ return c.name === cat; }))){
-      cat = ""; guardaEstado(); load(true);
+    var elegida = fSubcats[0] || "";
+    if (elegida && !tdCatList.some(function(c){ return c.name === elegida; })){
+      fSubcats = []; guardaEstado(); load(true);
     }
-    row.querySelectorAll("[data-cat]").forEach(function(x){ x.classList.toggle("on", x.dataset.cat === cat); });
+    row.querySelectorAll("[data-cat]").forEach(function(x){ x.classList.toggle("on", !soloOfertas && x.dataset.cat === (fSubcats[0]||"")); });
     row.querySelectorAll("[data-cat]").forEach(function(b){
       b.addEventListener("click", function(){ eligeCategoria(b.dataset.cat); });
     });
@@ -1299,17 +1308,32 @@ html[data-theme="dark"] .td-go:disabled{ background:#232D46; color:#67708A }
      navbar (vía OKtienda.verCategoria), para que ese botón filtre AQUÍ en vez de
      llevarse al usuario a la tienda normal. */
   function eligeCategoria(nombre){
-    cat = esCategoriaGeneral(nombre) ? "" : String(nombre == null ? "" : nombre);
+    if (String(nombre || "").toLowerCase() === "ofertas"){ eligeOfertas(); return; }
+    soloOfertas = false;
+    nombre = esCategoriaGeneral(nombre) ? "" : String(nombre == null ? "" : nombre);
+    cat = "";
+    fSubcats = nombre ? [nombre] : [];
     var row = $("tdCatsRow");
-    if (row) row.querySelectorAll("[data-cat]").forEach(function(x){ x.classList.toggle("on", x.dataset.cat === cat); });
-    fBrandsLoaded = false;   // las marcas se acotan a la categoría → recargar al reabrir filtros
-    /* El "Tipo" es propio de cada categoría: recargar y limpiar lo elegido. */
-    fSubcatsLoaded = false; fSubcats = []; filtCount();
-    tdSubQuery = ""; tdSubMore = false;   // búsquedas del panel: de cero en cada categoría
+    if (row) row.querySelectorAll("[data-cat]").forEach(function(x){ x.classList.toggle("on", x.dataset.cat === nombre); });
+    fBrandsLoaded = false;
+    filtCount();
     tdBrandQuery = ""; tdBrandMore = false;
     guardaEstado(); load(true);
     /* El sidebar (siempre a la vista en escritorio) se repinta y recarga sus listas. */
     sideCatsRender(); filtRender(); asegurarDatosFiltros();
+  }
+  /* Ofertas es una vista del MISMO catálogo rápido, no un enlace a tienda.html.
+     Limpia filtros que podrían ocultar las promociones y consulta al API con ofertas=1. */
+  function eligeOfertas(){
+    soloOfertas = true; cat = ""; q = "";
+    pintaBusqueda("");
+    fBrands = []; fSubcats = [];
+    fBrandsLoaded = false;
+    tdBrandQuery = ""; tdBrandMore = false;
+    var row = $("tdCatsRow");
+    if (row) row.querySelectorAll("[data-cat]").forEach(function(x){ x.classList.remove("on"); });
+    filtCount(); filtRender(); sideCatsRender(); asegurarDatosFiltros();
+    guardaEstado(); load(true);
   }
 
   /* ═══ Columna lateral (la MISMA de la tienda) ═══
@@ -1320,17 +1344,11 @@ html[data-theme="dark"] .td-go:disabled{ background:#232D46; color:#67708A }
   var TD_BOLT = '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M13 2L4 14h6l-1 8 9-12h-6l1-8z"/></svg>';
   function sideCatsRender(){
     var sc = $("tdSideCats"); if (!sc) return;
-    var html = '<button type="button" class="side-cat hot" data-side-ofertas>'+TD_BOLT+'<span class="side-cat__nm">Ofertas del día</span></button>';
-    html += '<button type="button" class="side-cat'+(cat===""?" on":"")+'" data-side-cat=""><span class="side-dot" style="background:#66748a"></span><span class="side-cat__nm">Todos</span></button>';
+    var html = '<button type="button" class="side-cat hot'+(soloOfertas?' on':'')+'" data-side-ofertas>'+TD_BOLT+'<span class="side-cat__nm">Ofertas del día</span></button>';
+    html += '<button type="button" class="side-cat'+(!soloOfertas && !fSubcats.length?" on":"")+'" data-side-cat=""><span class="side-dot" style="background:#66748a"></span><span class="side-cat__nm">Todos</span></button>';
     html += tdCatList.map(function(c){
-      var on = cat === c.name;
-      var head = '<button type="button" class="side-cat'+(on && !fSubcats.length ? ' on' : '')+'" data-side-cat="'+esc(c.name)+'"><span class="side-dot" style="background:'+esc(c.color||'#66748a')+'"></span><span class="side-cat__nm">'+esc(c.name)+'</span>'+(c.count?'<span class="side-n">'+c.count+'</span>':'')+'</button>';
-      if (on && fSubcatsLoaded && fSubcatList.length){
-        head += '<div class="side-subs">'+fSubcatList.map(function(s){
-          return '<button type="button" class="side-sub'+(fSubcats.length===1 && fSubcats[0]===s.name ? ' on' : '')+'" data-side-sub="'+esc(s.name)+'">'+esc(s.name)+(s.count?'<span class="side-n">'+s.count+'</span>':'')+'</button>';
-        }).join("")+'</div>';
-      }
-      return head;
+      var on = fSubcats.length===1 && fSubcats[0]===c.name;
+      return '<button type="button" class="side-cat'+(on?' on':'')+'" data-side-cat="'+esc(c.name)+'"><span class="side-dot" style="background:#066CFF"></span><span class="side-cat__nm">'+esc(c.name)+'</span>'+(c.count?'<span class="side-n">'+c.count+'</span>':'')+'</button>';
     }).join("");
     sc.innerHTML = html;
   }
@@ -1344,29 +1362,19 @@ html[data-theme="dark"] .td-go:disabled{ background:#232D46; color:#67708A }
       }).catch(function(e){ console.error("Filtros (marcas):", e); });
     }
     if (!fSubcatsLoaded){
-      fetch("backend/api/shop/subcategories.php" + qs).then(function(r){ return r.json(); }).then(function(j){
-        if (j && j.ok){ fSubcatList = j.subcategories || []; fSubcatsLoaded = true; filtRender(); sideCatsRender(); }
+      fetch("backend/api/shop/subcategories.php").then(function(r){ return r.json(); }).then(function(j){
+        if (j && j.ok){ fSubcatList = j.subcategories || []; tdCatList = fSubcatList.slice(); fSubcatsLoaded = true; filtRender(); sideCatsRender(); }
       }).catch(function(e){ console.error("Filtros (tipos):", e); });
     }
   }
   $("tdSideCats").addEventListener("click", function(e){
     var of = e.target.closest("[data-side-ofertas]");
     if (of){
-      /* Las ofertas del día viven en la tienda normal (misma decisión que el botón
-         "Ofertas" de la navbar): se navega dejando el recado de la categoría. */
-      try { sessionStorage.setItem("okstation_ir_cat", "ofertas"); } catch (err) {}
-      location.href = "/tienda.html#store";
+      eligeOfertas();
       return;
     }
     var c = e.target.closest("[data-side-cat]");
     if (c){ eligeCategoria(c.getAttribute("data-side-cat") || ""); return; }
-    var s = e.target.closest("[data-side-sub]");
-    if (s){
-      var nombre = s.getAttribute("data-side-sub") || "";
-      /* Tocar la sub activa la quita (mismo toggle que la tienda). */
-      fSubcats = (fSubcats.length === 1 && fSubcats[0] === nombre) ? [] : [nombre];
-      filtCount(); guardaEstado(); load(true); filtRender(); sideCatsRender();
-    }
   });
   /* El panel de filtros entero se muda al sidebar (mismo nodo → mismos listeners).
      En móvil .store-side es display:contents y #tdFilts vuelve a ser el desplegable. */
@@ -1379,7 +1387,7 @@ html[data-theme="dark"] .td-go:disabled{ background:#232D46; color:#67708A }
      navegador solo miraría la página cargada. Aplica al instante, como las categorías. */
   var TD_SORTS = [["name","Nombre (A-Z)"],["price_asc","Precio: menor a mayor"],["price_desc","Precio: mayor a menor"],["newest","Más nuevos"]];
   function filtCount(){
-    var n = fBrands.length + fSubcats.length + (fSort !== "name" ? 1 : 0);
+    var n = fBrands.length + (fSort !== "name" ? 1 : 0);
     var el = $("tdFiltCount"); el.textContent = n; el.hidden = n === 0;
     $("tdFiltBtn").classList.toggle("on", $("tdFilts").classList.contains("open"));
   }
@@ -1387,13 +1395,6 @@ html[data-theme="dark"] .td-go:disabled{ background:#232D46; color:#67708A }
     var orden = TD_SORTS.map(function(s){
       return '<label class="td-fopt"><input type="radio" name="tdsort" value="'+s[0]+'"'+(fSort===s[0]?" checked":"")+'>'+esc(s[1])+'</label>';
     }).join("");
-    var tipos = fSubcatsLoaded
-      ? (fSubcatList.length
-          ? fSubcatList.map(function(s){
-              return '<label class="td-fopt"><input type="checkbox" class="tdsubcat" value="'+esc(s.name)+'"'+(fSubcats.indexOf(s.name)>=0?" checked":"")+'>'+esc(s.name)+'<span class="n">'+s.count+'</span></label>';
-            }).join("")
-          : '<span class="n" style="color:var(--muted)">No hay tipos en esta categoría.</span>')
-      : '<span class="n" style="color:var(--muted)">Cargando tipos…</span>';
     var marcas = fBrandsLoaded
       ? (fBrandList.length
           ? fBrandList.map(function(b){
@@ -1401,44 +1402,18 @@ html[data-theme="dark"] .td-go:disabled{ background:#232D46; color:#67708A }
             }).join("")
           : '<span class="n" style="color:var(--muted)">No hay marcas en esta categoría.</span>')
       : '<span class="n" style="color:var(--muted)">Cargando marcas…</span>';
-    /* Con ~80 tipos la lista era una pared: buscador + top 15 (el backend ya los manda
-       ordenados por conteo) + "Ver todos". Se oculta con una CLASE (no re-render al
-       teclear: se perdería el foco del buscador). */
-    if (fSubcatsLoaded && fSubcatList.length > 15){
-      tipos = '<input type="search" class="td-fsearch" placeholder="Buscar tipo… (tóner, papel, pluma)" aria-label="Buscar tipo">' +
-              tipos + '<button type="button" class="td-fmore"></button>';
-    }
-    /* Marca: mismo tratamiento que Tipo (son ~70). */
+    /* Con muchas marcas: buscador + top 15 + "Ver todas". */
     if (fBrandsLoaded && fBrandList.length > 15){
       marcas = '<input type="search" class="td-fbsearch" placeholder="Buscar marca… (HP, BIC, Crayola)" aria-label="Buscar marca">' +
                marcas + '<button type="button" class="td-fbmore"></button>';
     }
     $("tdFilts").innerHTML =
       '<div class="td-fgroup"><h4>Ordenar por</h4>'+orden+'</div>'+
-      '<div class="td-fgroup td-fgroup--subs"><h4>Tipo</h4>'+tipos+'</div>'+
       '<div class="td-fgroup td-fgroup--brands"><h4>Marca</h4>'+marcas+'</div>';
-    tdApplySubcatView();
     tdApplyBrandView();
   }
-  var tdSubQuery = "", tdSubMore = false;
   function tdNorm(s){ return String(s||"").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/\s+/g," ").trim(); }
-  function tdApplySubcatView(){
-    var box = $("tdFilts").querySelector(".td-fgroup--subs"); if (!box) return;
-    var inp = box.querySelector(".td-fsearch");
-    if (inp && inp.value !== tdSubQuery) inp.value = tdSubQuery;
-    var q = tdNorm(tdSubQuery), TOP = 15, n = 0, total = 0;
-    [].forEach.call(box.querySelectorAll(".td-fopt"), function(lb){
-      var c = lb.querySelector(".tdsubcat"); if (!c) return;
-      total++;
-      var match = !q || tdNorm(c.value).indexOf(q) >= 0;
-      var vis = match && (q ? true : (tdSubMore || n < TOP || c.checked));
-      if (match) n++;
-      lb.classList.toggle("is-hidden", !vis);
-    });
-    var more = box.querySelector(".td-fmore");
-    if (more){ more.hidden = (!!q) || total <= TOP; more.textContent = tdSubMore ? "− Ver menos" : "+ Ver todos ("+total+")"; }
-  }
-  /* Marca: espejo de tdApplySubcatView. */
+  /* Las marcas largas usan buscador + top 15. */
   var tdBrandQuery = "", tdBrandMore = false;
   function tdApplyBrandView(){
     var box = $("tdFilts").querySelector(".td-fgroup--brands"); if (!box) return;
@@ -1466,13 +1441,11 @@ html[data-theme="dark"] .td-go:disabled{ background:#232D46; color:#67708A }
     asegurarDatosFiltros();
   }
   $("tdFiltBtn").addEventListener("click", filtOpen);
-  /* Buscadores y "ver todos" de tipos y marcas (delegados: el panel se repinta al llegar datos). */
+  /* Buscador y "ver todas" de marcas (delegados: el panel se repinta al llegar datos). */
   $("tdFilts").addEventListener("input", function(e){
-    if (e.target.classList.contains("td-fsearch")){ tdSubQuery = e.target.value; tdApplySubcatView(); }
     if (e.target.classList.contains("td-fbsearch")){ tdBrandQuery = e.target.value; tdApplyBrandView(); }
   });
   $("tdFilts").addEventListener("click", function(e){
-    if (e.target.closest(".td-fmore")){ tdSubMore = !tdSubMore; tdApplySubcatView(); }
     if (e.target.closest(".td-fbmore")){ tdBrandMore = !tdBrandMore; tdApplyBrandView(); }
   });
   /* Aplica al instante: cambiar orden o marca recarga la tabla. */
@@ -1480,11 +1453,8 @@ html[data-theme="dark"] .td-go:disabled{ background:#232D46; color:#67708A }
     if (e.target.name === "tdsort") fSort = e.target.value;
     else if (e.target.classList.contains("tdbrand")){
       fBrands = [].slice.call($("tdFilts").querySelectorAll(".tdbrand:checked")).map(function(c){ return c.value; });
-    } else if (e.target.classList.contains("tdsubcat")){
-      fSubcats = [].slice.call($("tdFilts").querySelectorAll(".tdsubcat:checked")).map(function(c){ return c.value; });
     } else return;
     filtCount(); guardaEstado(); load(true);
-    sideCatsRender();   // las sub del sidebar reflejan lo marcado en "Tipo"
   });
 
   /* ═══ Buscador ═══
@@ -1527,7 +1497,7 @@ html[data-theme="dark"] .td-go:disabled{ background:#232D46; color:#67708A }
      limpia: dejarlo escrito hace creer que el filtro sigue puesto. */
   function tdSyncClearQ(){
     var b = $("tdClearQ"); if (!b) return;
-    var sobra = !(q || cat || fBrands.length || fSubcats.length || fSort !== "name");
+    var sobra = !(q || cat || soloOfertas || fBrands.length || fSubcats.length || fSort !== "name");
     /* Si el botón se esconde teniendo el foco, el foco cae al <body> y quien navega con
        teclado se queda sin punto de partida: se devuelve al buscador, que es de donde
        vino y desde donde puede seguir. */
@@ -1537,12 +1507,12 @@ html[data-theme="dark"] .td-go:disabled{ background:#232D46; color:#67708A }
   function tdClearQuery(){
     clearTimeout(tmr);
     pintaBusqueda("");                 // el campo de la navbar es el buscador de esta página
-    q = ""; cat = "";
+    q = ""; cat = ""; soloOfertas = false;
     fBrands = []; fSubcats = []; fSort = "name";
     /* Las listas de marca/tipo se acotan a la categoría: al volver a "Todos" hay que
        recargarlas (si no, quedarían las de la categoría anterior). */
-    fBrandsLoaded = false; fSubcatsLoaded = false;
-    tdSubQuery = ""; tdSubMore = false; tdBrandQuery = ""; tdBrandMore = false;
+    fBrandsLoaded = false;
+    tdBrandQuery = ""; tdBrandMore = false;
     var row = $("tdCatsRow");
     if (row) row.querySelectorAll("[data-cat]").forEach(function(x){ x.classList.toggle("on", x.dataset.cat === ""); });
     filtCount();
@@ -1564,7 +1534,7 @@ html[data-theme="dark"] .td-go:disabled{ background:#232D46; color:#67708A }
      completo, que es lo que se espera de una entrada normal. */
   var TD_ESTADO = "okstation_td_estado";
   function guardaEstado(){
-    var s = { q:q, cat:cat, fBrands:fBrands, fSubcats:fSubcats, fSort:fSort };
+    var s = { q:q, cat:cat, soloOfertas:soloOfertas, fBrands:fBrands, fSubcats:fSubcats, fSort:fSort };
     /* Igual que en la tienda normal: en la entrada del historial (para que un "atrás"
        de varios pasos recupere lo de AQUELLA visita) y en sessionStorage de respaldo. */
     try{ history.replaceState({ okRapida:s }, ""); }catch(e){}
@@ -1584,7 +1554,7 @@ html[data-theme="dark"] .td-go:disabled{ background:#232D46; color:#67708A }
     try{ s = (history.state && history.state.okRapida) || null; }catch(e){}
     if (!s) { try{ s = JSON.parse(sessionStorage.getItem(TD_ESTADO) || "null"); }catch(e){} }
     if (!s) return false;
-    q = s.q || ""; cat = s.cat || "";
+    q = s.q || ""; cat = ""; soloOfertas = !!s.soloOfertas;
     fBrands = s.fBrands || []; fSubcats = s.fSubcats || []; fSort = s.fSort || "name";
     pintaBusqueda(q);
     if (cat){
@@ -1699,6 +1669,7 @@ html[data-theme="dark"] .td-go:disabled{ background:#232D46; color:#67708A }
     });
     $("tdScrim").hidden = true;
     document.body.style.overflow = "";
+    document.body.classList.remove("td-cart-open");
   }
 
   /* ═══ Vista previa de producto (la misma información que la de la tienda) ═══
@@ -1805,9 +1776,12 @@ html[data-theme="dark"] .td-go:disabled{ background:#232D46; color:#67708A }
   }
   function openDrawer(el){
     closeDrawers();
-    $("tdScrim").hidden = false;
+    var carritoSinVelo = el.id === "tdCartDrawer" && window.matchMedia &&
+      window.matchMedia("(min-width:641px)").matches;
+    $("tdScrim").hidden = carritoSinVelo;
     el.classList.add("open"); el.setAttribute("aria-hidden","false");
-    document.body.style.overflow = "hidden";
+    document.body.classList.toggle("td-cart-open",el.id === "tdCartDrawer");
+    document.body.style.overflow = carritoSinVelo ? "" : "hidden";
   }
 
   function cartRow(it){
@@ -1819,6 +1793,7 @@ html[data-theme="dark"] .td-go:disabled{ background:#232D46; color:#67708A }
   }
   function renderCart(){
     var o = OK(), items = o ? o.carrito() : [];
+    $("tdCartDrawer").classList.toggle("is-empty",!items.length);
     if (!items.length){ $("tdCartBody").innerHTML = '<div class="td-dempty">Tu carrito está vacío.<br>Agrega productos y dale <b>Enviar al carrito</b>.</div>'; $("tdCartFoot").innerHTML = ""; return; }
     $("tdCartBody").innerHTML = items.map(cartRow).join("");
 
@@ -1934,10 +1909,7 @@ html[data-theme="dark"] .td-go:disabled{ background:#232D46; color:#67708A }
        tiene que significar lo mismo en las dos tiendas. Tirar también categoría y
        marcas es lo que hace el botón "Ver todos los productos", que sí lo anuncia. */
     window.OKtienda.limpiarBusqueda = function(){ pintaBusqueda(""); buscaTabla(""); };
-    /* "Categorías" de la navbar abre el panel de categorías DE ESTA PÁGINA en vez de
-       saltar a la tienda normal (aquí se perdía el pre-carrito, que solo vive en
-       memoria). "Ofertas" sí sigue llevando a la tienda normal a propósito: la sección
-       de ofertas del día vive allí, no aquí. */
+    /* Categorías y ofertas actúan dentro de ESTA página para conservar el pre-carrito. */
     window.OKtienda.toggleCategorias = function(){
       var b = document.getElementById("oknavCats");
       /* En escritorio el botón muestra/esconde la COLUMNA lateral (html.cats-closed),
@@ -1954,6 +1926,7 @@ html[data-theme="dark"] .td-go:disabled{ background:#232D46; color:#67708A }
       if (b) b.setAttribute("aria-expanded", String($("tdCats").classList.contains("open")));
     };
     window.OKtienda.verCategoria = function(nombre){ eligeCategoria(String(nombre||"")); };
+    window.OKtienda.verOfertas = eligeOfertas;
     /* La lista de OKi abre productos con verProducto(): sin esto caía al puente
        genérico y navegaba a la ficha, sacando al usuario de la compra rápida (donde
        el detalle se ve en un panel, no en otra página). */

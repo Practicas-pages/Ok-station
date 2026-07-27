@@ -56,7 +56,7 @@
   var OKI_SEND='<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>';
 
   var QUICKS = [
-    "Recomiéndame material escolar",
+    "No sé qué necesito",
     "¿Cómo organizo mi oficina?",
     "Ayúdame a elegir tinta o tóner",
     "¿Qué hay en oferta?"
@@ -65,7 +65,7 @@
   // En la tienda (e-commerce) OKi ofrece atajos propios del carrito/deseados.
   var QUICKS_STORE = [
     "🛒 ¿Qué llevo en el carrito?",
-    "✨ ¿Qué me recomiendas?",
+    "✨ No sé qué necesito",
     "❤ Mis deseados",
     "💳 ¿Cómo pago?"
   ];
@@ -391,6 +391,20 @@
     var exact = okiNorm(chosen.name) === q || okiNorm(chosen.sku || "") === q;
     return { p: chosen, qty: qty, generic: !exact && ranked.length > 1 };
   }
+  /* Traduce necesidades cotidianas a términos que sí existen en el catálogo. La persona
+     no tiene por qué saber que "algo para que no se pierdan los recibos" se busca como
+     carpeta o archivador. Solo se usa para BUSCAR; OKi siempre dice qué producto eligió. */
+  function okiEverydaySearch(raw) {
+    var t = okiNorm(raw);
+    if (/(guardar|ordenar|organizar|archivar|no se (?:me )?pierdan).*(papel|document|recibo|factura)/.test(t)) return "carpeta";
+    if (/(papel|nota).*(pega|adhesiv)|post ?it/.test(t)) return "notas adhesivas";
+    if (/(pegar|pegamento|goma).*(papel|cartulina|escolar)/.test(t)) return "pegamento";
+    if (/(pluma|boligrafo).*(no manche|seque rapido|zurdo)|escribir.*sin manchar/.test(t)) return "boligrafo";
+    if (/(dibujar|colorear|hacer dibujos)/.test(t)) return "colores";
+    if (/(medir|trazar lineas|linea recta)/.test(t)) return "regla";
+    if (/(cortar|recortar).*(papel|cartulina)/.test(t)) return "tijera";
+    return raw;
+  }
 
   /* Busca SIEMPRE en el catálogo completo cuando el contrato lo permite. Así una
      palabra genérica no se resuelve contra los primeros productos que casualmente
@@ -407,7 +421,7 @@
     if (!raw) return Promise.resolve(null);
     var q = Math.max(1, Math.min(99, qty));
     var busqueda = /^(?:un |una )?(?:producto|articulo|algo|cualquier cosa)(?: de papeleria)?$/.test(okiNorm(raw))
-      ? "" : raw;
+      ? "" : okiEverydaySearch(raw);
     var hecho = function (list) { return okiPickProduct(list, raw, q); };
     return Promise.resolve(S.buscar(busqueda, 12)).then(function (list) {
       if (list && list.length) return hecho(list);
@@ -556,6 +570,25 @@
     // panel abierto en vista lista: ya se ve el cambio en la lista.
   }
 
+  /* Si OKi propuso explícitamente un paquete y preguntó si debía agregarlo, una respuesta
+     "sí" convierte los artículos cotidianos mencionados en búsquedas reales. Así el chat
+     no afirma que armó un kit sin haber modificado de verdad el carrito. */
+  function okiSuggestedBundle() {
+    var prev = "";
+    for (var i = history.length - 1; i >= 0; i--) {
+      if (history[i] && history[i].role === "assistant") { prev = okiNorm(history[i].content); break; }
+    }
+    if (!prev || !/(paquete|kit).*(agreg|carrito)|(?:agreg|carrito).*(paquete|kit)/.test(prev)) return [];
+    var terms = [
+      ["cuaderno", /\bcuadernos?\b/], ["lapiz grafito", /\blapices?\b/],
+      ["lapices de colores", /\bcolores?\b/], ["tijera", /\btijeras?\b/],
+      ["regla", /\breglas?\b/], ["borrador", /\b(?:borradores?|gomas?)\b/],
+      ["sacapuntas", /\bsacapuntas\b/], ["pegamento", /\b(?:pegamentos?|adhesivos?)\b/],
+      ["folder", /\b(?:folders?|carpetas?)\b/], ["pluma", /\b(?:plumas?|boligrafos?)\b/]
+    ];
+    return terms.filter(function (x) { return x[1].test(prev); }).map(function (x) { return x[0]; }).slice(0, 6);
+  }
+
   /* El estado EN VIVO del carrito/deseados solo lo conoce la tienda (no el servidor),
      así que estas preguntas y acciones se resuelven aquí mismo. Devuelve texto o null. */
   function storeLocalReply(text) {
@@ -598,6 +631,9 @@
         .replace(/\s+/g, " ").trim();
       if (resto.length >= 3 && !okiMatchProd(resto)) return null;   // → servidor (Gemini)
       var r = okiRecommend();
+      if (!okiCart().length) {
+        return "Claro, yo te guío desde cero 😊 ¿Lo necesitas para escuela, organizar documentos, escribir o dibujar, o para una impresora?";
+      }
       if (!r) return "Ya llevas de todo 😄 ¿Te muestro el carrito o quieres ver otra categoría?";
       return "Te recomiendo " + (r.emoji ? r.emoji + " " : "") + r.name + " — " + okiMxn(r.price) + (r.old ? " (¡en oferta! 🔥)" : "") + "\nDime \"agrégalo\" y lo pongo en tu carrito. 🛒";
     }
@@ -631,10 +667,16 @@
     /* Agregar al carrito: uno o VARIOS productos, con cantidad.
        "agrégame 2 notas adhesivas", "quiero 6 folders y 3 tóner", "sí, agrégalo". */
     var mAdd = t.match(/\b(?:agrega(?:me|le|nos|lo|la|los|las)?|agregar|anade(?:me|le)?|anadir|pon(?:me|le|nos|lo|la)?|poner|mete(?:me|le)?|meter|suma(?:me|le)?|dame|regalame|quiero|llevo|llevame|necesito|echame|vendeme|comprar?)\s+(.+)/);
-    var confirma = okiLastRec && /^(si|sip|simon|dale|va|vale|agregalo|ponlo|ese|esa|obvio|claro|ok|okey|de una)\b/.test(t);
+    var confirmaTexto = /^(si|sip|simon|dale|va|vale|agregalo|ponlo|ese|esa|obvio|claro|ok|okey|de una)\b/.test(t);
+    var paqueteSugerido = confirmaTexto && !okiLastRec ? okiSuggestedBundle() : [];
+    var confirma = confirmaTexto && (!!okiLastRec || paqueteSugerido.length > 0);
     if (mAdd || confirma) {
       // Promesa: puede tener que buscar el producto en el catálogo del servidor.
-      return (mAdd && mAdd[1] ? okiParseAdd(mAdd[1]) : Promise.resolve([])).then(function (items) {
+      var resolver = mAdd && mAdd[1] ? okiParseAdd(mAdd[1])
+        : (paqueteSugerido.length
+            ? Promise.all(paqueteSugerido.map(okiResolveOne)).then(function(xs){ return xs.filter(Boolean); })
+            : Promise.resolve([]));
+      return resolver.then(function (items) {
         if (!items.length && confirma && okiLastRec) items = [{ p: okiLastRec, qty: 1 }];
         if (!items.length) {
           // "quiero saber el precio" no es un pedido: que lo conteste el cerebro.

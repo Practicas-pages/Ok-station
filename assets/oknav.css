@@ -33,6 +33,10 @@
   box-shadow: 0 1px 3px rgba(12, 20, 50, .06);
   font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
 }
+/* Cada fila pinta su propio fondo sólido. En navegadores móviles la barra sticky puede
+   promoverse a otra capa al hacer scroll; depender solo del fondo del padre hacía que
+   esa capa se viera transparente durante algunos cuadros. */
+.oknav__row--main { background: var(--surface-card, #FFFFFF); }
 
 .oknav__wrap {
   max-width: 1280px; margin: 0 auto; padding: 0 var(--space-4, 16px);
@@ -358,6 +362,14 @@
 }
 
 @media (max-width: 760px) {
+  .oknav {
+    background: var(--surface-card, #FFFFFF);
+    opacity: 1;
+    isolation: isolate;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+  .oknav__row--main { background: var(--surface-card, #FFFFFF); }
   /* El cinturillo se va entero: sus enlaces y redes ya están en el cajón, y
      aquí solo haría más alta una barra que además es pegajosa. */
   .oknav__belt { display: none; }

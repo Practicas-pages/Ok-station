@@ -32,7 +32,10 @@ function oki_is_advice(string $t): bool
         . 'funciona (?:con|para|en)|es compatible|compatible con|vale la pena|diferencia entre|'
         . 'que opinas|opinas|crees que|es bueno|me sirve|deberia (?:usar|comprar|elegir)|'
         . 'cual elijo|cual escojo|cual compro|que tan bueno|ayuda(?:ra|ria)? (?:para|con)|'
-        . 'mejor opcion|como organiz|como archiv|como elegir|que necesito para)/u',
+        . 'mejor opcion|como organiz|como archiv|como elegir|que necesito para|'
+        . 'no se que|ayudame a elegir|orientame|no se (?:me )?pierdan|'
+        . 'quiero (?:guardar|ordenar|organizar|archivar)|algo para (?:guardar|ordenar|'
+        . 'organizar|archivar|proteger|clasificar))/u',
         $t
     );
 }
@@ -62,7 +65,8 @@ function oki_is_stationery_scope(string $text, string $previousUser = ''): bool
     }
 
     /* Lenguaje propio del dominio, incluidos usos que no necesariamente son un SKU. */
-    if (preg_match('/\b(?:papeleria|oficina|escuela|escolar(?:es)?|articulos? de oficina|'
+    if (preg_match('/\b(?:papeleria|oficina|escuela|escolar(?:es)?|preescolar|primaria|'
+        . 'secundaria|preparatoria|universidad|articulos? de oficina|'
         . 'material(?:es)? escolar(?:es)?|utiles escolares|cuaderno|libreta|agenda|bitacora|'
         . 'folder|carpeta|archivador|archivo|papel|hojas?|notas? adhesivas?|post-?it|'
         . 'cartulina|pluma|boligrafo|lapiz|lapices|marcador|marcatextos|crayon|colores|'
@@ -73,13 +77,23 @@ function oki_is_stationery_scope(string $text, string $previousUser = ''): bool
         return true;
     }
 
+    /* Quien no conoce el nombre del artículo suele describir el resultado que busca. */
+    if (preg_match('/\b(?:guardar|ordenar|organizar|archivar|proteger|clasificar|'
+        . 'que no se (?:me )?pierdan)\b.*\b(?:papeles?|documentos?|recibos?|facturas?|'
+        . 'apuntes?|tareas?)\b/u', $t)
+        || preg_match('/\b(?:algo|material|producto)\b.*\b(?:escribir|apuntar|dibujar|'
+            . 'colorear|pegar|recortar|medir|archivar|organizar)\b/u', $t)) {
+        return true;
+    }
+
     /* Acciones y dudas del e-commerce que tienen sentido sin repetir "papelería". */
     if (preg_match('/\b(?:carrito|catalogo|producto|productos|categoria|categorias|oferta|'
         . 'ofertas|existencia|stock|favorito|favoritos|deseado|deseados|pedido|pedidos|'
         . 'tienda en linea|mercado pago)\b/u', $t)
         || preg_match('/^(?:como pago|puedo pagar|formas? de pago|metodos? de pago|'
             . 'cuanto llevo|que llevo|mi total|envio|entrega|recoger|recoleccion|'
-            . 'que me recomiendas|recomiendame algo)$/u', $t)) {
+            . 'que me recomiendas|recomiendame algo|no se que necesito|no se que comprar|'
+            . 'ayudame a elegir|orientame|no se|ninguna|elige tu|tu dime)$/u', $t)) {
         return true;
     }
 
@@ -94,7 +108,7 @@ function oki_is_stationery_scope(string $text, string $previousUser = ''): bool
 
     /* Seguimiento breve de una conversación que YA era de papelería. */
     if ($previousUser !== ''
-        && preg_match('/^(?:y |ese|esa|esos|esas|el primero|el segundo|la primera|la segunda|'
+        && preg_match('/^(?:y |para mi|es para|ese|esa|esos|esas|el primero|el segundo|la primera|la segunda|'
             . 'cual|cuanto|sirve|funciona|agregalo|ponlo|quit(a|alo)|me conviene)/u', $t)
         && oki_is_stationery_scope($previousUser, '')) {
         return true;
@@ -239,7 +253,7 @@ if ($reply === null && Gemini::available()) {
        b) PRESUPUESTO: topes global/min, global/día y por IP/día. Si se alcanzan,
           NO se llama a Gemini y OKi cae a su respaldo de WhatsApp de abajo. */
     $cacheable = ($prev === '');                 // sin turno previo de OKi = pregunta suelta
-    $qkey = 'v2-papeleria|' . oki_norm($text);
+    $qkey = 'v3-guia-papeleria|' . oki_norm($text);
 
     if ($cacheable && ($hit = Gemini::cacheGet($qkey)) !== null) {
         respond(['ok' => true, 'reply' => $hit, 'source' => 'gemini-cache']);

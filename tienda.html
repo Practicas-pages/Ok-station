@@ -119,6 +119,8 @@
    tarjeta —que también es blanca—. Solo los productos SIN foto conservan su caja de
    marca (.pimg--marca), que es un tratamiento a propósito. */
 #site .ph.has-img{background:#fff}
+#site .ph.has-img .pimg-img{width:calc(100% - 10px);height:calc(100% - 10px);margin:auto;
+  object-fit:contain;object-position:50% 50%;display:block}
 #site .pimg .pemoji{font-size:clamp(34px,7vw,48px); line-height:1; filter:drop-shadow(0 3px 6px rgba(10,20,60,.30))}
 /* Producto SIN foto: el logo de OK.station centrado sobre el gris suave. Se ve
    intencional (una marca), no un hueco. El logo no se estira: conserva su alto. */
@@ -649,7 +651,7 @@ html.store-view .header-bar, html.store-view .site-header{display:none}
 #site .ci .t svg{width:16px; height:16px}
 /* Foto real del producto en el carrito (antes salía el ícono de "sin imagen"). */
 #site .ci .t.has-img{background:#fff; border:1px solid var(--line); border-style:solid; padding:2px}
-#site .ci .t img{width:100%; height:100%; object-fit:contain; display:block}
+#site .ci .t img{width:100%; height:100%; object-fit:contain; object-position:50% 50%; display:block}
 #site .ci .t .temoji{font-size:22px; line-height:1}
 #site .ci .nm{font-size:.82rem; font-weight:600; line-height:1.2; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden}
 #site .ci .pu{font-size:.72rem; color:var(--muted)}
@@ -659,6 +661,9 @@ html.store-view .header-bar, html.store-view .site-header{display:none}
 #site .ci .lt{font-weight:800; font-size:.85rem; text-align:right; font-variant-numeric:tabular-nums}
 #site .rm{display:block; margin-top:3px; border:none; background:none; color:#c2410c; font-size:.68rem; text-align:right; width:100%}
 #site .cart-empty{color:var(--muted); text-align:center; padding:40px 20px; font-size:.88rem}
+#site .cart.is-empty .sum{display:none}
+#site .cart.is-empty .items{max-height:none;padding:0 14px}
+#site .cart.is-empty .cart-empty{padding:24px 16px}
 #site .sum{flex:none; border-top:1px solid var(--line); padding:14px 18px}
 #site .ship{display:flex; gap:7px; margin-bottom:12px}
 #site .ship button{flex:1; border:1.5px solid var(--line); background:var(--paper); border-radius:9px; padding:8px 6px; font-size:.76rem; font-weight:600; color:#33404f}
@@ -734,7 +739,7 @@ html.q-lock, html.q-lock body{overflow:hidden}
 /* Vista previa enriquecida con Icecat: galería de imágenes reales + ficha clave-valor */
 #site .mh.mh-photo{height:auto; background:#fff; border-radius:18px 18px 0 0}
 #site .pvgal{padding:18px 18px 6px}
-#site .pvmain{width:100%; height:clamp(230px,40vw,290px); object-fit:contain; display:block; background:#f4f8ff; border-radius:18px; padding:14px; box-sizing:border-box}
+#site .pvmain{width:100%; height:clamp(230px,40vw,290px); object-fit:contain; object-position:50% 50%; display:block; background:#f4f8ff; border-radius:18px; padding:14px; box-sizing:border-box}
 #site .pvthumbs{display:flex; gap:8px; margin-top:10px; flex-wrap:wrap}
 #site .pvthumb{width:56px; height:56px; border-radius:13px; border:2px solid var(--line); background:#f4f6fd center/cover no-repeat; cursor:pointer; padding:0; transition:border-color .15s, transform .15s}
 #site .pvthumb:hover{transform:translateY(-2px)}
@@ -2285,6 +2290,7 @@ html[data-theme="dark"] #site :is(.tb-cuenta,.tb-fav,.tb-cart,.tb-filt):hover{ba
     return '<div class="t pimg--marca">'+PHLOGO+'</div>';
   }
   function renderCart(){var keys=Object.keys(cart);
+    $("cart").classList.toggle("is-empty",!keys.length);
     if(!keys.length){$("items").innerHTML='<div class="cart-empty">Tu carrito está vacío.</div>';}
     else{$("items").innerHTML=keys.map(function(k){var c=cart[k],p=c.p;
       return '<div class="ci">'+cartThumb(p)+'<div><div class="nm">'+okEsc(p.name)+'</div><div class="pu">'+mxn(p.price)+' c/u</div><div class="qty"><button data-dec="'+p.id+'">−</button><span>'+c.qty+'</span><button data-inc="'+p.id+'">+</button></div></div><div><div class="lt">'+mxn(p.price*c.qty)+'</div><button class="rm" data-rm="'+p.id+'">Quitar</button></div></div>';}).join("");}
