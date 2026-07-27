@@ -410,14 +410,17 @@ html[data-theme="dark"] .side-cat.on{background:rgba(6,108,255,.20);color:#7cc0f
 .td-row{padding:10px 18px;border-bottom:1px solid #f1f3f8;transition:background .12s}
 .td-row:hover{background:var(--brand-blue-light,#EAF1FF)}
 .td-row:last-child{border-bottom:0}
-/* Arrastrar al pre-carrito: la fila se agarra, y el pre-carrito se resalta al arrastrar. */
+/* Arrastrar al pre-carrito: la fila se agarra y el navegador muestra una ficha
+   compacta; nunca una copia translúcida del renglón completo. */
 .td-row[draggable="true"]{cursor:grab}
-.td-row.dragging{opacity:.5;cursor:grabbing}
-.td-dragging .td-cartbox{outline:2px dashed var(--brand-blue,#066CFF);outline-offset:4px;border-radius:18px}
-/* Resalte al arrastrar SOBRE el pre-carrito: se conserva el degradado (el texto es blanco),
-   solo se marca con un aro claro y un brillo. Antes se ponía el fondo claro y el texto
-   blanco desaparecía. */
-.td-drop-over .td-cartbox{box-shadow:0 0 0 3px rgba(255,255,255,.75) inset, 0 10px 30px rgba(6,108,255,.4);filter:brightness(1.06)}
+.td-row.dragging{opacity:.72;cursor:grabbing}
+.td-drop-over .td-cartbox{filter:brightness(1.035)}
+.td-drag-ghost{position:fixed;left:-1000px;top:-1000px;width:230px;min-height:58px;
+  display:flex;align-items:center;gap:10px;padding:8px 10px;border:1px solid #D8E1EF;
+  border-radius:12px;background:#fff;color:#12141C;box-shadow:0 8px 22px rgba(8,12,30,.18);
+  font-size:.78rem;font-weight:700;line-height:1.25;pointer-events:none}
+.td-drag-ghost__img{width:42px;height:42px;flex:none;border-radius:8px;background:#fff center/contain no-repeat;
+  border:1px solid #E1E7F0}
 /* Bote de basura del pre-carrito: oculto salvo cuando arrastras un producto del pre-carrito. */
 .td-trash{display:none;align-items:center;justify-content:center;gap:8px;margin-top:10px;padding:14px;
   border:2px dashed rgba(225,29,72,.5);border-radius:14px;color:#e11d48;font-weight:600;font-size:.85rem;
@@ -1132,6 +1135,21 @@ html[data-theme="dark"] .td-go:disabled{ background:#232D46; color:#67708A }
   }
 
   var byId = {};                // índice para resolver el producto al SOLTAR (drop trae solo el id)
+  var activeDragGhost = null;
+  function clearDragGhost(){
+    if(activeDragGhost && activeDragGhost.parentNode) activeDragGhost.parentNode.removeChild(activeDragGhost);
+    activeDragGhost = null;
+  }
+  function makeDragGhost(p){
+    clearDragGhost();
+    var ghost=document.createElement("div");
+    ghost.className="td-drag-ghost";
+    var foto=p.image ? ' style="background-image:url('+encodeURI(p.image)+')"' : "";
+    ghost.innerHTML='<span class="td-drag-ghost__img"'+foto+'></span><span>'+esc(p.name)+'</span>';
+    document.body.appendChild(ghost);
+    activeDragGhost=ghost;
+    return ghost;
+  }
 
   /* ── Favoritos por fila, vinculados a los deseados COMPARTIDOS (okstation_wishlist) ──
      Se leen los ids del localStorage (no de OKtienda.deseados(), que solo devuelve los
@@ -1200,12 +1218,13 @@ html[data-theme="dark"] .td-go:disabled{ background:#232D46; color:#67708A }
     row.addEventListener("dragstart", function(e){
       e.dataTransfer.setData("text/plain", String(p.id));
       e.dataTransfer.effectAllowed = "copy";
+      var ghost=makeDragGhost(p);
+      if(e.dataTransfer.setDragImage) e.dataTransfer.setDragImage(ghost, 24, 24);
       row.classList.add("dragging");
-      document.body.classList.add("td-dragging");   // resalta la zona de drop mientras arrastras
     });
     row.addEventListener("dragend", function(){
       row.classList.remove("dragging");
-      document.body.classList.remove("td-dragging");
+      clearDragGhost();
     });
     $("tdRows").appendChild(row);
   }
@@ -1717,7 +1736,10 @@ html[data-theme="dark"] .td-go:disabled{ background:#232D46; color:#67708A }
     });
     /* Red de seguridad: si un arrastre termina por cualquier otra via (soltar fuera, Escape,
        o con el elemento ya destruido), la marca no se queda pegada. */
-    document.addEventListener("dragend", function(){ document.body.classList.remove("td-predrag"); });
+    document.addEventListener("dragend", function(){
+      document.body.classList.remove("td-predrag");
+      clearDragGhost();
+    });
   })();
 
   /* ═══ Carrito y Favoritos: paneles EN LA PÁGINA ═══

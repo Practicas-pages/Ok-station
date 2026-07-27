@@ -19,14 +19,19 @@ $alcance = alcance_sql('p');
 $where = "pe.source = 'rescate:nextep' {$alcance['sql']}";
 $params = $alcance['params'];
 if ($estado !== '') {
-    $where .= ' AND pe.status = :rescue_status';
+    $where .= " AND (CASE WHEN EXISTS (
+        SELECT 1 FROM product_images px WHERE px.product_id = p.id
+    ) THEN 'ok' ELSE pe.status END) = :rescue_status";
     $params[':rescue_status'] = $estado;
 }
 
 try {
     $st = db()->prepare(
         "SELECT p.id, p.name, p.brand, p.sku, p.supplier_ref,
-                pe.status, pe.detail, pe.source_url, pe.match_key,
+                CASE WHEN EXISTS (
+                    SELECT 1 FROM product_images px WHERE px.product_id = p.id
+                ) THEN 'ok' ELSE pe.status END AS status,
+                pe.detail, pe.source_url, pe.match_key,
                 pe.confidence, pe.tried_at,
                 (SELECT COALESCE(NULLIF(pi.stored_path,''), pi.url)
                    FROM product_images pi
@@ -43,11 +48,14 @@ try {
     $resultados = $st->fetchAll(PDO::FETCH_ASSOC);
 
     $st = db()->prepare(
-        "SELECT pe.status, COUNT(*) AS total
+        "SELECT CASE WHEN EXISTS (
+                    SELECT 1 FROM product_images px WHERE px.product_id = p.id
+                ) THEN 'ok' ELSE pe.status END AS status,
+                COUNT(*) AS total
            FROM product_enrichment pe
            JOIN products p ON p.id = pe.product_id
           WHERE pe.source = 'rescate:nextep' {$alcance['sql']}
-          GROUP BY pe.status"
+          GROUP BY 1"
     );
     $st->execute($alcance['params']);
     $conteos = ['ok' => 0, 'sin_datos' => 0, 'revision' => 0, 'error' => 0];

@@ -1716,7 +1716,11 @@
 
   /* Se expone para que admin-fotos.js pueda refrescar la tabla tras guardar una
      foto, sin recargar la página entera (van a ser ~264 productos de corrido). */
-  window.okAdminRecargarCatalogo = function () { renderCatalog(); };
+  window.okAdminRecargarCatalogo = function () {
+    renderCatalog();
+    var panel = $("#catalog-rescue-report-panel");
+    if (panel && !panel.hidden) loadCatalogRescueReport(false);
+  };
 
   /* La cola de los que se ven SIN foto, para encadenarlos en el selector. */
   var catalogSinFoto = [];
@@ -1752,10 +1756,14 @@
         ? '<img class="catalog-thumb" src="' + esc(r.thumb) + '" alt="" loading="lazy">'
         : '<span class="catalog-thumb catalog-thumb--empty" aria-hidden="true"></span>';
       var clave = r.match_key || r.sku || r.supplier_ref || "—";
-      return '<tr><td><div class="catalog-prod">' + thumb + '<div><b>' + esc(r.name) + '</b>' +
+      var fotoAttrs = ' data-foto="' + r.id + '" data-foto-nombre="' + esc(r.name) +
+        '" data-foto-marca="' + esc(r.brand || "") + '"';
+      return '<tr class="catalog-rescue-row"' + fotoAttrs + ' title="Elegir fotografía para este producto">' +
+        '<td><div class="catalog-prod">' + thumb + '<div><b>' + esc(r.name) + '</b>' +
         '<div class="catalog-note">' + esc(r.brand || "Sin marca") + '</div></div></div></td>' +
         '<td><span class="' + estado[1] + '">' + estado[0] + '</span>' +
-        '<div class="catalog-note">' + esc(r.detail || "") + '</div></td>' +
+        '<div class="catalog-note">' + esc(r.detail || "") + '</div>' +
+        '<button type="button" class="catalog-foto catalog-rescue-choose"' + fotoAttrs + '>Elegir fotografía</button></td>' +
         '<td><b>' + esc(clave) + '</b>' +
         (r.confidence !== null && r.confidence !== "" ? '<div class="catalog-note">Confianza: ' + Number(r.confidence) + '%</div>' : '') +
         '</td><td>' + esc(r.tried_at || "—") + '</td></tr>';

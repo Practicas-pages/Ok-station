@@ -258,6 +258,9 @@
   display: grid; grid-template-columns: repeat(4, minmax(130px, 1fr)); gap: 10px; margin: 16px 0 12px;
 }
 .catalog-rescue-report__filters { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+.catalog-rescue-row { cursor: pointer; }
+.catalog-rescue-row:hover td { background: rgba(6,108,255,.045); }
+.catalog-rescue-choose { margin-top: 7px; }
 .catalog-rescue-badge {
   display: inline-flex; align-items: center; border-radius: 999px; padding: 4px 9px;
   font-size: .7rem; font-weight: 800; background: #E5E7EB; color: #374151;
