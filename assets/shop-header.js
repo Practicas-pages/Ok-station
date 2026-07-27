@@ -279,7 +279,7 @@
     var S = OK(); if (!wishList) return;
     var items = S ? S.deseados() : [];
     if (!items.length) {
-      wishList.innerHTML = '<div class="sb-modal__empty">Aún no tienes productos en deseados.<br>Toca el ❤ en cualquier producto para guardarlo aquí.</div>';
+      wishList.innerHTML = '<div class="sb-modal__empty">Aún no tienes productos en deseados.<br>Toca el <span style="color:#e11d48;display:inline-block;width:13px;vertical-align:-2px;fill:#e11d48">' + HEART + '</span> en cualquier producto para guardarlo aquí.</div>';
       return;
     }
     wishList.innerHTML = items.map(function (p) {

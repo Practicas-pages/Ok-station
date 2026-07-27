@@ -477,7 +477,7 @@ $ldCrumbs = [
 
         <p class="pdp__stock<?= $stock <= 5 ? ' is-low' : '' ?>">
           <?php if ($stock <= 0): ?>Agotado por ahora
-          <?php elseif ($stock <= 5): ?>🔥 ¡Últimas <?= $stock ?> piezas!
+          <?php elseif ($stock <= 5): ?><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" style="vertical-align:-1px" aria-hidden="true"><path d="M13.5.67s.74 2.65.74 4.8c0 2.06-1.35 3.73-3.41 3.73-2.07 0-3.63-1.67-3.63-3.73l.03-.36C5.21 7.51 4 10.62 4 14c0 4.42 3.58 8 8 8s8-3.58 8-8C20 8.61 17.41 3.8 13.5.67z"/></svg> ¡Últimas <?= $stock ?> piezas!
           <?php else: ?>✓ <?= $stock ?> disponibles<?php endif; ?>
         </p>
 
@@ -560,7 +560,7 @@ $ldCrumbs = [
 
         <!-- Innovación: la ficha del producto ya está aquí; OKi puede responder sobre ELLA. -->
         <button type="button" class="pdp__oki" id="pdpOki">
-          <span class="pdp__oki-ico" aria-hidden="true">🚀</span>
+          <span class="pdp__oki-ico" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="M12 15l-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/></svg></span>
           <span><b>¿Dudas de este producto?</b><small>Pregúntale a OKi: para qué sirve, con qué es compatible…</small></span>
         </button>
       </section>
@@ -671,13 +671,13 @@ $ldCrumbs = [
 <!-- shop-cart.js va ANTES de oki.js: define window.OKtienda (el puente del carrito con
      datos REALES) para que OKi muestre la MISMA lista que el e-commerce, no el respaldo. -->
 <script src="/assets/shop-cart.js?v=20260717c" defer></script>
-<script src="/assets/shop-header.js?v=20260717f" defer></script>
-<script src="/assets/producto.js?v=20260717a" defer></script>
+<script src="/assets/shop-header.js?v=20260727a" defer></script>
+<script src="/assets/producto.js?v=20260727a" defer></script>
 <script src="/assets/session-nav.js?v=20260717a" defer></script>
-<script src="/assets/address-book.js?v=20260717a" defer></script>
+<script src="/assets/address-book.js?v=20260727a" defer></script>
 <script src="/assets/catalogo.js?v=20260716a" defer></script>
-<script src="/assets/ok-anim.js?v=20260722a" defer></script>
-<script src="/assets/oki.js?v=20260717d" defer></script>
+<script src="/assets/ok-anim.js?v=20260727a" defer></script>
+<script src="/assets/oki.js?v=20260727a" defer></script>
   <script src="/assets/oknav.js?v=20260724a" defer></script>
 </body>
 </html>

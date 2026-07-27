@@ -44,6 +44,17 @@
     '<clipPath id="okiVisorClip"><ellipse cx="40" cy="31" rx="15.5" ry="14.5"/></clipPath>' +
     '</defs></svg>';
 
+  /* Iconos SVG del CROMO del panel (cabecera, secciones, botones): sustituyen a los
+     emojis para que se vean igual en cualquier equipo. Los emojis dentro de las
+     FRASES de OKi (y de los chips de sugerencia, que son mensajes) son su voz y
+     se quedan como texto. */
+  var OKI_ROCKET='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="M12 15l-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/></svg>';
+  var OKI_CART='<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px" aria-hidden="true"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>';
+  var OKI_HEART='<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" style="vertical-align:-2px" aria-hidden="true"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>';
+  var OKI_BULB='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px" aria-hidden="true"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M12 2a7 7 0 0 0-4 12.7c.6.5 1 1.4 1 2.3h6c0-.9.4-1.8 1-2.3A7 7 0 0 0 12 2z"/></svg>';
+  var OKI_CHAT='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>';
+  var OKI_SEND='<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>';
+
   var QUICKS = [
     "📸 Foto para pasaporte",
     "🗓️ Agendar una cita",
@@ -230,12 +241,12 @@
          y aun así no están: descatalogados o API caída). */
       var savedPend = off && okiHasSaved();
       cartBox.innerHTML = !off
-        ? '<div class="olv-empty">Aún no eliges productos 🛒<br>Toca <b>＋</b> en el catálogo y aquí te los muestro.</div>'
+        ? '<div class="olv-empty">Aún no eliges productos ' + OKI_CART + '<br>Toca <b>＋</b> en el catálogo y aquí te los muestro.</div>'
         : savedPend
           ? ((okiHydrating || !okiCatalog().length)
               ? '<div class="olv-empty">Cargando tu lista…</div>'
               : '<div class="olv-empty">No pude cargar tu lista 😕<br>Escríbenos por WhatsApp: 664 719 4117.</div>')
-          : '<div class="olv-empty">Aún no tienes productos 🛒<br>Entra a la tienda y arma tu pedido; aquí te lo guardo.</div>';
+          : '<div class="olv-empty">Aún no tienes productos ' + OKI_CART + '<br>Entra a la tienda y arma tu pedido; aquí te lo guardo.</div>';
       foot.innerHTML = "";
     }
     var recs = okiRecommendList(3);
@@ -245,7 +256,7 @@
     var wSec = document.getElementById("oki-olv-wish-sec"), wBox = document.getElementById("oki-olv-wish");
     wSec.hidden = false; // la sección de deseos siempre se muestra (con estado vacío)
     wBox.innerHTML = wish.length ? wish.map(okiOlvRec).join("")
-      : '<div class="olv-empty" style="padding:8px 0 4px">Toca el ❤ en un producto para guardarlo aquí.</div>';
+      : '<div class="olv-empty" style="padding:8px 0 4px">Toca el <span style="color:#e11d48">' + OKI_HEART + '</span> en un producto para guardarlo aquí.</div>';
   }
   // Abrir la lista de OKi enfocando la sección de DESEADOS (lo usa el botón ❤ de la tienda).
   function okiShowDeseados() {
@@ -439,7 +450,7 @@
     var bb = document.getElementById("oki-bubble");
     if (!bb) return;
     var rec = okiRecommend();
-    var html = "🛒 Agregaste <b>" + esc(prod.name) + "</b><br>Llevas " + okiCartCount() + " · " + okiMxn(okiTotal());
+    var html = OKI_CART + " Agregaste <b>" + esc(prod.name) + "</b><br>Llevas " + okiCartCount() + " · " + okiMxn(okiTotal());
     if (rec) html += "<br>💡 También: <b>" + esc(rec.name) + "</b> " + okiMxn(rec.price);
     bb.innerHTML = html;
     bb.classList.add("on");
@@ -622,7 +633,7 @@
     var b = document.getElementById("oki-tab");
     if (!b || !panel) return;
     var enLista = panel.getAttribute("data-view") === "list";
-    b.textContent = enLista ? "💬" : "🛒";
+    b.innerHTML = enLista ? OKI_CHAT : OKI_CART;
     var t = enLista ? "Chatear con OKi" : "Tu lista de compras";
     b.setAttribute("aria-label", t);
     b.setAttribute("title", t);
@@ -731,9 +742,9 @@
     panel = el(
       '<div class="oki-panel" id="oki-panel" data-view="chat" role="dialog" aria-label="Asistente OKi" aria-hidden="true">' +
       '<div class="oki-panel__h">' +
-      '<span class="mini" aria-hidden="true">🚀</span>' +
+      '<span class="mini" aria-hidden="true">' + OKI_ROCKET + '</span>' +
       '<div class="oki-panel__t"><b>OKi · Tu asistente</b><small>Te ayudo con todo el sitio</small></div>' +
-      '<button class="oki-tab" id="oki-tab" type="button" aria-label="Tu lista de compras" title="Tu lista de compras">🛒</button>' +
+      '<button class="oki-tab" id="oki-tab" type="button" aria-label="Tu lista de compras" title="Tu lista de compras">' + OKI_CART + '</button>' +
       '<button class="cls" type="button" aria-label="Cerrar">×</button>' +
       '</div>' +
       // Vista CHAT
@@ -742,7 +753,7 @@
       '<div class="oki-quick" id="oki-quick"></div>' +
       '<form class="oki-input" id="oki-form" autocomplete="off">' +
       '<input id="oki-text" placeholder="Escríbele a OKi…" aria-label="Mensaje para OKi">' +
-      '<button type="submit" aria-label="Enviar">➤</button>' +
+      '<button type="submit" aria-label="Enviar">' + OKI_SEND + '</button>' +
       '</form></div>' +
       // Vista LISTA = tu lista de compras (carrito + recomendaciones + deseados).
       // Es la MISMA lista funcional en todo el sitio (dentro y fuera de la tienda).
@@ -752,15 +763,15 @@
          quedaría clavado en él sin re-renderizar cuando el catálogo sí llega. Los estados
          vacío / cargando / error los resuelve renderStoreList(). */
       ('<div class="oki-view oki-view--list oki-view--store">' +
-          '<div class="olv-sec">🛒 Tu lista de compras</div>' +
+          '<div class="olv-sec">' + OKI_CART + ' Tu lista de compras</div>' +
           '<div class="olv-cart" id="oki-olv-cart"></div>' +
           '<div class="olv-foot" id="oki-olv-foot"></div>' +
-          '<div class="olv-sec" id="oki-olv-rec-sec" hidden>💡 Te puede interesar</div>' +
+          '<div class="olv-sec" id="oki-olv-rec-sec" hidden>' + OKI_BULB + ' Te puede interesar</div>' +
           '<div class="olv-recs" id="oki-olv-recs"></div>' +
-          '<div class="olv-sec" id="oki-olv-wish-sec" hidden>❤ Lista de deseos</div>' +
+          '<div class="olv-sec" id="oki-olv-wish-sec" hidden>' + OKI_HEART + ' Lista de deseos</div>' +
           '<div class="olv-wish" id="oki-olv-wish"></div>' +
-          (storeReady() ? '' : '<button class="olv-store" id="oki-olv-store" type="button">🛒 Entrar a la tienda</button>') +
-          '<button class="olv-chat" id="oki-olv-chat" type="button">💬 Chatear con OKi</button>' +
+          (storeReady() ? '' : '<button class="olv-store" id="oki-olv-store" type="button">' + OKI_CART + ' Entrar a la tienda</button>') +
+          '<button class="olv-chat" id="oki-olv-chat" type="button">' + OKI_CHAT + ' Chatear con OKi</button>' +
           '</div>') +
       '</div>'
     );
@@ -777,7 +788,7 @@
       quick.appendChild(b);
     });
     var listChip = document.createElement("button");
-    listChip.type = "button"; listChip.textContent = "🛒 Tu lista";
+    listChip.type = "button"; listChip.innerHTML = OKI_CART + " Tu lista";
     listChip.addEventListener("click", showList);
     quick.appendChild(listChip);
 

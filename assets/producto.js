@@ -198,7 +198,7 @@
     wishBtn.addEventListener("click", function () {
       var w = readJSON(WISH_KEY, []), i = w.indexOf(P.id);
       if (i >= 0) { w.splice(i, 1); toast("Quitado de favoritos"); }
-      else { w.push(P.id); toast("❤ Guardado en favoritos. <a href='/tienda#store'>Ver la tienda</a>"); }
+      else { w.push(P.id); toast('<svg width="12" height="12" viewBox="0 0 24 24" fill="#e11d48" style="vertical-align:-1px" aria-hidden="true"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg> Guardado en favoritos. <a href=\'/tienda#store\'>Ver la tienda</a>'); }
       writeJSON(WISH_KEY, w); paintWish();
       try { window.dispatchEvent(new CustomEvent("oktienda:deseados")); } catch (e) {}
     });

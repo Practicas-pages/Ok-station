@@ -93,8 +93,13 @@ html[data-theme="dark"] .td-band :is(.td-back,.td-catbtn):hover{background:rgba(
 .td-fsearch:focus,.td-fbsearch:focus{outline:none;border-color:var(--brand-blue,#066CFF)}
 .td-fmore,.td-fbmore{display:inline-block;margin:2px 0 0;padding:6px 10px;border:0;background:none;color:var(--brand-blue,#066CFF);font:inherit;font-size:.83rem;font-weight:700;cursor:pointer}
 /* ── Paneles de carrito / favoritos (cajón derecho, en la página) ── */
+/* La navbar (oknav, sticky, z:200) siempre queda por ENCIMA de estos paneles:
+   todos arrancan DEBAJO de ella con --oknav-h, la altura real que mide y
+   publica oknav.js en cada cambio de tamaño. El 150px es solo el respaldo
+   por si el JS no corrió. */
+:root{--oknav-h:150px}
 .td-scrim{position:fixed;inset:0;background:rgba(16,24,40,.42);z-index:70}
-.td-drawer{position:fixed;top:0;right:0;height:100%;width:min(380px,92vw);background:#fff;z-index:71;
+.td-drawer{position:fixed;top:var(--oknav-h);right:0;height:auto;bottom:0;width:min(380px,92vw);background:#fff;z-index:71;
   transform:translateX(100%);transition:transform .28s cubic-bezier(.4,0,.2,1);display:flex;flex-direction:column;
   box-shadow:-14px 0 44px rgba(16,24,40,.22)}
 .td-drawer.open{transform:translateX(0)}
@@ -102,7 +107,10 @@ html[data-theme="dark"] .td-band :is(.td-back,.td-catbtn):hover{background:rgba(
    Solo cambia el posicionamiento; su estructura (encabezado + cuerpo) y su JS no cambian.
    El carrito se queda como cajón (lleva el checkout, mejor a lo alto). */
 #tdWishDrawer,#tdLocDrawer,#tdPrevDrawer{
-  top:50%;left:50%;right:auto;bottom:auto;height:auto;max-height:88vh;width:min(460px,92vw);
+  /* Centrados en el ESPACIO QUE QUEDA bajo la navbar (50% + mitad de la barra),
+     no en la pantalla completa: centrados al viewport, la mitad de arriba
+     quedaba escondida tras las cejillas. */
+  top:calc(50% + var(--oknav-h)/2);left:50%;right:auto;bottom:auto;height:auto;max-height:calc(100vh - var(--oknav-h) - 24px);width:min(460px,92vw);
   border-radius:22px;overflow:hidden;box-shadow:0 26px 74px rgba(16,24,40,.28);
   transform:translate(-50%,-50%) scale(.96);opacity:0;visibility:hidden;
   transition:transform .2s cubic-bezier(.34,1.56,.64,1),opacity .18s,visibility .2s}
@@ -117,20 +125,20 @@ html[data-theme="dark"] .td-band :is(.td-back,.td-catbtn):hover{background:rgba(
   /* flex-direction:row es OBLIGATORIO: .td-drawer impone `column` y sin resetearlo
      las tres tarjetas se apilan una debajo de otra en vez de quedar en fila. */
   display:flex;flex-direction:row;align-items:center;justify-content:center;gap:14px}
-.tdpv-card{position:relative;flex:0 0 min(560px,94vw);width:min(560px,94vw);max-height:88vh;overflow:auto;
+.tdpv-card{position:relative;flex:0 0 min(560px,94vw);width:min(560px,94vw);max-height:calc(100vh - var(--oknav-h) - 24px);overflow:auto;
   background:#fff;border-radius:22px;box-shadow:0 26px 74px rgba(16,24,40,.28)}
 .tdpv-x{position:absolute;top:14px;right:14px;z-index:5;width:34px;height:34px;padding:0;border:0;border-radius:50%;
   background:rgba(255,255,255,.94);box-shadow:0 2px 10px rgba(16,24,40,.16);font-size:1.15rem;line-height:1;cursor:pointer}
 /* Con panel(es) lateral(es) abiertos, las 3 tarjetas comparten ALTURA para que sus
    bordes queden alineados — misma regla que #prodOv.pv-3col de la tienda. */
 @media(min-width:1241px){
-  #tdPrevDrawer.pv3>.tdpv-side,#tdPrevDrawer.pv3>.tdpv-card{height:min(86vh,820px);max-height:min(86vh,820px)}
+  #tdPrevDrawer.pv3>.tdpv-side,#tdPrevDrawer.pv3>.tdpv-card{height:min(calc(100vh - var(--oknav-h) - 28px),820px);max-height:min(calc(100vh - var(--oknav-h) - 28px),820px)}
 }
 /* El atributo hidden pierde contra cualquier display del CSS de autor: sin estas
    reglas, los paneles/botones "ocultos" se veían igual (y aplastaban el modal). */
 .tdpv-side[hidden],.tdpv-desc[hidden],.tdpv-full[hidden],.td-fmore[hidden],.td-fbmore[hidden]{display:none !important}
 /* Paneles laterales: tarjetas propias, con su encabezado pegajoso. */
-.tdpv-side{flex:0 0 308px;width:308px;max-height:88vh;overflow:auto;display:flex;flex-direction:column;min-width:0;
+.tdpv-side{flex:0 0 308px;width:308px;max-height:calc(100vh - var(--oknav-h) - 24px);overflow:auto;display:flex;flex-direction:column;min-width:0;
   background:#fff;border-radius:22px;box-shadow:0 26px 74px rgba(16,24,40,.28)}
 .tdpv-sideh{position:sticky;top:0;z-index:2;background:#fff;display:flex;align-items:center;justify-content:space-between;gap:10px;
   padding:18px 20px 14px;border-bottom:1px solid var(--line,#e3e6ee);font-size:1.06rem;font-weight:800}
@@ -142,7 +150,7 @@ html[data-theme="dark"] .td-band :is(.td-back,.td-catbtn):hover{background:rgba(
 .tdpv-sideb .mfaq span{font-size:.82rem;color:#4A5068;line-height:1.4}
 /* En pantallas chicas las 3 tarjetas se apilan y el conjunto scrollea, igual que la tienda. */
 @media(max-width:900px){
-  #tdPrevDrawer{flex-direction:column;max-height:92vh;overflow-y:auto;gap:12px}
+  #tdPrevDrawer{flex-direction:column;max-height:calc(100vh - var(--oknav-h) - 14px);overflow-y:auto;gap:12px}
   .tdpv-side{flex:0 0 auto;width:min(520px,94vw);max-height:none}
   .tdpv-card{flex:0 0 auto;max-height:none}
 }
@@ -371,7 +379,8 @@ body.td-predrag .td-trash{display:flex}
 .td-sentinel{height:1px}
 
 /* ── Pre-carrito ── */
-.td-cart{position:sticky;top:16px}
+/* El pre-carrito pega DEBAJO de la navbar, no del borde de la ventana. */
+.td-cart{position:sticky;top:calc(var(--oknav-h) + 16px)}
 /* Pre-carrito: azul de marca PLANO (antes el degradado morado-azul). Sombra fina. */
 .td-cartbox{background:var(--brand-blue,#066CFF);border-radius:18px;padding:16px;color:#fff;
   box-shadow:0 2px 10px rgba(6,108,255,.16)}
@@ -999,6 +1008,11 @@ html[data-theme="dark"] .td-go:disabled{ background:#232D46; color:#67708A }
      Se leen los ids del localStorage (no de OKtienda.deseados(), que solo devuelve los
      que ya tiene hidratados en su caché y dejaría corazones apagados por error). */
   var HEART = '<svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.8 4.6a5.5 5.5 0 00-7.8 0L12 5.6l-1-1a5.5 5.5 0 00-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 000-7.8z"/></svg>';
+  /* Iconos SVG en línea que sustituyen a los emojis (📍🔥❤): color heredado y el
+     mismo dibujo que usa la tienda, para que se vean igual en cualquier equipo. */
+  var ICO_PIN='<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>';
+  var ICO_FIRE='<svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" style="vertical-align:-1px"><path d="M13.5.67s.74 2.65.74 4.8c0 2.06-1.35 3.73-3.41 3.73-2.07 0-3.63-1.67-3.63-3.73l.03-.36C5.21 7.51 4 10.62 4 14c0 4.42 3.58 8 8 8s8-3.58 8-8C20 8.61 17.41 3.8 13.5.67z"/></svg>';
+  var ICO_HEART='<svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" style="vertical-align:-1px"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>';
   function wishIds(){ try{ var w = JSON.parse(localStorage.getItem("okstation_wishlist")||"[]"); return Array.isArray(w)?w.map(Number):[]; }catch(e){ return []; } }
   function isWished(id){ return wishIds().indexOf(+id) >= 0; }
   /* Repinta TODOS los corazones de la tabla (tras togglear o si cambian desde el panel). */
@@ -1562,7 +1576,7 @@ html[data-theme="dark"] .td-go:disabled{ background:#232D46; color:#67708A }
   function pvStock(stock){
     var low=stock<=5;
     return '<div class="tdpv-stock" style="color:'+(stock<=0?"#c2410c":(low?"#c2410c":"#0E9F6E"))+'">'+
-      (stock<=0?"Agotado por ahora":(low?"🔥 ¡Últimas "+stock+"!":stock+" disponibles")+" · Recoge en Otay o a domicilio")+'</div>';
+      (stock<=0?"Agotado por ahora":(low?ICO_FIRE+" ¡Últimas "+stock+"!":stock+" disponibles")+" · Recoge en Otay o a domicilio")+'</div>';
   }
   /* El modal crece a 3 columnas cuando hay un panel lateral abierto (como la tienda). */
   function pv3Sync(){ $("tdPrevDrawer").classList.toggle("pv3", !$("tdpvDescP").hidden || !$("tdpvSpecsP").hidden); }
@@ -1758,7 +1772,7 @@ html[data-theme="dark"] .td-go:disabled{ background:#232D46; color:#67708A }
     var o = OK(), items = o ? o.deseados() : [];
     $("tdWishBody").innerHTML = items.length
       ? items.map(wishRow).join("")
-      : '<div class="td-dempty">No tienes favoritos todavía.<br>Marca el ❤ en un producto desde la tienda.</div>';
+      : '<div class="td-dempty">No tienes favoritos todavía.<br>Marca el <span style="color:#e11d48">'+ICO_HEART+'</span> en un producto desde la tienda.</div>';
   }
 
   /* stopImmediatePropagation: shop-header.js (compartido) también engancha .tb-cart/.tb-fav
@@ -1905,7 +1919,7 @@ html[data-theme="dark"] .td-go:disabled{ background:#232D46; color:#67708A }
       '<div class="loc-err" id="locErr" role="alert" hidden></div>'+
       /* Geolocalización + mapa (idéntico a la tienda): llena la dirección donde está el
          teléfono y muestra un pin ajustable; todo editable a mano. */
-      '<button type="button" class="afgeo" id="afGeo">📍 Usar mi ubicación actual</button>'+
+      '<button type="button" class="afgeo" id="afGeo">'+ICO_PIN+' Usar mi ubicación actual</button>'+
       '<div id="afMapWrap" hidden><div id="afMap"></div><p class="afmaphint">Arrastra el pin a tu puerta para afinar la dirección.</p></div>'+
       '<input type="hidden" id="afLat"><input type="hidden" id="afLon">'+
       '<div class="af-field"><label for="afRec">¿Quién recibe?</label><input id="afRec" type="text" maxlength="160" autocomplete="name" placeholder="Nombre y apellido" value="'+esc(u.full_name||"")+'"></div>'+
@@ -1951,11 +1965,11 @@ html[data-theme="dark"] .td-go:disabled{ background:#232D46; color:#67708A }
     if(!navigator.geolocation){ locMsg("Tu navegador no comparte la ubicación; escribe tu dirección."); return; }
     if(b){ b.disabled=true; b.textContent="Obteniendo tu ubicación…"; }
     navigator.geolocation.getCurrentPosition(function(pos){
-      if(b){ b.disabled=false; b.textContent="📍 Usar mi ubicación actual"; }
+      if(b){ b.disabled=false; b.innerHTML=ICO_PIN+" Usar mi ubicación actual"; }
       afShowMap(pos.coords.latitude,pos.coords.longitude);
       afReverse(pos.coords.latitude,pos.coords.longitude);
     },function(){
-      if(b){ b.disabled=false; b.textContent="📍 Usar mi ubicación actual"; }
+      if(b){ b.disabled=false; b.innerHTML=ICO_PIN+" Usar mi ubicación actual"; }
       locMsg("No pudimos leer tu ubicación; escribe tu dirección.");
     },{enableHighAccuracy:true,timeout:10000,maximumAge:60000});
   }
@@ -2063,12 +2077,12 @@ html[data-theme="dark"] .td-go:disabled{ background:#232D46; color:#67708A }
 </script>
 <!-- Barra del e-commerce: puente del carrito (shop-cart) + comportamiento (shop-header). -->
 <script src="assets/shop-cart.js?v=20260717a" defer></script>
-<script src="assets/shop-header.js?v=20260717f" defer></script>
+<script src="assets/shop-header.js?v=20260727a" defer></script>
 <script src="assets/session-nav.js?v=20260716a" defer></script>
 <!-- OKi (astronauta): se auto-inyecta. Va DESPUÉS de shop-cart.js, que define
      window.OKtienda (el puente del carrito/deseados compartido que OKi lee). -->
-<script src="assets/ok-anim.js?v=20260722a" defer></script>
-<script src="assets/oki.js?v=20260717d" defer></script>
+<script src="assets/ok-anim.js?v=20260727a" defer></script>
+<script src="assets/oki.js?v=20260727a" defer></script>
 <script src="/assets/oknav.js?v=20260724a" defer></script>
 </body>
 </html>

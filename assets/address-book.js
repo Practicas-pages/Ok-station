@@ -73,7 +73,9 @@
     css.textContent =
       ".ab-scrim{position:fixed;inset:0;background:rgba(10,14,30,.5);z-index:80;opacity:0;pointer-events:none;transition:opacity .25s}" +
       ".ab-scrim.show{opacity:1;pointer-events:auto}" +
-      ".ab-drawer{position:fixed;top:0;right:0;height:100%;width:min(420px,94vw);background:#fff;z-index:81;display:flex;flex-direction:column;transform:translateX(100%);transition:transform .3s cubic-bezier(.4,0,.2,1);box-shadow:-12px 0 44px rgba(10,14,30,.24)}" +
+      /* Arranca BAJO la navbar pegajosa (--oknav-h la publica oknav.js): a pantalla
+         completa, la cabecera con la ✕ quedaba escondida tras las cejillas. */
+      ".ab-drawer{position:fixed;top:var(--oknav-h,0px);right:0;height:auto;bottom:0;width:min(420px,94vw);background:#fff;z-index:81;display:flex;flex-direction:column;transform:translateX(100%);transition:transform .3s cubic-bezier(.4,0,.2,1);box-shadow:-12px 0 44px rgba(10,14,30,.24)}" +
       ".ab-drawer.show{transform:translateX(0)}" +
       ".ab-dh{display:flex;align-items:center;gap:10px;padding:16px 18px;border-bottom:1px solid #eef1f6}" +
       ".ab-dh b{font-size:1.02rem;color:#0f1b2e;flex:1}" +

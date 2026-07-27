@@ -391,6 +391,13 @@ html.store-view .header-bar, html.store-view .site-header{display:none}
   /* El carrito arranca BAJO la navbar (sticky, z mayor), que si no le tapaba la
      cabecera con la ✕ (no se podía cerrar) y el primer producto. */
   html.store-view #site .cart{top:var(--oknav-h,158px); height:auto; bottom:0}
+  /* Los MODALES centrados (vista previa, deseados, ubicación, checkout) siguen la
+     misma regla que el carrito: el velo y las tarjetas viven BAJO la navbar y se
+     limitan a la altura que queda, para que ningún encabezado quede tapado.
+     El 158px es respaldo: oknav.js publica en --oknav-h la altura real medida. */
+  html.store-view #site .ov{top:var(--oknav-h,158px)}
+  html.store-view #site .modal{max-height:calc(100vh - var(--oknav-h,158px) - 30px)}
+  html.store-view #site .pvside{max-height:calc(100vh - var(--oknav-h,158px) - 30px)}
 }
 @media(max-width:1000px){ html.store-view .oknav{display:none} }
 #site .topbar,#site .popbar-row{font-family:"Inter",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
@@ -575,7 +582,9 @@ html.store-view .header-bar, html.store-view .site-header{display:none}
 #site .pacts{display:flex; align-items:center; gap:6px; flex:none}
 /* Vista rápida: discreta, aparece al pasar el mouse. En pantallas táctiles no hay hover,
    así que ahí se queda siempre visible. Solo cambia la opacidad: no mueve la maqueta. */
-#site .quick{position:relative; z-index:2; flex:none; width:30px; height:30px; padding:0; display:grid; place-items:center; border:1px solid var(--line); background:#fff; color:var(--muted); border-radius:50%; cursor:pointer; opacity:0; transition:opacity .16s, color .15s, border-color .15s, background .15s}
+/* Vive DEBAJO del corazón (misma columna) porque la fila de botones de abajo ya
+   está ocupada por Agregar/Pagar. */
+#site .quick{position:absolute; top:52px; right:10px; z-index:2; flex:none; width:36px; height:36px; padding:0; display:grid; place-items:center; border:1px solid var(--line); background:#fff; color:var(--muted); border-radius:50%; cursor:pointer; opacity:0; box-shadow:0 2px 8px rgba(12,20,50,.10); transition:opacity .16s, color .15s, border-color .15s, background .15s}
 #site .quick svg{width:16px; height:16px}
 #site .quick:hover{color:var(--blue); border-color:#c9d8f2; background:var(--paper)}
 #site .prod:hover .quick,#site .quick:focus-visible{opacity:1}
@@ -594,6 +603,8 @@ html.store-view .header-bar, html.store-view .site-header{display:none}
 #site .grid.is-list .prod .pdesc{display:block; font-size:.78rem; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-top:2px}
 #site .grid.is-list .prod .row{margin-top:0; flex:none; gap:14px; margin-right:6px}
 #site .grid.is-list .prod .wishbtn{top:50% !important; right:16px !important; transform:translateY(-50%) !important}
+/* En vista de LISTA el corazón se centra a la derecha; el ojo va a su izquierda. */
+#site .grid.is-list .prod .quick{top:50%; right:58px; transform:translateY(-50%)}
 /* Botón cambiar vista (lista / cuadros) */
 #site .catbar-right{display:flex; align-items:center; gap:12px}
 /* "Ver todos los productos": aparece SOLO con una búsqueda activa, junto al título
@@ -775,7 +786,7 @@ html.q-lock, html.q-lock body{overflow:hidden}
 #site .pvside .specs.specs-kv{margin:0}
 /* Con banners laterales abiertos, los 3 paneles comparten altura → bordes alineados */
 @media(min-width:1241px){
-  #site #prodOv.pv-3col > .pvside,#site #prodOv.pv-3col > #prodModal{height:min(86vh,820px); max-height:min(86vh,820px)}
+  #site #prodOv.pv-3col > .pvside,#site #prodOv.pv-3col > #prodModal{height:min(calc(100vh - var(--oknav-h,158px) - 30px),820px); max-height:min(calc(100vh - var(--oknav-h,158px) - 30px),820px)}
 }
 /* Barras de scroll discretas dentro de los paneles */
 #site .pvside::-webkit-scrollbar,#site #prodModal::-webkit-scrollbar{width:10px}
@@ -810,16 +821,16 @@ html.q-lock, html.q-lock body{overflow:hidden}
 #site :is(.add,.maddbtn,.fadd,.afsave,.quick,.pop,.heart,.gostore,.btn-w):focus-visible{
   outline:3px solid var(--blue); outline-offset:3px}
 
-/* El botón de PAGAR lleva el degradado OFICIAL, y se desplaza al pasar el cursor
-   en vez de cambiar de color: se siente premium sin parpadear. Es el "botón caro"
-   de la pantalla — uno solo por vista, por eso va con [data-copay] y no en todos
-   los .maddbtn (que también son "Continuar" e "Iniciar sesión"). */
+/* El botón de PAGAR va en el AMARILLO DE COMPRAS #FFE200, plano, como todas las
+   acciones de compra (Agregar, Pagar, Finalizar): un solo color para "comprar" en
+   todo el sitio (acuerdo de la reunión: menos degradados, colores estandarizados).
+   Sigue siendo el "botón caro" — uno por vista, por eso va con [data-copay] y no
+   en todos los .maddbtn (que también son "Continuar" e "Iniciar sesión"). */
 #site .maddbtn[data-copay]{
-  background:var(--grad-purpura-azul-cyan,linear-gradient(135deg,#9C1DFF 0%,#066CFF 55%,#00C6FF 100%));
-  background-size:220% 100%; background-position:0% 50%;
-  box-shadow:0 12px 36px rgba(156,29,255,.30);
-  transition:background-position .55s ease, transform .15s ease, box-shadow .2s ease}
-#site .maddbtn[data-copay]:hover:not(:disabled){background-position:100% 50%; transform:translateY(-2px)}
+  background:#FFE200; color:#12141C;
+  box-shadow:0 12px 34px rgba(255,226,0,.30);
+  transition:filter .15s ease, transform .15s ease, box-shadow .2s ease}
+#site .maddbtn[data-copay]:hover:not(:disabled){background:#FFE200; filter:brightness(1.04); transform:translateY(-2px)}
 #site .maddbtn[data-copay]:disabled{opacity:.65; box-shadow:none}
 #site .steps{display:flex; gap:6px; margin-bottom:16px}
 #site .steps .s{flex:1; height:5px; border-radius:99px; background:var(--line)}
@@ -975,6 +986,7 @@ html.q-lock, html.q-lock body{overflow:hidden}
   #site .grid.is-list .prod .price{font-size:1.05rem}
   /* El corazón vuelve a la esquina superior (centrado vertical chocaba con el precio). */
   #site .grid.is-list .prod .wishbtn{top:10px !important; right:10px !important; transform:none !important}
+  #site .grid.is-list .prod .quick{top:10px; right:52px; transform:none}
   /* Vista cuadros: 2 columnas sanas — nombre a 2 líneas, sin desbordes. */
   #site .grid:not(.is-list){grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; padding:12px 12px 44px}
   #site .grid:not(.is-list) .prod h3{display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden}
@@ -1429,9 +1441,9 @@ html[data-theme="dark"] #site :is(.tb-cuenta,.tb-fav,.tb-cart,.tb-filt):hover{ba
       <h2>Comprar lo básico no debería ser un dolor de cabeza</h2>
       <p class="lead">Sabemos lo que se siente. Por eso armamos la tienda en línea de OK.station.</p>
       <div class="pain-grid">
-        <div class="paincard"><div class="em">😩</div><h4>Se te acabó la tinta a media entrega</h4><p>Y la tienda de la esquina no tenía tu cartucho. Otra vez.</p></div>
-        <div class="paincard"><div class="em">🏃</div><h4>Perdiste la mañana buscando papelería</h4><p>Tres tiendas, tráfico y estacionamiento… para juntar un pedido.</p></div>
-        <div class="paincard"><div class="em">📦</div><h4>Compraste en línea y llegó tarde</h4><p>O llegó dañado, sin quién te resolviera y sin factura.</p></div>
+        <div class="paincard"><div class="em"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M16 16s-1.5-2-4-2-4 2-4 2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg></div><h4>Se te acabó la tinta a media entrega</h4><p>Y la tienda de la esquina no tenía tu cartucho. Otra vez.</p></div>
+        <div class="paincard"><div class="em"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div><h4>Perdiste la mañana buscando papelería</h4><p>Tres tiendas, tráfico y estacionamiento… para juntar un pedido.</p></div>
+        <div class="paincard"><div class="em"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16.5 9.4L7.55 4.24"/><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg></div><h4>Compraste en línea y llegó tarde</h4><p>O llegó dañado, sin quién te resolviera y sin factura.</p></div>
       </div>
     </div>
 
@@ -1647,8 +1659,24 @@ html[data-theme="dark"] #site :is(.tb-cuenta,.tb-fav,.tb-cart,.tb-filt):hover{ba
   var MX_ESTADOS=["Aguascalientes","Baja California","Baja California Sur","Campeche","Chiapas","Chihuahua","Ciudad de México","Coahuila","Colima","Durango","Estado de México","Guanajuato","Guerrero","Hidalgo","Jalisco","Michoacán","Morelos","Nayarit","Nuevo León","Oaxaca","Puebla","Querétaro","Quintana Roo","San Luis Potosí","Sinaloa","Sonora","Tabasco","Tamaulipas","Tlaxcala","Veracruz","Yucatán","Zacatecas"];
   var okGeo={state:"Baja California",is_bc:true,iva_rate:0.08,iva_pct:8,source:"default"};
   function ivaForEstado(nombre){ var n=(nombre||"").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,""); return (n.indexOf("baja california")>=0 && n.indexOf("sur")<0) ? 0.08 : 0.16; }
-  function updateTaxNote(){ var el=$("taxnote"); if(!el)return; el.innerHTML="📍 "+esc(okGeo.state)+" · IVA "+Math.round((okGeo.iva_rate||0.08)*100)+"% incluido"; }
-  (function loadGeo(){ try{ var sim=new URLSearchParams(location.search).get("sim_state"); fetch("/backend/api/shop/geo.php"+(sim?("?sim_state="+encodeURIComponent(sim)):"")).then(function(r){return r.json();}).then(function(g){ if(g&&g.ok){ okGeo=g; updateTaxNote(); } }).catch(function(){}); }catch(e){} })();
+  function updateTaxNote(){ var el=$("taxnote"); if(!el)return; el.innerHTML=ICO_PIN+" "+esc(okGeo.state)+" · IVA "+Math.round((okGeo.iva_rate||0.08)*100)+"% incluido"; }
+  (function loadGeo(){ try{ var sim=new URLSearchParams(location.search).get("sim_state"); fetch("/backend/api/shop/geo.php"+(sim?("?sim_state="+encodeURIComponent(sim)):"")).then(function(r){return r.json();}).then(function(g){ if(g&&g.ok&&okGeo.source!=="gps"){ okGeo=g; updateTaxNote(); } }).catch(function(){}); }catch(e){} })();
+  /* Afinado con el GPS del navegador, SOLO si el permiso ya está concedido (punto de
+     la reunión: aplicar la ubicación como filtro de la tienda con permiso del
+     navegador). Sin permiso no se pregunta nada — el prompt solo lo dispara el botón
+     "Usar mi ubicación actual" de la libreta. Se manda la coordenada REDONDEADA
+     (~110 m): para saber el estado sobra y no viaja la ubicación fina. */
+  (function geoFina(){ try{
+    if(!navigator.geolocation||!navigator.permissions||!navigator.permissions.query) return;
+    navigator.permissions.query({name:"geolocation"}).then(function(st){
+      if(st.state!=="granted") return;
+      navigator.geolocation.getCurrentPosition(function(pos){
+        fetch("/backend/api/shop/geo-state.php?lat="+pos.coords.latitude.toFixed(3)+"&lon="+pos.coords.longitude.toFixed(3))
+          .then(function(r){return r.json();})
+          .then(function(g){ if(g&&g.ok&&g.state){ okGeo=g; updateTaxNote(); } }).catch(function(){});
+      },function(){},{maximumAge:600000,timeout:8000,enableHighAccuracy:false});
+    }).catch(function(){});
+  }catch(e){} })();
   function esc(s){var d=document.createElement("div");d.textContent=s==null?"":s;return d.innerHTML;}
 
   // ── Lista de deseos (wishlist) ─────────────────────────────
@@ -1660,7 +1688,7 @@ html[data-theme="dark"] #site :is(.tb-cuenta,.tb-fav,.tb-cart,.tb-filt):hover{ba
     if(added){wishlist.push(id);}else{wishlist.splice(i,1);}
     saveWishlist(); updateWishBadge(); renderGrid();
     if($("wishOv").classList.contains("show")) renderWishlist();
-    var p=prod(id); flash(added?"❤ "+(p?p.name:"Producto")+" en tus deseados":"Quitado de deseados");
+    var p=prod(id); flash(added?(p?p.name:"Producto")+" guardado en tus deseados":"Quitado de deseados");
     okiEmit("deseados");
   }
   var HEART='<svg width="18" height="18" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.8 4.6a5.5 5.5 0 00-7.8 0L12 5.6l-1-1a5.5 5.5 0 00-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 000-7.8z"/></svg>';
@@ -1720,7 +1748,7 @@ html[data-theme="dark"] #site :is(.tb-cuenta,.tb-fav,.tb-cart,.tb-filt):hover{ba
     var pool=P.filter(function(p){return p.stock>0;});
     var list=pool.filter(function(p){return !!p.old;}).concat(pool.filter(function(p){return !p.old;})).slice(0,12);
     $("landFeat").innerHTML=list.map(function(p){var low=p.stock<=6;
-      return '<div class="fcard" data-open-feat="'+p.id+'">'+(p.old?'<span class="off">−'+Math.round((1-p.price/p.old)*100)+'%</span>':'')+pimg(p)+'<h4>'+okEsc(p.name)+'</h4><div class="fp">'+mxn(p.price)+(p.old?' <s>'+mxn(p.old)+'</s>':'')+'</div>'+(low?'<div class="scarce">🔥 Solo quedan '+p.stock+'</div>':'')+'<button class="fadd" data-go-store data-cat="'+okEsc(p.cat)+'">Ver en tienda</button></div>';}).join("");
+      return '<div class="fcard" data-open-feat="'+p.id+'">'+(p.old?'<span class="off">−'+Math.round((1-p.price/p.old)*100)+'%</span>':'')+pimg(p)+'<h4>'+okEsc(p.name)+'</h4><div class="fp">'+mxn(p.price)+(p.old?' <s>'+mxn(p.old)+'</s>':'')+'</div>'+(low?'<div class="scarce">'+ICO_FIRE+' Solo quedan '+p.stock+'</div>':'')+'<button class="fadd" data-go-store data-cat="'+okEsc(p.cat)+'">Ver en tienda</button></div>';}).join("");
     featSync();
   }
   /* Flechas del carrusel "Productos populares": mismas mecánicas que el carril de
@@ -1868,8 +1896,16 @@ html[data-theme="dark"] #site :is(.tb-cuenta,.tb-fav,.tb-cart,.tb-filt):hover{ba
   function slugify(s){ return okNorm(s).replace(/\s+/g,"-").replace(/^-+|-+$/g,"").slice(0,70) || "producto"; }
   function prodUrl(p){ return dbMode ? ("/producto/"+p.id+"-"+slugify(p.name)) : null; }
   var EYE='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1.5 12S5 5 12 5s10.5 7 10.5 7-3.5 7-10.5 7S1.5 12 1.5 12z"/><circle cx="12" cy="12" r="3"/></svg>';
+  /* Iconos SVG en línea que sustituyen a los emojis de la interfaz (📍🔥❤):
+     mismo tamaño que el texto y color heredado, se ven igual en cualquier equipo. */
+  var ICO_PIN='<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>';
+  var ICO_FIRE='<svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" style="vertical-align:-1px"><path d="M13.5.67s.74 2.65.74 4.8c0 2.06-1.35 3.73-3.41 3.73-2.07 0-3.63-1.67-3.63-3.73l.03-.36C5.21 7.51 4 10.62 4 14c0 4.42 3.58 8 8 8s8-3.58 8-8C20 8.61 17.41 3.8 13.5.67z"/></svg>';
+  var ICO_HEART='<svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" style="vertical-align:-1px"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>';
   function cardsHTML(list){return list.map(function(p){var low=p.stock<=5; var url=prodUrl(p);
+      /* La vista rápida (el ojo) abre el modal sin salir del catálogo; la tarjeta
+         entera sigue enlazando a la ficha. */
       return '<div class="prod">'+(p.old?'<span class="deal-badge">−'+Math.round((1-p.price/p.old)*100)+'%</span>':'')+pimg(p)+heartBtn(p.id,'position:absolute;top:10px;right:10px;z-index:4;width:36px;height:36px;padding:0;')+
+        '<button type="button" class="quick" data-open="'+p.id+'" title="Vista rápida" aria-label="Vista rápida de '+okEsc(p.name)+'">'+EYE+'</button>'+
         '<div class="pinfo"><div class="pnametext"><div class="cat">'+catName(p.cat)+'</div><h3>'+p.name+'</h3></div>'+
         '<div class="pfoot"><div class="pmeta"><span class="price">'+mxn(p.price)+(p.old?' <s>'+mxn(p.old)+'</s>':'')+'</span><span class="stock'+(low?' low':'')+'">'+(p.stock<=0?"Agotado":(low?"¡Últimas "+p.stock+"!":p.stock+" en stock"))+'</span></div>'+
         /* Una sola acción en la tarjeta: agregar. La compra se hace desde el carrito
@@ -2279,7 +2315,7 @@ html[data-theme="dark"] #site :is(.tb-cuenta,.tb-fav,.tb-cart,.tb-filt):hover{ba
       if(typeof d.price==="number"){
         var fLow=d.stock<=5, fOld=(d.old&&d.old>d.price)?d.old:null, fSave=fOld?Math.round(fOld-d.price):0;
         var mp=mid.querySelector(".mprice"); if(mp) mp.innerHTML='<span class="p">'+mxn(d.price)+(fOld?' <s>'+mxn(fOld)+'</s>':'')+'</span>'+(fSave?'<span class="msave">Ahorras '+mxn(fSave)+'</span>':'');
-        var mk=mid.querySelector(".mstock"); if(mk){ mk.style.color=(d.stock<=0||fLow)?"#c2410c":"#0E9F6E"; mk.textContent=(d.stock<=0?"Agotado por ahora":((fLow?"🔥 ¡Últimas "+d.stock+"!":d.stock+" disponibles")+" · Recoge en Otay o a domicilio")); }
+        var mk=mid.querySelector(".mstock"); if(mk){ mk.style.color=(d.stock<=0||fLow)?"#c2410c":"#0E9F6E"; mk.innerHTML=(d.stock<=0?"Agotado por ahora":((fLow?ICO_FIRE+" ¡Últimas "+d.stock+"!":d.stock+" disponibles")+" · Recoge en Otay o a domicilio")); }
         var mab=mid.querySelector(".maddbtn"); if(mab){ if(d.stock<=0){ mab.disabled=true; mab.textContent="Agotado"; } else { mab.disabled=false; mab.textContent="Agregar al carrito · "+mxn(d.price); } }
         var pc=prod(dbId); if(pc){ pc.price=d.price; pc.stock=d.stock; pc.old=fOld; }
       }
@@ -2296,7 +2332,7 @@ html[data-theme="dark"] #site :is(.tb-cuenta,.tb-fav,.tb-cart,.tb-filt):hover{ba
       '<div class="mmeta">'+(p.brand?'<b>'+p.brand+'</b> · ':'')+(p.sku?'SKU '+p.sku+' · ':'')+catName(p.cat)+'</div>'+
       '<h3>'+p.name+'</h3>'+
       '<div class="mprice"><span class="p">'+mxn(p.price)+(p.old?' <s>'+mxn(p.old)+'</s>':'')+'</span>'+(save?'<span class="msave">Ahorras '+mxn(save)+'</span>':'')+'</div>'+
-      '<div class="mstock" style="color:'+(low?"#c2410c":"#0E9F6E")+'">'+(p.stock<=0?"Agotado por ahora":(low?"🔥 ¡Últimas "+p.stock+"!":p.stock+" disponibles"))+' · Recoge enOtay o a domicilio</div>'+
+      '<div class="mstock" style="color:'+(low?"#c2410c":"#0E9F6E")+'">'+(p.stock<=0?"Agotado por ahora":(low?ICO_FIRE+" ¡Últimas "+p.stock+"!":p.stock+" disponibles"))+' · Recoge en Otay o a domicilio</div>'+
       '<p class="desc">'+p.desc+'</p>'+
       '<div class="pvmore-desc" hidden><button class="descmore" type="button" data-descmore>Ver descripción completa →</button></div>'+
       '<ul class="specs">'+p.specs.map(function(s){return '<li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>'+s+'</li>';}).join("")+'</ul>'+
@@ -2392,7 +2428,7 @@ html[data-theme="dark"] #site :is(.tb-cuenta,.tb-fav,.tb-cart,.tb-filt):hover{ba
       /* Geolocalización: llena el formulario con la dirección donde está el teléfono y
          muestra el mapa con un pin AJUSTABLE (arrástralo a tu casa y los campos se
          rellenan solos; siempre puedes corregirlos a mano). */
-      '<button type="button" class="afgeo" id="afGeo">📍 Usar mi ubicación actual</button>'+
+      '<button type="button" class="afgeo" id="afGeo">'+ICO_PIN+' Usar mi ubicación actual</button>'+
       /* Aviso de permiso: el navegador pregunta solo la primera vez. Si el cliente ya
          dijo que no, NO vuelve a preguntar nunca y el botón parecía descompuesto; aquí
          se le explica dónde reactivarlo. Ver afGeoBox()/afGeoBlocked(). */
@@ -2506,7 +2542,7 @@ html[data-theme="dark"] #site :is(.tb-cuenta,.tb-fav,.tb-cart,.tb-filt):hover{ba
     afGeoBox(
       '<b>Tu navegador tiene bloqueada la ubicación</b><br>'+
       'No te preocupes, podemos ubicarte igual:'+
-      '<button type="button" id="afGeoIp" style="display:block;width:100%;margin-top:10px;padding:11px 14px;border-radius:12px;border:0;background:var(--blue);color:#fff;font:inherit;font-weight:700;cursor:pointer">📍 Ubicarme aproximadamente</button>'+
+      '<button type="button" id="afGeoIp" style="display:block;width:100%;margin-top:10px;padding:11px 14px;border-radius:12px;border:0;background:var(--blue);color:#fff;font:inherit;font-weight:700;cursor:pointer">'+ICO_PIN+' Ubicarme aproximadamente</button>'+
       '<div style="margin-top:9px;opacity:.9;font-size:.95em">¿Prefieres la ubicación exacta? '+paso+
         ' <button type="button" id="afGeoRetry" style="padding:2px 6px;border-radius:8px;border:1px solid currentColor;background:transparent;color:inherit;font:inherit;font-weight:700;cursor:pointer">Ya lo permití</button></div>',
       "block");
@@ -2523,12 +2559,12 @@ html[data-theme="dark"] #site :is(.tb-cuenta,.tb-fav,.tb-cart,.tb-filt):hover{ba
     function pedir(){
       if(b){b.disabled=true; b.textContent="Obteniendo tu ubicación…";}
       navigator.geolocation.getCurrentPosition(function(pos){
-        if(b){b.disabled=false; b.textContent="📍 Usar mi ubicación actual";}
+        if(b){b.disabled=false; b.innerHTML=ICO_PIN+" Usar mi ubicación actual";}
         afGeoHide();
         afShowMap(pos.coords.latitude,pos.coords.longitude);
         afReverse(pos.coords.latitude,pos.coords.longitude);
       },function(err){
-        if(b){b.disabled=false; b.textContent="📍 Usar mi ubicación actual";}
+        if(b){b.disabled=false; b.innerHTML=ICO_PIN+" Usar mi ubicación actual";}
         /* 1=PERMISSION_DENIED, 2=POSITION_UNAVAILABLE, 3=TIMEOUT: cada uno se
            resuelve distinto, así que no pueden compartir el mismo aviso. */
         if(err && err.code===1){ afGeoBlocked(); return; }
@@ -2726,7 +2762,7 @@ html[data-theme="dark"] #site :is(.tb-cuenta,.tb-fav,.tb-cart,.tb-filt):hover{ba
       '<div class="sline"><span>IVA ('+Math.round(ct.rate*100)+'%)</span><span>'+mxn(ct.iva)+'</span></div>'+
       '<div class="sline"><span>Entrega</span><span>'+(ct.ship?"Envío "+mxn(ct.ship):"Recoger · Gratis")+'</span></div>'+
       '<div class="sline total"><span>Total</span><span>'+mxn(ct.total)+'</span></div>'+
-      (natl?'<p class="desc" style="font-size:.78rem;color:#c2410c;margin-top:6px">📍 Envío fuera de Baja California: el IVA se ajusta al 16%.</p>':'');
+      (natl?'<p class="desc" style="font-size:.78rem;color:#c2410c;margin-top:6px">'+ICO_PIN+' Envío fuera de Baja California: el IVA se ajusta al 16%.</p>':'');
     var btn=document.querySelector("[data-copay]"); if(btn) btn.textContent="Pagar "+mxn(ct.total);
   }
   function submitShop(){
@@ -2826,8 +2862,8 @@ html[data-theme="dark"] #site :is(.tb-cuenta,.tb-fav,.tb-cart,.tb-filt):hover{ba
     return '<div data-open="'+p.id+'" title="Ver producto" class="pimg pimg--marca" style="'+base+'">'+PHLOGO+'</div>';
   }
   function renderWishlist(){var items=wishlist.map(prod).filter(Boolean);
-    var body='<button class="x" data-close style="position:absolute;top:14px;right:14px;z-index:5">×</button><div class="mb" style="padding-top:26px"><h3 style="margin:0 0 4px;font-size:1.25rem">💙 Tus deseados</h3><p class="desc" style="font-size:.86rem;max-width:none">Guarda lo que te gusta y págalo cuando quieras. Recoge gratis en OK.station o recíbelo a domicilio en todo México.</p>';
-    if(!items.length){body+='<div style="padding:26px 0;text-align:center;color:var(--muted)">Aún no tienes productos en deseados.<br>Toca el ❤ en cualquier producto para guardarlo aquí.</div>';}
+    var body='<button class="x" data-close style="position:absolute;top:14px;right:14px;z-index:5">×</button><div class="mb" style="padding-top:26px"><h3 style="margin:0 0 4px;font-size:1.25rem"><span style="color:var(--blue)">'+ICO_HEART.replace('width="12" height="12"','width="17" height="17"')+'</span> Tus deseados</h3><p class="desc" style="font-size:.86rem;max-width:none">Guarda lo que te gusta y págalo cuando quieras. Recoge gratis en OK.station o recíbelo a domicilio en todo México.</p>';
+    if(!items.length){body+='<div style="padding:26px 0;text-align:center;color:var(--muted)">Aún no tienes productos en deseados.<br>Toca el <span style="color:#e11d48">'+ICO_HEART+'</span> en cualquier producto para guardarlo aquí.</div>';}
     else{
       /* Pasar TODO al carrito de un tirón. Se anuncia cuántos hay y cuánto suman para
          que nadie agregue a ciegas; los que no tengan existencias se quedan aquí. */
@@ -3337,8 +3373,8 @@ html[data-theme="dark"] #site :is(.tb-cuenta,.tb-fav,.tb-cart,.tb-filt):hover{ba
 <!-- Sesión en el header (muestra tu cuenta si iniciaste sesión) + navbar inteligente -->
 <script src="assets/session-nav.js?v=20260717a" defer></script>
 <!-- OKi, el astronauta ayudante. Conectado a la tienda vía el contrato window.OKtienda (ver OKi-tienda-integracion.md). -->
-<script src="assets/ok-anim.js?v=20260722a" defer></script>
-<script src="assets/oki.js?v=20260717d" defer></script>
+<script src="assets/ok-anim.js?v=20260727a" defer></script>
+<script src="assets/oki.js?v=20260727a" defer></script>
 <script src="/assets/oknav.js?v=20260724a" defer></script>
 </body>
 </html>
