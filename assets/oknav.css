@@ -414,3 +414,17 @@ html[data-theme="dark"] .oknav__belt { background: #0A3578; }
 .oknav__links a.oknav__gostore:hover { background: var(--brand-blue-hover, #0558CC); color: #fff; }
 .oknav__links a.oknav__gostore--rapida { background: var(--brand-purple, #9C1DFF); border-color: var(--brand-purple, #9C1DFF); }
 .oknav__links a.oknav__gostore--rapida:hover { background: var(--brand-purple-hover, #7B16CC); }
+
+/* Densidad automática para laptops y viewports bajos. La altura publicada en
+   --oknav-h sigue midiéndose en oknav.js, así que paneles y contenido se recolocan
+   solos debajo de la barra compactada. */
+@media (min-width: 1001px) and (max-width: 1440px), (min-width: 1001px) and (max-height: 820px) {
+  .oknav__belt > .oknav__wrap { min-height: 30px; }
+  .oknav__row--main > .oknav__wrap { min-height: 60px; }
+  .oknav__row--nav > .oknav__wrap { min-height: 48px; }
+  .oknav__logo img { height: 23px; }
+  .oknav__field { padding-top: 8px; padding-bottom: 8px; }
+  .oknav__acct, .oknav__loc { padding-top: 6px; padding-bottom: 6px; }
+  .oknav__cats, .oknav__link { padding-top: 6px; padding-bottom: 6px; }
+  .oknav__ofertas, .oknav__quick { height: 31px; }
+}

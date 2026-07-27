@@ -392,7 +392,7 @@ html.store-view .header-bar, html.store-view .site-header{display:none}
      veía con un encabezado de otras proporciones. */
   /* El carrito arranca BAJO la navbar (sticky, z mayor), que si no le tapaba la
      cabecera con la ✕ (no se podía cerrar) y el primer producto. */
-  html.store-view #site .cart{top:var(--oknav-h,158px); bottom:auto; max-height:calc(100dvh - var(--oknav-h,158px) - 12px)}
+  html.store-view #site .cart{top:var(--oknav-h,158px); bottom:0; height:auto; max-height:none}
   html.store-view #site .scrim{top:var(--oknav-h,158px)}
   html.store-view #site .drawer{top:var(--oknav-h,158px); height:calc(100dvh - var(--oknav-h,158px))}
   /* Los MODALES centrados (vista previa, deseados, ubicación, checkout) siguen la
@@ -656,7 +656,7 @@ html.store-view .header-bar, html.store-view .site-header{display:none}
 #site .ci .nm{font-size:.82rem; font-weight:600; line-height:1.2; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden}
 #site .ci .pu{font-size:.72rem; color:var(--muted)}
 #site .qty{display:flex; align-items:center; gap:5px; margin-top:4px}
-#site .qty button{width:22px; height:22px; border:1px solid var(--line); background:var(--paper); border-radius:6px; font-weight:800}
+#site .qty button{width:22px; height:22px; border:1px solid var(--line); background:var(--paper); color:var(--ink); border-radius:6px; font-weight:800; display:grid; place-items:center; line-height:1}
 #site .qty span{min-width:18px; text-align:center; font-size:.82rem; font-weight:700}
 #site .ci .lt{font-weight:800; font-size:.85rem; text-align:right; font-variant-numeric:tabular-nums}
 #site .rm{display:block; margin-top:3px; border:none; background:none; color:#c2410c; font-size:.68rem; text-align:right; width:100%}
@@ -1060,6 +1060,12 @@ html[data-theme="dark"] #site .quick{
 }
 html[data-theme="dark"] #site .quick:hover{background:#122447; color:#7FB4FF; border-color:#066CFF}
 html[data-theme="dark"] #site .viewtoggle button:not(.on){color:#A8B6D0}
+html[data-theme="dark"] #site .qty button{
+  background:#101827 !important; color:#E9EDF6 !important; border-color:#3A4968 !important
+}
+html[data-theme="dark"] #site .qty button:hover{
+  background:#122447 !important; color:#7FB4FF !important; border-color:#066CFF !important
+}
 /* Botón ACTIVO del selector lista/cuadros: blanco, como el resto de lo activo. */
 html[data-theme="dark"] #site .viewtoggle button.on{background:#fff; color:#12141C}
 /* ── ENCABEZADO NOCHE ──
@@ -1172,6 +1178,16 @@ html[data-theme="dark"] #site .side-back:hover{background:rgba(255,255,255,.08)}
 /* En vista LISTA los botones no se estiran a todo lo ancho. */
 #site .grid.is-list .pfoot{margin-top:0}
 #site .grid.is-list .pbtns button{flex:0 0 auto; padding:9px 16px}
+/* Densidad responsive del escaparate: en laptops y pantallas de poca altura el banner
+   deja ver antes el catálogo. CSS responde a la resolución real sin detectar marcas
+   de dispositivo ni aplicar zoom, por lo que texto e imágenes permanecen nítidos. */
+@media (min-width:641px) and (max-width:1440px), (min-width:641px) and (max-height:820px){
+  #site .hero-slider{min-height:clamp(360px,52svh,520px)}
+  #site .hs-inner{padding:clamp(22px,3.5vw,40px) 0}
+  #site .hero-slider .sh-copy h1,#site .hero-slider .sh-copy h2{font-size:clamp(1.8rem,3.7vw,2.65rem)}
+  #site .store-hero{padding:clamp(22px,3.5vw,40px) 0}
+  #site :is(.btnlight,.hb-ghost,.gostore){padding:11px 20px;font-size:.88rem}
+}
 </style>
 
 <!-- ============================ HEADER ============================ -->
@@ -2317,7 +2333,7 @@ html[data-theme="dark"] #site .side-back:hover{background:rgba(255,255,255,.08)}
   }
   function renderCart(){var keys=Object.keys(cart);
     $("cart").classList.toggle("is-empty",!keys.length);
-    if(!keys.length){$("items").innerHTML='<div class="cart-empty">Tu carrito está vacío.</div>';}
+    if(!keys.length){$("items").innerHTML='<div class="cart-empty">Tu carrito está vacío.<br>Agrega productos desde el catálogo.</div>';}
     else{$("items").innerHTML=keys.map(function(k){var c=cart[k],p=c.p;
       return '<div class="ci">'+cartThumb(p)+'<div><div class="nm">'+okEsc(p.name)+'</div><div class="pu">'+mxn(p.price)+' c/u</div><div class="qty"><button data-dec="'+p.id+'">−</button><span>'+c.qty+'</span><button data-inc="'+p.id+'">+</button></div></div><div><div class="lt">'+mxn(p.price*c.qty)+'</div><button class="rm" data-rm="'+p.id+'">Quitar</button></div></div>';}).join("");}
     var tt=totals(); $("sub").textContent=mxn(tt.sub); $("shipCost").textContent=tt.ship?mxn(tt.ship):"Gratis"; $("total").textContent=mxn(tt.total); $("cartTotalTop").textContent=mxn(tt.total); $("cartCount").textContent=tt.n; $("checkoutBtn").disabled=tt.n===0; saveCart(); okiEmit("carrito");

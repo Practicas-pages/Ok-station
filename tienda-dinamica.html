@@ -184,7 +184,7 @@ html[data-theme="dark"] .side-back:hover{background:rgba(255,255,255,.08)}
 .td-di .nm{font-size:.86rem;font-weight:600;line-height:1.2}
 .td-di .pu{font-size:.78rem;color:var(--muted,#667085);margin-top:2px}
 .td-di .qty{display:inline-flex;align-items:center;gap:8px;margin-top:5px}
-.td-di .qty button{width:24px;height:24px;border:1px solid var(--line,#e3e6ee);background:#fff;border-radius:6px;cursor:pointer;font-weight:700;line-height:1}
+.td-di .qty button{width:24px;height:24px;border:1px solid var(--line,#e3e6ee);background:#fff;color:var(--ink,#111);border-radius:6px;cursor:pointer;font-weight:700;line-height:1;display:grid;place-items:center}
 .td-di .rgt{text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:6px}
 .td-di .lt{font-size:.86rem;font-weight:700}
 .td-di .lnk{border:0;background:none;color:var(--brand-blue,#066CFF);font:inherit;font-size:.78rem;font-weight:600;cursor:pointer;padding:0}
@@ -580,10 +580,10 @@ html[data-theme="dark"] .tdpv-sideb .mfaq span{ color:var(--text-secondary,#B6BF
 /* Botones secundarios: fondo y borde visibles sobre las tarjetas oscuras. Las fotos
    y sus miniaturas permanecen blancas para no alterar el producto. */
 html[data-theme="dark"] :is(.tdpv-x,.td-dx,.td-di .qty button){
-  background:#101827; color:#A8B6D0; border:1px solid #3A4968
+  background:#101827 !important; color:#E9EDF6 !important; border:1px solid #3A4968 !important
 }
 html[data-theme="dark"] :is(.tdpv-x,.td-dx,.td-di .qty button):hover{
-  background:#122447; color:#7FB4FF; border-color:#066CFF
+  background:#122447 !important; color:#7FB4FF !important; border-color:#066CFF !important
 }
 
 /* 3) El botón de enviar al carrito cuando está deshabilitado se veía gris claro. */
