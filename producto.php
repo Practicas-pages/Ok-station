@@ -71,10 +71,16 @@ if ($reqPath !== '' && rtrim($reqPath, '/') !== $canonPath && strpos($reqPath, '
 
 $images  = ShopProduct::images(db(), (int) $row['id']);
 $specs   = ShopProduct::specs($row);
-/* "Completa tu compra": productos que COMPLEMENTAN a éste (otras categorías que van
-   juntas: una tinta pide papel, una carpeta pide etiquetas). Si no alcanzan, se
-   rellena con la misma categoría. Ver ShopProduct::complementary. */
-$related = ShopProduct::complementary(db(), $row, 6);
+/* Dos carruseles bajo la ficha (mismo diseño, uno tras otro):
+   1) "Productos similares": misma categoría (comparar antes de comprar).
+   2) "También te puede interesar": COMPLEMENTOS de otras categorías (cross-selling:
+      una tinta pide papel, una calculadora pide pilas y cuadernos). Se le pasan los
+      ids del primer carrusel para NO repetir productos entre ambos. */
+$similar       = ShopProduct::related(db(), $row, 6);
+$complementary = ShopProduct::complementary(db(), $row, 6, array_column($similar, 'id'));
+/* Unión de ambos (sin repetir, complementary ya excluye a similar) para el puente del
+   carrito/OKi, que necesita conocer todos los productos mostrados en la página. */
+$related = array_merge($similar, $complementary);
 
 $price   = ShopProduct::price($row);
 $old     = ShopProduct::oldPrice($row);
@@ -605,15 +611,23 @@ $ldCrumbs = [
       <?php endif; ?>
     </div>
 
-    <!-- ── Completa tu compra: productos que complementan a éste ── -->
-    <?php if ($related): ?>
-    <section class="pdp__related" aria-label="Completa tu compra">
+    <!-- ── Dos carruseles, uno tras otro y con el MISMO diseño ──
+         1) Productos similares (misma categoría).
+         2) También te puede interesar (complementarios / cross-selling).
+         Se recorren con un solo bloque de marcado para que sean idénticos en estilo,
+         animación y responsive; cada uno solo se pinta si trae productos. -->
+    <?php
+    $pdpCarruseles = [];
+    if ($similar)       $pdpCarruseles[] = ['Productos similares', $similar];
+    if ($complementary) $pdpCarruseles[] = ['También te puede interesar', $complementary];
+    foreach ($pdpCarruseles as [$pdpTitulo, $pdpItems]): ?>
+    <section class="pdp__related" aria-label="<?= e($pdpTitulo) ?>">
       <div class="pdp__related-head">
-        <h2>Completa tu compra</h2>
+        <h2><?= e($pdpTitulo) ?></h2>
         <a href="/tienda#store" class="pdp__seeall">Ver toda la tienda →</a>
       </div>
       <div class="pdp__rel-grid">
-        <?php foreach ($related as $r): ?>
+        <?php foreach ($pdpItems as $r): ?>
           <a class="pdp__rel" href="<?= e($r['url']) ?>">
             <?php if ($r['old']): ?><span class="pdp__rel-off">−<?= (int) round((1 - $r['price'] / $r['old']) * 100) ?>%</span><?php endif; ?>
             <div class="pdp__rel-img">
@@ -626,7 +640,7 @@ $ldCrumbs = [
         <?php endforeach; ?>
       </div>
     </section>
-    <?php endif; ?>
+    <?php endforeach; ?>
   </div>
 </main>
 
