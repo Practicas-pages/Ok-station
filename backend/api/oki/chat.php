@@ -16,6 +16,7 @@ declare(strict_types=1);
 
 require __DIR__ . '/../_bootstrap.php';
 require __DIR__ . '/brain.php';
+require_once __DIR__ . '/prompt.php';
 only_method('POST');
 
 /* ¿La pregunta pide OPINIÓN/CONSEJO/COMPATIBILIDAD? Entonces mejor que la conteste la IA
@@ -30,9 +31,75 @@ function oki_is_advice(string $t): bool
         '/\b(?:me conviene|conviene mas|recomiend|cual es mejor|cual me convien|sirve para|'
         . 'funciona (?:con|para|en)|es compatible|compatible con|vale la pena|diferencia entre|'
         . 'que opinas|opinas|crees que|es bueno|me sirve|deberia (?:usar|comprar|elegir)|'
-        . 'cual elijo|cual escojo|cual compro|que tan bueno|ayuda(?:ra|ria)? (?:para|con)|mejor opcion)/u',
+        . 'cual elijo|cual escojo|cual compro|que tan bueno|ayuda(?:ra|ria)? (?:para|con)|'
+        . 'mejor opcion|como organiz|como archiv|como elegir|que necesito para)/u',
         $t
     );
+}
+
+/**
+ * Guardia de dominio: OKi ya no es el asistente general de todos los servicios.
+ * Atiende exclusivamente papelería/oficina/escolares y el flujo de compra.
+ * La comprobación contra la BD permite reconocer marcas y nombres reales sin mantener
+ * una lista manual imposible de actualizar junto con los syncs de Exel.
+ */
+function oki_is_stationery_scope(string $text, string $previousUser = ''): bool
+{
+    $t = oki_norm($text);
+    if ($t === '') return false;
+
+    /* Aunque aparezca "tienda" o "precio", estos temas conocidos quedan fuera. */
+    if (preg_match('/\b(?:pasaporte|visa|sentri|global entry|i-?94|curp|acta|ine|licencia|'
+        . 'tramite|cita|recarga|pago de servicios?|cfe|recibo de luz|recibo de agua|'
+        . 'fotografia|foto para|rfc|imss|nss|seguro social)\b/u', $t)) {
+        return false;
+    }
+
+    /* Saludos y cortesía sí, siempre que no vengan acompañados de otra pregunta. */
+    if (preg_match('/^(?:hola|buenas|buenos dias|buenas tardes|buenas noches|gracias|'
+        . 'muchas gracias|adios|hasta luego|ok|oki|perfecto)[!. ]*$/u', $t)) {
+        return true;
+    }
+
+    /* Lenguaje propio del dominio, incluidos usos que no necesariamente son un SKU. */
+    if (preg_match('/\b(?:papeleria|oficina|escuela|escolar(?:es)?|articulos? de oficina|'
+        . 'material(?:es)? escolar(?:es)?|utiles escolares|cuaderno|libreta|agenda|bitacora|'
+        . 'folder|carpeta|archivador|archivo|papel|hojas?|notas? adhesivas?|post-?it|'
+        . 'cartulina|pluma|boligrafo|lapiz|lapices|marcador|marcatextos|crayon|colores|'
+        . 'borrador|goma|sacapuntas|corrector|pegamento|adhesivo|cinta|tijera|regla|compas|'
+        . 'mica|acetato|foamy|pincel|pintura|acuarela|tempera|estuche|mochila|'
+        . 'engrapadora|grapas|perforadora|clip|sujetadocumentos|sobre|etiqueta|calculadora|'
+        . 'tinta|toner|cartucho|impresora|escritorio|organizar documentos|archivar documentos)\b/u', $t)) {
+        return true;
+    }
+
+    /* Acciones y dudas del e-commerce que tienen sentido sin repetir "papelería". */
+    if (preg_match('/\b(?:carrito|catalogo|producto|productos|categoria|categorias|oferta|'
+        . 'ofertas|existencia|stock|favorito|favoritos|deseado|deseados|pedido|pedidos|'
+        . 'tienda en linea|mercado pago)\b/u', $t)
+        || preg_match('/^(?:como pago|puedo pagar|formas? de pago|metodos? de pago|'
+            . 'cuanto llevo|que llevo|mi total|envio|entrega|recoger|recoleccion|'
+            . 'que me recomiendas|recomiendame algo)$/u', $t)) {
+        return true;
+    }
+
+    /* Marca, SKU o nombre vivo del catálogo (p. ej. "¿tienes BIC?"). */
+    try {
+        require_once __DIR__ . '/../shop/_synonyms.php';
+        $terms = oki_terminos_de_busqueda($text);
+        if ($terms !== '' && oki_buscar_productos($terms)) return true;
+    } catch (Throwable $e) {
+        /* La BD no disponible no debe abrir el dominio; continúa con la regla estricta. */
+    }
+
+    /* Seguimiento breve de una conversación que YA era de papelería. */
+    if ($previousUser !== ''
+        && preg_match('/^(?:y |ese|esa|esos|esas|el primero|el segundo|la primera|la segunda|'
+            . 'cual|cuanto|sirve|funciona|agregalo|ponlo|quit(a|alo)|me conviene)/u', $t)
+        && oki_is_stationery_scope($previousUser, '')) {
+        return true;
+    }
+    return false;
 }
 
 /* ── Límite de uso por IP (archivo, sin tocar la BD) — anti-spam ── */
@@ -100,12 +167,19 @@ if (mb_strlen($text) > 2000) $text = mb_substr($text, 0, 2000);
 
 /* Último mensaje de OKi (da contexto a flujos como el acta por estado). */
 $prev = '';
+$previousUser = '';
 if (isset($b['messages']) && is_array($b['messages'])) {
+    $lastUserSeen = false;
     for ($i = count($b['messages']) - 1; $i >= 0; $i--) {
         $m = $b['messages'][$i];
         if (is_array($m) && ($m['role'] ?? '') === 'assistant') {
-            $prev = trim((string) ($m['content'] ?? ''));
-            break;
+            if ($prev === '') $prev = trim((string) ($m['content'] ?? ''));
+        } elseif (is_array($m) && ($m['role'] ?? '') !== 'assistant') {
+            if (!$lastUserSeen) $lastUserSeen = true;
+            else {
+                $previousUser = trim((string) ($m['content'] ?? ''));
+                break;
+            }
         }
     }
 }
@@ -115,13 +189,34 @@ $ip = $_SERVER['HTTP_X_FORWARDED_FOR'] ?? $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
 $ip = trim(explode(',', $ip)[0]);
 oki_rate_limit($ip);
 
-/* ── 3) ¿Navegación directa? ("llévame a agendar mi cita…") ── */
+/* ── 3) Alcance estricto: papelería, oficina, escolares y su compra ── */
+if (!oki_is_stationery_scope($text, $previousUser)) {
+    respond([
+        'ok'       => true,
+        'reply'    => 'Solo puedo ayudarte con papelería, artículos de oficina y escolares, '
+                    . 'y con tu compra en la tienda. Dime qué material buscas y con gusto te ayudo 🚀',
+        'restricted' => true,
+    ]);
+}
+
+/* La regla histórica de saludo anunciaba trámites y otros servicios. Se responde aquí
+   para que incluso el primer mensaje deje claro el nuevo alcance especializado. */
+if (preg_match('/^(?:hola|buenas|buenos dias|buenas tardes|buenas noches|oki)[!. ]*$/u', oki_norm($text))) {
+    respond([
+        'ok'    => true,
+        'reply' => '¡Hola! 👋 Soy OKi 🚀 Tu especialista en papelería, artículos de oficina '
+                 . 'y escolares. Puedo recomendarte productos y ayudarte con tu compra. '
+                 . '¿Qué material necesitas?',
+    ]);
+}
+
+/* ── 4) ¿Navegación directa? (solo llegará aquí un destino del dominio permitido) ── */
 $nav = oki_navigate(oki_norm($text));
 if ($nav !== null) {
     respond(['ok' => true, 'reply' => $nav['reply'], 'go' => $nav['go']]);
 }
 
-/* ── 4) Cerebro por reglas ── */
+/* ── 5) Cerebro por reglas ── */
 $reply = oki_brain_reply($text, $prev);
 
 /* Si la pregunta es de CONSEJO/opinión (compatibilidad, recomendación, "¿me conviene…?"),
@@ -129,13 +224,12 @@ $reply = oki_brain_reply($text, $prev);
    ya se resolvió, así que esto no rompe los "llévame a…". */
 if ($reply !== null && oki_is_advice(oki_norm($text))) $reply = null;
 
-/* ── 5) Respaldo con IA GRATIS (Gemini) — solo si las reglas no reconocieron ──
+/* ── 6) Respaldo con IA GRATIS (Gemini) — solo si las reglas no reconocieron ──
    Mantiene la navegación y los datos del negocio en reglas (rápido y determinista);
    Gemini solo atiende el "resto", así el consumo cabe en el tier gratuito. Si la
    llave no está o la API falla, cae al respaldo de WhatsApp de abajo. */
 if ($reply === null) {
     require_once __DIR__ . '/../lib/Gemini.php';
-    require_once __DIR__ . '/prompt.php';
 }
 if ($reply === null && Gemini::available()) {
     /* Estrategia de AHORRO de cuota (tier gratis):
@@ -145,7 +239,7 @@ if ($reply === null && Gemini::available()) {
        b) PRESUPUESTO: topes global/min, global/día y por IP/día. Si se alcanzan,
           NO se llama a Gemini y OKi cae a su respaldo de WhatsApp de abajo. */
     $cacheable = ($prev === '');                 // sin turno previo de OKi = pregunta suelta
-    $qkey = 'v1|' . oki_norm($text);
+    $qkey = 'v2-papeleria|' . oki_norm($text);
 
     if ($cacheable && ($hit = Gemini::cacheGet($qkey)) !== null) {
         respond(['ok' => true, 'reply' => $hit, 'source' => 'gemini-cache']);
@@ -166,12 +260,12 @@ if ($reply === null && Gemini::available()) {
     /* Sin cuota o Gemini no respondió → cae al respaldo de WhatsApp de abajo. */
 }
 
-/* ── 6) Regla de oro: si nada reconoce, deriva a WhatsApp (no inventa) ── */
+/* ── 7) Respaldo dentro del mismo alcance (no deriva a otros servicios) ── */
 if ($reply === null) {
     respond([
         'ok'       => true,
-        'reply'    => 'Mmm, eso no lo tengo con certeza 🤔. Te ayudan mejor por WhatsApp: 664 719 4117 (' . OKI_WA_URL . '). '
-                    . 'Yo te puedo decir precios, requisitos de trámites, horarios, ubicación y cómo agendar o imprimir.',
+        'reply'    => 'No encontré una respuesta suficientemente precisa. Puedo ayudarte a elegir '
+                    . 'otro artículo de papelería o buscarlo por nombre, marca o uso.',
         'fallback' => true,
     ]);
 }

@@ -56,10 +56,10 @@
   var OKI_SEND='<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>';
 
   var QUICKS = [
-    "📸 Foto para pasaporte",
-    "🗓️ Agendar una cita",
-    "🖨️ Imprimir un archivo",
-    "📍 Horario y ubicación"
+    "Recomiéndame material escolar",
+    "¿Cómo organizo mi oficina?",
+    "Ayúdame a elegir tinta o tóner",
+    "¿Qué hay en oferta?"
   ];
 
   // En la tienda (e-commerce) OKi ofrece atajos propios del carrito/deseados.
@@ -87,6 +87,23 @@
   function okiCatalog() { return (window.OK_PRODUCTS && window.OK_PRODUCTS.length) ? window.OK_PRODUCTS : []; }
   function okiHasStore() { return storeReady() || okiCatalog().length > 0 || okiHasSaved(); } // ¿hay lista de compras que mostrar?
   function okiCatById(id) { id = +id; var a = okiCatalog().filter(function (p) { return p.id === id; }); return a[0] || null; }
+  function okiRememberProducts(items) {
+    var cur = (window.OK_PRODUCTS || []).slice(), byId = {};
+    cur.forEach(function (p) { byId[+p.id] = p; });
+    (items || []).map(okiMapDb).forEach(function (p) {
+      if (!p.id) return;
+      if (byId[p.id]) Object.assign(byId[p.id], p);
+      else { cur.push(p); byId[p.id] = p; }
+    });
+    window.OK_PRODUCTS = cur;
+    return (items || []).map(function (p) { return byId[+p.id]; }).filter(Boolean);
+  }
+  function okiSearchCatalog(q, limit) {
+    return fetch("/backend/api/shop/products.php?per_page=" + (limit || 12) + "&page=1&q=" + encodeURIComponent(q))
+      .then(function (r) { return r.json(); })
+      .then(function (j) { return okiRememberProducts((j && j.ok && j.items) ? j.items : []); })
+      .catch(function () { return []; });
+  }
   function okiLsCart() { try { return JSON.parse(localStorage.getItem("okstation_cart") || "{}") || {}; } catch (e) { return {}; } }
   function okiLsCartSave(o) { try { localStorage.setItem("okstation_cart", JSON.stringify(o)); } catch (e) {} }
   function okiLsWish() { try { var w = JSON.parse(localStorage.getItem("okstation_wishlist") || "[]"); return Array.isArray(w) ? w : []; } catch (e) { return []; } }
@@ -146,7 +163,17 @@
       carrito: cartArr,
       deseados: function () { return okiLsWish().map(okiCatById).filter(Boolean); },
       total: function () { var t = 0; cartArr().forEach(function (it) { t += it.price * it.qty; }); return t; },
-      agregar: function (id, qty) { var n = Math.max(1, parseInt(qty, 10) || 1); var s = okiLsCart(); s[id] = (s[id] || 0) + n; okiLsCartSave(s); var w = okiLsWish(), wi = w.indexOf(+id); if (wi >= 0) { w.splice(wi, 1); okiLsWishSave(w); } changed(); },
+      buscar: okiSearchCatalog,
+      agregar: function (id, qty) {
+        id = +id;
+        var n = Math.max(1, parseInt(qty, 10) || 1), p = okiCatById(id), s = okiLsCart();
+        var cap = p && p.stock != null ? Math.max(0, +p.stock) : 99;
+        s[id] = Math.min(cap, (s[id] || 0) + n);
+        if (s[id] > 0) okiLsCartSave(s);
+        var w = okiLsWish(), wi = w.indexOf(id);
+        if (wi >= 0) { w.splice(wi, 1); okiLsWishSave(w); }
+        changed();
+      },
       cambiar: function (id, d) { var s = okiLsCart(); s[id] = (s[id] || 0) + d; if (s[id] <= 0) delete s[id]; okiLsCartSave(s); changed(); },
       quitar: function (id) { var s = okiLsCart(); delete s[id]; okiLsCartSave(s); changed(); },
       toggleDeseado: function (id) { id = +id; var w = okiLsWish(), i = w.indexOf(id); if (i >= 0) w.splice(i, 1); else w.push(id); okiLsWishSave(w); changed(); },
@@ -159,7 +186,6 @@
   // Devuelve el "contrato": la tienda en vivo si existe; si no, el adaptador de localStorage.
   function okiStore() {
     if (storeReady()) return window.OKtienda;
-    if (!okiCatalog().length && !okiHasSaved()) return null;
     if (!okiShim) okiShim = okiMakeShim();
     return okiShim;
   }
@@ -337,14 +363,42 @@
     var p = okiMatchProd(s);
     return p ? { p: p, qty: Math.max(1, Math.min(99, qty)) } : null;
   }
-  /* Igual que okiParseOne pero, si el producto no está en lo que hay cargado en
-     pantalla, se lo pregunta al catálogo del servidor (OKtienda.buscar). Devuelve
-     una promesa de {p,qty} o null. */
+  /* Elige una coincidencia disponible del catálogo completo. En una petición genérica
+     ("un cuaderno", "un tóner") prioriza relevancia, oferta y producto con foto; el
+     precio más bajo desempata. Nunca escoge un agotado si hay una opción disponible. */
+  function okiPickProduct(list, raw, qty) {
+    var q = okiNorm(raw), words = q.split(" ").map(okiStem).filter(function (w) { return w.length >= 2; });
+    var ranked = (list || []).filter(function (p) { return p && (p.stock == null || +p.stock > 0); }).map(function (p) {
+      var name = okiNorm(p.name), hay = okiNorm([p.name, p.brand || "", p.cat || "", p.sub || "", p.sku || ""].join(" "));
+      var score = 0;
+      if (name === q || okiNorm(p.sku || "") === q) score += 1000;
+      else if (name.indexOf(q) === 0) score += 300;
+      else if (name.indexOf(q) >= 0) score += 180;
+      words.forEach(function (w) {
+        if (name.split(" ").some(function (nw) { return okiStem(nw) === w; })) score += 55;
+        else if (hay.indexOf(w) >= 0) score += 20;
+      });
+      if (p.old && +p.old > +p.price) score += 12;
+      if (p.image) score += 4;
+      return { p: p, score: score };
+    });
+    ranked.sort(function (a, b) {
+      return b.score - a.score || (+a.p.price || 0) - (+b.p.price || 0) ||
+        String(a.p.name).localeCompare(String(b.p.name), "es");
+    });
+    if (!ranked.length) return null;
+    var chosen = ranked[0].p;
+    var exact = okiNorm(chosen.name) === q || okiNorm(chosen.sku || "") === q;
+    return { p: chosen, qty: qty, generic: !exact && ranked.length > 1 };
+  }
+
+  /* Busca SIEMPRE en el catálogo completo cuando el contrato lo permite. Así una
+     palabra genérica no se resuelve contra los primeros productos que casualmente
+     estaban cargados en pantalla. Devuelve {p,qty,generic} o null. */
   function okiResolveOne(s) {
-    var hit = okiParseOne(s);
-    if (hit) return Promise.resolve(hit);
     var S = okiStore();
-    if (!S || typeof S.buscar !== "function") return Promise.resolve(null);
+    var localHit = okiParseOne(s);
+    if (!S || typeof S.buscar !== "function") return Promise.resolve(localHit);
     // Reaprovecha el troceo de cantidad: separa el número del nombre.
     var raw = String(s || "").replace(OKI_FILLER, "").trim(), qty = 1, m = raw.match(/^(\d{1,3})\s+(.+)$/);
     if (m) { qty = +m[1]; raw = m[2]; }
@@ -352,15 +406,19 @@
     raw = raw.replace(OKI_FILLER, "").trim();
     if (!raw) return Promise.resolve(null);
     var q = Math.max(1, Math.min(99, qty));
-    var hecho = function (list) { return (list && list.length) ? { p: list[0], qty: q } : null; };
-    return Promise.resolve(S.buscar(raw, 5)).then(function (list) {
+    var busqueda = /^(?:un |una )?(?:producto|articulo|algo|cualquier cosa)(?: de papeleria)?$/.test(okiNorm(raw))
+      ? "" : raw;
+    var hecho = function (list) { return okiPickProduct(list, raw, q); };
+    return Promise.resolve(S.buscar(busqueda, 12)).then(function (list) {
       if (list && list.length) return hecho(list);
       /* El catálogo del servidor busca por texto TAL CUAL: "calculadoras" no encuentra
          "Calculadora Canon" (el nombre va en singular). Se reintenta sin plural. */
-      var sing = okiNorm(raw).split(" ").map(okiStem).join(" ").trim();
-      if (!sing || sing === okiNorm(raw)) return null;
-      return Promise.resolve(S.buscar(sing, 5)).then(hecho);
-    }).catch(function () { return null; });
+      var sing = okiNorm(busqueda).split(" ").map(okiStem).join(" ").trim();
+      if (!sing || sing === okiNorm(raw)) return localHit;
+      return Promise.resolve(S.buscar(sing, 12)).then(function (retry) {
+        return hecho(retry) || localHit;
+      });
+    }).catch(function () { return localHit; });
   }
   /* Pedido completo: "agrégame 6 folders y 2 tóner" -> [{p,qty:6},{p,qty:2}].
      Ojo: hay nombres que TRAEN "y" ("Papel HP hogar y oficina"), así que si al
@@ -589,13 +647,21 @@
           if (st != null && st <= 0) { agotados.push(it.p.name); return; }
           var q = (st != null) ? Math.min(it.qty, st) : it.qty;   // nunca más de lo que hay
           okiSelfAdd = true;
-          try { S.agregar(it.p.id, q); added.push({ name: it.p.name, price: it.p.price, qty: q, corto: q < it.qty }); }
+          try {
+            S.agregar(it.p.id, q);
+            added.push({ name: it.p.name, price: it.p.price, qty: q, corto: q < it.qty, generic: !!it.generic });
+          }
           catch (e) { okiSelfAdd = false; }
         });
         if (!added.length) return (agotados.join(", ") || "Eso") + " está agotado por ahora 😕. ¿Te recomiendo otra cosa?";
         var msg = "¡Listo! Agregué a tu carrito 🛒\n" + added.map(function (a) {
           return "• " + a.qty + "× " + a.name + " — " + okiMxn(a.price * a.qty);
         }).join("\n");
+        var elegidos = added.filter(function (a) { return a.generic; });
+        if (elegidos.length) {
+          msg += "\nElegí " + elegidos.map(function (a) { return a.name; }).join(", ") +
+            " porque no indicaste marca o modelo. Si prefieres otro, dime cuál quieres; puedo agregarlo y quitar éste.";
+        }
         var cortos = added.filter(function (a) { return a.corto; });
         if (cortos.length) msg += "\n⚠ De " + cortos.map(function (a) { return a.name; }).join(", ") + " solo quedaba lo que puse.";
         if (agotados.length) msg += "\n😕 Agotado por ahora: " + agotados.join(", ") + ".";
@@ -803,10 +869,20 @@
     listChip.addEventListener("click", showList);
     quick.appendChild(listChip);
 
-    // Clic en el astronauta: si está escondido (peek) primero APARECE; si no, abre/cierra.
+    /* El astronauta representa el CHAT, no un toggle ciego del panel:
+       · si estaba replegado (peek), despierta y abre en el MISMO clic;
+       · si la lista está visible, cambia a chat sin cerrar el panel;
+       · solo cierra cuando el chat ya estaba abierto.
+       Antes el primer clic podía limitarse a despertar a OKi o cerrar la lista, y
+       obligaba a pulsarlo una segunda vez para ver el chat. */
     document.getElementById("oki-btn").addEventListener("click", function () {
-      if (okiPeeked) { okiWake(); return; }
-      toggle();
+      if (okiPeeked) okiWake();
+      if (panel.classList.contains("on") && panel.getAttribute("data-view") === "chat") {
+        close();
+        return;
+      }
+      showChat();
+      if (!panel.classList.contains("on")) open();
     });
     // Al pasar el mouse por encima, regresa (por si estorbaba) y reinicia el conteo.
     dock.addEventListener("mouseenter", function () { if (okiPeeked) okiWake(); else okiResetPeekTimer(); });
@@ -904,8 +980,8 @@
     if (!greeted) {
       greeted = true;
       addMsg(storeReady()
-        ? "¡Hola! Soy OKi 🚀 Soy tu asistente en la tienda: te llevo el carrito, te doy recomendaciones y consejos, y respondo dudas de pago o entrega. ¿Qué buscas?"
-        : "¡Hola! Soy OKi 🚀 Te ayudo con impresiones, citas, precios y trámites. ¿Qué necesitas?", "bot");
+        ? "¡Hola! Soy OKi 🚀 Soy tu especialista en papelería, oficina y escolares. Puedo recomendarte productos y ayudarte con tu carrito, pago o entrega. ¿Qué buscas?"
+        : "¡Hola! Soy OKi 🚀 Te ayudo exclusivamente con papelería, artículos de oficina y escolares. ¿Qué material necesitas?", "bot");
       // Si ya llevas productos, OKi te muestra tu lista al abrir.
       if (storeReady() && okiCartCount() > 0) {
         var reply = storeLocalReply("que llevo en el carrito");
@@ -966,7 +1042,7 @@
     setTimeout(function () { input.focus(); }, 60);
   }
 
-  // El cerebro del servidor (precios, envíos, trámites…).
+  // El cerebro del servidor: papelería, oficina, escolares y su flujo de compra.
   function askBrain(text) {
     busy = true;
     typing(true);
@@ -980,7 +1056,7 @@
       .then(function (data) {
         typing(false);
         var reply = (data && data.reply) ? data.reply :
-          "Uy, no pude procesar eso. Escríbenos por WhatsApp: 664 719 4117 (" + WA + ").";
+          "No pude procesarlo. Puedo ayudarte con papelería, oficina, escolares y tu compra en la tienda.";
         addMsg(reply, "bot");
         history.push({ role: "assistant", content: reply });
         // Navegación directa: OKi lleva al usuario a la sección pedida.
@@ -990,7 +1066,7 @@
       })
       .catch(function () {
         typing(false);
-        addMsg("No me pude conectar 😕. Escríbenos por WhatsApp: 664 719 4117 (" + WA + ").", "bot");
+        addMsg("No me pude conectar 😕. Intenta de nuevo y te ayudo con tu compra de papelería.", "bot");
       })
       .then(function () { busy = false; input.focus(); });
   }

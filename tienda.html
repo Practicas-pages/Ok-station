@@ -390,7 +390,9 @@ html.store-view .header-bar, html.store-view .site-header{display:none}
      veía con un encabezado de otras proporciones. */
   /* El carrito arranca BAJO la navbar (sticky, z mayor), que si no le tapaba la
      cabecera con la ✕ (no se podía cerrar) y el primer producto. */
-  html.store-view #site .cart{top:var(--oknav-h,158px); height:auto; bottom:0}
+  html.store-view #site .cart{top:var(--oknav-h,158px); bottom:auto; max-height:calc(100dvh - var(--oknav-h,158px) - 12px)}
+  html.store-view #site .scrim{top:var(--oknav-h,158px)}
+  html.store-view #site .drawer{top:var(--oknav-h,158px); height:calc(100dvh - var(--oknav-h,158px))}
   /* Los MODALES centrados (vista previa, deseados, ubicación, checkout) siguen la
      misma regla que el carrito: el velo y las tarjetas viven BAJO la navbar y se
      limitan a la altura que queda, para que ningún encabezado quede tapado.
@@ -637,19 +639,19 @@ html.store-view .header-bar, html.store-view .site-header{display:none}
 /* Con el carrito abierto (empuja el contenido) el botón se recorre para no quedar debajo. */
 @media(min-width:1001px){ #site #app.cart-open .totop{right:calc(min(400px,92vw) + 26px)} }
 @media(max-width:640px){ #site .totop{right:88px; bottom:18px; width:42px; height:42px} }
-#site .cart{position:fixed; top:0; right:0; height:100%; width:min(400px,92vw); background:var(--card); display:flex; flex-direction:column; transform:translateX(100%); transition:transform .3s cubic-bezier(.4,0,.2,1); z-index:120; box-shadow:-18px 0 50px rgba(18,20,28,.22)}
+#site .cart{position:fixed; top:var(--shop-top,112px); right:0; bottom:auto; width:min(400px,92vw); max-height:calc(100dvh - var(--shop-top,112px) - 12px); background:var(--card); display:flex; flex-direction:column; transform:translateX(100%); transition:transform .3s cubic-bezier(.4,0,.2,1); z-index:120; box-shadow:-18px 0 50px rgba(18,20,28,.22)}
 #site #app.cart-open .cart{transform:translateX(0)}
-#site .cart .ch{padding:14px 18px 10px; font-weight:800; display:flex; align-items:center; gap:8px; flex:none; border-bottom:1px solid var(--line)}
+#site .cart .ch{min-height:56px; box-sizing:border-box; padding:12px 18px; font-weight:800; display:flex; align-items:center; gap:8px; flex:none; border-bottom:1px solid var(--line); background:#066CFF; color:#fff}
 #site .cart .close{display:block; margin-left:auto; border:none; background:none; font-size:1.3rem; color:var(--muted)}
-#site .items{flex:1; overflow-y:auto; padding:10px 14px}
-#site .ci{display:grid; grid-template-columns:44px 1fr auto; gap:10px; align-items:center; padding:9px 0; border-bottom:1px solid #eef1f7}
+#site .items{flex:0 1 auto; min-height:0; max-height:min(44vh,440px); overflow-y:auto; padding:10px 14px; display:flex; flex-direction:column; gap:8px}
+#site .ci{display:grid; grid-template-columns:44px minmax(0,1fr) auto; gap:10px; align-items:center; padding:9px; border:1px solid var(--line); border-radius:11px; background:var(--card)}
 #site .ci .t{border-radius:8px; height:44px; background:#eef2f8; border:1px dashed #c3cede; display:grid; place-items:center; color:#9aa7bd; overflow:hidden}
 #site .ci .t svg{width:16px; height:16px}
 /* Foto real del producto en el carrito (antes salía el ícono de "sin imagen"). */
 #site .ci .t.has-img{background:#fff; border:1px solid var(--line); border-style:solid; padding:2px}
 #site .ci .t img{width:100%; height:100%; object-fit:contain; display:block}
 #site .ci .t .temoji{font-size:22px; line-height:1}
-#site .ci .nm{font-size:.82rem; font-weight:600; line-height:1.2}
+#site .ci .nm{font-size:.82rem; font-weight:600; line-height:1.2; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden}
 #site .ci .pu{font-size:.72rem; color:var(--muted)}
 #site .qty{display:flex; align-items:center; gap:5px; margin-top:4px}
 #site .qty button{width:22px; height:22px; border:1px solid var(--line); background:var(--paper); border-radius:6px; font-weight:800}
@@ -685,7 +687,7 @@ html.store-view .header-bar, html.store-view .site-header{display:none}
 #site .dlist .dsub.on{background:#eef4ff; color:var(--blue); font-weight:700}
 #site .dlist .dn{margin-left:auto; font-size:.72rem; font-weight:700; color:#9aa7bd; background:var(--paper); border-radius:99px; padding:1px 7px}
 #site .dlist button.on .dn{background:#fff; color:var(--blue)}
-#site .scrim{position:fixed; inset:0; background:rgba(18,20,28,.45); z-index:56; display:none}
+#site .scrim{position:fixed; top:var(--shop-top,112px); right:0; bottom:0; left:0; background:rgba(18,20,28,.45); z-index:56; display:none}
 #site #app.drawer-open .scrim,#site #app.cart-open .scrim{display:block}
 /* ── Barras que EMPUJAN el contenido (solo desktop, donde hay espacio) ──
    Carrito (derecha) y Categorías (izquierda) recorren y reducen el área de
@@ -700,25 +702,11 @@ html.store-view .header-bar, html.store-view .site-header{display:none}
      Escape o eligiendo categoría, igual que antes) */
   #site #app.cart-open .scrim,#site #app.drawer-open .scrim{background:transparent; pointer-events:none}
 }
-/* ── Barras de altura COMPLETA con cabecera de marca ──
-   Antes arrancaban debajo de la navbar y quedaba un escalón feo (la barra blanca
-   "cortada" contra el degradado). Ahora la barra cubre toda la columna y su
-   cabecera lleva el MISMO degradado con el alto exacto de la navbar (--shop-top),
-   así el degradado de arriba se lee continuo de lado a lado y la barra se ve como
-   una pieza entera, no como un parche.
-   --shop-top = borde inferior de la navbar (lo actualiza un pequeño script
-   en scroll/resize, porque la navbar es sticky y su borde cambia). */
+/* Las barras viven bajo la navbar; --oknav-h es la altura real publicada por oknav.js. */
 #site{--shop-top:112px}
-#site .cart,#site .drawer{top:0; height:100%}
-/* El degradado se dibuja del ANCHO DE LA PANTALLA (100vw) y se ancla al mismo borde
-   al que está pegada la barra. Así la cabecera CONTINÚA el degradado de la navbar en
-   vez de reiniciarlo: donde se juntan, el color es el mismo. (Antes cada barra metía
-   --grad completo en sus 400px → arrancaba morado justo al lado del cian de la
-   navbar, y por eso se veía "otro degradado" y desalineado.) */
-#site .cart .ch,#site .drawer .dh{min-height:var(--shop-top); box-sizing:border-box; padding:14px 18px; background-image:var(--grad); background-size:100vw 100%; background-repeat:no-repeat; color:#fff; border-bottom:none; font-size:1.02rem; letter-spacing:-.01em}
-#site .cart .ch{background-position:right center}    /* carrito: pegado al borde derecho */
-#site .drawer .dh{background-position:left center}   /* categorías: pegado al izquierdo */
-/* Botón de cerrar sobre el degradado: círculo translúcido (el × gris se perdía). */
+#site .drawer{top:var(--shop-top,112px); height:calc(100dvh - var(--shop-top,112px))}
+#site .drawer .dh{min-height:56px; box-sizing:border-box; padding:12px 18px; background:#066CFF; color:#fff; border-bottom:none; font-size:1.02rem; letter-spacing:-.01em}
+/* Botón de cerrar sobre el azul de marca. */
 #site .cart .ch .close,#site .drawer .dh .x{margin-left:auto; flex:none; width:32px; height:32px; padding:0; border:1px solid rgba(255,255,255,.4); background:rgba(255,255,255,.16); color:#fff; border-radius:50%; font-size:1.15rem; line-height:1; display:grid; place-items:center; cursor:pointer; transition:background .15s, transform .15s}
 #site .cart .ch .close:hover,#site .drawer .dh .x:hover{background:rgba(255,255,255,.34); transform:scale(1.08)}
 /* Las barras (carrito / categorías) son fijas y empujan el contenido; el
@@ -1788,20 +1776,23 @@ html[data-theme="dark"] #site :is(.tb-cuenta,.tb-fav,.tb-cart,.tb-filt):hover{ba
 
   // Tienda interactiva
   /* La categoría padre de Exel es única. Para el cliente, la navegación útil son sus
-     familias: se aplanan como opciones hermanas sin cambiar la estructura del API. */
+     subcategorías: se muestran directamente bajo "Todos", igual que en compra rápida. */
   function categoriasNavegacion(){
+    var ofertas=CATS.filter(function(c){return c.id==="ofertas";})[0] ||
+      {id:"ofertas",name:"Ofertas del día",hot:true};
     var todos=CATS.filter(function(c){return c.id==="all";})[0] ||
       {id:"all",name:"Todos",color:"#66748a"};
     var padre=CATS.filter(function(c){return esCategoriaGeneral(c.name);})[0];
-    if(padre && padre.subs && padre.subs.length){
-      return [todos].concat(padre.subs.map(function(s){
-        return {id:padre.id, name:s.name, color:padre.color||"#66748a",
-                count:s.count||0, sub:s.name, subOnly:true};
+    var subs=fSubcatsLoaded ? fSubcatList : ((padre && padre.subs) || []);
+    if(subs.length){
+      return [ofertas,todos].concat(subs.map(function(s){
+        return {id:"all", name:s.name, color:"#066CFF",
+                 count:s.count||0, sub:s.name, subOnly:true};
       }));
     }
-    /* Respaldo local si el API no está disponible: mantiene Todos primero y omite
+    /* Respaldo local si el API no está disponible: mantiene Ofertas/Todos y omite
        cualquier categoría padre redundante. */
-    return [todos].concat(CATS.filter(function(c){
+    return [ofertas,todos].concat(CATS.filter(function(c){
       return c.id!=="all" && !c.hot && !esCategoriaGeneral(c.name);
     }));
   }
@@ -1923,7 +1914,7 @@ html[data-theme="dark"] #site :is(.tb-cuenta,.tb-fav,.tb-cart,.tb-filt):hover{ba
   var loops=1, MAX_CARDS=1500;
   /* Solo "Todos" (sin búsqueda) da la vuelta: ahí el catálogo ES la tienda entera y que
      no se acabe se lee como "hay de todo". En un filtro, saber dónde termina es útil. */
-  function loopAllowed(){ return activeCat==="all" && !activeSub && query.length<2 && !fBrands.length && !fSubcats.length; }
+  function loopAllowed(){ return activeCat==="all" && !activeSub && query.length<2 && !fBrands.length; }
   /* URL de la FICHA del producto (/producto/49-toner-hp-85a). El slug es solo para que
      la URL se lea y Google la entienda: manda el id, y si el slug no coincide,
      producto.php redirige al canónico. Con el catálogo de respaldo (sin BD) esa página
@@ -1974,7 +1965,6 @@ html[data-theme="dark"] #site :is(.tb-cuenta,.tb-fav,.tb-cart,.tb-filt):hover{ba
          dice cuál es el filtro que está estorbando y se ofrece quitarlo de un toque. */
       var act=[];
       if(fBrands.length) act.push(fBrands.length===1?"la marca "+okEsc(fBrands[0]):fBrands.length+" marcas");
-      if(fSubcats.length) act.push(fSubcats.length===1?"el tipo "+okEsc(fSubcats[0]):fSubcats.length+" tipos");
       if(act.length){
         $("grid").innerHTML='<div class="empty">'
           +'<p style="margin:0 0 6px;font-weight:700;color:var(--ink)">Aquí no hay nada con los filtros puestos</p>'
@@ -2143,7 +2133,7 @@ html[data-theme="dark"] #site :is(.tb-cuenta,.tb-fav,.tb-cart,.tb-filt):hover{ba
      así que filtrar aquí solo miraría la página cargada. Las marcas se piden al
      abrir, no al cargar la tienda, y se acotan a la categoría que estás viendo. */
   function filtCountUpdate(){
-    var n=fBrands.length+fSubcats.length+(fSort!=="name"?1:0);
+    var n=fBrands.length+(fSort!=="name"?1:0);
     var b=$("filtBtn"), c=$("filtCount");
     c.textContent=n; c.hidden=n===0; b.classList.toggle("on",n>0);
   }
@@ -2161,7 +2151,7 @@ html[data-theme="dark"] #site :is(.tb-cuenta,.tb-fav,.tb-cart,.tb-filt):hover{ba
     }
     if(!fSubcatsLoaded){
       fetch("/backend/api/shop/subcategories.php"+cat).then(function(r){return r.json();}).then(function(j){
-        if(j&&j.ok){ fSubcatList=j.subcategories||[]; fSubcatsLoaded=true; filtRender(); }
+        if(j&&j.ok){ fSubcatList=j.subcategories||[]; fSubcatsLoaded=true; filtRender(); renderCats(); }
       }).catch(function(e){ console.error("Filtros (tipos):",e); });
     }
   }
@@ -2177,21 +2167,6 @@ html[data-theme="dark"] #site :is(.tb-cuenta,.tb-fav,.tb-cart,.tb-filt):hover{ba
     var orden=SORTS.map(function(s){
       return '<label class="fopt"><input type="radio" name="fsort" value="'+s[0]+'"'+(fSort===s[0]?" checked":"")+'>'+esc(s[1])+'</label>';
     }).join("");
-    var tipos=fSubcatsLoaded
-      ? (fSubcatList.length
-          ? fSubcatList.map(function(s){
-              return '<label class="fopt"><input type="checkbox" class="fsubcat" value="'+okEsc(s.name)+'"'+(fSubcats.indexOf(s.name)>=0?" checked":"")+'>'+esc(s.name)+'<span class="fn">'+s.count+'</span></label>';
-            }).join("")
-          : '<p class="fn">No hay tipos en esta categoría.</p>')
-      : '<p class="fn">Cargando tipos…</p>';
-    /* Con ~80 tipos la lista era una pared: buscador + top 15 (ya vienen ordenados por
-       conteo del backend) + "Ver todos". El buscador OCULTA con una clase, nunca
-       reconstruye el HTML: reconstruir perdería los checks a medio marcar. */
-    var muchosTipos=fSubcatsLoaded&&fSubcatList.length>15;
-    if(muchosTipos){
-      tipos='<input type="search" class="fsubsearch" placeholder="Buscar tipo… (tóner, papel, pluma)" aria-label="Buscar tipo">'+tipos+
-            '<button type="button" class="fmore"></button>';
-    }
     var marcas=fBrandsLoaded
       ? (fBrandList.length
           ? fBrandList.map(function(b){
@@ -2206,9 +2181,7 @@ html[data-theme="dark"] #site :is(.tb-cuenta,.tb-fav,.tb-cart,.tb-filt):hover{ba
     }
     $("fdrawBody").innerHTML=
       '<div class="fgroup"><h4>Ordenar por</h4>'+orden+'</div>'+
-      '<div class="fgroup fgroup--subs"><h4>Tipo</h4>'+tipos+'</div>'+
       '<div class="fgroup fgroup--brands"><h4>Marca</h4>'+marcas+'</div>';
-    applySubcatView();
     applyBrandView();
   }
   /* Vista de la lista de MARCAS: espejo de applySubcatView (buscador + top 15 por
@@ -2261,7 +2234,7 @@ html[data-theme="dark"] #site :is(.tb-cuenta,.tb-fav,.tb-cart,.tb-filt):hover{ba
   function filtApply(){
     fSort=($("fdrawBody").querySelector('input[name="fsort"]:checked')||{}).value||"name";
     fBrands=[].slice.call($("fdrawBody").querySelectorAll(".fbrand:checked")).map(function(c){return c.value;});
-    fSubcats=[].slice.call($("fdrawBody").querySelectorAll(".fsubcat:checked")).map(function(c){return c.value;});
+    fSubcats=[];
     filtCountUpdate(); reloadFromDB();
   }
   function filtClear(){
@@ -2277,7 +2250,7 @@ html[data-theme="dark"] #site :is(.tb-cuenta,.tb-fav,.tb-cart,.tb-filt):hover{ba
      página. reloadFromDB descarta respuestas anteriores si el usuario marca varias
      opciones rápidamente, manteniendo la interacción fluida. */
   $("fdrawBody").addEventListener("change",function(e){
-    if(e.target.matches('input[name="fsort"],.fbrand,.fsubcat')) filtApply();
+    if(e.target.matches('input[name="fsort"],.fbrand')) filtApply();
   });
   /* Buscadores y "ver todos" de tipos y marcas: delegados (el panel se repinta al llegar datos). */
   $("fdrawBody").addEventListener("input",function(e){
@@ -3040,8 +3013,8 @@ html[data-theme="dark"] #site :is(.tb-cuenta,.tb-fav,.tb-cart,.tb-filt):hover{ba
     var u="per_page="+PER_PAGE;
     if(activeCat==="ofertas") u+="&ofertas=1";
     else if(activeCat!=="all") u+="&category="+encodeURIComponent(activeCat);
-    /* Subcategoría: la faceta "Tipo" del panel manda si se usó; si no, la del nav (activeSub). */
-    var subs = fSubcats.length ? fSubcats : (activeSub ? [activeSub] : []);
+    /* La subcategoría visible en la barra es la única fuente del filtro. */
+    var subs = activeSub ? [activeSub] : [];
     if(subs.length) u+="&subcategory="+encodeURIComponent(subs.join(","));
     if(query.length>=2) u+="&q="+encodeURIComponent(query);
     /* Panel de filtros: marca(s), tipo(s) y orden. Van al SERVIDOR por lo mismo que lo demás
@@ -3190,7 +3163,11 @@ html[data-theme="dark"] #site :is(.tb-cuenta,.tb-fav,.tb-cart,.tb-filt):hover{ba
     if(!s){ try{ s=JSON.parse(sessionStorage.getItem(STORE_KEY)||"null"); }catch(e){} }
     if(!s) return false;
     query=s.query||""; activeCat=s.cat||"all"; activeSub=s.sub||"";
-    fBrands=s.fBrands||[]; fSubcats=s.fSubcats||[]; fSort=s.fSort||"name";
+    fBrands=s.fBrands||[]; fSubcats=[]; fSort=s.fSort||"name";
+    /* Migra sesiones anteriores: "Tipo" ahora es la subcategoría visible del menú. */
+    if(!activeSub && s.fSubcats && s.fSubcats.length){
+      activeCat="all"; activeSub=s.fSubcats[0];
+    }
     fBrandsLoaded=false; fSubcatsLoaded=false;
     var qi=$("q"); if(qi) qi.value=query;
     syncNavQuery(query);
