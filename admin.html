@@ -16,7 +16,7 @@
   <!-- Tema (claro/oscuro): antes de la hoja para pintar ya con el tema elegido -->
   <script src="assets/theme.js?v=20260721a"></script>
   <link rel="stylesheet" href="styles.css?v=20260727b">
-  <link rel="stylesheet" href="assets/admin.css?v=20260727a">
+  <link rel="stylesheet" href="assets/admin.css?v=20260727b">
 </head>
 <body class="admin">
 
@@ -199,8 +199,31 @@
           <button type="button" class="btn btn--primary btn--sm" id="catalog-rescue">
             Completar fotos faltantes
           </button>
+          <button type="button" class="btn btn--sm catalog-rescue-report-btn" id="catalog-rescue-report">
+            Ver resultados de fotografías
+          </button>
           <span class="catalog-rescue-status" id="catalog-rescue-status" role="status" aria-live="polite"></span>
         </div>
+        <section class="catalog-rescue-report" id="catalog-rescue-report-panel" hidden aria-labelledby="catalog-rescue-report-title">
+          <div class="catalog-rescue-report__head">
+            <div>
+              <h3 id="catalog-rescue-report-title">Resultados de búsqueda de fotografías</h3>
+              <p>Registro persistente del tercer filtro oficial. Las coincidencias dudosas nunca se publican automáticamente.</p>
+            </div>
+            <button type="button" class="catalog-rescue-report__close" id="catalog-rescue-report-close" aria-label="Cerrar resultados">×</button>
+          </div>
+          <div class="catalog-rescue-report__stats" id="catalog-rescue-report-stats"></div>
+          <div class="catalog-rescue-report__filters" id="catalog-rescue-report-filters" aria-label="Filtrar resultados">
+            <button type="button" class="chip is-selected" data-rescue-status="">Todos</button>
+            <button type="button" class="chip" data-rescue-status="ok">Encontradas</button>
+            <button type="button" class="chip" data-rescue-status="sin_datos">Sin coincidencia</button>
+            <button type="button" class="chip" data-rescue-status="revision">Por revisar</button>
+            <button type="button" class="chip" data-rescue-status="error">Con error</button>
+          </div>
+          <div class="table-wrap">
+            <table class="admin-table" id="catalog-rescue-report-table"></table>
+          </div>
+        </section>
         <div class="admin-card">
           <div class="table-wrap"><table class="admin-table" id="catalog-table"></table></div>
         </div>
@@ -277,7 +300,7 @@
   <!-- Generador del recibo de TIENDA: permite que el panel descargue el PDF de una
        compra aunque el cliente todavía no lo haya generado desde "Mis compras". -->
   <script src="assets/shop-ticket.js?v=20260722a" defer></script>
-  <script src="assets/admin.js?v=20260727a" defer></script>
+  <script src="assets/admin.js?v=20260727b" defer></script>
   <!-- Selector de fotos de la vista de Catálogo. Va DESPUÉS de admin.js y en archivo
        aparte: se engancha solo por delegación en [data-foto], así que si fallara, el
        catálogo sigue listando productos igual que antes. -->

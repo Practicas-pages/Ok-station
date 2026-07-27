@@ -246,6 +246,9 @@
     },
     productDetail:    function (id) { return apiGet("/admin/product-detail.php?id=" + encodeURIComponent(id)); },
     imageRescue:      function (limit) { return apiPost("/admin/image-rescue.php", { limit: limit || 10 }); },
+    imageRescueReport:function (status) {
+      return apiGet("/admin/image-rescue-report.php" + (status ? "?status=" + encodeURIComponent(status) : ""));
+    },
     /* Solo `primary` y `remove`: PONER una foto es trabajo de admin-fotos.js +
        image-set.php, que además la descargan a nuestro servidor. */
     productImage:     function (payload) { return apiPost("/admin/product-image.php", payload); },
@@ -1720,6 +1723,68 @@
   window.okAdminSinFoto = function () { return catalogSinFoto.slice(); };
 
   var catalogRescueBusy = false;
+  var catalogRescueStatus = "";
+  var catalogRescueRows = [];
+
+  function rescueEstado(estado) {
+    return {
+      ok: ["Encontrada", "catalog-rescue-badge is-ok"],
+      sin_datos: ["Sin coincidencia", "catalog-rescue-badge is-empty"],
+      revision: ["Por revisar", "catalog-rescue-badge is-review"],
+      error: ["Error temporal", "catalog-rescue-badge is-error"]
+    }[estado] || ["Sin estado", "catalog-rescue-badge"];
+  }
+
+  function renderCatalogRescueReport() {
+    var t = $("#catalog-rescue-report-table");
+    if (!t) return;
+    var head = '<thead><tr><th>Producto</th><th>Resultado</th><th>Coincidencia</th><th>Fecha</th></tr></thead>';
+    var rows = catalogRescueRows.filter(function (r) {
+      return !catalogRescueStatus || r.status === catalogRescueStatus;
+    });
+    if (!rows.length) {
+      t.innerHTML = head + '<tbody><tr><td colspan="4" class="catalog-empty">No hay productos en este resultado.</td></tr></tbody>';
+      return;
+    }
+    t.innerHTML = head + "<tbody>" + rows.map(function (r) {
+      var estado = rescueEstado(r.status);
+      var thumb = r.thumb
+        ? '<img class="catalog-thumb" src="' + esc(r.thumb) + '" alt="" loading="lazy">'
+        : '<span class="catalog-thumb catalog-thumb--empty" aria-hidden="true"></span>';
+      var clave = r.match_key || r.sku || r.supplier_ref || "—";
+      return '<tr><td><div class="catalog-prod">' + thumb + '<div><b>' + esc(r.name) + '</b>' +
+        '<div class="catalog-note">' + esc(r.brand || "Sin marca") + '</div></div></div></td>' +
+        '<td><span class="' + estado[1] + '">' + estado[0] + '</span>' +
+        '<div class="catalog-note">' + esc(r.detail || "") + '</div></td>' +
+        '<td><b>' + esc(clave) + '</b>' +
+        (r.confidence !== null && r.confidence !== "" ? '<div class="catalog-note">Confianza: ' + Number(r.confidence) + '%</div>' : '') +
+        '</td><td>' + esc(r.tried_at || "—") + '</td></tr>';
+    }).join("") + "</tbody>";
+  }
+
+  function loadCatalogRescueReport(openPanel) {
+    var panel = $("#catalog-rescue-report-panel");
+    var t = $("#catalog-rescue-report-table");
+    if (openPanel && panel) panel.hidden = false;
+    if (t) t.innerHTML = '<tbody><tr><td class="catalog-empty">Cargando resultados…</td></tr></tbody>';
+    return DataSource.imageRescueReport("").then(function (j) {
+      catalogRescueRows = (j && j.results) || [];
+      var c = (j && j.counts) || {};
+      var stats = $("#catalog-rescue-report-stats");
+      if (stats) stats.innerHTML =
+        reportStat("Encontradas", c.ok || 0) +
+        reportStat("Sin coincidencia", c.sin_datos || 0) +
+        reportStat("Por revisar", c.revision || 0) +
+        reportStat("Con error", c.error || 0);
+      renderCatalogRescueReport();
+      if (j && j.notice && !catalogRescueRows.length && t) {
+        t.innerHTML = '<tbody><tr><td class="catalog-empty">' + esc(j.notice) + '</td></tr></tbody>';
+      }
+    }).catch(function () {
+      if (t) t.innerHTML = '<tbody><tr><td class="catalog-empty">No se pudo cargar el historial.</td></tr></tbody>';
+    });
+  }
+
   function runCatalogRescue() {
     if (catalogRescueBusy) return;
     var btn = $("#catalog-rescue"), msg = $("#catalog-rescue-status");
@@ -1732,6 +1797,7 @@
       if (btn) { btn.disabled = false; btn.textContent = "Completar fotos faltantes"; }
       if (msg) { msg.textContent = texto; msg.style.color = error ? "#B91C1C" : ""; }
       renderCatalog();
+      loadCatalogRescueReport(false);
     }
 
     function siguiente() {
@@ -2213,6 +2279,24 @@
     }
     var catalogRescueEl = $("#catalog-rescue");
     if (catalogRescueEl) catalogRescueEl.addEventListener("click", runCatalogRescue);
+    var catalogRescueReportEl = $("#catalog-rescue-report");
+    if (catalogRescueReportEl) catalogRescueReportEl.addEventListener("click", function () {
+      loadCatalogRescueReport(true);
+    });
+    var catalogRescueCloseEl = $("#catalog-rescue-report-close");
+    if (catalogRescueCloseEl) catalogRescueCloseEl.addEventListener("click", function () {
+      var panel = $("#catalog-rescue-report-panel"); if (panel) panel.hidden = true;
+    });
+    $$("#catalog-rescue-report-filters [data-rescue-status]").forEach(function (chip) {
+      chip.addEventListener("click", function () {
+        $$("#catalog-rescue-report-filters [data-rescue-status]").forEach(function (x) {
+          x.classList.remove("is-selected");
+        });
+        chip.classList.add("is-selected");
+        catalogRescueStatus = chip.dataset.rescueStatus || "";
+        renderCatalogRescueReport();
+      });
+    });
 
     var apptStatus = "", apptDate = "";
     $$("#appt-filters .chip").forEach(function (c) {

@@ -23,6 +23,7 @@ if (PHP_SAPI !== 'cli') {
 }
 
 require __DIR__ . '/../api/lib/env.php';
+require __DIR__ . '/../api/lib/ImagenSegura.php';
 load_env(__DIR__ . '/../.env');
 $cfg = require __DIR__ . '/../api/config.php';
 $d = $cfg['db'];
@@ -108,7 +109,9 @@ foreach ($rows as $r) {
         echo "  ✗ #{$r['id']} no es una imagen válida o excede 8 MB\n";
         continue;
     }
-    $fname = $r['id'] . '.' . $exts[$mime];
+    $data = ImagenSegura::centrarProducto($data, $mime);
+    $marca = ImagenSegura::puedeCentrar() && $mime !== 'image/gif' ? '-center' : '';
+    $fname = $r['id'] . $marca . '.' . $exts[$mime];
     $target = $dir . '/' . $fname;
     $tmp = $target . '.part';
     if (file_put_contents($tmp, $data, LOCK_EX) === false || !@rename($tmp, $target)) {

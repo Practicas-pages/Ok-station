@@ -24,6 +24,11 @@ final class ImagenSegura
     public const MIN_LADO   = 200;              // px; por debajo suele ser un ícono o un logo
     public const MAX_BYTES  = 8 * 1024 * 1024;  // 8 MB; más que eso no es una foto de producto
 
+    public static function puedeCentrar(): bool
+    {
+        return function_exists('imagecreatefromstring') && function_exists('imagecreatetruecolor');
+    }
+
     /**
      * Dominios de los que SÍ se acepta descargar. No es una lista de "sitios buenos":
      * es la lista de sitios de los que este negocio ya obtiene contenido legítimamente
@@ -163,19 +168,98 @@ final class ImagenSegura
     }
 
     /**
+     * Recorta el lienzo blanco/transparente que algunos proveedores dejan alrededor
+     * del artículo. La detección se hace sobre una copia de hasta 600 px para evitar
+     * recorrer millones de píxeles; el recorte se aplica al original y conserva 5 px.
+     *
+     * Si GD no está disponible, la imagen es animada o no hay un fondo claro
+     * reconocible, devuelve exactamente los bytes originales.
+     */
+    public static function centrarProducto(string $data, string $mime): string
+    {
+        if (!self::puedeCentrar() || $mime === 'image/gif') return $data;
+        if ($mime === 'image/webp' && !function_exists('imagewebp')) return $data;
+        $src = @imagecreatefromstring($data);
+        if (!$src) return $data;
+
+        $w = imagesx($src); $h = imagesy($src);
+        if ($w < 2 || $h < 2) { imagedestroy($src); return $data; }
+        $factor = min(1, 600 / max($w, $h));
+        $sw = max(1, (int) round($w * $factor));
+        $sh = max(1, (int) round($h * $factor));
+        $muestra = imagecreatetruecolor($sw, $sh);
+        imagealphablending($muestra, false);
+        imagesavealpha($muestra, true);
+        imagecopyresampled($muestra, $src, 0, 0, 0, 0, $sw, $sh, $w, $h);
+
+        $izq = $sw; $arr = $sh; $der = -1; $aba = -1;
+        for ($y = 0; $y < $sh; $y++) {
+            for ($x = 0; $x < $sw; $x++) {
+                $rgba = imagecolorat($muestra, $x, $y);
+                $a = ($rgba >> 24) & 0x7F;
+                $r = ($rgba >> 16) & 0xFF;
+                $g = ($rgba >> 8) & 0xFF;
+                $b = $rgba & 0xFF;
+                /* Transparente o casi blanco/neutro = margen. Las sombras suaves
+                   permanecen porque alguno de sus canales cae debajo del umbral. */
+                $esMargen = $a >= 120 || ($r >= 246 && $g >= 246 && $b >= 246 && max($r, $g, $b) - min($r, $g, $b) <= 8);
+                if ($esMargen) continue;
+                if ($x < $izq) $izq = $x;
+                if ($x > $der) $der = $x;
+                if ($y < $arr) $arr = $y;
+                if ($y > $aba) $aba = $y;
+            }
+        }
+        imagedestroy($muestra);
+        if ($der < $izq || $aba < $arr) { imagedestroy($src); return $data; }
+
+        $x1 = max(0, (int) floor($izq / $factor) - 5);
+        $y1 = max(0, (int) floor($arr / $factor) - 5);
+        $x2 = min($w - 1, (int) ceil(($der + 1) / $factor) + 4);
+        $y2 = min($h - 1, (int) ceil(($aba + 1) / $factor) + 4);
+        $cw = $x2 - $x1 + 1; $ch = $y2 - $y1 + 1;
+        /* Evita recomprimir si apenas quitaría un borde insignificante. */
+        if ($cw >= $w * .98 && $ch >= $h * .98) { imagedestroy($src); return $data; }
+
+        $dst = imagecreatetruecolor($cw, $ch);
+        if ($mime === 'image/png' || $mime === 'image/webp') {
+            imagealphablending($dst, false);
+            imagesavealpha($dst, true);
+            $transparente = imagecolorallocatealpha($dst, 255, 255, 255, 127);
+            imagefilledrectangle($dst, 0, 0, $cw, $ch, $transparente);
+        } else {
+            $blanco = imagecolorallocate($dst, 255, 255, 255);
+            imagefilledrectangle($dst, 0, 0, $cw, $ch, $blanco);
+        }
+        imagecopy($dst, $src, 0, 0, $x1, $y1, $cw, $ch);
+        imagedestroy($src);
+
+        ob_start();
+        if ($mime === 'image/png') imagepng($dst, null, 6);
+        elseif ($mime === 'image/webp' && function_exists('imagewebp')) imagewebp($dst, null, 88);
+        else imagejpeg($dst, null, 90);
+        $salida = ob_get_clean();
+        imagedestroy($dst);
+        return is_string($salida) && $salida !== '' ? $salida : $data;
+    }
+
+    /**
      * Guarda la imagen en disco y devuelve la ruta pública (/assets/img/products/…).
      * Mismo esquema de carpetas que download-product-images.php, para que la tienda
      * la sirva sin cambiar nada.
      */
     public static function guardar(int $productId, string $data, string $ext): string
     {
+        $mime = array_search($ext, self::MIMES, true);
+        if (is_string($mime)) $data = self::centrarProducto($data, $mime);
         $webRoot = dirname(__DIR__, 3);                       // …/okstation.mx
         $dir     = $webRoot . '/assets/img/products/' . $productId;
         if (!is_dir($dir)) @mkdir($dir, 0775, true);
 
         /* Nombre estable y sin sorpresas: id del producto + huella del contenido. La
            huella evita pisar una foto distinta y, de paso, detecta duplicados. */
-        $fname = $productId . '-' . substr(sha1($data), 0, 10) . '.' . $ext;
+        $marca = self::puedeCentrar() && $ext !== 'gif' ? '-center-' : '-';
+        $fname = $productId . $marca . substr(sha1($data), 0, 10) . '.' . $ext;
         file_put_contents($dir . '/' . $fname, $data);
         return '/assets/img/products/' . $productId . '/' . $fname;
     }
