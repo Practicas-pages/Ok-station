@@ -241,11 +241,11 @@
       if (DEMO) return Promise.resolve({ ok: true, products: [], stats: {}, categories: [] });
       var p = [];
       if (f.q)        p.push("q=" + encodeURIComponent(f.q));
-      if (f.category) p.push("category=" + encodeURIComponent(f.category));
       if (f.images)   p.push("images=" + encodeURIComponent(f.images));
       return apiGet("/admin/catalog.php" + (p.length ? "?" + p.join("&") : ""));
     },
     productDetail:    function (id) { return apiGet("/admin/product-detail.php?id=" + encodeURIComponent(id)); },
+    imageRescue:      function (limit) { return apiPost("/admin/image-rescue.php", { limit: limit || 10 }); },
     /* Solo `primary` y `remove`: PONER una foto es trabajo de admin-fotos.js +
        image-set.php, que además la descargan a nuestro servidor. */
     productImage:     function (payload) { return apiPost("/admin/product-image.php", payload); },
@@ -1688,7 +1688,7 @@
   /* ============================================================
      CATÁLOGO — productos de la tienda y estado de sus imágenes
      ============================================================ */
-  var catalogSearch = "", catalogImages = "", catalogCategory = "", catalogCatsLoaded = false;
+  var catalogSearch = "", catalogImages = "";
 
   /* Semáforo de fotos. Se muestran DOS datos porque NO son lo mismo:
        images        → fotos registradas
@@ -1719,6 +1719,49 @@
   var catalogSinFoto = [];
   window.okAdminSinFoto = function () { return catalogSinFoto.slice(); };
 
+  var catalogRescueBusy = false;
+  function runCatalogRescue() {
+    if (catalogRescueBusy) return;
+    var btn = $("#catalog-rescue"), msg = $("#catalog-rescue-status");
+    var total = { procesados: 0, rescatados: 0, revision: 0, errores: 0 };
+    catalogRescueBusy = true;
+    if (btn) { btn.disabled = true; btn.textContent = "Completando…"; }
+
+    function terminar(texto, error) {
+      catalogRescueBusy = false;
+      if (btn) { btn.disabled = false; btn.textContent = "Completar fotos faltantes"; }
+      if (msg) { msg.textContent = texto; msg.style.color = error ? "#B91C1C" : ""; }
+      renderCatalog();
+    }
+
+    function siguiente() {
+      if (msg) msg.textContent = "Analizando lote… " + total.procesados + " productos revisados.";
+      DataSource.imageRescue(10).then(function (j) {
+        if (!j || !j.ok || !j.resultado) {
+          terminar((j && (j.error || j.message)) || "No se pudo ejecutar el rescate.", true);
+          return;
+        }
+        var r = j.resultado;
+        ["procesados", "rescatados", "revision", "errores"].forEach(function (k) {
+          total[k] += Number(r[k]) || 0;
+        });
+        if ((Number(r.procesados) || 0) > 0 && (Number(r.pendientes) || 0) > 0) {
+          siguiente();
+          return;
+        }
+        terminar(
+          total.rescatados + " productos completados automáticamente; " +
+          total.revision + " requieren confirmar la variante. " +
+          (Number(r.sin_imagen_total) || 0) + " productos siguen sin foto en todo el catálogo.",
+          false
+        );
+      }).catch(function () {
+        terminar("Se perdió la conexión durante el rescate. Puedes continuarlo sin perder avances.", true);
+      });
+    }
+    siguiente();
+  }
+
   function renderCatalog() {
     var head = '<thead><tr><th>Producto</th><th>Marca</th><th>Categoría</th><th>Imágenes</th>' +
       '<th>Stock</th><th>Precio</th><th>Estado</th></tr></thead>';
@@ -1726,7 +1769,7 @@
     if (!t) return;
     t.innerHTML = head + '<tbody><tr><td colspan="7" class="catalog-empty">Cargando catálogo…</td></tr></tbody>';
 
-    DataSource.catalog({ q: catalogSearch.trim(), category: catalogCategory, images: catalogImages })
+    DataSource.catalog({ q: catalogSearch.trim(), images: catalogImages })
       .then(function (j) {
         var list = (j && j.products) || [];
 
@@ -1755,19 +1798,6 @@
           var pend = (s.sin_imagenes || 0) + (s.pocas || 0);
           navBadge.textContent = pend;
           navBadge.hidden = !pend;
-        }
-
-        /* Las categorías se llenan UNA sola vez: vienen del catálogo entero. Si se
-           recargaran en cada filtro, al elegir una categoría el select se quedaría
-           solo con esa y ya no podrías volver a las demás. */
-        if (!catalogCatsLoaded && j && j.categories && j.categories.length) {
-          var sel = $("#catalog-category");
-          if (sel) {
-            sel.innerHTML = '<option value="">Todas</option>' + j.categories.map(function (c) {
-              return '<option value="' + esc(c.category) + '">' + esc(c.category) + " (" + c.n + ")</option>";
-            }).join("");
-            catalogCatsLoaded = true;
-          }
         }
 
         if (!list.length) {
@@ -2181,11 +2211,8 @@
         catalogTimer = setTimeout(renderCatalog, 250);
       });
     }
-    var catalogCatEl = $("#catalog-category");
-    if (catalogCatEl) catalogCatEl.addEventListener("change", function () {
-      catalogCategory = catalogCatEl.value;
-      renderCatalog();
-    });
+    var catalogRescueEl = $("#catalog-rescue");
+    if (catalogRescueEl) catalogRescueEl.addEventListener("click", runCatalogRescue);
 
     var apptStatus = "", apptDate = "";
     $$("#appt-filters .chip").forEach(function (c) {

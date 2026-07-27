@@ -10,8 +10,9 @@
 #                           IMÁGENES del proveedor. Es el que de verdad importa.
 #   2. icecat-enrich        Rellena los huecos que Exel no cubre: productos sin
 #                           foto, sin descripción o sin ficha técnica.
-#   3. descarga de imágenes Copia al servidor las fotos remotas registradas.
-#   4. purga de Varnish     Para que el cliente vea los precios de hoy y no los
+#   3. rescate oficial      Busca coincidencias exactas en fabricantes compatibles.
+#   4. descarga de imágenes Copia al servidor las fotos remotas registradas.
+#   5. purga de Varnish     Para que el cliente vea los precios de hoy y no los
 #                           de anoche.
 #
 # NO usa `set -e` a propósito: si Icecat falla, el catálogo de Exel ya quedó bien
@@ -28,6 +29,7 @@ cd "$(dirname "$0")/.." || exit 1
 PHP="${PHP_BIN:-php}"
 ICECAT_TOPE="${ICECAT_TOPE:-1000}"     # productos por noche que se consultan a Icecat
 IMG_DOWNLOAD_TOPE="${IMG_DOWNLOAD_TOPE:-500}" # imágenes remotas que se localizan por noche
+RESCATE_TOPE="${RESCATE_TOPE:-250}"     # faltantes que revisa la tercera pasada
 FALLOS=0
 
 echo "════════════════════════════════════════════════════════════"
@@ -39,7 +41,7 @@ echo "════════════════════════�
 # intacto (mejor precios de ayer que una tienda vacía). Eso cuenta como fallo
 # para que te enteres, pero no impide seguir.
 echo ""
-echo "▶ 1/4  Exel del Norte (catálogo, precios, stock, ofertas e imágenes)"
+echo "▶ 1/5  Exel del Norte (catálogo, precios, stock, ofertas e imágenes)"
 if "$PHP" backend/tools/exel-sync.php; then
   echo "   ✓ Exel al día"
 else
@@ -52,7 +54,7 @@ fi
 # foto. Los que ya consultó quedan marcados y no se vuelven a preguntar, así que
 # tras unas noches esto se queda casi sin trabajo: solo los productos NUEVOS.
 echo ""
-echo "▶ 2/4  Icecat (rellena imágenes, descripciones y fichas que falten)"
+echo "▶ 2/5  Icecat (rellena imágenes, descripciones y fichas que falten)"
 if "$PHP" backend/tools/icecat-enrich.php "$ICECAT_TOPE"; then
   echo "   ✓ Icecat al día"
 else
@@ -60,9 +62,19 @@ else
   FALLOS=$((FALLOS + 1))
 fi
 
-# ── 3. Copia local de imágenes ────────────────────────────────────────────────
+# ── 3. Rescate exacto en fabricantes ─────────────────────────────────────────
 echo ""
-echo "▶ 3/4  Imágenes (copia local de hasta ${IMG_DOWNLOAD_TOPE} remotas)"
+echo "▶ 3/5  Rescate de imágenes oficiales (hasta ${RESCATE_TOPE} faltantes)"
+if "$PHP" backend/tools/rescate-imagenes.php "$RESCATE_TOPE"; then
+  echo "   ✓ Tercera pasada completada"
+else
+  echo "   ✗ El rescate tuvo errores temporales; se reintentará en la siguiente corrida."
+  FALLOS=$((FALLOS + 1))
+fi
+
+# ── 4. Copia local de imágenes ────────────────────────────────────────────────
+echo ""
+echo "▶ 4/5  Imágenes (copia local de hasta ${IMG_DOWNLOAD_TOPE} remotas)"
 if "$PHP" backend/tools/download-product-images.php --limit="$IMG_DOWNLOAD_TOPE"; then
   echo "   ✓ Lote de imágenes procesado"
 else
@@ -70,9 +82,9 @@ else
   FALLOS=$((FALLOS + 1))
 fi
 
-# ── 4. Caché ──────────────────────────────────────────────────────────────────
+# ── 5. Caché ──────────────────────────────────────────────────────────────────
 echo ""
-echo "▶ 4/4  Purgando caché"
+echo "▶ 5/5  Purgando caché"
 if command -v varnishadm >/dev/null 2>&1; then
   if varnishadm "ban req.http.host ~ okstation.mx" >/dev/null 2>&1; then
     echo "   ✓ Varnish purgado"

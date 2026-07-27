@@ -4,7 +4,7 @@
  * Lista los productos con el CONTEO DE IMÁGENES de cada uno para detectar de un vistazo
  * a qué productos les faltan fotos. Requiere el permiso 'shop.view'.
  * Filtros: ?q= (nombre/sku/referencia/marca)
- *          &category= &images=sin|pocas|ok|remotas &active=1|0
+ *          &images=sin|pocas|ok|remotas &active=1|0
  */
 require __DIR__ . '/../_bootstrap.php';
 require __DIR__ . '/../lib/authz.php';
@@ -14,7 +14,6 @@ only_method('GET');
 $user = require_permission('shop.view');
 
 $q        = trim((string) ($_GET['q'] ?? ''));
-$category = trim((string) ($_GET['category'] ?? ''));
 $images   = $_GET['images'] ?? null;   // sin | pocas | ok
 $active   = $_GET['active'] ?? null;   // '1' | '0'
 
@@ -61,7 +60,6 @@ if ($catsOk) {
     $where[] = 'p.category IN (' . implode(',', array_fill(0, count($catsOk), '?')) . ')';
     foreach ($catsOk as $c) $params[] = $c;
 }
-if ($category !== '')                   { $where[] = "p.category = ?";  $params[] = $category; }
 if ($active === '1' || $active === '0') { $where[] = "p.is_active = ?"; $params[] = (int) $active; }
 /* El alias `images` no existe todavía en el WHERE (SQL lo evalúa después), por eso
    aquí se repite la subconsulta en vez de reusar el alias. En el ORDER BY sí se puede. */
@@ -111,13 +109,6 @@ $stStats = db()->prepare(
 $stStats->execute($pAlc);
 $stats = $stStats->fetch();
 
-/* Categorías reales del catálogo, para llenar el filtro sin inventar nombres. */
-$cats = db()->query(
-    "SELECT category, COUNT(*) AS n FROM products
-      WHERE category IS NOT NULL AND category <> ''
-      GROUP BY category ORDER BY category"
-)->fetchAll();
-
 log_activity((int) $user['id'], 'shop.view', 'products', null, ['q' => $q, 'images' => $images]);
 
 respond([
@@ -132,5 +123,4 @@ respond([
         'ok'            => (int) ($stats['ok'] ?? 0),
         'sin_descargar' => (int) ($stats['sin_descargar'] ?? 0),
     ],
-    'categories' => $cats,
 ]);

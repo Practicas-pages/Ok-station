@@ -168,6 +168,34 @@ final class Nextep
     }
 
     /**
+     * Coincidencia inequívoca por nombre normalizado.
+     *
+     * Se usa únicamente cuando Exel no conservó la clave NE-xxx. No es una búsqueda
+     * "parecida": después de quitar marca y presentación, TODOS los tokens —incluidos
+     * números, medidas y variantes— deben ser exactamente los mismos. Además debe
+     * existir una sola coincidencia en el catálogo del fabricante. Si hay dos, no se
+     * elige ninguna y el producto queda para revisión.
+     */
+    public static function porNombreExacto(string $nombre): ?array
+    {
+        $firma = self::firmaNombre($nombre);
+        if ($firma === '') return null;
+
+        $matches = [];
+        foreach (self::catalogoDetallado() as $c) {
+            if (self::firmaNombre((string) $c['nombre']) === $firma) $matches[] = $c;
+            if (count($matches) > 1) return null;
+        }
+        if (count($matches) !== 1) return null;
+
+        return [
+            'imagenes' => [$matches[0]['url']],
+            'nombre'   => $matches[0]['nombre'],
+            'sku'      => $matches[0]['clave'],
+        ];
+    }
+
+    /**
      * Las mejores coincidencias por NOMBRE de un producto contra el catálogo de
      * NEXTEP. Devuelve hasta $n candidatas ['clave','nombre','url','score'] ordenadas
      * de mejor a peor, filtrando las que no llegan a un parecido mínimo.
@@ -198,6 +226,14 @@ final class Nextep
         $tb = self::tokens($b);
         if (!$ta || !$tb) return 0.0;
         return count(array_intersect($ta, $tb)) / max(count($ta), count($tb));
+    }
+
+    /** Firma estable para el match exacto: mismo conjunto completo de tokens. */
+    private static function firmaNombre(string $nombre): string
+    {
+        $tokens = self::tokens($nombre);
+        sort($tokens, SORT_STRING);
+        return implode('|', $tokens);
     }
 
     /**

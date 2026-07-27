@@ -400,8 +400,12 @@ html.store-view .header-bar, html.store-view .site-header{display:none}
      limitan a la altura que queda, para que ningún encabezado quede tapado.
      El 158px es respaldo: oknav.js publica en --oknav-h la altura real medida. */
   html.store-view #site .ov{top:var(--oknav-h,158px)}
-  html.store-view #site .modal{max-height:calc(100vh - var(--oknav-h,158px) - 30px)}
-  html.store-view #site .pvside{max-height:calc(100vh - var(--oknav-h,158px) - 30px)}
+  /* La vista previa mide la parte REALMENTE visible de la navbar al abrir. Al final
+     del catálogo la barra puede haber salido de la ventana; reservar todavía sus
+     158px empujaba la ficha hacia abajo y parecía que se había atorado. */
+  html.store-view #site #prodOv{top:var(--pv-top,var(--oknav-h,158px))}
+  html.store-view #site #prodModal{max-height:calc(100dvh - var(--pv-top,var(--oknav-h,158px)) - 24px)}
+  html.store-view #site #prodOv .pvside{max-height:calc(100dvh - var(--pv-top,var(--oknav-h,158px)) - 24px)}
 }
 @media(max-width:1000px){ html.store-view .oknav{display:none} }
 #site .topbar,#site .popbar-row{font-family:"Inter",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
@@ -718,7 +722,7 @@ html.store-view .header-bar, html.store-view .site-header{display:none}
    catálogo sigue haciendo scroll normal mientras están abiertas. Se reserva
    el hueco de la barra de scroll para que no haya saltito al abrir un modal. */
 html{scrollbar-gutter:stable}
-#site .ov{position:fixed; inset:0; background:rgba(18,20,28,.5); display:none; align-items:center; justify-content:center; padding:18px; z-index:70}
+#site .ov{position:fixed; inset:0; min-height:0; box-sizing:border-box; overflow-y:auto; overscroll-behavior:contain; background:rgba(18,20,28,.5); display:none; align-items:center; justify-content:center; padding:18px; z-index:70}
 #site .ov.show{display:flex}
 #site .modal{position:relative; background:#fff; border-radius:22px; max-width:460px; width:100%; max-height:90vh; overflow:auto; box-shadow:0 26px 74px rgba(18,20,28,.24)}
 #site .modal .mh{position:relative; height:170px}
@@ -779,7 +783,7 @@ html.q-lock, html.q-lock body{overflow:hidden}
 #site .pvside .specs.specs-kv{margin:0}
 /* Con banners laterales abiertos, los 3 paneles comparten altura → bordes alineados */
 @media(min-width:1241px){
-  #site #prodOv.pv-3col > .pvside,#site #prodOv.pv-3col > #prodModal{height:min(calc(100vh - var(--oknav-h,158px) - 30px),820px); max-height:min(calc(100vh - var(--oknav-h,158px) - 30px),820px)}
+  #site #prodOv.pv-3col > .pvside,#site #prodOv.pv-3col > #prodModal{height:min(calc(100dvh - var(--pv-top,var(--oknav-h,158px)) - 24px),820px); max-height:min(calc(100dvh - var(--pv-top,var(--oknav-h,158px)) - 24px),820px)}
 }
 /* Barras de scroll discretas dentro de los paneles */
 #site .pvside::-webkit-scrollbar,#site #prodModal::-webkit-scrollbar{width:10px}
@@ -787,7 +791,7 @@ html.q-lock, html.q-lock body{overflow:hidden}
 #site .pvside::-webkit-scrollbar-thumb:hover,#site #prodModal::-webkit-scrollbar-thumb:hover{background:#c3cede}
 /* Responsivo: en pantallas que no dan para 3 columnas, se APILAN (los tres siguen visibles) */
 @media(max-width:1240px){
-  #site #prodOv.show{flex-direction:column; overflow-y:auto; padding:16px 12px; gap:12px}
+  #site #prodOv.show{flex-direction:column; justify-content:flex-start; overflow-y:auto; padding:16px 12px; gap:12px}
   #site .pvside{flex:0 0 auto; width:min(520px,94vw); max-width:min(520px,94vw); max-height:none}
   #site #prodModal{max-height:none}
 }
@@ -2385,6 +2389,17 @@ html[data-theme="dark"] #site .side-back:hover{background:rgba(255,255,255,.08)}
   /* Con algún banner lateral abierto, los 3 paneles toman la MISMA altura para que
      se vean alineados/sincronizados (en desktop). Solo el medio → altura natural. */
   function pvSync(){ var ov=$("prodOv"); if(!ov) return; ov.classList.toggle("pv-3col", !$("pvDesc").hidden || !$("pvSpecs").hidden); }
+  function pvPosition(){
+    var ov=$("prodOv"), nav=document.querySelector(".oknav"); if(!ov)return;
+    var top=0;
+    if(nav){
+      var r=nav.getBoundingClientRect();
+      if(r.bottom>0 && r.top<window.innerHeight) top=Math.min(window.innerHeight,Math.max(0,r.bottom));
+    }
+    ov.style.setProperty("--pv-top",Math.round(top)+"px");
+    ov.scrollTop=0;
+    var modal=$("prodModal"); if(modal)modal.scrollTop=0;
+  }
   function openProduct(id){var p=prod(id); if(!p)return; var low=p.stock<=5;
     var save=p.old?Math.round(p.old-p.price):0;
     $("pvDesc").hidden=true; $("pvSpecs").hidden=true; pvSync();   // reinicia los paneles laterales
@@ -2400,7 +2415,7 @@ html[data-theme="dark"] #site .side-back:hover{background:rgba(255,255,255,.08)}
       '<div class="pvmore-specs" hidden><button class="specsmore" type="button" data-specsmore>Ver ficha técnica completa →</button></div>'+
       '<button class="maddbtn" data-madd="'+p.id+'">Agregar al carrito · '+mxn(p.price)+'</button>'+
       '</div>';
-    show("prodOv"); okiEmit("vista-previa");
+    pvPosition(); show("prodOv"); requestAnimationFrame(pvPosition); okiEmit("vista-previa");
     if(p.dbId) enrichPreview(p.dbId);
   }
   $("prodOv").addEventListener("click",function(e){

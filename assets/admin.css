@@ -232,6 +232,10 @@
 .catalog-note { font-size: 0.72rem; font-weight: 500; color: var(--text-muted, #6b7280); margin-top: 2px; white-space: normal; }
 .catalog-note.is-warn { color: #B45309; }
 .catalog-empty { text-align: center; color: var(--text-muted, #6b7280); padding: 24px; white-space: normal; }
+.catalog-rescue-status {
+  min-width: 220px; font-size: 0.78rem; font-weight: 600;
+  color: var(--text-muted, #6b7280);
+}
 /* Aviso ámbar en el menú: productos que todavía necesitan fotos. */
 .admin-nav__badge--warn { background: #FEF3C7; color: #B45309; }
 
