@@ -42,7 +42,7 @@
        enlace repartidas en 12 archivos (incluidos JS compartidos), y así queda
        cubierto también quien llegue por enlace directo, favorito o Google.
        Admin/empleado/directivo con sesión SIGUEN entrando (ver ADMIN_ROLES). */
-    TIENDA_MANTENIMIENTO: true,
+    TIENDA_MANTENIMIENTO: false,
 
     /* Rutas que cuentan como "tienda" para TIENDA_MANTENIMIENTO.
        Cubre la tienda, la compra rápida, las fichas (/producto/49-slug) y las

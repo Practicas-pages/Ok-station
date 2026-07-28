@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <!-- Puerta de mantenimiento: primero que nada, para redirigir antes de pintar. -->
-<script src="/assets/site-guard.js?v=20260720a"></script>
+<script src="/assets/site-guard.js?v=20260728n"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Compra rápida | Ok.station</title>
 <meta name="description" content="Arma tu pedido de papelería en segundos: busca, agrega y paga. Compra rápida de Ok.station.">
@@ -414,6 +414,21 @@ html[data-theme="dark"] .side-cat.on{background:rgba(6,108,255,.20);color:#7cc0f
    compacta; nunca una copia translúcida del renglón completo. */
 .td-row[draggable="true"]{cursor:grab}
 .td-row.dragging{opacity:.72;cursor:grabbing}
+/* Mientras se toma un producto, el pre-carrito se convierte visualmente en el
+   destino. El contorno no altera medidas (evita que la cuadrícula salte) y toda
+   la zona conserva esquinas redondeadas. Al entrar, el trazo se vuelve sólido. */
+body.td-product-drag .td-cart{
+  border-radius:22px;outline:3px dashed #FF7C19;outline-offset:6px;
+  box-shadow:0 0 0 7px rgba(255,124,25,.12);
+  transition:outline-color .14s,box-shadow .14s,transform .14s}
+body.td-product-drag .td-cart::after{
+  content:"Arrastra el producto aquí";position:absolute;right:12px;top:10px;z-index:4;
+  padding:5px 9px;border-radius:99px;background:#FF7C19;color:#fff;
+  font-size:.7rem;font-weight:800;line-height:1;pointer-events:none}
+body.td-product-drag .td-cart.td-drop-over{
+  outline-style:solid;outline-color:#FFE200;
+  box-shadow:0 0 0 9px rgba(255,226,0,.18);transform:scale(1.01)}
+body.td-product-drag .td-cart.td-drop-over::after{content:"Suelta para agregar";background:#FFE200;color:#12141C}
 .td-drop-over .td-cartbox{filter:brightness(1.035)}
 .td-drag-ghost{position:fixed;left:-1000px;top:-1000px;width:230px;min-height:58px;
   display:flex;align-items:center;gap:10px;padding:8px 10px;border:1px solid #D8E1EF;
@@ -583,6 +598,84 @@ body.td-predrag .td-trash{display:flex}
   .td-go{height:48px}
 }
 
+/* ══ COMPRA RÁPIDA EN CELULAR: DOS MITADES SIEMPRE VISIBLES ══
+   Productos y pre-carrito comparten el espacio que queda bajo la navbar. Cada
+   panel scrollea por dentro; la página no salta ni obliga a buscar el carrito
+   varios metros más abajo. En táctil se usa + Agregar (arrastrar queda como
+   mejora de escritorio, donde el navegador sí ofrece un drag fiable). */
+@media(max-width:640px){
+  html,body{height:100%;overflow:hidden}
+  .td-wrap{
+    position:relative;height:calc(100dvh - var(--oknav-h,0px));min-height:0;
+    padding:8px;box-sizing:border-box;display:flex;flex-direction:column;overflow:hidden
+  }
+  .td-topbar{flex:0 0 auto;margin-bottom:8px}
+  .td-topbar .td-back{display:none}
+  .td-top{flex:1 1 auto;flex-wrap:nowrap;gap:8px}
+  .td-catbtn{height:42px}
+  .td-cats{
+    position:absolute;left:8px;right:8px;top:58px;z-index:60;
+    max-height:calc(100% - 66px);margin:0;overflow-y:auto;overscroll-behavior:contain;
+    -webkit-overflow-scrolling:touch
+  }
+  .td-grid{
+    flex:1 1 auto;min-height:0;display:grid;
+    grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,1.08fr) minmax(0,.92fr);
+    gap:8px;overflow:hidden
+  }
+  .td-grid > section{order:1;min-height:0}
+  .td-grid > .td-cart{order:2;min-height:0}
+  .td-panel{height:100%;min-height:0;display:flex;flex-direction:column}
+  .td-panelh{flex:0 0 auto;padding:9px 12px}
+  .td-panelh h2{font-size:.9rem}
+  .td-head{padding-top:7px;padding-bottom:7px;font-size:.65rem}
+  .td-scroll{
+    flex:1 1 auto;min-height:0;height:auto;max-height:none;overflow-y:auto;
+    overscroll-behavior:contain;-webkit-overflow-scrolling:touch
+  }
+  .td-row{padding-top:7px;padding-bottom:7px}
+  .td-img{width:46px;height:46px}
+  .td-head,.td-row{grid-template-columns:46px minmax(0,1fr) 72px 88px;gap:6px}
+  .td-name{font-size:.82rem}
+  .td-meta{font-size:.68rem}
+  .td-price{font-size:.86rem}
+  .td-add{height:40px;font-size:.76rem}
+  .td-wish{left:9px;top:3px;width:34px;height:34px}
+  .td-cart{height:100%;overflow:hidden;display:flex;flex-direction:column}
+  .td-cartbox{
+    flex:1 1 auto;min-height:0;padding:9px 10px;display:flex;flex-direction:column;
+    border-radius:14px;overflow:hidden
+  }
+  .td-cartbox h3{margin-bottom:6px;font-size:.86rem}
+  .td-citems{
+    flex:1 1 auto;min-height:0;max-height:none;overflow-y:auto;
+    overscroll-behavior:contain;-webkit-overflow-scrolling:touch
+  }
+  .td-empty{padding:10px 6px}
+  .td-ci{padding:6px 8px}
+  .td-ci .th{width:34px;height:34px}
+  .td-ci .nm{font-size:.74rem}
+  .td-total{flex:0 0 auto;margin-top:6px;padding:7px}
+  .td-total .val{font-size:1.08rem}
+  .td-total .iva{display:none}
+  .td-go{flex:0 0 auto;height:42px;margin-top:6px}
+  .td-msg{flex:0 0 auto;margin-top:2px;min-height:0}
+  .td-trash{flex:0 0 auto;margin-top:6px;padding:8px}
+}
+
+@media(max-width:380px), (max-height:680px) and (max-width:640px){
+  .td-wrap{padding:6px}
+  .td-topbar{margin-bottom:6px}
+  .td-catbtn{height:38px;font-size:.78rem}
+  .td-cats{left:6px;right:6px;top:50px;max-height:calc(100% - 56px)}
+  .td-grid{gap:6px}
+  .td-panelh{padding:7px 10px}
+  .td-head{display:none}
+  .td-cartbox{padding:7px 8px}
+  .td-cartbox h3{margin-bottom:4px}
+  .td-go{height:38px}
+}
+
 /* ══ MODO OSCURO (html[data-theme="dark"], lo pone theme.js) ══
    Los tokens del design system ya vienen volteados desde styles.css; aquí solo
    los paneles y controles que traían blanco a mano. Las fotos (.td-img) y la
@@ -637,7 +730,7 @@ html[data-theme="dark"] .td-go:disabled{ background:#232D46; color:#67708A }
 /* La MINIATURA del producto conserva su fondo claro a propósito: las fotos
    vienen recortadas sobre blanco y sobre oscuro salen con un halo. */
 </style>
-<link rel="stylesheet" href="/assets/oknav.css?v=20260727m">
+<link rel="stylesheet" href="/assets/oknav.css?v=20260728n">
 </head>
 <body>
 <!-- ─────────────────────────────────────────────────────────────────────────
@@ -646,7 +739,7 @@ html[data-theme="dark"] .td-go:disabled{ background:#232D46; color:#67708A }
      por JavaScript a propósito: los enlaces de navegación deben venir en el HTML
      para que Google los siga, que es justo por lo que la ficha se arma en el
      servidor).
-     Necesita:  <link rel="stylesheet" href="/assets/oknav.css?v=20260727m">
+     Necesita:  <link rel="stylesheet" href="/assets/oknav.css?v=20260728n">
                 <script src="/assets/oknav.js?v=20260724a" defer></script>
      Todos los <svg> llevan width/height propios: sin tamaño intrínseco un icono
      se pinta gigante mientras el CSS va en camino (ya pasó con el del correo).
@@ -754,6 +847,23 @@ html[data-theme="dark"] .td-go:disabled{ background:#232D46; color:#67708A }
   <!-- ══ FILA 2 · tienda ┃ servicios ······ WhatsApp ══════════════════════ -->
   <div class="oknav__row oknav__row--nav">
     <div class="oknav__wrap">
+      <nav class="oknav__mobile-stores" aria-label="Accesos de compra">
+        <a class="oknav__mobile-store" href="/tienda.html#store">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+               stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M3 9l2-5h14l2 5"/><path d="M5 13v7h14v-7"/><path d="M9 20v-5h6v5"/>
+            <path d="M3 9a3 3 0 006 0 3 3 0 006 0 3 3 0 006 0"/>
+          </svg>
+          Tienda
+        </a>
+        <a class="oknav__mobile-store oknav__mobile-store--quick" href="/tienda-dinamica.html">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+               stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M13 2L4 14h8l-1 8 9-12h-8l1-8z"/>
+          </svg>
+          Tienda rápida
+        </a>
+      </nav>
 
       <button type="button" class="oknav__cats" id="oknavCats"
               aria-expanded="false" aria-controls="oknavCatsMenu" aria-haspopup="true">
@@ -1229,9 +1339,13 @@ html[data-theme="dark"] .td-go:disabled{ background:#232D46; color:#67708A }
       var ghost=makeDragGhost(p);
       if(e.dataTransfer.setDragImage) e.dataTransfer.setDragImage(ghost, 24, 24);
       row.classList.add("dragging");
+      document.body.classList.add("td-product-drag");
     });
     row.addEventListener("dragend", function(){
       row.classList.remove("dragging");
+      document.body.classList.remove("td-product-drag");
+      var zone=document.querySelector(".td-drop-over");
+      if(zone) zone.classList.remove("td-drop-over");
       clearDragGhost();
     });
     $("tdRows").appendChild(row);
@@ -1699,6 +1813,7 @@ html[data-theme="dark"] .td-go:disabled{ background:#232D46; color:#67708A }
     zone.addEventListener("drop", function(e){
       e.preventDefault();
       zone.classList.remove("td-drop-over");
+      document.body.classList.remove("td-product-drag");
       var id = e.dataTransfer.getData("text/plain");
       if (id.indexOf("pre:") === 0) return;   // eso viene del pre-carrito (descartar), no re-agregar
       var p = byId[id];
@@ -1746,6 +1861,8 @@ html[data-theme="dark"] .td-go:disabled{ background:#232D46; color:#67708A }
        o con el elemento ya destruido), la marca no se queda pegada. */
     document.addEventListener("dragend", function(){
       document.body.classList.remove("td-predrag");
+      document.body.classList.remove("td-product-drag");
+      var z = document.querySelector(".td-drop-over"); if (z) z.classList.remove("td-drop-over");
       clearDragGhost();
     });
   })();

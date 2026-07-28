@@ -2,7 +2,7 @@
 <html lang="es-MX" class="store-view"><!-- la tienda abre SIEMPRE en el catálogo (landing eliminada) -->
 <meta charset="utf-8">
 <!-- Puerta de mantenimiento: primero que nada, para redirigir antes de pintar. -->
-<script src="/assets/site-guard.js?v=20260720a"></script>
+<script src="/assets/site-guard.js?v=20260728n"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 
 <title>Tienda en Línea de Papelería, Tinta y Tóner | Ok.station</title>
@@ -38,7 +38,7 @@
 <script src="assets/theme.js?v=20260721a"></script>
 <link rel="stylesheet" href="styles.css">
 <link rel="stylesheet" href="assets/oki.css?v=20260727m">
-<link rel="stylesheet" href="/assets/oknav.css?v=20260727m">
+<link rel="stylesheet" href="/assets/oknav.css?v=20260728n">
 
 <script type="application/ld+json">
 {
@@ -354,6 +354,7 @@ html[data-theme="dark"] #site .ac-thumb{background:#E9EEF7; border-color:transpa
 #site .cartpill{margin-left:auto; display:flex; align-items:center; gap:8px; background:rgba(255,255,255,.15); color:#fff; border:1px solid rgba(255,255,255,.25); border-radius:12px; padding:9px 13px; font-weight:700; white-space:nowrap; flex:none}
 #site .cartpill .ct{background:#FFE000; color:#0a1a3a; border-radius:99px; font-size:.7rem; min-width:19px; height:19px; display:grid; place-items:center; padding:0 5px; font-weight:800}
 #site .popbar-row{display:flex; align-items:center; gap:12px; padding:5px max(14px,calc((100% - var(--store-col))/2)); background:linear-gradient(rgba(8,12,30,.16),rgba(8,12,30,.16)),var(--grad)}
+#site .store-mobile-tabs{display:none}
 /* ── Carril de categorías ──
    La barra de scroll nativa se OCULTA (se veía cortando el degradado y encimada
    sobre lo de abajo). Para recorrer: las dos flechas JUNTAS a la derecha (fuera del
@@ -413,7 +414,28 @@ html.store-view .header-bar, html.store-view .site-header{display:none}
   html.store-view #site #prodModal{max-height:calc(100dvh - var(--pv-top,var(--oknav-h,158px)) - 24px)}
   html.store-view #site #prodOv .pvside{max-height:calc(100dvh - var(--pv-top,var(--oknav-h,158px)) - 24px)}
 }
-@media(max-width:1000px){ html.store-view .oknav{display:none} }
+@media(max-width:1000px){
+  html.store-view .oknav{display:none}
+  /* La tienda usa su cabecera compacta en móvil, por eso replica aquí los dos
+     accesos principales que la navbar unificada muestra en el resto del sitio. */
+  #site .popbar-row{flex-wrap:wrap;gap:8px;padding-top:8px}
+  #site .store-mobile-tabs{
+    order:-2;display:grid;grid-template-columns:1fr 1fr;gap:8px;width:100%
+  }
+  #site .store-mobile-tabs a{
+    min-width:0;min-height:42px;padding:8px 10px;border-radius:99px;
+    display:inline-flex;align-items:center;justify-content:center;gap:7px;
+    color:#fff;text-decoration:none;font-size:.82rem;font-weight:800;line-height:1.1
+  }
+  #site .store-mobile-tabs .is-current{background:#066CFF}
+  #site .store-mobile-tabs .is-quick{background:#FF7C19}
+  #site .store-mobile-tabs svg{flex:none}
+  #site .volver-sitio{order:-1}
+  #site .popbar{overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch}
+  #site :is(.cart .items,.drawer .dlist,.fdraw .fdbody,.ac,.ov){
+    overscroll-behavior:contain;-webkit-overflow-scrolling:touch
+  }
+}
 #site .topbar,#site .popbar-row{font-family:"Inter",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
 #site .topbar{align-items:center}
 #site .tb-logo{flex:none; display:flex; align-items:center; color:#fff; font-weight:800; font-size:1.18rem; letter-spacing:-.02em; text-decoration:none; white-space:nowrap}
@@ -1246,7 +1268,7 @@ html[data-theme="dark"] #site .side-back:hover{background:rgba(255,255,255,.08)}
      por JavaScript a propósito: los enlaces de navegación deben venir en el HTML
      para que Google los siga, que es justo por lo que la ficha se arma en el
      servidor).
-     Necesita:  <link rel="stylesheet" href="/assets/oknav.css?v=20260727m">
+     Necesita:  <link rel="stylesheet" href="/assets/oknav.css?v=20260728n">
                 <script src="/assets/oknav.js?v=20260724a" defer></script>
      Todos los <svg> llevan width/height propios: sin tamaño intrínseco un icono
      se pinta gigante mientras el CSS va en camino (ya pasó con el del correo).
@@ -1354,6 +1376,23 @@ html[data-theme="dark"] #site .side-back:hover{background:rgba(255,255,255,.08)}
   <!-- ══ FILA 2 · tienda ┃ servicios ······ WhatsApp ══════════════════════ -->
   <div class="oknav__row oknav__row--nav">
     <div class="oknav__wrap">
+      <nav class="oknav__mobile-stores" aria-label="Accesos de compra">
+        <a class="oknav__mobile-store" href="/tienda.html#store">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+               stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M3 9l2-5h14l2 5"/><path d="M5 13v7h14v-7"/><path d="M9 20v-5h6v5"/>
+            <path d="M3 9a3 3 0 006 0 3 3 0 006 0 3 3 0 006 0"/>
+          </svg>
+          Tienda
+        </a>
+        <a class="oknav__mobile-store oknav__mobile-store--quick" href="/tienda-dinamica.html">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+               stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M13 2L4 14h8l-1 8 9-12h-8l1-8z"/>
+          </svg>
+          Tienda rápida
+        </a>
+      </nav>
 
       <button type="button" class="oknav__cats" id="oknavCats"
               aria-expanded="false" aria-controls="oknavCatsMenu" aria-haspopup="true">
@@ -1601,6 +1640,16 @@ html[data-theme="dark"] #site .side-back:hover{background:rgba(255,255,255,.08)}
         </div>
       </div>
       <div class="popbar-row" id="popRow">
+        <nav class="store-mobile-tabs" aria-label="Accesos de compra">
+          <a class="is-current" href="tienda.html#store" aria-current="page">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 9l2-5h14l2 5"/><path d="M5 13v7h14v-7"/><path d="M9 20v-5h6v5"/><path d="M3 9a3 3 0 006 0 3 3 0 006 0 3 3 0 006 0"/></svg>
+            Tienda
+          </a>
+          <a class="is-quick" href="tienda-dinamica.html">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 2L4 14h8l-1 8 9-12h-8l1-8z"/></svg>
+            Tienda rápida
+          </a>
+        </nav>
         <a class="volver-sitio" href="index.html"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>Volver al sitio</a>
         <span class="poplab">Categorías</span>
         <nav class="popbar" id="popbar" aria-label="Categorías de la tienda"></nav>

@@ -232,6 +232,7 @@
 /* Misma idea que la fila 1: sus píldoras miden 38px y con 44px de fila les
    quedaban 4.5px por lado —la fila que peor se veía—; con 54px son 8px. */
 .oknav__row--nav > .oknav__wrap { min-height: 54px; gap: var(--space-2, 8px); }
+.oknav__mobile-stores { display: none; }
 
 .oknav__cats, .oknav__ofertas, .oknav__links a {
   white-space: nowrap; border: 1px solid var(--border-light, #E4E7F0);
@@ -390,8 +391,29 @@
   .oknav__logo { min-height: 44px; }
   .oknav__burger, .oknav__ico, .oknav__cart { min-width: 44px; min-height: 44px; }
   .oknav__cats, .oknav__ofertas { min-height: 44px; }
-  .oknav__row--nav > .oknav__wrap { overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+  .oknav__row--nav > .oknav__wrap {
+    display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 7px 8px; padding-top: 8px; padding-bottom: 8px; overflow: visible;
+  }
   .oknav__row--nav > .oknav__wrap::-webkit-scrollbar { display: none; }
+  .oknav__mobile-stores {
+    grid-column: 1 / -1; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 8px; width: 100%;
+  }
+  .oknav__mobile-store {
+    min-width: 0; min-height: 42px; padding: 8px 10px; border-radius: var(--radius-full, 99px);
+    display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+    background: var(--brand-blue, #066CFF); color: #fff; text-decoration: none;
+    font-size: .82rem; font-weight: 750; line-height: 1.1; text-align: center;
+  }
+  .oknav__mobile-store--quick { background: var(--brand-orange, #FF7C19); }
+  .oknav__mobile-store svg { flex: none; }
+  .oknav__cats, .oknav__ofertas { width: 100%; min-height: 40px; justify-content: center; }
+  .oknav__catsmenu {
+    max-height: calc(100dvh - var(--oknav-h, 0px)); overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+  .oknav__drawer, .oknav__ac { overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
 }
 
 /* Teléfono angosto: el total en texto del carrito es lo primero que sobra

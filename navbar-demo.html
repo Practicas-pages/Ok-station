@@ -14,7 +14,7 @@
 <!-- La hoja REAL del sitio: el navbar hereda los tokens de verdad y el modo
      oscuro se ve como se verá en producción. -->
 <link rel="stylesheet" href="/styles.css">
-<link rel="stylesheet" href="/assets/oknav.css?v=20260727m">
+<link rel="stylesheet" href="/assets/oknav.css?v=20260728n">
 <style>
   body{margin:0;background:var(--surface-page);color:var(--text-primary);font-family:"Poppins",system-ui,sans-serif}
   .demo{max-width:1280px;margin:0 auto;padding:28px 16px 80px}
@@ -36,7 +36,7 @@
      por JavaScript a propósito: los enlaces de navegación deben venir en el HTML
      para que Google los siga, que es justo por lo que la ficha se arma en el
      servidor).
-     Necesita:  <link rel="stylesheet" href="/assets/oknav.css?v=20260727m">
+     Necesita:  <link rel="stylesheet" href="/assets/oknav.css?v=20260728n">
                 <script src="/assets/oknav.js?v=20260724a" defer></script>
      Todos los <svg> llevan width/height propios: sin tamaño intrínseco un icono
      se pinta gigante mientras el CSS va en camino (ya pasó con el del correo).
@@ -144,6 +144,23 @@
   <!-- ══ FILA 2 · tienda ┃ servicios ······ WhatsApp ══════════════════════ -->
   <div class="oknav__row oknav__row--nav">
     <div class="oknav__wrap">
+      <nav class="oknav__mobile-stores" aria-label="Accesos de compra">
+        <a class="oknav__mobile-store" href="/tienda.html#store">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+               stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M3 9l2-5h14l2 5"/><path d="M5 13v7h14v-7"/><path d="M9 20v-5h6v5"/>
+            <path d="M3 9a3 3 0 006 0 3 3 0 006 0 3 3 0 006 0"/>
+          </svg>
+          Tienda
+        </a>
+        <a class="oknav__mobile-store oknav__mobile-store--quick" href="/tienda-dinamica.html">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+               stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M13 2L4 14h8l-1 8 9-12h-8l1-8z"/>
+          </svg>
+          Tienda rápida
+        </a>
+      </nav>
 
       <button type="button" class="oknav__cats" id="oknavCats"
               aria-expanded="false" aria-controls="oknavCatsMenu" aria-haspopup="true">
