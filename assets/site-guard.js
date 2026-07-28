@@ -41,7 +41,18 @@
        Se intercepta la ENTRADA a las páginas y NO los botones: hay 9 variantes de
        enlace repartidas en 12 archivos (incluidos JS compartidos), y así queda
        cubierto también quien llegue por enlace directo, favorito o Google.
-       Admin/empleado/directivo con sesión SIGUEN entrando (ver ADMIN_ROLES). */
+       Admin/empleado/directivo con sesión SIGUEN entrando (ver ADMIN_ROLES).
+
+       ── ABIERTA al público desde el 2026-07-28 ──
+       Cualquiera entra a la tienda, la compra rápida, las fichas y las categorías.
+       Lo que NO cambia es quién puede PAGAR: el checkout sigue pidiendo cuenta, y
+       no como adorno del navegador — shop/create.php llama a current_user(), que
+       corta con 401 sin sesión válida. Comprobado con la tienda abierta: sin sesión
+       se puede navegar y llenar el carrito, y al pagar sale "Inicia sesión para
+       comprar" (tienda.html, renderCheckout) o "Inicia sesión para pagar"
+       (tienda-dinamica.html, data-cologin), sin campos de pago.
+       Poner esto en true vuelve a cerrar la tienda entera, y con ella se apagan
+       los enlaces de entrada en todo el sitio (ocultarEntradasATienda). */
     TIENDA_MANTENIMIENTO: false,
 
     /* Rutas que cuentan como "tienda" para TIENDA_MANTENIMIENTO.
