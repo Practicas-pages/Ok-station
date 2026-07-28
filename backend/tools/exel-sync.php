@@ -395,6 +395,33 @@ if (!$file && !$soloPrecios) {   // con --file no hay API; en --solo-precios las
         $porRef = [];
         foreach ($mios->fetchAll() as $r) { $porRef[(string) $r['supplier_ref']] = (int) $r['id']; }
 
+        /* Las fotografías elegidas en el panel tienen prioridad sobre el feed:
+           - no se borran (abajo solo se reemplaza source='exel');
+           - su portada no se pisa durante la sincronización;
+           - Exel ocupa únicamente los espacios libres hasta completar 5.
+           Sin esto, un producto con 4 ángulos confirmados podía amanecer con 9
+           filas y dos portadas después del sync nocturno. */
+        $otras = [];
+        if ($porRef) {
+            $idsMios = array_values(array_unique($porRef));
+            foreach (array_chunk($idsMios, 500) as $lote) {
+                $q = $PDO->prepare(
+                    "SELECT product_id, COUNT(*) AS total, MAX(is_primary) AS has_primary
+                       FROM product_images
+                      WHERE source <> 'exel'
+                        AND product_id IN (" . implode(',', array_fill(0, count($lote), '?')) . ")
+                      GROUP BY product_id"
+                );
+                $q->execute($lote);
+                foreach ($q->fetchAll() as $r) {
+                    $otras[(int) $r['product_id']] = [
+                        'total' => (int) $r['total'],
+                        'has_primary' => (int) $r['has_primary'] === 1,
+                    ];
+                }
+            }
+        }
+
         /* Se conserva la copia local ya descargada de cada URL: si no, volver a
            sincronizar dejaría la tienda sirviendo el CDN de Exel hasta que alguien
            corriera otra vez el descargador. */
@@ -405,36 +432,49 @@ if (!$file && !$soloPrecios) {   // con --file no hay API; en --solo-precios las
         }
 
         $filas = [];
+        $idsConFotoFeed = [];
         foreach ($mapa as $ref => $urls) {
             if (!isset($porRef[$ref])) continue;          // esa referencia no es de papelería
             $pid = $porRef[$ref];
+            $idsConFotoFeed[$pid] = true;
+            $ocupadas = (int) ($otras[$pid]['total'] ?? 0);
+            $disponibles = max(0, 5 - $ocupadas);
+            $otraPortada = !empty($otras[$pid]['has_primary']);
             $orden = 0;
-            foreach ($urls as $u) {
+            foreach (array_slice($urls, 0, $disponibles) as $u) {
                 $u = trim((string) $u);
                 if ($u === '' || !preg_match('~^https?://~i', $u)) continue;
-                $filas[] = [$pid, $u, $previas[$pid . '|' . $u] ?? null, 'exel', $orden, $orden === 0 ? 1 : 0];
+                $filas[] = [
+                    $pid, $u, $previas[$pid . '|' . $u] ?? null, 'exel', $ocupadas + $orden,
+                    $orden === 0 && !$otraPortada ? 1 : 0,
+                ];
                 $orden++;
             }
             if ($orden > 0) $imgProds++;
         }
 
-        if ($filas) {
+        if ($idsConFotoFeed) {
             $PDO->beginTransaction();
             try {
-                /* Se reemplazan SOLO las de Exel de los productos que traen foto ahora. */
-                $ids = array_values(array_unique(array_column($filas, 0)));
+                /* Se reemplazan SOLO las de Exel de los productos que traen foto ahora.
+                   Se incluyen también los que ya llenaron sus cinco espacios con fotos
+                   humanas: sus antiguas filas de Exel deben salir aunque no haya espacio
+                   para insertar otras nuevas. */
+                $ids = array_keys($idsConFotoFeed);
                 foreach (array_chunk($ids, 500) as $lote) {
                     $PDO->prepare("DELETE FROM product_images WHERE source='exel' AND product_id IN ("
                         . implode(',', array_fill(0, count($lote), '?')) . ")")->execute($lote);
                 }
                 $ph6 = '(?,?,?,?,?,?)';
-                foreach (array_chunk($filas, 500) as $lote) {
-                    $sql = "INSERT INTO product_images (product_id, url, stored_path, source, sort_order, is_primary) VALUES "
-                         . implode(',', array_fill(0, count($lote), $ph6));
-                    $args = []; foreach ($lote as $f) foreach ($f as $v) $args[] = $v;
-                    $PDO->prepare($sql)->execute($args);
-                    $imgTotal += count($lote);
-                    echo "  · imágenes " . $imgTotal . "/" . count($filas) . "\n";
+                if ($filas) {
+                    foreach (array_chunk($filas, 500) as $lote) {
+                        $sql = "INSERT INTO product_images (product_id, url, stored_path, source, sort_order, is_primary) VALUES "
+                             . implode(',', array_fill(0, count($lote), $ph6));
+                        $args = []; foreach ($lote as $f) foreach ($f as $v) $args[] = $v;
+                        $PDO->prepare($sql)->execute($args);
+                        $imgTotal += count($lote);
+                        echo "  · imágenes " . $imgTotal . "/" . count($filas) . "\n";
+                    }
                 }
                 $PDO->commit();
             } catch (Throwable $e) {
