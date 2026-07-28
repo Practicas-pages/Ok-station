@@ -8,6 +8,12 @@
  * `rescate:nextep`: incluye todos los productos que siguen sin foto y todas las
  * decisiones tomadas desde el selector. Así "Por revisar" representa el trabajo
  * real pendiente del catálogo, no únicamente lo que alcanzó a revisar NEXTEP.
+ *
+ * ORDEN: primero lo que el filtro SÍ examinó (tiene registro en product_enrichment,
+ * y por lo tanto miniatura, origen y porcentaje de certeza), y después el resto del
+ * pendiente. Sin esta separación, los cientos de productos que nadie ha tocado —que
+ * salen con recuadro gris y sin datos— sepultaban los resultados reales al fondo de
+ * la lista y el panel parecía roto.
  */
 require __DIR__ . '/../_bootstrap.php';
 require __DIR__ . '/../lib/authz.php';
@@ -61,7 +67,8 @@ try {
            FROM products p
            LEFT JOIN product_enrichment pe ON pe.id = {$latestLog}
           WHERE {$where}
-          ORDER BY FIELD({$statusSql}, 'revision', 'error', 'sin_datos', 'ok'),
+          ORDER BY (pe.id IS NOT NULL) DESC,
+                   FIELD({$statusSql}, 'revision', 'error', 'sin_datos', 'ok'),
                    COALESCE(pe.tried_at, p.last_synced_at) DESC, p.name
           LIMIT 500"
     );
