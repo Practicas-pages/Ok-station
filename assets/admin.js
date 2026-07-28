@@ -1728,7 +1728,14 @@
 
   var catalogRescueBusy = false;
   var catalogRescueStatus = "";
+  var catalogRescueSearch = "";
   var catalogRescueRows = [];
+
+  /* Para buscar da igual "fólder" que "folder": el catálogo de Exel escribe los
+     acentos como quiere, y quien teclea también. */
+  function rescueNorm(s) {
+    return String(s || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  }
 
   function rescueEstado(estado) {
     return {
@@ -1743,11 +1750,18 @@
     var t = $("#catalog-rescue-report-table");
     if (!t) return;
     var head = '<thead><tr><th>Producto</th><th>Resultado</th><th>Coincidencia</th><th>Fecha</th></tr></thead>';
+    var q = rescueNorm(catalogRescueSearch.trim());
     var rows = catalogRescueRows.filter(function (r) {
-      return !catalogRescueStatus || r.status === catalogRescueStatus;
+      if (catalogRescueStatus && r.status !== catalogRescueStatus) return false;
+      if (!q) return true;
+      /* Mismos campos que el buscador del catálogo: nombre, marca, SKU, referencia
+         y la clave de coincidencia que se muestra en la columna del reporte. */
+      return rescueNorm([r.name, r.brand, r.sku, r.supplier_ref, r.match_key].join(" ")).indexOf(q) !== -1;
     });
     if (!rows.length) {
-      t.innerHTML = head + '<tbody><tr><td colspan="4" class="catalog-empty">No hay productos en este resultado.</td></tr></tbody>';
+      t.innerHTML = head + '<tbody><tr><td colspan="4" class="catalog-empty">' +
+        (q ? 'Ningún producto coincide con «' + esc(catalogRescueSearch.trim()) + '» en este resultado.'
+           : 'No hay productos en este resultado.') + '</td></tr></tbody>';
       return;
     }
     t.innerHTML = head + "<tbody>" + rows.map(function (r) {
@@ -2305,6 +2319,16 @@
         renderCatalogRescueReport();
       });
     });
+    var catalogRescueSearchEl = $("#catalog-rescue-search");
+    if (catalogRescueSearchEl) {
+      /* A diferencia del buscador del catálogo, aquí NO se consulta al servidor:
+         las filas ya están en memoria (el reporte carga hasta 500), así que se
+         filtra en cada tecla, sin pausa. */
+      catalogRescueSearchEl.addEventListener("input", function () {
+        catalogRescueSearch = catalogRescueSearchEl.value;
+        renderCatalogRescueReport();
+      });
+    }
 
     var apptStatus = "", apptDate = "";
     $$("#appt-filters .chip").forEach(function (c) {
