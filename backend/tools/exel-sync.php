@@ -433,17 +433,43 @@ if (!$file && !$soloPrecios) {   // con --file no hay API; en --solo-precios las
 
         $filas = [];
         $idsConFotoFeed = [];
+        $refsSinUsable = 0;          // referencias cuyo arreglo de imágenes no trajo NI UNA URL usable
+        $ejemploDescartado = '';     // la primera URL rechazada, para enseñarla en el aviso
         foreach ($mapa as $ref => $urls) {
             if (!isset($porRef[$ref])) continue;          // esa referencia no es de papelería
             $pid = $porRef[$ref];
+
+            /* Las URLs utilizables se separan ANTES de marcar el producto para
+               reemplazo. Antes se marcaba de entrada, así que si el feed traía
+               basura para ese producto (vacíos, rutas relativas, http mal formado)
+               se borraban sus fotos viejas y no entraba ninguna nueva: el producto
+               amanecía sin nada. Si el feed no trae NADA usable, mejor dejarlo como
+               estaba. */
+            $limpias = [];
+            foreach ($urls as $u) {
+                $u = trim((string) $u);
+                if ($u !== '' && preg_match('~^https?://~i', $u)) $limpias[] = $u;
+            }
+            /* Exel a veces repite la misma URL en el arreglo; sin esto se insertan
+               filas idénticas y la ficha muestra la misma foto dos veces. */
+            $limpias = array_values(array_unique($limpias));
+            if (!$limpias) {
+                if ($urls) {
+                    $refsSinUsable++;
+                    $ejemploDescartado === '' and $ejemploDescartado = (string) reset($urls);
+                }
+                continue;
+            }
+
+            /* Sí se marca cuando el feed trae fotos buenas pero no hay dónde ponerlas
+               (las cinco ranuras ya las llenó una persona): ahí el reemplazo es
+               intencional, sus filas viejas de Exel deben salir. */
             $idsConFotoFeed[$pid] = true;
             $ocupadas = (int) ($otras[$pid]['total'] ?? 0);
             $disponibles = max(0, 5 - $ocupadas);
             $otraPortada = !empty($otras[$pid]['has_primary']);
             $orden = 0;
-            foreach (array_slice($urls, 0, $disponibles) as $u) {
-                $u = trim((string) $u);
-                if ($u === '' || !preg_match('~^https?://~i', $u)) continue;
+            foreach (array_slice($limpias, 0, $disponibles) as $u) {
                 $filas[] = [
                     $pid, $u, $previas[$pid . '|' . $u] ?? null, 'exel', $ocupadas + $orden,
                     $orden === 0 && !$otraPortada ? 1 : 0,
@@ -451,6 +477,18 @@ if (!$file && !$soloPrecios) {   // con --file no hay API; en --solo-precios las
                 $orden++;
             }
             if ($orden > 0) $imgProds++;
+        }
+
+        /* Si una fracción grande del feed no trae ni una URL usable, el contrato
+           cambió (CDN nuevo sin esquema, objetos en vez de cadenas…). Sin este
+           aviso, el saltar productos con basura —que es lo correcto— convertiría
+           un feed roto en un no-op SILENCIOSO: la corrida en verde y el catálogo
+           sin recibir fotos nuevas hasta que alguien atara cabos. */
+        if ($refsSinUsable > 0 && $mapa && $refsSinUsable > count($mapa) * 0.20) {
+            fwrite(STDERR, "  ⚠ Imágenes: {$refsSinUsable} de " . count($mapa) . " referencias del feed no traen\n");
+            fwrite(STDERR, "    ninguna URL usable (se esperan https://…). Ejemplo rechazado: «"
+                . mb_strimwidth($ejemploDescartado, 0, 120, '…') . "».\n");
+            fwrite(STDERR, "    Probable cambio en el contrato de /imagenes de Exel: revísalo.\n");
         }
 
         if ($idsConFotoFeed) {

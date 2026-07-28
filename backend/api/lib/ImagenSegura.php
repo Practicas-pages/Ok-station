@@ -101,14 +101,42 @@ final class ImagenSegura
     }
 
     /**
-     * Descarga una imagen de una URL ya validada. Devuelve [bytes, ''] o [null, 'motivo'].
-     * NO sigue redirecciones: una redirección puede saltar fuera de la lista blanca y
-     * ahí se pierde toda la protección de arriba.
+     * Descarga una imagen. Devuelve [bytes, ''] o [null, 'motivo'].
+     *
+     * SÍ sigue redirecciones, pero A MANO. La mayoría de las tiendas sirven sus
+     * fotos detrás de un 301/302 (CDN, dominio con y sin www, rutas viejas), así
+     * que no seguirlas dejaba fuera a buena parte de las candidatas: se veían en
+     * la cuadrícula y al guardarlas respondían «El servidor respondió 301».
+     *
+     * No se usa CURLOPT_FOLLOWLOCATION porque cURL saltaría solo, sin pasar por
+     * urlPermitida(), y ahí se perdería toda la protección: una redirección puede
+     * apuntar a 127.0.0.1 o a la IP de metadatos de la nube. Cada salto se valida
+     * igual que el primero —https obligatorio, IP interna rechazada, y la lista
+     * blanca si no lo eligió una persona— con un tope de saltos.
      */
+    public const MAX_SALTOS = 3;
+
     public static function descargar(string $url, bool $elegidaPorPersona = false): array
     {
+        for ($salto = 0; ; $salto++) {
+            [$data, $motivo, $destino] = self::intentar($url, $elegidaPorPersona);
+            if ($data !== null || $destino === '') return [$data, $motivo];
+
+            if ($salto >= self::MAX_SALTOS) {
+                return [null, 'La imagen redirige demasiadas veces.'];
+            }
+            $url = $destino;
+        }
+    }
+
+    /**
+     * Un solo intento. Devuelve [bytes, motivo, urlDeRedireccion]: si el tercer
+     * elemento no viene vacío, hay que reintentar ahí (ya validado por el que llama).
+     */
+    private static function intentar(string $url, bool $elegidaPorPersona): array
+    {
         [$ok, $motivo] = self::urlPermitida($url, $elegidaPorPersona);
-        if (!$ok) return [null, $motivo];
+        if (!$ok) return [null, $motivo, ''];
 
         $ch = curl_init($url);
         curl_setopt_array($ch, [
@@ -136,11 +164,18 @@ final class ImagenSegura
 
         $data = curl_exec($ch);
         $code = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        /* cURL ya resuelve aquí el destino a URL absoluta, aunque el servidor haya
+           mandado un Location relativo. */
+        $destino = (string) curl_getinfo($ch, CURLINFO_REDIRECT_URL);
         curl_close($ch);
 
-        if ($data === false)  return [null, 'No se pudo descargar la imagen.'];
-        if ($code !== 200)    return [null, "El servidor respondió {$code}."];
-        return [$data, ''];
+        if ($data === false)  return [null, 'No se pudo descargar la imagen.', ''];
+        if ($code === 200)    return [$data, '', ''];
+
+        if (in_array($code, [301, 302, 303, 307, 308], true) && $destino !== '') {
+            return [null, '', $destino];
+        }
+        return [null, "El servidor respondió {$code}.", ''];
     }
 
     /**

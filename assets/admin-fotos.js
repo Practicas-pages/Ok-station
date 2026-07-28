@@ -68,6 +68,11 @@
     s = s.replace(/\bC\s*\/\s*\d+\b/gi, " ");        // C/10, C/ 25 → presentación
     s = s.replace(/\bcon\s+\d+\s+(pz|pzas|piezas)\b/gi, " ");
     s = s.replace(/\b(pz|pzas|piezas|paq|paquete)\b\.?/gi, " ");
+    /* La comilla de las medidas en pulgadas (5/16") abre una frase literal que
+       nunca se cierra y arruina la búsqueda entera. MISMA regla que buscar_frase()
+       en el servidor (image-candidates.php): si divergen, el enlace "por nombre"
+       y las candidatas automáticas buscan cosas distintas y nadie entiende por qué. */
+    s = s.replace(/["“”«»'’´]/g, " ");
     s = s.replace(/\s+/g, " ").trim();
 
     /* Exel guarda la RAZÓN SOCIAL, no la marca comercial: "NEXTEP SOLUCIONES",

@@ -34,6 +34,13 @@ final class BuscadorImagenes
     private const CACHE_DIAS = 30;   // la cuota es de 100/día: repetir una consulta es caro
     private const TIMEOUT    = 12;
     private const MAX        = 8;    // caben 8 en la cuadrícula sin tener que bajar
+    /** Mismo mínimo que ImagenSegura::MIN_LADO: por debajo es un ícono, no una foto. */
+    private const MIN_LADO   = 200;
+    /* Versión de la caché. Súbela cada vez que cambie QUÉ se pide a Google o CÓMO
+       se filtra lo que responde: la caché dura 30 días, así que sin esto un arreglo
+       en esta clase tarda un mes en notarse y no hay forma de distinguir "no sirvió"
+       de "lo tapó la caché". (v2: se quitó imgSize=medium y se filtra por MIN_LADO.) */
+    private const CACHE_VER  = 2;
 
     public static function configurado(): bool
     {
@@ -75,9 +82,11 @@ final class BuscadorImagenes
             'searchType' => 'image',
             'num'        => self::MAX,
             'safe'       => 'active',
-            /* Se pide MEDIANA o mayor: las miniaturas chiquitas se ven mal en la
-               ficha y de todos modos las rechazaría la validación de tamaño. */
-            'imgSize'    => 'medium',
+            /* NO se manda imgSize. En esta API no es un mínimo sino un tamaño
+               EXACTO: pedir 'medium' descartaba las grandes, que son justo las
+               buenas para la ficha. Las chiquitas se filtran abajo por el tamaño
+               que el propio Google reporta, y la validación de bytes las vuelve a
+               revisar al descargarlas. */
             'gl'         => 'mx',      // sesgo a México: el catálogo es de aquí
             'hl'         => 'es',
         ]);
@@ -115,6 +124,12 @@ final class BuscadorImagenes
                una http sería enseñar una candidata que luego no se puede guardar. */
             if ($u === '' || !str_starts_with($u, 'https://')) continue;
             $ctx = $it['image'] ?? [];
+            /* Fuera los íconos y logos. Se usa el tamaño que reporta Google para no
+               gastar una descarga en algo que la validación de bytes va a rechazar
+               por chico de todos modos. */
+            $an = (int) ($ctx['width'] ?? 0);
+            $al = (int) ($ctx['height'] ?? 0);
+            if ($an > 0 && $al > 0 && ($an < self::MIN_LADO || $al < self::MIN_LADO)) continue;
             $out[] = [
                 'url'       => $u,
                 'miniatura' => (string) ($ctx['thumbnailLink'] ?? $u),
@@ -135,7 +150,7 @@ final class BuscadorImagenes
     {
         $dir = sys_get_temp_dir() . '/okstation-imgbusca';
         if (!is_dir($dir)) @mkdir($dir, 0775, true);
-        return $dir . '/' . sha1($q) . '.json';
+        return $dir . '/' . sha1(self::CACHE_VER . '|' . $q) . '.json';
     }
     private static function cacheLeer(string $q): ?array
     {

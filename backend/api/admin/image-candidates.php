@@ -246,6 +246,13 @@ function buscar_frase(string $nombre, string $marca): string
 {
     $s = preg_replace('/\bC\s*\/\s*\d+\b/iu', ' ', $nombre);
     $s = preg_replace('/\b(pz|pzas|piezas|paq|paquete)\b\.?/iu', ' ', $s);
+
+    /* Las comillas de las medidas en pulgadas (5/16") rompían la búsqueda: para un
+       buscador una comilla suelta abre una frase literal que nunca se cierra, y la
+       consulta entera deja de significar lo que parece. Se quitan también las
+       tipográficas y los apóstrofos de pies, que llegan igual desde Exel. */
+    $s = str_replace(['"', '“', '”', '«', '»', "'", '’', '´'], ' ', $s);
+
     $s = trim(preg_replace('/\s+/u', ' ', $s));
 
     /* Exel guarda la razón social ("NEXTEP SOLUCIONES", "ACCO BRANDS MEXICO") y
