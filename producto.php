@@ -34,11 +34,6 @@ function db(): PDO {
 }
 /* Este backend NO tiene autoloader: cada entrada requiere sus clases a mano. */
 require __DIR__ . '/backend/api/lib/ShopProduct.php';
-/* ShopCatalog solo por SHIP_COST, que es la tarifa que cobra el checkout de verdad
-   (shop/create.php la lee de ahí): el schema.org de la ficha declara ESE número y no
-   uno escrito a mano que se quedaría viejo. Es un archivo de puras constantes y
-   métodos estáticos, así que cargarlo no ejecuta nada. */
-require __DIR__ . '/backend/api/lib/ShopCatalog.php';
 /* Icecat.php y ProductEnricher.php ya NO se cargan aquí: el enriquecimiento pasó al
    runner nocturno (ver más abajo). Cargarlas era trabajo muerto en cada vista. */
 
@@ -203,21 +198,17 @@ $ld = [
             'https://schema.org/OnSitePickup',
             'https://schema.org/ParcelService',
         ],
-        /* Envío: ShopCatalog::SHIP_COST es la tarifa única que cobra el carrito.
-           Se declara aquí para que aparezca en el resultado enriquecido en vez de
-           que Google lo marque como "sin información de envío". */
-        'shippingDetails' => [
-            '@type'               => 'OfferShippingDetails',
-            'shippingRate'        => [
-                '@type'    => 'MonetaryAmount',
-                'value'    => number_format(ShopCatalog::SHIP_COST, 2, '.', ''),
-                'currency' => 'MXN',
-            ],
-            'shippingDestination' => [
-                '@type'         => 'DefinedRegion',
-                'addressCountry' => 'MX',
-            ],
-        ],
+        /* AQUÍ IBA shippingDetails con una tarifa fija de $99, y se quitó a propósito.
+           El envío dejó de ser un número nuestro: lo cotiza Exel según el código
+           postal del cliente, y va de $130 dentro de Tijuana a $230 a Guadalajara.
+           Declarar $99 —o cualquier número único— sería decirle a Google un precio
+           que el checkout no va a cobrar, y esa discrepancia entre el resultado
+           enriquecido y la caja es justo lo que Google penaliza (además de molestar
+           al cliente, que es peor). Google marcará "sin información de envío", y es
+           la verdad: no la hay hasta que se sabe a dónde va.
+           Para poder declararlo habría que publicar tarifas por región con las de
+           Exel, o fijar una tarifa propia al cliente y comerse la diferencia. Las
+           dos son decisiones de negocio, no de código. */
     ],
 ];
 if ($brand !== '') $ld['brand'] = ['@type' => 'Brand', 'name' => $brand];
