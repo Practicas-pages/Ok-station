@@ -770,7 +770,7 @@
     // CSS (por si el <link> no está en el <head>).
     if (!document.querySelector('link[href*="oki.css"]')) {
       var l = document.createElement("link");
-      l.rel = "stylesheet"; l.href = "assets/oki.css";
+      l.rel = "stylesheet"; l.href = "assets/oki.css?v=20260728a";
       document.head.appendChild(l);
     }
     document.body.appendChild(el(SVG_DEFS));

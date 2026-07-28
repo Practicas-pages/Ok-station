@@ -37,8 +37,8 @@
 <!-- Tema (claro/oscuro): antes de la hoja para pintar ya con el tema elegido -->
 <script src="assets/theme.js?v=20260721a"></script>
 <link rel="stylesheet" href="styles.css">
-<link rel="stylesheet" href="assets/oki.css?v=20260727m">
-<link rel="stylesheet" href="/assets/oknav.css?v=20260728n">
+<link rel="stylesheet" href="assets/oki.css?v=20260728a">
+<link rel="stylesheet" href="/assets/oknav.css?v=20260728r">
 
 <script type="application/ld+json">
 {
@@ -587,6 +587,15 @@ html.store-view .header-bar, html.store-view .site-header{display:none}
   #site .topbar{flex-wrap:wrap; row-gap:9px}
   #site .tb-actions{margin-left:auto}
   #site .search{order:5; flex:1 0 100%}
+}
+@media(max-width:360px){
+  /* El enlace sigue presente y accesible, pero cede el texto al carril de
+     categorías para que "Ofertas" y "Todos" no queden cortados al entrar. */
+  #site .volver-sitio{
+    width:40px; height:40px; padding:0; margin-right:0;
+    justify-content:center; font-size:0;
+  }
+  #site .volver-sitio svg{width:17px; height:17px}
 }
 #site .pop{white-space:nowrap; border:1px solid rgba(8,12,30,.14); background:var(--paper); border-radius:99px; padding:7px 14px; font-size:.84rem; font-weight:600; color:#33404f; flex:none; display:flex; align-items:center; gap:6px; box-shadow:0 2px 8px rgba(8,12,30,.20); transition:background .15s, box-shadow .18s, transform .18s cubic-bezier(.34,1.56,.64,1)}
 #site .pop:not(.on):not(.hot):hover{background:#fff; box-shadow:0 6px 16px rgba(8,12,30,.28); transform:translateY(-2px)}
@@ -1268,7 +1277,7 @@ html[data-theme="dark"] #site .side-back:hover{background:rgba(255,255,255,.08)}
      por JavaScript a propósito: los enlaces de navegación deben venir en el HTML
      para que Google los siga, que es justo por lo que la ficha se arma en el
      servidor).
-     Necesita:  <link rel="stylesheet" href="/assets/oknav.css?v=20260728n">
+     Necesita:  <link rel="stylesheet" href="/assets/oknav.css?v=20260728r">
                 <script src="/assets/oknav.js?v=20260724a" defer></script>
      Todos los <svg> llevan width/height propios: sin tamaño intrínseco un icono
      se pinta gigante mientras el CSS va en camino (ya pasó con el del correo).
@@ -3565,7 +3574,7 @@ html[data-theme="dark"] #site .side-back:hover{background:rgba(255,255,255,.08)}
 <script src="assets/session-nav.js?v=20260717a" defer></script>
 <!-- OKi, el astronauta ayudante. Conectado a la tienda vía el contrato window.OKtienda (ver OKi-tienda-integracion.md). -->
 <script src="assets/ok-anim.js?v=20260727a" defer></script>
-<script src="assets/oki.js?v=20260727b" defer></script>
+<script src="assets/oki.js?v=20260728a" defer></script>
 <script src="/assets/oknav.js?v=20260724a" defer></script>
 </body>
 </html>

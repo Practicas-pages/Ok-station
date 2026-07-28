@@ -191,15 +191,15 @@ $ldCrumbs = [
   <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"></noscript>
   <!-- Tema (claro/oscuro): antes de la hoja para pintar ya con el tema elegido -->
   <script src="/assets/theme.js?v=20260721a"></script>
-  <link rel="stylesheet" href="/styles.css?v=20260727b">
+  <link rel="stylesheet" href="/styles.css?v=20260728d">
   <link rel="stylesheet" href="/assets/shop-header.css?v=20260728m">
   <link rel="stylesheet" href="/assets/producto.css?v=20260716b">
-  <link rel="stylesheet" href="/assets/oki.css?v=20260727m">
+  <link rel="stylesheet" href="/assets/oki.css?v=20260728a">
   <?php if ($images): ?><link rel="preload" as="image" href="<?= e($images[0]) ?>" fetchpriority="high"><?php endif; ?>
 
   <script type="application/ld+json"><?= json_encode($ld, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?></script>
   <script type="application/ld+json"><?= json_encode($ldCrumbs, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?></script>
-  <link rel="stylesheet" href="/assets/oknav.css?v=20260728n">
+  <link rel="stylesheet" href="/assets/oknav.css?v=20260728r">
 </head>
 
 <body id="top">
@@ -214,7 +214,7 @@ $ldCrumbs = [
      por JavaScript a propósito: los enlaces de navegación deben venir en el HTML
      para que Google los siga, que es justo por lo que la ficha se arma en el
      servidor).
-     Necesita:  <link rel="stylesheet" href="/assets/oknav.css?v=20260728n">
+     Necesita:  <link rel="stylesheet" href="/assets/oknav.css?v=20260728r">
                 <script src="/assets/oknav.js?v=20260724a" defer></script>
      Todos los <svg> llevan width/height propios: sin tamaño intrínseco un icono
      se pinta gigante mientras el CSS va en camino (ya pasó con el del correo).
@@ -708,7 +708,7 @@ $ldCrumbs = [
 <script src="/assets/address-book.js?v=20260727a" defer></script>
 <script src="/assets/catalogo.js?v=20260716a" defer></script>
 <script src="/assets/ok-anim.js?v=20260727a" defer></script>
-<script src="/assets/oki.js?v=20260727b" defer></script>
+<script src="/assets/oki.js?v=20260728a" defer></script>
   <script src="/assets/oknav.js?v=20260724a" defer></script>
 </body>
 </html>

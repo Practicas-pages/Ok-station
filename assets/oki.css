@@ -110,6 +110,9 @@
 .oki-input button{border:0;background:var(--blue);color:#fff;min-width:40px;height:40px;border-radius:50%;font-size:1rem;box-shadow:var(--sh-blue);cursor:pointer}
 @media (max-width:560px){
   .oki-dock{right:7px;bottom:10px} .oki{width:50px;height:60px}
+  /* En compra rápida el botón de envío vive pegado al borde inferior. OKi
+     sube para no tapar esa acción principal en teléfonos angostos. */
+  body:has(.td-wrap) .oki-dock{bottom:68px}
   .oki-bubble{display:none}
   .oki-panel{
     right:8px;left:8px;top:calc(var(--oknav-h, 0px) + 8px);bottom:76px;

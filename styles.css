@@ -7027,17 +7027,83 @@ html[data-theme="dark"] .order-summary .input-prefix__cc option {
   .dropzone { padding: clamp(26px, 5vw, 40px) clamp(18px, 4vw, 28px); }
 }
 
+@media (min-width: 641px) and (max-width: 768px) {
+  /* Una tableta vertical no necesita conservar el banner de 72–88vh pensado
+     para escritorio: el contenido determina la altura y deja ver la sección
+     siguiente sin perder ninguna acción. */
+  .hero {
+    min-height: auto !important;
+    padding-top: 40px; padding-bottom: 44px;
+  }
+  .hero__eyebrow { margin-bottom: 14px; }
+  .hero__title { margin-bottom: 14px; }
+  .hero__lead { margin-bottom: 24px; }
+  .hero__cta { margin-bottom: 20px; }
+  .hero__chips { margin-top: 16px; }
+}
+
 @media (max-width: 640px) {
-  .hero { padding-top: 38px; padding-bottom: 50px; }
-  .hero__title { font-size: clamp(1.9rem, 8.2vw, 2.5rem) !important; }
-  .hero__lead { font-size: .98rem !important; line-height: 1.55; }
-  .hero__cta { gap: 10px; margin-bottom: 24px; }
+  /* La altura la gobierna el contenido, no el banner de escritorio. Esto
+     también neutraliza los min-height inline de las páginas de servicio. */
+  .hero {
+    min-height: auto !important;
+    padding-top: clamp(22px, 5svh, 34px);
+    padding-bottom: clamp(28px, 6svh, 40px);
+  }
+  .hero__eyebrow { margin-bottom: 12px; }
+  .hero__title {
+    font-size: clamp(1.85rem, 8.2vw, 2.45rem) !important;
+    margin-bottom: 12px;
+  }
+  .hero__lead {
+    font-size: clamp(.92rem, 3.8vw, .98rem) !important;
+    line-height: 1.48; margin-bottom: 18px;
+  }
+  /* Dos acciones caben lado a lado y evitan un banner innecesariamente alto. */
+  .hero__cta {
+    flex-direction: row; flex-wrap: nowrap;
+    gap: 8px; margin-bottom: 14px;
+  }
+  .hero__cta .btn {
+    flex: 1 1 0; width: auto; min-width: 0;
+    padding-left: 9px; padding-right: 9px;
+    white-space: normal; text-align: center; line-height: 1.2;
+  }
+  /* Los chips dejan de crear dos o tres filas: se recorren horizontalmente. */
+  .hero__chips {
+    flex-wrap: nowrap; gap: 7px; margin-top: 12px;
+    overflow-x: auto; overscroll-behavior-x: contain;
+    -webkit-overflow-scrolling: touch; scrollbar-width: none;
+    scroll-snap-type: x proximity; padding-bottom: 3px;
+  }
+  .hero__chips::-webkit-scrollbar { display: none; }
+  .hero__chip {
+    flex: 0 0 auto; scroll-snap-align: start;
+    padding: 7px 10px; font-size: .77rem;
+  }
   /* En móvil se conserva un área táctil segura aunque el aspecto sea compacto. */
   .btn { min-height: 44px; padding: 11px 18px; font-size: .875rem; }
   .btn--lg,.btn--xl { min-height: 46px; padding: 12px 20px; font-size: .92rem; }
-  .section { padding: 44px 0; }
+  .section { padding: clamp(34px, 7svh, 44px) 0; }
   .section-head,.section-head--center { margin-bottom: 24px; }
   .service-card { padding: 18px; }
   .cita-layout { margin-top: 24px; padding: 12px; }
   .dropzone { padding: 24px 16px; }
+}
+
+/* En teléfonos de poca altura se privilegia que el usuario vea el inicio del
+   siguiente bloque: es la señal visual de que la página continúa. */
+@media (max-width: 640px) and (max-height: 680px) {
+  .hero { padding-top: 16px; padding-bottom: 22px; }
+  .hero__eyebrow { margin-bottom: 8px; }
+  .hero__title {
+    font-size: clamp(1.68rem, 7.8vw, 2.05rem) !important;
+    margin-bottom: 9px;
+  }
+  .hero__lead {
+    font-size: .9rem !important; line-height: 1.4;
+    margin-bottom: 14px;
+  }
+  .hero__cta { margin-bottom: 10px; }
+  .hero__chips { margin-top: 9px; }
 }

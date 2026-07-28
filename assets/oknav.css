@@ -416,6 +416,60 @@
   .oknav__drawer, .oknav__ac { overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
 }
 
+/* En teléfonos la búsqueda parte como una lupa: así la primera fila conserva
+   logo, carrito y navegación sin ocupar otro renglón completo. Al enfocarla se
+   abre debajo del logo, dentro del propio header, tal como espera el usuario. */
+@media (max-width: 480px), (max-width: 760px) and (max-height: 480px) {
+  .oknav__row--main > .oknav__wrap {
+    grid-template-columns: auto minmax(0, 1fr) 44px auto;
+    grid-template-areas: "burger logo search actions";
+    column-gap: 8px; row-gap: 0;
+    padding-top: 8px; padding-bottom: 8px;
+    position: relative;
+  }
+  .oknav__actions .oknav__ico { display: none; }
+  .oknav__actions { gap: 0; }
+  .oknav__search {
+    width: 44px; height: 44px; justify-self: end;
+    transition: width .18s ease;
+  }
+  .oknav__search > svg {
+    left: 50%; transform: translate(-50%, -50%);
+  }
+  .oknav__search input {
+    width: 44px; height: 44px; padding: 0;
+    color: transparent; caret-color: transparent;
+    cursor: pointer;
+  }
+  .oknav__search input::placeholder { color: transparent; }
+  .oknav__row--main > .oknav__wrap:has(.oknav__search:focus-within) {
+    grid-template-areas:
+      "burger logo . actions"
+      "search search search search";
+    row-gap: 8px;
+  }
+  .oknav__search:focus-within {
+    position: relative; left: auto; right: auto; bottom: auto;
+    width: 100%; height: 44px; z-index: 10;
+  }
+  .oknav__search:focus-within > svg {
+    left: 13px; transform: translateY(-50%);
+  }
+  .oknav__search:focus-within input {
+    width: 100%; padding: 10px 38px 10px 40px;
+    color: var(--text-primary, #12141C); caret-color: currentColor;
+    cursor: text;
+  }
+  .oknav__search:focus-within input::placeholder {
+    color: var(--text-muted, #717890);
+  }
+  .oknav__row--nav > .oknav__wrap {
+    gap: 6px 8px; padding-top: 6px; padding-bottom: 6px;
+  }
+  .oknav__mobile-store { min-height: 40px; padding-top: 7px; padding-bottom: 7px; }
+  .oknav__cats, .oknav__ofertas { min-height: 38px; padding-top: 6px; padding-bottom: 6px; }
+}
+
 /* Teléfono angosto: el total en texto del carrito es lo primero que sobra
    (el globito ya dice cuántas piezas llevas) y el logo cede ancho. */
 @media (max-width: 430px) {
