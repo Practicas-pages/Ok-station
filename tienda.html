@@ -2455,10 +2455,36 @@ html[data-theme="dark"] #site .side-back:hover{background:rgba(255,255,255,.08)}
     if(!keys.length){$("items").innerHTML='<div class="cart-empty">Tu carrito está vacío.<br>Agrega productos desde el catálogo.</div>';}
     else{$("items").innerHTML=keys.map(function(k){var c=cart[k],p=c.p;
       return '<div class="ci">'+cartThumb(p)+'<div><div class="nm">'+okEsc(p.name)+'</div><div class="pu">'+mxn(p.price)+' c/u</div><div class="qty"><button data-dec="'+p.id+'">−</button><span>'+c.qty+'</span><button data-inc="'+p.id+'">+</button></div></div><div><div class="lt">'+mxn(p.price*c.qty)+'</div><button class="rm" data-rm="'+p.id+'">Quitar</button></div></div>';}).join("");}
-    var tt=totals(); $("sub").textContent=mxn(tt.sub); $("shipCost").textContent=tt.ship?mxn(tt.ship):"Gratis"; $("total").textContent=mxn(tt.total); $("cartTotalTop").textContent=mxn(tt.total); $("cartCount").textContent=tt.n; $("checkoutBtn").disabled=tt.n===0; saveCart(); okiEmit("carrito");
+    /* Si el carrito cambió después de cotizar, esa tarifa ya no corresponde: se
+       descarta antes de calcular el total, para no cobrar el envío de otro carrito.
+       Se vuelve a preguntar cuando el cliente llegue al paso de entrega. */
+    if(shipMode==="envio" && envioSel && envioFirma!==firmaCarrito()){ envioSel=null; envioOpciones=[]; }
+    var tt=totals(); $("sub").textContent=mxn(tt.sub);
+    /* La línea de "Entrega" NO puede decir "Gratis" cuando el envío todavía no se
+       ha cotizado: con envío a domicilio elegido y sin dirección, decía gratis y
+       el total mentía. Ahora dice en qué estado está. */
+    $("shipCost").textContent = etiquetaEnvio(tt);
+    $("total").textContent=mxn(tt.total); $("cartTotalTop").textContent=mxn(tt.total); $("cartCount").textContent=tt.n; $("checkoutBtn").disabled=tt.n===0; saveCart(); okiEmit("carrito");
   }
+  /* Qué decir en la línea de "Entrega" del carrito, según lo que se sabe. */
+  function etiquetaEnvio(tt){
+    if(shipMode!=="envio") return "Gratis";                 // recoger en tienda
+    if(envioCargando) return "Calculando…";
+    if(envioSel) return mxn(envioSel.costo);
+    if(envioError) return "No disponible";
+    if(!shopToken()) return "Se calcula al pagar";
+    return addrDefault() ? "Se calcula al pagar" : "Falta tu dirección";
+  }
+
   $("items").addEventListener("click",function(e){var i=e.target.closest("[data-inc]"),d=e.target.closest("[data-dec]"),r=e.target.closest("[data-rm]"); if(i)changeQty(+i.dataset.inc,1); if(d)changeQty(+d.dataset.dec,-1); if(r)removeItem(+r.dataset.rm);});
-  [].forEach.call(document.querySelectorAll(".ship button"),function(b){b.addEventListener("click",function(){shipMode=b.dataset.ship; [].forEach.call(document.querySelectorAll(".ship button"),function(x){x.classList.toggle("on",x===b);}); renderCart();});});
+  [].forEach.call(document.querySelectorAll(".ship button"),function(b){b.addEventListener("click",function(){
+    shipMode=b.dataset.ship;
+    [].forEach.call(document.querySelectorAll(".ship button"),function(x){x.classList.toggle("on",x===b);});
+    /* Al cambiar a "recoger" se olvida la cotización: si vuelve a envío, el carrito
+       pudo cambiar y habría que preguntar de nuevo. */
+    if(shipMode!=="envio"){ envioSel=null; envioError=""; renderCart(); return; }
+    cotizarEnvioCarrito();
+  });});
 
   // ── Vista previa enriquecida EN VIVO con Icecat (imágenes + ficha reales) ──
   function pvStripTags(s){return String(s==null?"":s).replace(/<[^>]*>/g," ").replace(/\s+/g," ").trim();}
@@ -2946,31 +2972,69 @@ html[data-theme="dark"] #site .side-back:hover{background:rgba(255,255,255,.08)}
      embarca. Así que hasta que no hay dirección elegida no hay precio que enseñar.
      Se pide al servidor —nunca al navegador— y lo que se elige aquí es solo para
      pintar: create.php vuelve a cotizar y usa SU número. */
-  var envioOpciones=[], envioCargando=false, envioError="";
+  var envioOpciones=[], envioCargando=false, envioError="", envioCache={}, envioFirma="";
+
+  /* Firma del carrito: qué productos y en qué cantidad. Sirve de llave de caché —
+     mientras no cambie ni el carrito ni la dirección, la cotización es la misma. */
+  function firmaCarrito(){
+    return Object.keys(cart).sort().map(function(k){return k+"x"+cart[k].qty;}).join(",");
+  }
+
+  /* Una sola puerta hacia la cotización, para el carrito Y para el checkout.
+     La caché no es un lujo: la API de Exel se queda sin contestar cuando se le
+     llama muchas veces seguidas (devuelve todo vacío), así que repetir la misma
+     consulta dos veces —una al elegir envío en el carrito y otra al llegar al
+     paso de entrega— es justo lo que hay que evitar. */
+  function cotizarEnvio(addressId, cb){
+    var llave=addressId+"|"+firmaCarrito();
+    if(envioCache[llave]){ cb(envioCache[llave]); return; }
+    var items=Object.keys(cart).map(function(k){return {id:+k, qty:cart[k].qty};});
+    if(!items.length || !addressId){ cb({ok:false, error:"Sin carrito o sin dirección."}); return; }
+    authFetch("/backend/api/shop/envio-opciones.php",{
+      method:"POST", body:JSON.stringify({address_id:addressId, items:items})
+    }).then(function(j){
+      var res=(j&&j.ok&&j.opciones&&j.opciones.length)
+        ? {ok:true, opciones:j.opciones, destino:j.destino}
+        : {ok:false, error:(j&&j.error)||"No pudimos calcular el envío."};
+      if(res.ok){ envioCache[llave]=res; envioFirma=firmaCarrito(); }   // solo se guarda lo bueno
+      cb(res);
+    }).catch(function(){
+      cb({ok:false, error:"No pudimos calcular el envío. Revisa tu conexión."});
+    });
+  }
+
   function cargarEnvios(){
     var host=$("coEnvio"); if(!host) return;
     if(!coAddrId){ envioOpciones=[]; envioError=""; pintarEnvios(); return; }
-    var items=Object.keys(cart).map(function(k){return {id:+k, qty:cart[k].qty};});
-    if(!items.length){ envioOpciones=[]; pintarEnvios(); return; }
     envioCargando=true; envioError=""; pintarEnvios();
-    authFetch("/backend/api/shop/envio-opciones.php",{
-      method:"POST", body:JSON.stringify({address_id:coAddrId, items:items})
-    }).then(function(j){
+    cotizarEnvio(coAddrId, function(res){
       envioCargando=false;
-      if(j&&j.ok&&j.opciones&&j.opciones.length){
-        envioOpciones=j.opciones;
+      if(res.ok){
+        envioOpciones=res.opciones;
         /* Se preselecciona la MÁS BARATA (vienen ordenadas): es lo que casi todos
            eligen, y así el total aparece de una vez en vez de quedarse en blanco. */
-        envioSel=envioOpciones[0];
+        if(!envioSel || !envioOpciones.filter(function(o){return o.clave===envioSel.clave;}).length) envioSel=envioOpciones[0];
       } else {
-        envioOpciones=[]; envioSel=null;
-        envioError=(j&&j.error)||"No pudimos calcular el envío.";
+        envioOpciones=[]; envioSel=null; envioError=res.error;
       }
       pintarEnvios(); paintCheckout();
-    }).catch(function(){
-      envioCargando=false; envioOpciones=[]; envioSel=null;
-      envioError="No pudimos calcular el envío. Revisa tu conexión.";
-      pintarEnvios(); paintCheckout();
+    });
+  }
+
+  /* Cotización desde el CARRITO, con la dirección predeterminada del cliente.
+     Es lo que pedía la pantalla: si ya tengo tu dirección guardada, no te hago
+     llegar hasta el final para enterarte de cuánto cuesta el envío. */
+  function cotizarEnvioCarrito(){
+    if(shipMode!=="envio" || !shopToken()){ renderCart(); return; }
+    var d=addrDefault();
+    if(!d){ renderCart(); return; }          // sin dirección guardada no hay nada que preguntar
+    coAddrId=coAddrId||d.id;
+    envioCargando=true; renderCart();
+    cotizarEnvio(d.id, function(res){
+      envioCargando=false;
+      if(res.ok){ envioOpciones=res.opciones; envioSel=res.opciones[0]; envioError=""; }
+      else { envioOpciones=[]; envioSel=null; envioError=res.error; }
+      renderCart();
     });
   }
   function pintarEnvios(){
