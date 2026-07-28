@@ -414,21 +414,22 @@ html[data-theme="dark"] .side-cat.on{background:rgba(6,108,255,.20);color:#7cc0f
    compacta; nunca una copia translúcida del renglón completo. */
 .td-row[draggable="true"]{cursor:grab}
 .td-row.dragging{opacity:.72;cursor:grabbing}
-/* Mientras se toma un producto, el pre-carrito se convierte visualmente en el
-   destino. El contorno no altera medidas (evita que la cuadrícula salte) y toda
-   la zona conserva esquinas redondeadas. Al entrar, el trazo se vuelve sólido. */
-body.td-product-drag .td-cart{
-  border-radius:22px;outline:3px dashed #FF7C19;outline-offset:6px;
-  box-shadow:0 0 0 7px rgba(255,124,25,.12);
-  transition:outline-color .14s,box-shadow .14s,transform .14s}
-body.td-product-drag .td-cart::after{
+/* El destino abraza SOLO el cuadro útil del pre-carrito, no toda la columna
+   vacía. Empieza azul y cambia lentamente al morado de marca al acercarse. */
+body.td-product-drag .td-cartbox{
+  position:relative;outline:3px dashed #066CFF;outline-offset:6px;
+  box-shadow:0 0 0 7px rgba(6,108,255,.14);
+  transition:outline-color .48s ease,box-shadow .48s ease,transform .32s ease}
+body.td-product-drag .td-cartbox::after{
   content:"Arrastra el producto aquí";position:absolute;right:12px;top:10px;z-index:4;
-  padding:5px 9px;border-radius:99px;background:#FF7C19;color:#fff;
-  font-size:.7rem;font-weight:800;line-height:1;pointer-events:none}
-body.td-product-drag .td-cart.td-drop-over{
-  outline-style:solid;outline-color:#FFE200;
-  box-shadow:0 0 0 9px rgba(255,226,0,.18);transform:scale(1.01)}
-body.td-product-drag .td-cart.td-drop-over::after{content:"Suelta para agregar";background:#FFE200;color:#12141C}
+  padding:5px 9px;border-radius:99px;background:#066CFF;color:#fff;
+  font-size:.7rem;font-weight:800;line-height:1;pointer-events:none;
+  transition:background-color .48s ease}
+body.td-product-drag .td-cart.td-drop-over .td-cartbox{
+  outline-color:var(--brand-purple,#9C1DFF);
+  box-shadow:0 0 0 9px rgba(156,29,255,.18);transform:scale(1.01)}
+body.td-product-drag .td-cart.td-drop-over .td-cartbox::after{
+  content:"Suelta para agregar";background:var(--brand-purple,#9C1DFF)}
 .td-drop-over .td-cartbox{filter:brightness(1.035)}
 .td-drag-ghost{position:fixed;left:-1000px;top:-1000px;width:230px;min-height:58px;
   display:flex;align-items:center;gap:10px;padding:8px 10px;border:1px solid #D8E1EF;
@@ -546,8 +547,8 @@ body.td-predrag .td-trash{display:flex}
 
 .td-go{
   width:100%;margin-top:12px;height:52px;border-radius:12px;border:0;cursor:pointer;
-  background:var(--brand-orange,#FF7C19);color:#fff;font:inherit;font-weight:800;font-size:.95rem;
-  box-shadow:0 6px 18px rgba(255,124,25,.32);transition:transform .12s,filter .12s}
+  background:#FFE200;color:#12141C;font:inherit;font-weight:800;font-size:.95rem;
+  box-shadow:0 4px 14px rgba(255,226,0,.30);transition:transform .12s,filter .12s}
 .td-go:hover:not([disabled]){transform:translateY(-1px);filter:brightness(1.06)}
 .td-go[disabled]{background:#c9ced9;box-shadow:none;cursor:not-allowed}
 .td-msg{font-size:.76rem;text-align:center;margin-top:8px;min-height:1em;color:#b42318;font-weight:600}
