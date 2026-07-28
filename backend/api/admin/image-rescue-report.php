@@ -1,7 +1,13 @@
 <?php
 /**
  * GET /backend/api/admin/image-rescue-report.php
- * Historial persistente del tercer filtro de fotografías.
+ * Cola e historial persistente del tercer filtro de fotografías.
+ *
+ * El rescate automático exacto solo puede publicar NEXTEP; el selector humano
+ * funciona con cualquier marca. Por eso este reporte no se limita a
+ * `rescate:nextep`: incluye todos los productos que siguen sin foto y todas las
+ * decisiones tomadas desde el selector. Así "Por revisar" representa el trabajo
+ * real pendiente del catálogo, no únicamente lo que alcanzó a revisar NEXTEP.
  */
 require __DIR__ . '/../_bootstrap.php';
 require __DIR__ . '/../lib/authz.php';
@@ -16,45 +22,58 @@ if (!in_array($estado, $permitidos, true)) {
 }
 
 $alcance = alcance_sql('p');
-$where = "pe.source = 'rescate:nextep' {$alcance['sql']}";
+$latestLog = "(SELECT pe2.id
+                 FROM product_enrichment pe2
+                WHERE pe2.product_id = p.id
+                  AND (pe2.source = 'rescate:nextep'
+                       OR pe2.source = 'manual'
+                       OR pe2.source LIKE 'panel:%')
+                ORDER BY pe2.tried_at DESC, pe2.id DESC
+                LIMIT 1)";
+$hasImage = "EXISTS (SELECT 1 FROM product_images px WHERE px.product_id = p.id)";
+$statusSql = "CASE
+                WHEN {$hasImage} THEN 'ok'
+                WHEN pe.status IN ('sin_datos','revision','error') THEN pe.status
+                ELSE 'revision'
+              END";
+$baseWhere = "1=1 {$alcance['sql']}
+              AND (pe.id IS NOT NULL OR NOT {$hasImage})";
+$where = $baseWhere;
 $params = $alcance['params'];
 if ($estado !== '') {
-    $where .= " AND (CASE WHEN EXISTS (
-        SELECT 1 FROM product_images px WHERE px.product_id = p.id
-    ) THEN 'ok' ELSE pe.status END) = :rescue_status";
+    $where .= " AND ({$statusSql}) = :rescue_status";
     $params[':rescue_status'] = $estado;
 }
 
 try {
     $st = db()->prepare(
         "SELECT p.id, p.name, p.brand, p.sku, p.supplier_ref,
-                CASE WHEN EXISTS (
-                    SELECT 1 FROM product_images px WHERE px.product_id = p.id
-                ) THEN 'ok' ELSE pe.status END AS status,
-                pe.detail, pe.source_url, pe.match_key,
-                pe.confidence, pe.tried_at,
+                {$statusSql} AS status,
+                COALESCE(pe.detail,
+                    'Pendiente de abrir y confirmar una fotografía en el panel.') AS detail,
+                pe.source, pe.source_url, pe.match_key,
+                pe.confidence, COALESCE(pe.tried_at, p.last_synced_at) AS tried_at,
                 (SELECT COALESCE(NULLIF(pi.stored_path,''), pi.url)
                    FROM product_images pi
                   WHERE pi.product_id = p.id
                   ORDER BY pi.is_primary DESC, pi.sort_order, pi.id
                   LIMIT 1) AS thumb
-           FROM product_enrichment pe
-           JOIN products p ON p.id = pe.product_id
+           FROM products p
+           LEFT JOIN product_enrichment pe ON pe.id = {$latestLog}
           WHERE {$where}
-          ORDER BY pe.tried_at DESC, p.name
+          ORDER BY FIELD({$statusSql}, 'revision', 'error', 'sin_datos', 'ok'),
+                   COALESCE(pe.tried_at, p.last_synced_at) DESC, p.name
           LIMIT 500"
     );
     $st->execute($params);
     $resultados = $st->fetchAll(PDO::FETCH_ASSOC);
 
     $st = db()->prepare(
-        "SELECT CASE WHEN EXISTS (
-                    SELECT 1 FROM product_images px WHERE px.product_id = p.id
-                ) THEN 'ok' ELSE pe.status END AS status,
+        "SELECT {$statusSql} AS status,
                 COUNT(*) AS total
-           FROM product_enrichment pe
-           JOIN products p ON p.id = pe.product_id
-          WHERE pe.source = 'rescate:nextep' {$alcance['sql']}
+           FROM products p
+           LEFT JOIN product_enrichment pe ON pe.id = {$latestLog}
+          WHERE {$baseWhere}
           GROUP BY 1"
     );
     $st->execute($alcance['params']);

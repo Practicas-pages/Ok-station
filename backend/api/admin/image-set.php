@@ -68,6 +68,9 @@ if ($subido) {
     $origen = 'exel';
     if (str_contains($host, 'icecat') || str_contains($host, 'iceimg'))            $origen = 'icecat';
     elseif (!str_contains($host, 'exeldelnorte'))                                  $origen = 'fabricante:' . preg_replace('/^www\./', '', $host);
+    /* La columna de procedencia admite 32 caracteres. Un host largo no debe
+       convertir una selección válida en un error SQL difícil de entender. */
+    $origen = mb_substr($origen, 0, 32);
     $urlOrigen = $url;
 } else {
     fail('Manda una imagen o la dirección de una.', 422);
@@ -79,6 +82,54 @@ if ($meta === null) fail($motivo, 422);
 
 /* ── 3. Guardar en disco y registrar ──────────────────────────────────────── */
 $ruta = ImagenSegura::guardar($productId, $data, $meta['ext']);
+
+/* La ruta incluye la huella del contenido. Si la misma fotografía llegó desde
+   dos fuentes o se eligió dos veces, se reutiliza la fila existente en vez de
+   inflar el contador y mostrar duplicados en la ficha. */
+$dup = $pdo->prepare(
+    'SELECT id, source FROM product_images
+      WHERE product_id = ? AND (stored_path = ? OR (url IS NOT NULL AND url = ?))
+      ORDER BY is_primary DESC, id LIMIT 1'
+);
+$dup->execute([$productId, $ruta, $urlOrigen]);
+$existente = $dup->fetch(PDO::FETCH_ASSOC);
+if ($existente) {
+    if ($principal) {
+        $pdo->beginTransaction();
+        try {
+            $pdo->prepare('UPDATE product_images SET is_primary = 0 WHERE product_id = ?')->execute([$productId]);
+            $pdo->prepare('UPDATE product_images SET is_primary = 1 WHERE id = ?')->execute([(int) $existente['id']]);
+            $pdo->commit();
+        } catch (Throwable $e) {
+            if ($pdo->inTransaction()) $pdo->rollBack();
+            fail('No se pudo actualizar la imagen principal.', 500);
+        }
+    }
+    EnrichLog::registrar($pdo, $productId, $subido ? 'manual' : 'panel:' . (string) $existente['source'], 'ok', [
+        'fields'     => 'imagen',
+        'source_url' => $urlOrigen,
+        'confidence' => 100,
+        'detail'     => 'Imagen ya registrada; fue confirmada de nuevo en el panel por '
+                      . (string) ($user['name'] ?? $user['email'] ?? 'un administrador'),
+    ]);
+    respond([
+        'ok' => true, 'path' => $ruta, 'width' => $meta['w'], 'height' => $meta['h'],
+        'bytes' => $meta['bytes'], 'existing' => true,
+        'mensaje' => 'La imagen ya estaba guardada para ' . $prod['name'],
+    ]);
+}
+
+/* La tabla documenta un máximo de cinco imágenes, pero hasta ahora solo lo
+   respetaban los runners; el panel podía insertar una sexta, séptima, etc.
+   Se valida también aquí, que es la frontera real de escritura manual. */
+$countSt = $pdo->prepare('SELECT COUNT(*) FROM product_images WHERE product_id = ?');
+$countSt->execute([$productId]);
+$imageCount = (int) $countSt->fetchColumn();
+if ($imageCount >= 5) {
+    $archivo = dirname(__DIR__, 3) . $ruta;
+    if (is_file($archivo)) @unlink($archivo);
+    fail('Este producto ya tiene 5 imágenes. Quita una antes de agregar otra.', 409);
+}
 
 $pdo->beginTransaction();
 try {
@@ -95,12 +146,19 @@ try {
        así que ambas tablas ya hablan el mismo idioma y se pueden cruzar. */
     $pdo->prepare(
         'INSERT INTO product_images (product_id, url, stored_path, source, sort_order, is_primary)
-         VALUES (?, ?, ?, ?, 0, ?)'
-    )->execute([$productId, $urlOrigen, $ruta, $origen, $principal ? 1 : 0]);
+         VALUES (?, ?, ?, ?, ?, ?)'
+    )->execute([$productId, $urlOrigen, $ruta, $origen, $imageCount, $principal ? 1 : 0]);
 
     $pdo->commit();
 } catch (Throwable $e) {
     if ($pdo->inTransaction()) $pdo->rollBack();
+    /* La copia en disco ocurre antes que la transacción SQL. Si la fila no pudo
+       registrarse, se retira ese archivo huérfano; la ruta siempre fue generada
+       por ImagenSegura dentro de assets/img/products/{id}. */
+    $archivo = dirname(__DIR__, 3) . $ruta;
+    $usada = $pdo->prepare('SELECT COUNT(*) FROM product_images WHERE stored_path = ?');
+    $usada->execute([$ruta]);
+    if ((int) $usada->fetchColumn() === 0 && is_file($archivo)) @unlink($archivo);
     fail('No se pudo guardar la imagen.', 500);
 }
 

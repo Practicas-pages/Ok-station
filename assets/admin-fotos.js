@@ -36,6 +36,7 @@
   }
 
   var modal = null, actual = null;   // actual = { id, nombre, marca }
+  var seleccionadas = [], portadaUrl = "", maxSeleccion = 5;
   /* Cola de trabajo: los productos sin foto que se ven en la tabla. Se toma al
      abrir el primero y se va consumiendo, para poder hacerlos en fila sin volver
      a la lista cada vez. Con 264 pendientes, esa ida y vuelta es la diferencia
@@ -109,6 +110,11 @@
         '</div>' +
         '<div class="fotos-body" id="fotos-body"></div>' +
         '<div class="fotos-foot">' +
+          '<div class="fotos-selection" id="fotos-selection">' +
+            '<div><b id="fotos-selection-count">0 seleccionadas</b>' +
+              '<span id="fotos-selection-help">Marca las fotografías que correspondan al producto.</span></div>' +
+            '<button type="button" id="fotos-save-selected" data-fotos-guardar disabled>Agregar seleccionadas</button>' +
+          '</div>' +
           '<div class="fotos-drop" id="fotos-drop" tabindex="0">' +
             'Arrastra una imagen aquí, o haz clic y pega con <b>Ctrl+V</b>' +
             '<input type="file" id="fotos-file" accept="image/jpeg,image/png,image/webp,image/gif" hidden>' +
@@ -121,8 +127,24 @@
     modal.addEventListener("click", function (e) {
       if (e.target === modal || e.target.closest("[data-fotos-cerrar]")) return cerrar();
       if (e.target.closest("[data-fotos-siguiente]")) return siguiente();
+      if (e.target.closest("[data-fotos-guardar]")) return guardarSeleccionadas();
+      if (e.target.closest("[data-fotos-buscar]")) {
+        var campo = modal.querySelector("#fotos-query");
+        var consulta = campo ? campo.value.trim() : "";
+        if (!consulta || !actual) return;
+        modal.querySelector("#fotos-body").innerHTML = '<div class="fotos-cargando">Buscando otras opciones…</div>';
+        cargarCandidatas(actual.id, consulta);
+        return;
+      }
+      var cover = e.target.closest("[data-cand-primary]");
+      if (cover) {
+        e.preventDefault();
+        e.stopPropagation();
+        marcarPortada(cover.getAttribute("data-cand-primary"));
+        return;
+      }
       var cand = e.target.closest("[data-cand]");
-      if (cand) return usarUrl(cand.getAttribute("data-cand"));
+      if (cand) return alternarSeleccion(cand.getAttribute("data-cand"));
     });
     /* La zona de pegado: abre el explorador al hacer clic y acepta arrastrar. */
     var drop = modal.querySelector("#fotos-drop");
@@ -153,6 +175,16 @@
     });
     document.addEventListener("keydown", function (e) {
       if (e.key === "Escape" && modal && modal.classList.contains("on")) cerrar();
+      if (e.key === "Enter" && modal && modal.classList.contains("on") &&
+          e.target && e.target.id === "fotos-query") {
+        e.preventDefault();
+        var buscar = modal.querySelector("[data-fotos-buscar]");
+        if (buscar) buscar.click();
+      }
+      if ((e.key === "Enter" || e.key === " ") && e.target && e.target.matches("[data-cand]")) {
+        e.preventDefault();
+        alternarSeleccion(e.target.getAttribute("data-cand"));
+      }
     });
     return modal;
   }
@@ -172,6 +204,7 @@
     var p = cola.shift();
     if (!p) { cerrar(); return; }
     actual = { id: p.id, nombre: p.nombre, marca: p.marca };
+    limpiarSeleccion();
     modal.querySelector("#fotos-nombre").textContent = p.nombre;
     modal.querySelector("#fotos-marca").textContent = p.marca ? "· " + p.marca : "";
     modal.querySelector("#fotos-body").innerHTML = '<div class="fotos-cargando">Buscando fotos…</div>';
@@ -191,12 +224,14 @@
     if (!modal) return;
     modal.classList.remove("on");
     actual = null;
+    limpiarSeleccion();
   }
 
   /* ── Abrir para un producto ──────────────────────────────────────────────── */
   function abrir(id, nombre, marca) {
     construir();
     actual = { id: id, nombre: nombre, marca: marca };
+    limpiarSeleccion();
 
     /* Se arma la cola con los pendientes que hay en pantalla, quitando el que se
        está abriendo. Se rehace en cada apertura desde la tabla para que respete
@@ -216,13 +251,15 @@
 
   /* Consulta y pinta las candidatas de un producto. Aparte de abrir() para poder
      encadenar productos sin volver a montar el diálogo. */
-  function cargarCandidatas(id) {
+  function cargarCandidatas(id, consulta) {
     /* El .catch de antes tapaba TRES fallas distintas bajo el mismo mensaje: que
        el servidor no respondiera, que devolviera algo que no es JSON (un error de
        PHP se imprime como texto), o que reventara al pintar. Sin distinguirlas no
        hay forma de arreglar nada — se ve "No se pudieron buscar candidatas" y a
        adivinar. Ahora cada una dice lo suyo y el detalle queda en la consola. */
-    fetch(API + "/admin/image-candidates.php?product_id=" + encodeURIComponent(id), {
+    var endpoint = API + "/admin/image-candidates.php?product_id=" + encodeURIComponent(id);
+    if (consulta) endpoint += "&q=" + encodeURIComponent(consulta);
+    fetch(endpoint, {
       headers: { Authorization: "Bearer " + token() }
     })
       .then(function (r) {
@@ -262,6 +299,12 @@
     if (!actual) return;
     var body = modal.querySelector("#fotos-body");
     var cands = (j && j.candidatas) || [];
+    var actuales = cands.filter(function (c) { return c.origen === "actual"; }).length;
+    maxSeleccion = Math.max(0, 5 - actuales);
+    if (seleccionadas.length > maxSeleccion) seleccionadas = seleccionadas.slice(0, maxSeleccion);
+    if (seleccionadas.length && !seleccionadas.some(function (c) { return c.url === portadaUrl; })) {
+      portadaUrl = seleccionadas[0].url;
+    }
     var html = "";
 
     if (cands.length) {
@@ -278,11 +321,18 @@
            vistazo. Se muestra la MINIATURA cuando viene: pesa mucho menos y así la
            cuadrícula aparece de golpe en vez de ir cargando de a una. */
         var esExterna = (c.origen === "marca" || c.origen === "buscador" || c.origen === "nextep");
+        var elegida = seleccionadas.some(function (s) { return s.url === c.url; });
+        var portada = elegida && portadaUrl === c.url;
         html += '<figure class="fotos-cand' + (yaEs ? " es-actual" : "") +
+                  (elegida ? " is-selected" : "") +
                   (esExterna ? " es-marca" : "") + '"' +
-                  (yaEs ? "" : ' data-cand="' + esc(c.url) + '" title="Usar esta foto — ' + esc(c.fuente || "") + '"') + '>' +
+                  (yaEs ? "" : ' data-cand="' + esc(c.url) + '" tabindex="0" role="button" aria-pressed="' +
+                    (elegida ? "true" : "false") + '" title="Seleccionar esta foto — ' + esc(c.fuente || "") + '"') + '>' +
                   '<img src="' + esc(c.miniatura || c.url) + '" alt="" loading="lazy" ' +
                     'onerror="this.closest(\'figure\').remove()">' +
+                  (yaEs ? "" : '<span class="fotos-check" aria-hidden="true">' + (elegida ? "✓" : "+") + '</span>') +
+                  (elegida ? '<button type="button" class="fotos-cover' + (portada ? " on" : "") +
+                    '" data-cand-primary="' + esc(c.url) + '">' + (portada ? "Portada" : "Hacer portada") + '</button>' : "") +
                   '<figcaption>' + esc(pie) + (c.medidas ? ' <span class="fotos-med">' + esc(c.medidas) + '</span>' : '') +
                   '</figcaption>' +
                 '</figure>';
@@ -329,6 +379,17 @@
        no en un archivo de documentación porque es donde alguien se da cuenta de que
        faltan: cuando abre el diálogo y no hay ninguna foto que elegir. */
     var busc = (j && j.buscador) || {};
+    /* La consulta automática no siempre conoce el color, medida o modelo que Exel
+       abrevia en el nombre. Se puede afinar aquí mismo y volver a traer candidatas
+       sin abandonar el producto ni copiar resultados entre pestañas. */
+    html += '<div class="fotos-refine">' +
+      '<label for="fotos-query">Ajustar búsqueda</label>' +
+      '<div><input type="search" id="fotos-query" value="' + esc((j && j.consulta) || frase) +
+        '" maxlength="160" autocomplete="off">' +
+      '<button type="button" data-fotos-buscar>Buscar otras</button></div>' +
+      '<span>Agrega color, medida, modelo o código si las opciones no corresponden.</span>' +
+      '</div>';
+
     /* OCULTO a pedido de Oscar (jul 2026): no mostrar la caja "Para que aparezcan
        fotos aquí" con los pasos de Google CSE en el panel. Para restaurarlo, quita
        el "false &&" de la condición. */
@@ -353,6 +414,87 @@
        servidor que nunca existió. Se fue media tarde detrás de un fantasma. */
     if (!cands.length) html = '<div class="fotos-cargando">Sin candidatas automáticas para este producto.</div>' + html;
     body.innerHTML = html;
+    pintarSeleccion();
+  }
+
+  function limpiarSeleccion() {
+    seleccionadas = [];
+    portadaUrl = "";
+    maxSeleccion = 5;
+    pintarSeleccion();
+  }
+
+  function alternarSeleccion(url) {
+    if (!url) return;
+    var index = seleccionadas.findIndex(function (c) { return c.url === url; });
+    if (index >= 0) {
+      seleccionadas.splice(index, 1);
+      if (portadaUrl === url) portadaUrl = seleccionadas.length ? seleccionadas[0].url : "";
+    } else {
+      if (seleccionadas.length >= maxSeleccion) {
+        msg("Este producto solo tiene espacio para " + maxSeleccion + " fotografía(s) más.", "mal");
+        return;
+      }
+      seleccionadas.push({ url: url });
+      if (!portadaUrl) portadaUrl = url;
+      msg("");
+    }
+    pintarCandidatasSeleccionadas();
+    pintarSeleccion();
+  }
+
+  function marcarPortada(url) {
+    if (!seleccionadas.some(function (c) { return c.url === url; })) return;
+    portadaUrl = url;
+    pintarCandidatasSeleccionadas();
+    pintarSeleccion();
+  }
+
+  function pintarCandidatasSeleccionadas() {
+    if (!modal) return;
+    [].forEach.call(modal.querySelectorAll("[data-cand]"), function (card) {
+      var url = card.getAttribute("data-cand");
+      var chosen = seleccionadas.some(function (c) { return c.url === url; });
+      card.classList.toggle("is-selected", chosen);
+      card.setAttribute("aria-pressed", chosen ? "true" : "false");
+      var check = card.querySelector(".fotos-check");
+      if (check) check.textContent = chosen ? "✓" : "+";
+      var cover = card.querySelector(".fotos-cover");
+      if (chosen && !cover) {
+        cover = document.createElement("button");
+        cover.type = "button";
+        cover.className = "fotos-cover";
+        cover.setAttribute("data-cand-primary", url);
+        card.insertBefore(cover, card.querySelector("figcaption"));
+      }
+      if (cover) {
+        if (!chosen) cover.remove();
+        else {
+          var isCover = portadaUrl === url;
+          cover.classList.toggle("on", isCover);
+          cover.textContent = isCover ? "Portada" : "Hacer portada";
+        }
+      }
+    });
+  }
+
+  function pintarSeleccion() {
+    if (!modal) return;
+    var count = modal.querySelector("#fotos-selection-count");
+    var help = modal.querySelector("#fotos-selection-help");
+    var save = modal.querySelector("#fotos-save-selected");
+    if (count) count.textContent = seleccionadas.length + " de " + maxSeleccion + " seleccionadas";
+    if (help) help.textContent = seleccionadas.length
+      ? "La marcada como Portada se mostrará en las tarjetas; las demás aparecerán en la galería."
+      : (maxSeleccion > 0
+          ? "Marca diferentes ángulos y después agrégalos juntos."
+          : "La galería ya tiene 5 fotografías.");
+    if (save) {
+      save.disabled = seleccionadas.length === 0;
+      save.textContent = seleccionadas.length
+        ? "Agregar seleccionadas (" + seleccionadas.length + ")"
+        : "Agregar seleccionadas";
+    }
   }
 
   /* ── Guardar ─────────────────────────────────────────────────────────────── */
@@ -381,7 +523,42 @@
       .catch(function () { msg("Falló la conexión.", "mal"); });
   }
 
-  function usarUrl(url) { var fd = new FormData(); fd.append("url", url); enviar(fd); }
+  function guardarSeleccionadas() {
+    if (!actual || !seleccionadas.length) return;
+    var save = modal.querySelector("#fotos-save-selected");
+    if (save) save.disabled = true;
+    msg("Descargando y validando " + seleccionadas.length + " fotografía(s)…");
+    fetch(API + "/admin/image-set-batch.php", {
+      method: "POST",
+      headers: {
+        Authorization: "Bearer " + token(),
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        product_id: Number(actual.id),
+        images: seleccionadas,
+        primary_url: portadaUrl || seleccionadas[0].url
+      })
+    })
+      .then(function (r) {
+        return r.json().then(function (j) { return { ok: r.ok, j: j }; });
+      })
+      .then(function (res) {
+        if (!res.ok) {
+          msg((res.j && res.j.error) || "No se pudieron guardar las fotografías.", "mal");
+          pintarSeleccion();
+          return;
+        }
+        msg("✓ " + ((res.j && (res.j.message || res.j.mensaje)) || "Fotografías guardadas."), "bien");
+        if (typeof window.okAdminRecargarCatalogo === "function") window.okAdminRecargarCatalogo();
+        setTimeout(function () { cola.length ? siguiente() : cerrar(); }, 850);
+      })
+      .catch(function () {
+        msg("Falló la conexión al guardar las fotografías.", "mal");
+        pintarSeleccion();
+      });
+  }
+
   function subirArchivo(file) {
     if (!/^image\//.test(file.type)) { msg("Eso no es una imagen.", "mal"); return; }
     var fd = new FormData(); fd.append("file", file, file.name || "foto.jpg"); enviar(fd);

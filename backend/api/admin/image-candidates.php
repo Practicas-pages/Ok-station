@@ -44,6 +44,7 @@ only_method('GET');
 $user = require_permission('shop.view');
 
 $productId = (int) ($_GET['product_id'] ?? 0);
+$consultaManual = mb_substr(trim((string) ($_GET['q'] ?? '')), 0, 160);
 if ($productId <= 0) fail('Falta el producto.', 422);
 
 $pdo = db();
@@ -189,7 +190,7 @@ if (Nextep::esNextep($marca)) {
    La consulta se arma como la escribiría una persona: se quita la presentación
    ("C/10" son las piezas por paquete, no el producto) y se antepone la marca solo
    si el nombre no la trae ya. */
-$consulta = buscar_frase((string) $p['name'], $marca);
+$consulta = $consultaManual !== '' ? $consultaManual : buscar_frase((string) $p['name'], $marca);
 if (BuscadorImagenes::configurado()) {
     $r = BuscadorImagenes::buscar($consulta);
     foreach ($r['imagenes'] as $img) {
@@ -210,6 +211,29 @@ if (BuscadorImagenes::configurado()) {
        hacen una sola vez. */
     $notas[] = 'no_configurado';
 }
+
+/* Una misma fotografía puede aparecer en Icecat, NEXTEP y otra vez en Google.
+   Enseñarla dos o tres veces hace más lenta la revisión y parece que hay más
+   alternativas de las que realmente existen. Se conserva la primera aparición
+   porque las fuentes ya están ordenadas de mayor a menor confianza. */
+$unicas = [];
+$vistas = [];
+foreach ($cands as $cand) {
+    $u = trim((string) ($cand['url_real'] ?? $cand['url'] ?? ''));
+    if ($u === '') continue;
+    $p = parse_url($u);
+    if (is_array($p) && isset($p['scheme'], $p['host'])) {
+        $key = strtolower($p['scheme'] . '://' . $p['host'])
+             . ($p['path'] ?? '')
+             . (isset($p['query']) ? '?' . $p['query'] : '');
+    } else {
+        $key = $u;
+    }
+    if (isset($vistas[$key])) continue;
+    $vistas[$key] = true;
+    $unicas[] = $cand;
+}
+$cands = $unicas;
 
 /**
  * Convierte el nombre telegráfico de Exel en algo que un buscador entienda.

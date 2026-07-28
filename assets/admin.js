@@ -1802,7 +1802,7 @@
 
     function terminar(texto, error) {
       catalogRescueBusy = false;
-      if (btn) { btn.disabled = false; btn.textContent = "Completar fotos faltantes"; }
+      if (btn) { btn.disabled = false; btn.textContent = "Buscar coincidencias exactas"; }
       if (msg) { msg.textContent = texto; msg.style.color = error ? "#B91C1C" : ""; }
       renderCatalog();
       loadCatalogRescueReport(false);
@@ -1824,8 +1824,8 @@
           return;
         }
         terminar(
-          total.rescatados + " productos completados automáticamente; " +
-          total.revision + " requieren confirmar la variante. " +
+          total.rescatados + " coincidencias oficiales guardadas automáticamente; " +
+          total.revision + " variantes NEXTEP requieren confirmación. " +
           (Number(r.sin_imagen_total) || 0) + " productos siguen sin foto en todo el catálogo.",
           false
         );
