@@ -5,11 +5,11 @@
  * SIN dependencias ni SDK (igual que el resto del backend). La llave es SECRETO
  * DE SERVIDOR: vive solo en backend/.env (GEMINI_API_KEY), nunca en el navegador.
  *
- * Se usa como RESPALDO: OKi resuelve navegación y datos del negocio con su cerebro
- * por reglas (rápido, gratis, determinista); solo cuando NO reconoce la pregunta
- * llama a Gemini para dar una respuesta natural. Así el consumo es bajo y cabe en
- * el tier gratuito. Si la llave está vacía o la API falla, devuelve null y OKi cae
- * a su respaldo de WhatsApp (nunca rompe el chat).
+ * Se usa como RESPALDO: OKi resuelve navegación y datos exactos del negocio con su
+ * cerebro por reglas (rápido, gratis, determinista); las preguntas generales, las
+ * explicaciones y lo que las reglas no reconocen pasan a Gemini. Así el consumo se
+ * mantiene controlado. Si la llave está vacía o la API falla, devuelve null y el chat
+ * muestra un respaldo local sin romper la conversación.
  *
  * Requiere config.php ($CONFIG['gemini']).
  */

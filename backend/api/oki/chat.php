@@ -1,11 +1,11 @@
 <?php
 declare(strict_types=1);
 /**
- * POST /backend/api/oki/chat.php — cerebro de OKi (por REGLAS, sin API ni costo).
+ * POST /backend/api/oki/chat.php — cerebro híbrido de OKi (reglas + IA).
  * ------------------------------------------------------------------------------
  * Recibe el mensaje del usuario y responde con los datos reales del negocio
- * (ver backend/api/oki/brain.php). Si no reconoce la intención, deriva a
- * WhatsApp — regla de oro: OKi no inventa.
+ * (ver backend/api/oki/brain.php). Si no reconoce la intención o la pregunta
+ * necesita una explicación, usa la IA configurada en el servidor.
  *
  * Cuerpo (JSON):
  *   { "messages": [ {"role":"user","content":"..."}, ... ] }   // se usa el último del usuario
@@ -41,79 +41,18 @@ function oki_is_advice(string $t): bool
 }
 
 /**
- * Guardia de dominio: OKi ya no es el asistente general de todos los servicios.
- * Atiende exclusivamente papelería/oficina/escolares y el flujo de compra.
- * La comprobación contra la BD permite reconocer marcas y nombres reales sin mantener
- * una lista manual imposible de actualizar junto con los syncs de Exel.
+ * Las reglas del negocio son excelentes para precios, horarios y navegación, pero no
+ * deben ganar preguntas educativas como "¿qué es un tóner?". Esas preguntas pasan a
+ * la IA para recibir una explicación real en lugar de una respuesta comercial enlatada.
  */
-function oki_is_stationery_scope(string $text, string $previousUser = ''): bool
+function oki_needs_explanation(string $t): bool
 {
-    $t = oki_norm($text);
-    if ($t === '') return false;
-
-    /* Aunque aparezca "tienda" o "precio", estos temas conocidos quedan fuera. */
-    if (preg_match('/\b(?:pasaporte|visa|sentri|global entry|i-?94|curp|acta|ine|licencia|'
-        . 'tramite|cita|recarga|pago de servicios?|cfe|recibo de luz|recibo de agua|'
-        . 'fotografia|foto para|rfc|imss|nss|seguro social)\b/u', $t)) {
-        return false;
-    }
-
-    /* Saludos y cortesía sí, siempre que no vengan acompañados de otra pregunta. */
-    if (preg_match('/^(?:hola|buenas|buenos dias|buenas tardes|buenas noches|gracias|'
-        . 'muchas gracias|adios|hasta luego|ok|oki|perfecto)[!. ]*$/u', $t)) {
-        return true;
-    }
-
-    /* Lenguaje propio del dominio, incluidos usos que no necesariamente son un SKU. */
-    if (preg_match('/\b(?:papeleria|oficina|escuela|escolar(?:es)?|preescolar|primaria|'
-        . 'secundaria|preparatoria|universidad|articulos? de oficina|'
-        . 'material(?:es)? escolar(?:es)?|utiles escolares|cuaderno|libreta|agenda|bitacora|'
-        . 'folder|carpeta|archivador|archivo|papel|hojas?|notas? adhesivas?|post-?it|'
-        . 'cartulina|pluma|boligrafo|lapiz|lapices|marcador|marcatextos|crayon|colores|'
-        . 'borrador|goma|sacapuntas|corrector|pegamento|adhesivo|cinta|tijera|regla|compas|'
-        . 'mica|acetato|foamy|pincel|pintura|acuarela|tempera|estuche|mochila|'
-        . 'engrapadora|grapas|perforadora|clip|sujetadocumentos|sobre|etiqueta|calculadora|'
-        . 'tinta|toner|cartucho|impresora|escritorio|organizar documentos|archivar documentos)\b/u', $t)) {
-        return true;
-    }
-
-    /* Quien no conoce el nombre del artículo suele describir el resultado que busca. */
-    if (preg_match('/\b(?:guardar|ordenar|organizar|archivar|proteger|clasificar|'
-        . 'que no se (?:me )?pierdan)\b.*\b(?:papeles?|documentos?|recibos?|facturas?|'
-        . 'apuntes?|tareas?)\b/u', $t)
-        || preg_match('/\b(?:algo|material|producto)\b.*\b(?:escribir|apuntar|dibujar|'
-            . 'colorear|pegar|recortar|medir|archivar|organizar)\b/u', $t)) {
-        return true;
-    }
-
-    /* Acciones y dudas del e-commerce que tienen sentido sin repetir "papelería". */
-    if (preg_match('/\b(?:carrito|catalogo|producto|productos|categoria|categorias|oferta|'
-        . 'ofertas|existencia|stock|favorito|favoritos|deseado|deseados|pedido|pedidos|'
-        . 'tienda en linea|mercado pago)\b/u', $t)
-        || preg_match('/^(?:como pago|puedo pagar|formas? de pago|metodos? de pago|'
-            . 'cuanto llevo|que llevo|mi total|envio|entrega|recoger|recoleccion|'
-            . 'que me recomiendas|recomiendame algo|no se que necesito|no se que comprar|'
-            . 'ayudame a elegir|orientame|no se|ninguna|elige tu|tu dime)$/u', $t)) {
-        return true;
-    }
-
-    /* Marca, SKU o nombre vivo del catálogo (p. ej. "¿tienes BIC?"). */
-    try {
-        require_once __DIR__ . '/../shop/_synonyms.php';
-        $terms = oki_terminos_de_busqueda($text);
-        if ($terms !== '' && oki_buscar_productos($terms)) return true;
-    } catch (Throwable $e) {
-        /* La BD no disponible no debe abrir el dominio; continúa con la regla estricta. */
-    }
-
-    /* Seguimiento breve de una conversación que YA era de papelería. */
-    if ($previousUser !== ''
-        && preg_match('/^(?:y |para mi|es para|ese|esa|esos|esas|el primero|el segundo|la primera|la segunda|'
-            . 'cual|cuanto|sirve|funciona|agregalo|ponlo|quit(a|alo)|me conviene)/u', $t)
-        && oki_is_stationery_scope($previousUser, '')) {
-        return true;
-    }
-    return false;
+    return (bool) preg_match(
+        '/(?:^|\b)(?:que es|que son|que significa|como funciona|como funcionan|'
+        . 'para que sirve|para que sirven|explicame|puedes explicar|cual es la diferencia|'
+        . 'por que|porque se|como se hace|como puedo aprender)(?:\b|$)/u',
+        $t
+    );
 }
 
 /* ── Límite de uso por IP (archivo, sin tocar la BD) — anti-spam ── */
@@ -181,19 +120,12 @@ if (mb_strlen($text) > 2000) $text = mb_substr($text, 0, 2000);
 
 /* Último mensaje de OKi (da contexto a flujos como el acta por estado). */
 $prev = '';
-$previousUser = '';
 if (isset($b['messages']) && is_array($b['messages'])) {
-    $lastUserSeen = false;
     for ($i = count($b['messages']) - 1; $i >= 0; $i--) {
         $m = $b['messages'][$i];
         if (is_array($m) && ($m['role'] ?? '') === 'assistant') {
-            if ($prev === '') $prev = trim((string) ($m['content'] ?? ''));
-        } elseif (is_array($m) && ($m['role'] ?? '') !== 'assistant') {
-            if (!$lastUserSeen) $lastUserSeen = true;
-            else {
-                $previousUser = trim((string) ($m['content'] ?? ''));
-                break;
-            }
+            $prev = trim((string) ($m['content'] ?? ''));
+            if ($prev !== '') break;
         }
     }
 }
@@ -203,24 +135,13 @@ $ip = $_SERVER['HTTP_X_FORWARDED_FOR'] ?? $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
 $ip = trim(explode(',', $ip)[0]);
 oki_rate_limit($ip);
 
-/* ── 3) Alcance estricto: papelería, oficina, escolares y su compra ── */
-if (!oki_is_stationery_scope($text, $previousUser)) {
-    respond([
-        'ok'       => true,
-        'reply'    => 'Solo puedo ayudarte con papelería, artículos de oficina y escolares, '
-                    . 'y con tu compra en la tienda. Dime qué material buscas y con gusto te ayudo 🚀',
-        'restricted' => true,
-    ]);
-}
-
-/* La regla histórica de saludo anunciaba trámites y otros servicios. Se responde aquí
-   para que incluso el primer mensaje deje claro el nuevo alcance especializado. */
+/* ── 3) Saludo ── */
 if (preg_match('/^(?:hola|buenas|buenos dias|buenas tardes|buenas noches|oki)[!. ]*$/u', oki_norm($text))) {
     respond([
         'ok'    => true,
-        'reply' => '¡Hola! 👋 Soy OKi 🚀 Tu especialista en papelería, artículos de oficina '
-                 . 'y escolares. Puedo recomendarte productos y ayudarte con tu compra. '
-                 . '¿Qué material necesitas?',
+        'reply' => '¡Hola! 👋 Soy OKi 🚀 Puedo responder tus preguntas y, cuando necesites '
+                 . 'papelería, oficina o escolares, también recomendarte productos y ayudarte '
+                 . 'con tu compra. ¿Qué quieres saber?',
     ]);
 }
 
@@ -233,12 +154,14 @@ if ($nav !== null) {
 /* ── 5) Cerebro por reglas ── */
 $reply = oki_brain_reply($text, $prev);
 
-/* Si la pregunta es de CONSEJO/opinión (compatibilidad, recomendación, "¿me conviene…?"),
-   deja que la IA la conteste de verdad en vez de una regla enlatada. La navegación (paso 3)
-   ya se resolvió, así que esto no rompe los "llévame a…". */
-if ($reply !== null && oki_is_advice(oki_norm($text))) $reply = null;
+/* Las preguntas de consejo o explicación necesitan razonamiento, aunque alguna palabra
+   también coincida con una respuesta comercial del cerebro por reglas. */
+if ($reply !== null
+    && (oki_is_advice(oki_norm($text)) || oki_needs_explanation(oki_norm($text)))) {
+    $reply = null;
+}
 
-/* ── 6) Respaldo con IA GRATIS (Gemini) — solo si las reglas no reconocieron ──
+/* ── 6) Respaldo con IA GRATIS (Gemini) — preguntas generales o no reconocidas ──
    Mantiene la navegación y los datos del negocio en reglas (rápido y determinista);
    Gemini solo atiende el "resto", así el consumo cabe en el tier gratuito. Si la
    llave no está o la API falla, cae al respaldo de WhatsApp de abajo. */
@@ -253,7 +176,7 @@ if ($reply === null && Gemini::available()) {
        b) PRESUPUESTO: topes global/min, global/día y por IP/día. Si se alcanzan,
           NO se llama a Gemini y OKi cae a su respaldo de WhatsApp de abajo. */
     $cacheable = ($prev === '');                 // sin turno previo de OKi = pregunta suelta
-    $qkey = 'v3-guia-papeleria|' . oki_norm($text);
+    $qkey = 'v4-asistente-general|' . oki_norm($text);
 
     if ($cacheable && ($hit = Gemini::cacheGet($qkey)) !== null) {
         respond(['ok' => true, 'reply' => $hit, 'source' => 'gemini-cache']);
@@ -274,12 +197,13 @@ if ($reply === null && Gemini::available()) {
     /* Sin cuota o Gemini no respondió → cae al respaldo de WhatsApp de abajo. */
 }
 
-/* ── 7) Respaldo dentro del mismo alcance (no deriva a otros servicios) ── */
+/* ── 7) Respaldo si la IA no está configurada, no tiene cuota o no respondió ── */
 if ($reply === null) {
     respond([
         'ok'       => true,
-        'reply'    => 'No encontré una respuesta suficientemente precisa. Puedo ayudarte a elegir '
-                    . 'otro artículo de papelería o buscarlo por nombre, marca o uso.',
+        'reply'    => 'No pude generar una respuesta confiable en este momento. Intenta formular '
+                    . 'la pregunta de otra manera; si buscas un producto, también puedo ayudarte '
+                    . 'por nombre, marca o uso.',
         'fallback' => true,
     ]);
 }

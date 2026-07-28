@@ -1022,8 +1022,8 @@
     if (!greeted) {
       greeted = true;
       addMsg(storeReady()
-        ? "¡Hola! Soy OKi 🚀 Soy tu especialista en papelería, oficina y escolares. Puedo recomendarte productos y ayudarte con tu carrito, pago o entrega. ¿Qué buscas?"
-        : "¡Hola! Soy OKi 🚀 Te ayudo exclusivamente con papelería, artículos de oficina y escolares. ¿Qué material necesitas?", "bot");
+        ? "¡Hola! Soy OKi 🚀 Respondo tus preguntas y también soy especialista en papelería, oficina y escolares. Puedo recomendarte productos y ayudarte con tu carrito, pago o entrega. ¿Qué necesitas?"
+        : "¡Hola! Soy OKi 🚀 Puedo responder tus preguntas y ayudarte con todo el sitio. ¿Qué quieres saber?", "bot");
       // Si ya llevas productos, OKi te muestra tu lista al abrir.
       if (storeReady() && okiCartCount() > 0) {
         var reply = storeLocalReply("que llevo en el carrito");
@@ -1084,7 +1084,7 @@
     setTimeout(function () { input.focus(); }, 60);
   }
 
-  // El cerebro del servidor: papelería, oficina, escolares y su flujo de compra.
+  // El cerebro del servidor: asistente general con especialidad en la tienda.
   function askBrain(text) {
     busy = true;
     typing(true);
@@ -1098,7 +1098,7 @@
       .then(function (data) {
         typing(false);
         var reply = (data && data.reply) ? data.reply :
-          "No pude procesarlo. Puedo ayudarte con papelería, oficina, escolares y tu compra en la tienda.";
+          "No pude procesarlo en este momento. Intenta formular tu pregunta de otra manera.";
         addMsg(reply, "bot");
         history.push({ role: "assistant", content: reply });
         // Navegación directa: OKi lleva al usuario a la sección pedida.
@@ -1108,7 +1108,7 @@
       })
       .catch(function () {
         typing(false);
-        addMsg("No me pude conectar 😕. Intenta de nuevo y te ayudo con tu compra de papelería.", "bot");
+        addMsg("No me pude conectar 😕. Intenta de nuevo en un momento.", "bot");
       })
       .then(function () { busy = false; input.focus(); });
   }
