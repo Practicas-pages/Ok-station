@@ -137,7 +137,14 @@ foreach ($prods as $p) {
     if ($u !== '') { $ogImage = preg_match('~^https?://~i', $u) ? $u : $BASE . $u; break; }
 }
 
-$total    = count($prods);
+/* OJO: el total NO es count($prods). La consulta trae LIMIT 200, así que en una
+   categoría de mil productos count() diría "200" y tanto el texto de la página como
+   la meta description y el numberOfItems del schema estarían mintiendo. El número
+   bueno ya venía en la consulta de agrupación ($cat['n'] = COUNT(*) de esa
+   categoría o familia); count($prods) queda como el número de fichas REALMENTE
+   listadas, que es otra cosa. */
+$total    = (int) ($cat['n'] ?? count($prods));
+$listados = count($prods);
 $title    = $nombre . ' en Tijuana | Ok.station';
 $metaDesc = 'Compra ' . mb_strtolower($nombre) . ' en línea en Ok.station Tijuana: '
           . $total . ' productos con precio y existencia. Recoge gratis en Otay o recíbelo a domicilio en todo México.';
@@ -503,7 +510,10 @@ function mxn($n): string { return '$' . number_format((float) $n, 2); }
       if ($esFamilia && $padre !== ''): ?> › <a href="/categoria/<?= e(ShopProduct::slug($padre)) ?>"><?= e($padre) ?></a><?php
       endif; ?> › <?= e($nombre) ?></p>
     <h1><?= e($nombre) ?> en Tijuana</h1>
-    <p class="lead"><?= $total ?> producto<?= $total === 1 ? '' : 's' ?> con precio y existencia al día.
+    <p class="lead"><?= $total ?> producto<?= $total === 1 ? '' : 's' ?> con precio y existencia al día.<?php
+      /* Si la categoría trae más de lo que cabe en la página, se dice — anunciar 1,200
+         y enseñar 200 sin avisar se lee como que faltan cosas. */
+      if ($listados < $total): ?> Aquí abajo, los <?= $listados ?> primeros.<?php endif; ?>
        Recoge gratis en OK.station (Centro Comercial Otay) o recíbelo a domicilio en todo México.</p>
 
     <?php if (!$prods): ?>

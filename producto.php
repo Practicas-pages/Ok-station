@@ -102,10 +102,32 @@ $sku     = trim((string) ($row['sku'] ?? ''));
 $descRaw = trim((string) ($row['description'] ?? ''));
 $desc    = trim(preg_replace('/\s+/', ' ', strip_tags($descRaw)) ?? '');
 
-/* Meta description: la de Icecat recortada; si no hay, una honesta con lo que sí sabemos. */
-$metaDesc = $desc !== ''
-    ? mb_substr($desc, 0, 155)
-    : trim("$name" . ($brand ? " de $brand" : '') . ". Cómpralo en OK.station, Otay, Tijuana. Recoge gratis en tienda o pide envío a domicilio.");
+/** Recorta SIN partir palabras. mb_substr a secas dejaba cosas como "…impresora
+ *  multifunci" en el resultado de Google, que se lee a medio terminar y resta clics. */
+function recorta_frase(string $texto, int $max): string {
+    if (mb_strlen($texto) <= $max) return $texto;
+    $corte = mb_substr($texto, 0, $max);
+    $sp    = mb_strrpos($corte, ' ');
+    if ($sp !== false && $sp > $max * 0.6) $corte = mb_substr($corte, 0, $sp);
+    return rtrim($corte, " ,;:.-") . '…';
+}
+
+/* Meta description: la de Icecat recortada; si no hay, una honesta con lo que sí sabemos.
+   Se le pega el gancho LOCAL (recoger en Otay / envío) porque la ficha compite con
+   Amazon y Mercado Libre por el mismo producto: contra ellos lo que distingue no es
+   la descripción del fabricante —que es idéntica en los tres— sino que aquí se puede
+   recoger hoy en Tijuana. Se reserva su espacio antes de recortar para que el gancho
+   nunca se quede fuera, y todo cabe en los ~158 caracteres que muestra Google. */
+$ganchoLocal = ' Recoge gratis en Tijuana o pide envío.';
+if ($desc !== '') {
+    $trozo = recorta_frase($desc, 158 - mb_strlen($ganchoLocal));
+    /* Una descripción corta no pasa por el recorte y puede no traer punto final; sin
+       esto quedaba "…cinta de doble cara Recoge gratis en Tijuana", dos frases pegadas. */
+    if (!preg_match('/[.!?…]$/u', $trozo)) $trozo .= '.';
+    $metaDesc = $trozo . $ganchoLocal;
+} else {
+    $metaDesc = trim("$name" . ($brand ? " de $brand" : '') . ". Cómpralo en OK.station, Otay, Tijuana. Recoge gratis en tienda o pide envío a domicilio.");
+}
 
 $title    = $name . ($brand && stripos($name, $brand) === false ? " · $brand" : '') . ' | OK.station';
 $siteUrl  = 'https://okstation.mx';
@@ -127,13 +149,39 @@ $ogImage  = abs_url($images ? $images[0] : '/assets/img/hero-okstation.webp');
 function e(?string $s): string { return htmlspecialchars((string) $s, ENT_QUOTES, 'UTF-8'); }
 function mxn(float $n): string { return '$' . number_format($n, 2); }
 
+/**
+ * ¿El código de barras es un GTIN de verdad?
+ * Google COMPARA el gtin contra su catálogo mundial: si se le manda uno inválido, no
+ * "lo ignora" — marca la ficha con error en Search Console y puede dejar de mostrar el
+ * resultado enriquecido completo. Así que se valida antes de declararlo: longitud de
+ * GTIN (8, 12, 13 o 14 dígitos) y dígito verificador, que es el que atrapa un código
+ * tecleado a mano o cortado por el proveedor. Si no pasa, simplemente no se declara:
+ * una ficha sin gtin funciona; una con gtin falso, no.
+ */
+function gtin_valido(string $codigo): bool {
+    if (!preg_match('/^\d{8}$|^\d{12,14}$/', $codigo)) return false;
+    $digitos = array_map('intval', str_split(strrev($codigo)));
+    $suma = 0;
+    foreach ($digitos as $i => $d) { $suma += ($i % 2 === 0) ? $d : $d * 3; }
+    return $suma % 10 === 0;
+}
+$barcode = preg_replace('/\D/', '', (string) ($row['barcode'] ?? '')) ?? '';
+
 /* ── schema.org Product: es lo que permite que Google muestre precio y existencia ── */
 $ld = [
     '@context'    => 'https://schema.org',
     '@type'       => 'Product',
+    /* @id + mainEntityOfPage: atan el producto a ESTA página. Sin eso, cada ficha es
+       una isla; con eso Google puede ligar el producto, la página y el negocio como
+       un mismo grafo (el seller apunta a la Organization de la portada). */
+    '@id'         => $canonUrl . '#product',
+    'mainEntityOfPage' => $canonUrl,
     'name'        => $name,
     'sku'         => $sku !== '' ? $sku : (string) $row['id'],
-    'description' => $metaDesc,
+    /* La descripción COMPLETA, no la meta recortada a 158: el meta es para el usuario
+       en el resultado, el schema es para que Google entienda de qué es el producto, y
+       ahí recortar solo tira información. */
+    'description' => $desc !== '' ? recorta_frase($desc, 5000) : $metaDesc,
     'url'         => $canonUrl,
     'image'       => array_map('abs_url', $images ?: ['/assets/img/hero-okstation.webp']),
     'offers'      => [
@@ -143,7 +191,7 @@ $ld = [
         'price'         => number_format($price, 2, '.', ''),
         'availability'  => $stock > 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
         'itemCondition' => 'https://schema.org/NewCondition',
-        'seller'        => ['@type' => 'Organization', 'name' => 'Ok.station'],
+        'seller'        => ['@type' => 'Organization', '@id' => $siteUrl . '/#organization', 'name' => 'Ok.station'],
         /* priceValidUntil: Google avisa cuando falta y, si la fecha ya pasó, deja de
            mostrar el precio. Es una ventana MÓVIL de 30 días, no una promesa: los
            precios se refrescan con el runner nocturno de Exel, así que la fecha solo
@@ -174,6 +222,24 @@ $ld = [
 ];
 if ($brand !== '') $ld['brand'] = ['@type' => 'Brand', 'name' => $brand];
 if ($cat !== '')   $ld['category'] = $cat . ($sub !== '' ? " > $sub" : '');
+
+/* GTIN: el identificador con el que Google reconoce que ESTE producto es el mismo que
+   vende Amazon o Mercado Libre. Sin él, la ficha compite como si fuera un producto
+   distinto del mundo; con él entra a la comparación —y ahí es donde se nota recoger
+   gratis en Tijuana—. Solo se declara si el código de barras pasa la validación. */
+if ($barcode !== '' && gtin_valido($barcode)) $ld['gtin'] = $barcode;
+
+/* Las especificaciones que ya se pintan en la ficha (las de Icecat, o el respaldo con
+   marca/tipo/categoría), en el formato que Google entiende. Es lo que le permite
+   responder "¿de qué medida es?" sin que nadie abra la página. Se limitan a 30: son
+   para describir el producto, no para volcarle la hoja técnica entera. */
+$props = [];
+foreach (array_slice($specs, 0, 30) as $s) {
+    $n = trim((string) ($s['name'] ?? ''));
+    $v = trim((string) ($s['value'] ?? ''));
+    if ($n !== '' && $v !== '') $props[] = ['@type' => 'PropertyValue', 'name' => $n, 'value' => $v];
+}
+if ($props) $ld['additionalProperty'] = $props;
 
 /* La ruta apunta a las PÁGINAS de categoría y de familia (/categoria/<slug>), no al
    ancla /tienda#store de antes. Dos razones, y las dos pesan:
@@ -225,8 +291,21 @@ $ldCrumbs = [
   <meta property="og:description" content="<?= e($metaDesc) ?>">
   <meta property="og:url" content="<?= e($canonUrl) ?>">
   <meta property="og:image" content="<?= e($ogImage) ?>">
+  <meta property="og:image:alt" content="<?= e($name) ?>">
+  <?php /* El resto de las fotos, después de la principal: WhatsApp y Facebook usan la
+           primera para la miniatura, pero al compartir en Facebook o al armar un
+           catálogo se puede elegir entre todas. Se topan en 4 para no inflar el <head>. */ ?>
+  <?php foreach (array_slice(array_map('abs_url', $images), 1, 3) as $imgExtra): ?>
+  <meta property="og:image" content="<?= e($imgExtra) ?>">
+  <?php endforeach; ?>
   <meta property="product:price:amount" content="<?= e(number_format($price, 2, '.', '')) ?>">
   <meta property="product:price:currency" content="MXN">
+  <?php /* Existencia y marca en el vocabulario de producto de Open Graph: es lo que lee
+           el catálogo de Facebook/Instagram si algún día se anuncia desde ahí, y no
+           cuesta nada tenerlo al día porque sale de los mismos datos que el schema. */ ?>
+  <meta property="product:availability" content="<?= $stock > 0 ? 'instock' : 'oos' ?>">
+  <?php if ($brand !== ''): ?><meta property="product:brand" content="<?= e($brand) ?>">
+  <?php endif; ?><meta property="product:retailer_item_id" content="<?= e($sku !== '' ? $sku : (string) $row['id']) ?>">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="<?= e($name) ?>">
   <meta name="twitter:description" content="<?= e($metaDesc) ?>">
