@@ -221,11 +221,13 @@ $vistas = [];
 foreach ($cands as $cand) {
     $u = trim((string) ($cand['url_real'] ?? $cand['url'] ?? ''));
     if ($u === '') continue;
-    $p = parse_url($u);
-    if (is_array($p) && isset($p['scheme'], $p['host'])) {
-        $key = strtolower($p['scheme'] . '://' . $p['host'])
-             . ($p['path'] ?? '')
-             . (isset($p['query']) ? '?' . $p['query'] : '');
+    /* OJO: no usar $p aquí. $p es la fila del producto y se sigue leyendo más
+       abajo para armar la respuesta (id, name, brand, sku…). */
+    $partes = parse_url($u);
+    if (is_array($partes) && isset($partes['scheme'], $partes['host'])) {
+        $key = strtolower($partes['scheme'] . '://' . $partes['host'])
+             . ($partes['path'] ?? '')
+             . (isset($partes['query']) ? '?' . $partes['query'] : '');
     } else {
         $key = $u;
     }
