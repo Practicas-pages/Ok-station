@@ -63,23 +63,52 @@ $cats = $pdo->query(
    ORDER BY category"
 )->fetchAll();
 
-$cat = null;
+/* ── Y las FAMILIAS (subcategory) ──
+   El feed de Exel mete TODO el catálogo bajo una sola category ("Oficina y
+   Escolar"), así que con categorías puras esta página existía UNA vez: una sola
+   URL indexable para miles de productos, y nadie busca "oficina y escolar". Lo que
+   la gente sí escribe es la familia — "marcadores", "cuadernos profesionales",
+   "tinta para impresora" —, que es justo lo que Exel guarda en subcategory y lo que
+   la tienda ya usa como barra de categorías. Sirviendo también las familias, el
+   mismo archivo pasa de una página a decenas, cada una peleando por una búsqueda
+   de compra concreta, y de paso cada ficha queda a un clic de una página rastreable
+   (con LIMIT 200 sobre una categoría de miles, la mayoría no se alcanzaba).
+   MIN(category) es la categoría padre, solo para las migas de pan. */
+$fams = $pdo->query(
+    "SELECT subcategory, MIN(category) AS category, COUNT(*) AS n
+       FROM products
+      WHERE is_active = 1 AND subcategory <> ''
+   GROUP BY subcategory
+   ORDER BY n DESC, subcategory"
+)->fetchAll();
+
+/* Primero categoría, luego familia: si algún día un nombre se repitiera en las dos,
+   gana la categoría y la URL sigue significando lo mismo que significaba ayer. */
+$cat = null; $esFamilia = false;
 foreach ($cats as $c) {
     if (ShopProduct::slug((string) $c['category']) === $slugPedido) { $cat = $c; break; }
 }
+if ($cat === null) {
+    foreach ($fams as $f) {
+        if (ShopProduct::slug((string) $f['subcategory']) === $slugPedido) { $cat = $f; $esFamilia = true; break; }
+    }
+}
 if ($cat === null) { cat_404(); }
 
-$nombre = (string) $cat['category'];
+$nombre = $esFamilia ? (string) $cat['subcategory'] : (string) $cat['category'];
+$padre  = $esFamilia ? trim((string) ($cat['category'] ?? '')) : '';
 $slug   = ShopProduct::slug($nombre);
 $canon  = $BASE . '/categoria/' . $slug;
 
 /* ── Productos de la categoría ──
    Mismo filtro que el catálogo público (is_active = 1). Con existencia primero:
    de nada sirve encabezar la lista con lo agotado. */
+/* La columna por la que se filtra depende de qué resolvió el slug. Se interpola el
+   NOMBRE de la columna (no un valor), y sale de este if — nunca de la URL. */
 $st = $pdo->prepare(
     "SELECT id, name, brand, subcategory, price, old_price, stock
        FROM products
-      WHERE is_active = 1 AND category = ?
+      WHERE is_active = 1 AND " . ($esFamilia ? 'subcategory' : 'category') . " = ?
    ORDER BY (stock > 0) DESC, name
       LIMIT 200"
 );
@@ -94,6 +123,18 @@ if ($prods) {
     $qi  = $pdo->prepare("SELECT product_id, url FROM product_images WHERE is_primary = 1 AND product_id IN ($in)");
     $qi->execute($ids);
     foreach ($qi->fetchAll() as $r) { $imgs[(int) $r['product_id']] = (string) $r['url']; }
+}
+
+/* Imagen para compartir (WhatsApp, Facebook, X) y para el resultado de Google: la
+   foto del PRIMER producto de la categoría, que es la que representa lo que se va a
+   encontrar. Si la categoría todavía no tiene ninguna foto, cae en el hero del sitio.
+   Ojo con el mismo detalle que ya mordió en la ficha: las URLs de Icecat vienen
+   ABSOLUTAS y anteponerles el dominio produce "https://okstation.mxhttps://…", que
+   deja la tarjeta sin miniatura. */
+$ogImage = $BASE . '/assets/img/hero-okstation.webp';
+foreach ($prods as $p) {
+    $u = $imgs[(int) $p['id']] ?? '';
+    if ($u !== '') { $ogImage = preg_match('~^https?://~i', $u) ? $u : $BASE . $u; break; }
 }
 
 $total    = count($prods);
@@ -119,14 +160,19 @@ foreach ($prods as $i => $p) {
         'name'     => (string) $p['name'],
     ];
 }
+/* En una FAMILIA la ruta lleva un escalón más (Inicio › Tienda › Categoría › Familia),
+   que es lo que Google pinta debajo del título del resultado. */
+$rutaCrumbs = [['Inicio', $BASE . '/'], ['Tienda', $BASE . '/tienda']];
+if ($esFamilia && $padre !== '') {
+    $rutaCrumbs[] = [$padre, $BASE . '/categoria/' . ShopProduct::slug($padre)];
+}
+$rutaCrumbs[] = [$nombre, $canon];
 $ldCrumbs = [
     '@context' => 'https://schema.org',
     '@type'    => 'BreadcrumbList',
-    'itemListElement' => [
-        ['@type' => 'ListItem', 'position' => 1, 'name' => 'Inicio',  'item' => $BASE . '/'],
-        ['@type' => 'ListItem', 'position' => 2, 'name' => 'Tienda',  'item' => $BASE . '/tienda'],
-        ['@type' => 'ListItem', 'position' => 3, 'name' => $nombre,   'item' => $canon],
-    ],
+    'itemListElement' => array_map(fn($c, $i) => [
+        '@type' => 'ListItem', 'position' => $i + 1, 'name' => $c[0], 'item' => $c[1],
+    ], $rutaCrumbs, array_keys($rutaCrumbs)),
 ];
 
 function mxn($n): string { return '$' . number_format((float) $n, 2); }
@@ -151,6 +197,16 @@ function mxn($n): string { return '$' . number_format((float) $n, 2); }
   <meta property="og:title" content="<?= e($title) ?>">
   <meta property="og:description" content="<?= e($metaDesc) ?>">
   <meta property="og:url" content="<?= e($canon) ?>">
+  <?php /* Sin og:image la categoría se compartía como un enlace pelón, y la tarjeta con
+           foto es la diferencia entre que alguien abra el enlace o lo ignore. Las
+           twitter:* van aparte porque X no lee las og: cuando falta twitter:card. */ ?>
+  <meta property="og:image" content="<?= e($ogImage) ?>">
+  <meta property="og:image:alt" content="<?= e($nombre) ?> en Ok.station Tijuana">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="<?= e($title) ?>">
+  <meta name="twitter:description" content="<?= e($metaDesc) ?>">
+  <meta name="twitter:image" content="<?= e($ogImage) ?>">
+  <meta name="author" content="Ok.station — OK Dock">
   <link rel="icon" href="/assets/img/OKD-Isotipo-Azul-96.png" type="image/png" sizes="96x96">
   <!-- Tema (claro/oscuro): antes de los estilos para pintar ya con el tema elegido -->
   <script src="/assets/theme.js?v=20260721a"></script>
@@ -443,7 +499,9 @@ function mxn($n): string { return '$' . number_format((float) $n, 2); }
 
 
   <main class="wrap">
-    <p class="crumbs"><a href="/">Inicio</a> › <a href="/tienda">Tienda</a> › <?= e($nombre) ?></p>
+    <p class="crumbs"><a href="/">Inicio</a> › <a href="/tienda">Tienda</a><?php
+      if ($esFamilia && $padre !== ''): ?> › <a href="/categoria/<?= e(ShopProduct::slug($padre)) ?>"><?= e($padre) ?></a><?php
+      endif; ?> › <?= e($nombre) ?></p>
     <h1><?= e($nombre) ?> en Tijuana</h1>
     <p class="lead"><?= $total ?> producto<?= $total === 1 ? '' : 's' ?> con precio y existencia al día.
        Recoge gratis en OK.station (Centro Comercial Otay) o recíbelo a domicilio en todo México.</p>
@@ -472,7 +530,25 @@ function mxn($n): string { return '$' . number_format((float) $n, 2); }
       </div>
     <?php endif; ?>
 
-    <!-- Enlaces entre categorías: teje la red interna para que Google recorra todo. -->
+    <!-- Enlaces entre categorías: teje la red interna para que Google recorra todo.
+         Las FAMILIAS son las que cargan el peso: son las páginas que la gente busca
+         por su nombre, y enlazarlas desde todas las demás es lo que hace que Google
+         las descubra y las recorra sin depender del sitemap. Se listan las 40 más
+         surtidas para no convertir el pie en un muro de enlaces (una página que
+         enlaza a todo, no le da fuerza a nada). -->
+    <?php if ($fams): ?>
+    <section class="otras">
+      <h2><?= $esFamilia ? 'Otras familias de productos' : 'Busca por tipo de producto' ?></h2>
+      <div class="chips">
+        <?php $puestos = 0; foreach ($fams as $f):
+          if ((string) $f['subcategory'] === $nombre) continue;
+          if (++$puestos > 40) break; ?>
+          <a href="/categoria/<?= e(ShopProduct::slug((string) $f['subcategory'])) ?>"><?= e($f['subcategory']) ?> (<?= (int) $f['n'] ?>)</a>
+        <?php endforeach; ?>
+      </div>
+    </section>
+    <?php endif; ?>
+
     <?php if (count($cats) > 1): ?>
     <section class="otras">
       <h2>Otras categorías</h2>

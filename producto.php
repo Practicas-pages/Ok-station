@@ -34,6 +34,11 @@ function db(): PDO {
 }
 /* Este backend NO tiene autoloader: cada entrada requiere sus clases a mano. */
 require __DIR__ . '/backend/api/lib/ShopProduct.php';
+/* ShopCatalog solo por SHIP_COST, que es la tarifa que cobra el checkout de verdad
+   (shop/create.php la lee de ahí): el schema.org de la ficha declara ESE número y no
+   uno escrito a mano que se quedaría viejo. Es un archivo de puras constantes y
+   métodos estáticos, así que cargarlo no ejecuta nada. */
+require __DIR__ . '/backend/api/lib/ShopCatalog.php';
 /* Icecat.php y ProductEnricher.php ya NO se cargan aquí: el enriquecimiento pasó al
    runner nocturno (ver más abajo). Cargarlas era trabajo muerto en cada vista. */
 
@@ -139,13 +144,50 @@ $ld = [
         'availability'  => $stock > 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
         'itemCondition' => 'https://schema.org/NewCondition',
         'seller'        => ['@type' => 'Organization', 'name' => 'Ok.station'],
+        /* priceValidUntil: Google avisa cuando falta y, si la fecha ya pasó, deja de
+           mostrar el precio. Es una ventana MÓVIL de 30 días, no una promesa: los
+           precios se refrescan con el runner nocturno de Exel, así que la fecha solo
+           le dice a Google cada cuándo conviene volver a leer la ficha. */
+        'priceValidUntil' => date('Y-m-d', strtotime('+30 days')),
+        /* Las dos formas REALES de recibir el producto, las mismas que dice la ficha:
+           recoger en la tienda de Otay (gratis) o envío a domicilio. */
+        'availableDeliveryMethod' => [
+            'https://schema.org/OnSitePickup',
+            'https://schema.org/ParcelService',
+        ],
+        /* Envío: ShopCatalog::SHIP_COST es la tarifa única que cobra el carrito.
+           Se declara aquí para que aparezca en el resultado enriquecido en vez de
+           que Google lo marque como "sin información de envío". */
+        'shippingDetails' => [
+            '@type'               => 'OfferShippingDetails',
+            'shippingRate'        => [
+                '@type'    => 'MonetaryAmount',
+                'value'    => number_format(ShopCatalog::SHIP_COST, 2, '.', ''),
+                'currency' => 'MXN',
+            ],
+            'shippingDestination' => [
+                '@type'         => 'DefinedRegion',
+                'addressCountry' => 'MX',
+            ],
+        ],
     ],
 ];
 if ($brand !== '') $ld['brand'] = ['@type' => 'Brand', 'name' => $brand];
 if ($cat !== '')   $ld['category'] = $cat . ($sub !== '' ? " > $sub" : '');
 
+/* La ruta apunta a las PÁGINAS de categoría y de familia (/categoria/<slug>), no al
+   ancla /tienda#store de antes. Dos razones, y las dos pesan:
+   1. #store solo existe en JavaScript: como enlace no lleva a ninguna página nueva,
+      así que la miga no conectaba nada. Ahora cada ficha —y son miles— manda un
+      enlace de verdad a la página de su familia, que es la que pelea por las
+      búsquedas de compra. Es el camino por el que Google reparte autoridad.
+   2. Google pide que el BreadcrumbList diga LO MISMO que la miga visible; los dos
+      salen de aquí abajo, así que no se pueden separar. */
+$catUrl = $cat !== '' ? $siteUrl . '/categoria/' . ShopProduct::slug($cat) : '';
+$subUrl = $sub !== '' ? $siteUrl . '/categoria/' . ShopProduct::slug($sub) : '';
 $crumbs = [['Inicio', $siteUrl . '/'], ['Tienda', $siteUrl . '/tienda']];
-if ($cat !== '') $crumbs[] = [$cat, $siteUrl . '/tienda#store'];
+if ($cat !== '') $crumbs[] = [$cat, $catUrl];
+if ($sub !== '') $crumbs[] = [$sub, $subUrl];
 $crumbs[] = [$name, $canonUrl];
 $ldCrumbs = [
     '@context'        => 'https://schema.org',
@@ -166,7 +208,13 @@ $ldCrumbs = [
   <title><?= e($title) ?></title>
   <meta name="description" content="<?= e($metaDesc) ?>">
   <meta name="author" content="Ok.station — OK Dock">
-  <meta name="robots" content="<?= $stock > 0 ? 'index, follow, max-image-preview:large' : 'noindex, follow' ?>">
+  <?php /* La ficha se indexa SIEMPRE, aunque el producto esté agotado. Antes un
+           agotado se ponía noindex y eso sale carísimo: Google tarda semanas en
+           reindexar y en volver a darle posición, así que un faltante de tres días
+           costaba meses de ranking, y quien buscaba el producto por su nombre ya no
+           encontraba la tienda. Lo correcto es dejarla indexada y decir la verdad en
+           el schema.org con availability: OutOfStock, que es justo para esto. */ ?>
+  <meta name="robots" content="index, follow, max-image-preview:large">
   <meta name="theme-color" content="#066CFF">
   <link rel="canonical" href="<?= e($canonUrl) ?>">
 
@@ -443,8 +491,15 @@ $ldCrumbs = [
     <nav class="breadcrumb" aria-label="Ruta de navegación">
       <ol>
         <li><a href="/">Inicio</a></li>
-        <li><a href="/tienda#store">Tienda</a></li>
-        <?php if ($cat !== ''): ?><li><a href="/tienda#store" data-ir-cat="<?= e($cat) ?>"><?= e($cat) ?></a></li><?php endif; ?>
+        <?php /* Sin #store: el BreadcrumbList de arriba dice "/tienda" y los dos tienen
+                 que apuntar al mismo sitio. El ancla era de cuando /tienda abría una
+                 portada antes del catálogo; ya no existe esa portada. */ ?>
+        <li><a href="/tienda">Tienda</a></li>
+        <?php /* Mismos destinos que el BreadcrumbList de arriba (Google los compara).
+                 Ya no llevan data-ir-cat: ese atributo servía para abrir la tienda con
+                 el filtro puesto, y ahora el enlace va a la página de la categoría. */ ?>
+        <?php if ($cat !== ''): ?><li><a href="/categoria/<?= e(ShopProduct::slug($cat)) ?>"><?= e($cat) ?></a></li><?php endif; ?>
+        <?php if ($sub !== ''): ?><li><a href="/categoria/<?= e(ShopProduct::slug($sub)) ?>"><?= e($sub) ?></a></li><?php endif; ?>
         <li><span aria-current="page"><?= e($name) ?></span></li>
       </ol>
     </nav>

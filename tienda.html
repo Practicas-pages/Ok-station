@@ -3411,6 +3411,27 @@ html[data-theme="dark"] #site .side-back:hover{background:rgba(255,255,255,.08)}
       if(location.hash==="#deseados"){ showView("store"); renderWishlist(); show("wishOv"); }
       /* #ubicacion NO se maneja aquí: lo hace routeHash() (síncrono al init y en hashchange).
          Si se abriera aquí TAMBIÉN, openLoc() correría dos veces (doble fetch de direcciones). */
+      /* ── Búsqueda por URL: /tienda?q=marcadores ──
+         Hasta ahora buscar solo se podía DENTRO de la página, así que una búsqueda no
+         se podía enlazar, ni compartir, ni guardar en favoritos: la URL era siempre la
+         misma. Leerla de aquí arregla eso y además deja declarar el buscador en el
+         schema.org de la portada (SearchAction), que es lo que Google necesita para
+         poner una caja de búsqueda del sitio en sus resultados. No se declara lo que no
+         funciona: primero existe la URL, luego se promete.
+         Gana sobre el estado restaurado y sobre los recados de sessionStorage porque es
+         lo más explícito que hay — alguien escribió o siguió ESE enlace. */
+      var qUrl="";
+      try{ qUrl=(new URLSearchParams(location.search).get("q")||"").trim(); }catch(e){}
+      if(qUrl){
+        ["okstation_q","okstation_ir_cat","okstation_ir_brand"].forEach(function(k){
+          try{ sessionStorage.removeItem(k); }catch(e){}
+        });
+        showView("store");
+        var qiUrl=$("q"); if(qiUrl) qiUrl.value=qUrl;
+        syncNavQuery(qUrl);
+        query=qUrl; reloadFromDB();
+        return;
+      }
       /* Los paneles de arriba (carrito, pago, deseados) SÍ se abren aunque se venga de
          una vuelta atrás: son la URL, no un recado. Lo que no debe pisarse es el filtro
          restaurado, así que a partir de aquí se sale —eso sí, consumiendo los recados

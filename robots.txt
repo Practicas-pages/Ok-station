@@ -27,3 +27,7 @@ Sitemap: https://okstation.mx/sitemap.xml
 # Fichas de producto: se genera solo desde la BD, así no hay que mantenerlo a mano
 # cuando el catálogo de Exel crezca.
 Sitemap: https://okstation.mx/sitemap-productos.php
+# Categorías y FAMILIAS (/categoria/marcadores…): también salen solas de la BD.
+# Son las páginas que agrupan el catálogo y las que pelean por las búsquedas de
+# compra; hasta ahora no estaban en ningún sitemap.
+Sitemap: https://okstation.mx/sitemap-categorias.php
