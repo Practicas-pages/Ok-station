@@ -3145,14 +3145,32 @@ html[data-theme="dark"] #site .side-back:hover{background:rgba(255,255,255,.08)}
       P=remember((pj.items||[]).map(mapDbItem)); _sidx=null;
       dbMode=true; dbPage=pj.page||1; dbPages=pj.pages||1; dbTotal=pj.total||P.length;
       if(cj&&cj.ok&&cj.categories&&cj.categories.length){
-        /* "Ofertas del día" no es una categoría de la BD: agrupa los productos con
-           precio tachado (old), igual que en el catálogo de respaldo.
-           Las subcategorías (que Exel sí trae) alimentan el árbol del cajón. */
-        CATS=[{id:"ofertas",name:"Ofertas del día",hot:true},{id:"all",name:"Todos",color:"#66748a"}]
-          .concat(cj.categories.map(function(c,i){
-            return {id:c.name, name:c.name, color:CATCOLORS[i%CATCOLORS.length],
-                    count:c.count||0, image:c.image||null, subs:c.subcategories||[]};
-          }));
+        /* Las CATEGORÍAS reales del catálogo son las FAMILIAS (subcategory): el feed de
+           Exel mete TODO bajo una sola category ("Oficina y Escolar") y lo que el
+           cliente distingue son las familias (MARCADORES, BOLIGRAFOS, CUADERNO…). Así
+           que la barra muestra las familias como categorías y "Todos" reemplaza a esa
+           única category. Se aplanan las subcategorías de TODAS las categorías (por si
+           algún día hay más de una), se suman conteos de nombres repetidos y se ordenan
+           por conteo (las más surtidas primero). Cada familia se filtra por subcategory
+           (marcado con `sub`). "Ofertas del día" agrupa lo que tiene precio tachado. */
+        var _fam={};
+        (cj.categories||[]).forEach(function(c){ (c.subcategories||[]).forEach(function(s){
+          var k=(s.name||"").trim(); if(!k) return;
+          if(!_fam[k]) _fam[k]={id:s.name, name:s.name, sub:s.name, count:0};
+          _fam[k].count += (s.count||0);
+        }); });
+        var _familias=Object.keys(_fam).map(function(k){return _fam[k];})
+          .sort(function(a,b){ return b.count-a.count || a.name.localeCompare(b.name); });
+        _familias.forEach(function(f,i){ f.color=CATCOLORS[i%CATCOLORS.length]; });
+        var _base=[{id:"ofertas",name:"Ofertas del día",hot:true},{id:"all",name:"Todos",color:"#66748a"}];
+        /* Respaldo: si el catálogo NO trae subcategorías (datos viejos), se cae al modelo
+           por category para no dejar la tienda sin barra de categorías. */
+        CATS = _familias.length
+          ? _base.concat(_familias)
+          : _base.concat((cj.categories||[]).map(function(c,i){
+              return {id:c.name, name:c.name, color:CATCOLORS[i%CATCOLORS.length],
+                      count:c.count||0, image:c.image||null, subs:c.subcategories||[]};
+            }));
         if(activeCat!=="all" && activeCat!=="ofertas" && !CATS.some(function(c){return c.id===activeCat;})){
           activeCat="all"; activeSub="";
           /* La categoría venía de un estado restaurado (o de un atajo viejo) y ya no
