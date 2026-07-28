@@ -128,7 +128,13 @@
    Ojo con dos trampas que ya explotaron: el padding en % es relativo al ANCHO
    (en vista de lista reventaba el alto de la fila), y el alto se limita con
    max-height —no con width— para que el SVG nunca estire su contenedor. */
+/* Las PISTAS de la retícula van fijas (minmax(0,1fr) = exactamente la caja, ni un
+   pixel más). Sin esto la fila/columna se dimensiona con el CONTENIDO, y entonces
+   el max-width:80% del logo se mide contra un ancho que a su vez depende del logo:
+   la pelea se resuelve en 0 y el logo desaparecía —la caja del producto sin foto
+   salía vacía—. Misma corrección que en .pimg.has-img, por lo mismo. */
 #site .pimg--marca{background:var(--surface-bg,#F2F4F8); display:grid; place-items:center;
+  grid-template-columns:minmax(0,1fr); grid-template-rows:minmax(0,1fr);
   padding:8px; box-sizing:border-box; overflow:hidden}
 #site .ph-logo{width:auto; height:auto; max-width:80%; max-height:80%; opacity:.9}
 /* En oscuro el fondo NO puede oscurecerse: el logo es un PNG incrustado con la
@@ -749,7 +755,17 @@ html.q-lock, html.q-lock body{overflow:hidden}
 #site .pvthumb{width:56px; height:56px; border-radius:13px; border:2px solid var(--line); background:#f4f6fd center/cover no-repeat; cursor:pointer; padding:0; transition:border-color .15s, transform .15s}
 #site .pvthumb:hover{transform:translateY(-2px)}
 /* Foto real del producto en las tarjetas del grid (catálogo desde la BD) */
-#site .pimg.has-img{border:none; background:#fff; padding:10px; display:grid; place-items:center}
+/* grid-template-*:minmax(0,1fr) NO es decorativo: fija la celda al tamaño de la
+   caja. Sin eso la celda se estira con el contenido, y el height:100% de la foto
+   se medía contra una celda que ya había crecido por la propia foto: una imagen
+   VERTICAL terminaba midiendo el doble de alto que su caja y se veía RECORTADA
+   (se perdía la mitad de arriba y de abajo), justo lo contrario del object-fit:
+   contain que pide la línea de abajo. El max-width/max-height:100% que se le puso
+   a .ph.has-img .pimg-img no alcanzaba: son porcentajes contra esa misma celda
+   indefinida, así que el navegador los ignora. Fijando la celda sí entra completa
+   y centrada, como la cajita de la compra rápida. */
+#site .pimg.has-img{border:none; background:#fff; padding:10px; display:grid; place-items:center;
+  grid-template-columns:minmax(0,1fr); grid-template-rows:minmax(0,1fr)}
 #site .pimg-img{width:100%; height:100%; object-fit:contain; display:block}
 #site .pvthumb.on{border-color:var(--blue)}
 #site .specs.specs-kv{gap:0}
@@ -1196,6 +1212,30 @@ html[data-theme="dark"] #site .side-back:hover{background:rgba(255,255,255,.08)}
   #site .store-hero{padding:clamp(22px,3.5vw,40px) 0}
   #site :is(.btnlight,.hb-ghost,.gostore){padding:11px 20px;font-size:.88rem}
 }
+
+/* ═══ Tarjeta CENTRADA, con el mismo trato de imagen que la compra rápida ═══
+   En la compra rápida cada producto vive en una CAJITA blanca cuadrada, con su
+   borde fino y la foto contenida al centro (.td-img). Aquí se copia ese trato,
+   pero con el TAMAÑO de la tienda, no la miniatura de 64px de la tabla: la caja
+   ocupa TODO el ancho de la tarjeta —el mismo de antes— y de ahí sale su alto,
+   porque es cuadrada (aspect-ratio:1, igual que .pdp__stage en la ficha).
+   Por qué cuadrada y no la banda de alto fijo que había: con alto fijo cada foto
+   caía distinta (unas se recortaban, otras dejaban aire) y la retícula se veía
+   desalineada. El cuadrado iguala todas las tarjetas y ES el gesto de la compra
+   rápida. El ANCHO de la foto no cambia (sigue mandando el ancho de la tarjeta);
+   lo que cambia es que ahora cabe entera en vez de recortarse, así que la
+   tarjeta crece de alto. Ese es el precio de no recortar el producto.
+   Todo esto es SOLO para la vista de cuadros: en la de lista (.is-list) la fila
+   se lee mejor alineada a la izquierda, y ahí no se toca nada. */
+#site .grid:not(.is-list) .prod{text-align:center}
+/* height:auto anula los altos de antes (92px, y el clamp de escritorio): con el
+   ancho ya definido, quien manda ahora es aspect-ratio. */
+#site .grid:not(.is-list) .prod .ph{width:100%; height:auto; aspect-ratio:1/1}
+/* El marco fino de la cajita. Lleva !important porque .pimg quita el borde de .ph
+   con !important (la caja punteada del hueco sin foto no aplica a una foto real). */
+#site .grid:not(.is-list) .prod .pimg{border:1px solid var(--line) !important}
+/* Precio y existencias son flex: el text-align de la tarjeta no los mueve. */
+#site .grid:not(.is-list) .prod .pmeta{justify-content:center}
 </style>
 
 <!-- ============================ HEADER ============================ -->
