@@ -390,14 +390,16 @@
       '<span>Agrega color, medida, modelo o código si las opciones no corresponden.</span>' +
       '</div>';
 
-    /* OCULTO a pedido de Oscar (jul 2026): no mostrar la caja "Para que aparezcan
-       fotos aquí" con los pasos de Google CSE en el panel. Para restaurarlo, quita
-       el "false &&" de la condición. */
-    if (false && busc.configurado === false && (busc.pasos || []).length) {
-      html += '<div class="fotos-setup"><b>Para que aparezcan fotos aquí</b>' +
-              '<ol>' + busc.pasos.map(function (s) { return '<li>' + esc(s) + '</li>'; }).join("") + '</ol>' +
-              '<div class="fotos-tip">Mientras tanto, busca la foto con los enlaces de arriba y pégala con Ctrl+V.</div>' +
-              '</div>';
+    /* La caja grande con los pasos de Google CSE se ocultó a pedido de Oscar
+       (jul 2026): estorbaba en el trabajo diario. Pero sin NINGÚN aviso, un panel
+       sin llave y un producto que de verdad no existe en internet se ven idénticos
+       —los dos dicen "Sin candidatas automáticas"— y se pierde la tarde buscando
+       un error que no está en el código. Queda un renglón, y solo cuando falta la
+       llave: informa sin estorbar. */
+    if (busc.configurado === false) {
+      html += '<div class="fotos-nota">El buscador de fotos está apagado: faltan ' +
+              'GOOGLE_CSE_KEY y GOOGLE_CSE_ID en backend/.env. Mientras tanto, ' +
+              'busca la foto con los enlaces de arriba y pégala con Ctrl+V.</div>';
     }
 
     ((j && j.notas) || []).forEach(function (n) {
