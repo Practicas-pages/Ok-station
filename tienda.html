@@ -37,8 +37,8 @@
 <!-- Tema (claro/oscuro): antes de la hoja para pintar ya con el tema elegido -->
 <script src="assets/theme.js?v=20260721a"></script>
 <link rel="stylesheet" href="styles.css">
-<link rel="stylesheet" href="assets/oki.css?v=20260716d">
-<link rel="stylesheet" href="/assets/oknav.css?v=20260724a">
+<link rel="stylesheet" href="assets/oki.css?v=20260727m">
+<link rel="stylesheet" href="/assets/oknav.css?v=20260727m">
 
 <script type="application/ld+json">
 {
@@ -412,6 +412,7 @@ html.store-view .header-bar, html.store-view .site-header{display:none}
 #site .topbar{align-items:center}
 #site .tb-logo{flex:none; display:flex; align-items:center; color:#fff; font-weight:800; font-size:1.18rem; letter-spacing:-.02em; text-decoration:none; white-space:nowrap}
 #site .tb-logo img{height:26px; width:auto; display:block; filter:brightness(0) invert(1)}
+#site .tb-logo :is(.logo__ok,.logo__dot,.logo__station){color:#fff}
 #site .tb-actions{flex:none; display:flex; align-items:center; gap:10px}
 /* ── Barra de acciones: una sola JERARQUÍA ──
    Antes eran 4 píldoras blancas del mismo peso sobre el degradado: un muro blanco
@@ -989,6 +990,9 @@ html.q-lock, html.q-lock body{overflow:hidden}
   #site .grid:not(.is-list) .prod h3{display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden}
   #site .grid:not(.is-list) .prod .cat{white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
   #site .grid:not(.is-list) .prod .row{flex-wrap:wrap; row-gap:4px}
+  #site .cart{width:100vw;max-width:100vw}
+  #site .cart .close,#site .wishbtn,#site .quick{min-width:40px;min-height:40px}
+  #site .qty button{min-width:36px;min-height:36px}
 }
 
 /* ══ MODO OSCURO de la tienda (html[data-theme="dark"], lo pone theme.js) ══
@@ -1202,7 +1206,7 @@ html[data-theme="dark"] #site .side-back:hover{background:rgba(255,255,255,.08)}
      por JavaScript a propósito: los enlaces de navegación deben venir en el HTML
      para que Google los siga, que es justo por lo que la ficha se arma en el
      servidor).
-     Necesita:  <link rel="stylesheet" href="/assets/oknav.css?v=20260724a">
+     Necesita:  <link rel="stylesheet" href="/assets/oknav.css?v=20260727m">
                 <script src="/assets/oknav.js?v=20260724a" defer></script>
      Todos los <svg> llevan width/height propios: sin tamaño intrínseco un icono
      se pinta gigante mientras el CSS va en camino (ya pasó con el del correo).
@@ -1244,7 +1248,7 @@ html[data-theme="dark"] #site .side-back:hover{background:rgba(255,255,255,.08)}
       </button>
 
       <a class="oknav__logo" href="/" aria-label="Ok.station — Ir al inicio">
-        <img src="/assets/img/okstation-logo.webp" alt="Ok.station" width="158" height="24">
+        <span class="oknav__brandmark" aria-hidden="true"><strong>OK.</strong><span>station</span></span>
       </a>
 
       <div class="oknav__search">
@@ -1364,7 +1368,7 @@ html[data-theme="dark"] #site .side-back:hover{background:rgba(255,255,255,.08)}
 <div class="oknav__scrim" id="oknavScrim" hidden></div>
 <aside class="oknav__drawer" id="oknavDrawer" aria-label="Menú" hidden>
   <div class="oknav__dhead">
-    <img src="/assets/img/okstation-logo.webp" alt="Ok.station" width="132" height="20">
+    <span class="oknav__brandmark" aria-label="Ok.station"><strong>OK.</strong><span>station</span></span>
     <button type="button" class="oknav__dclose" id="oknavDClose" aria-label="Cerrar menú">&times;</button>
   </div>
 
@@ -1544,7 +1548,7 @@ html[data-theme="dark"] #site .side-back:hover{background:rgba(255,255,255,.08)}
 
       <div class="topbar">
         <button class="hamb" id="hamb" aria-label="Categorías"><span></span><span></span><span></span></button>
-        <a class="tb-logo" href="index.html" aria-label="Ok.station — Ir al inicio"><img src="assets/img/okstation-logo.webp" alt="Ok.station" width="158" height="24"></a>
+        <a class="tb-logo" href="index.html" aria-label="Ok.station — Ir al inicio"><span class="logo__ok">OK</span><span class="logo__dot">.</span><span class="logo__station">station</span></a>
         <div class="search"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
           <input id="q" type="search" placeholder="Busca tinta, tóner, papel, carpetas y más…" autocomplete="off" role="combobox" aria-expanded="false" aria-autocomplete="list"><div class="ac" id="acBox" role="listbox"></div></div>
         <button class="tb-filt" id="filtBtn" aria-label="Filtros" aria-haspopup="dialog" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="6" x2="20" y2="6"/><line x1="7" y1="12" x2="17" y2="12"/><line x1="10" y1="18" x2="14" y2="18"/></svg><span class="tb-name">Filtros</span><span class="ct" id="filtCount" hidden>0</span></button>

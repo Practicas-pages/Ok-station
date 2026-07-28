@@ -23,6 +23,7 @@
   overflow-y: auto;           /* si el menú es más alto que la pantalla, scroll interno */
 }
 .admin-sidebar__logo { font-size: 1.4rem; margin: 4px 8px var(--space-6); }
+.admin-sidebar__logo .logo__station { color: #fff; }
 .admin-nav { display: flex; flex-direction: column; gap: 3px; }
 .admin-nav__item {
   display: flex;
@@ -349,6 +350,33 @@ html[data-theme="dark"] :is(.prod-modal__panel, .prod-modal__head, .prod-img, .p
   /* En móvil el botón "Inicio" queda solo con el ícono para no saturar la barra. */
   .admin-topbar__home-label { display: none; }
   .admin-topbar__home { padding-left: 12px; padding-right: 12px; }
+  .admin-topbar { min-height: 60px; padding: 8px 12px; gap: 8px; }
+  .admin-topbar__title { font-size: 1rem; }
+  .admin-content { padding: 14px 12px 24px; gap: 14px; }
+  .admin-content > section:not([hidden]) { gap: 16px; }
+  .stat-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .stat-card { padding: 14px; }
+  .admin-card__head { padding: 14px; align-items: flex-start; gap: 8px; }
+  .admin-toolbar { align-items: stretch; }
+  .admin-search,.admin-date { width: 100%; max-width: none; min-width: 0; margin-left: 0; min-height: 44px; }
+  .admin-filters { width: 100%; overflow-x: auto; flex-wrap: nowrap; padding-bottom: 3px; }
+  .admin-filters > * { flex: 0 0 auto; }
+  .table-wrap { max-width: 100%; overscroll-behavior-x: contain; }
+  .admin-table th,.admin-table td { padding: 11px 12px; }
+  .prod-modal { padding: 8px; align-items: flex-end; }
+  .prod-modal__panel { max-height: calc(100dvh - 16px); border-radius: 16px 16px 0 0; }
+  .prod-modal__head { padding: 14px; }
+  .prod-modal__body { padding: 4px 14px 18px; }
+  .prod-gallery { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .catalog-rescue-report__head { align-items: flex-start; }
+  .catalog-rescue-report .table-wrap { margin-inline: -14px; width: calc(100% + 28px); }
+}
+
+@media (max-width: 420px) {
+  .admin-topbar__title { max-width: 42vw; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .stat-card__value { font-size: 1.35rem; }
+  .catalog-rescue-report__stats { gap: 8px; }
+  .prod-fields { grid-template-columns: 1fr; }
 }
 
 /* Citas: subtipo de pasaporte + servicios adicionales + personas (celda Servicio) */

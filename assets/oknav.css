@@ -95,6 +95,13 @@
    invierte en modo oscuro (ver el bloque del final). */
 .oknav__logo { flex: 0 0 auto; display: flex; align-items: center; text-decoration: none; }
 .oknav__logo img { height: 26px; width: auto; max-width: 100%; display: block; }
+.oknav__brandmark {
+  display: inline-flex; align-items: baseline; color: var(--text-primary, #12141C);
+  font-size: 1.42rem; font-weight: 700; line-height: 1; letter-spacing: -.045em;
+  white-space: nowrap;
+}
+.oknav__brandmark strong { color: var(--brand-blue, #066CFF); font-weight: 850; }
+.oknav__brandmark span { font-weight: 650; }
 
 /* Buscador: la lupa dentro a la izquierda y se envía con Enter (sin botón:
    serían dos lupas en el mismo campo). */
@@ -286,13 +293,13 @@
 .oknav__catn { font-size: .74rem; font-weight: 600; color: var(--text-muted, #717890); }
 
 /* ── Cajón (☰) ────────────────────────────────────────────────────────── */
-.oknav__scrim { position: fixed; inset: 0; background: rgba(8,14,32,.5); z-index: 300; opacity: 0; transition: opacity .2s; }
+.oknav__scrim { position: fixed; inset: 0; background: rgba(8,14,32,.5); z-index: 190; opacity: 0; transition: opacity .2s; }
 .oknav__scrim.is-open { opacity: 1; }
 .oknav__scrim[hidden] { display: none; }
 
 .oknav__drawer {
   position: fixed; top: 0; left: 0; bottom: 0; width: min(320px, 86vw);
-  background: var(--surface-card, #fff); z-index: 310; overflow-y: auto; padding: var(--space-4, 16px);
+  background: var(--surface-card, #fff); z-index: 195; overflow-y: auto; padding: var(--space-4, 16px);
   transform: translateX(-100%); transition: transform .22s ease;
   box-shadow: 18px 0 50px rgba(12,20,50,.28);
   font-family: "Inter", system-ui, sans-serif;
@@ -379,6 +386,10 @@
   .oknav__loc, .oknav__acct { display: none; }   /* viven en el cajón */
   .oknav__wa { display: none; }                  /* ya hay botón flotante */
   .oknav__logo img { height: 22px; }
+  .oknav__brandmark { font-size: 1.28rem; }
+  .oknav__logo { min-height: 44px; }
+  .oknav__burger, .oknav__ico, .oknav__cart { min-width: 44px; min-height: 44px; }
+  .oknav__cats, .oknav__ofertas { min-height: 44px; }
   .oknav__row--nav > .oknav__wrap { overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
   .oknav__row--nav > .oknav__wrap::-webkit-scrollbar { display: none; }
 }
@@ -389,6 +400,7 @@
   .oknav__cart span:not(.oknav__ct) { display: none; }
   .oknav__cart { padding: 8px 12px; }
   .oknav__logo img { height: 20px; }
+  .oknav__brandmark { font-size: 1.14rem; }
   .oknav__wrap { gap: var(--space-2, 8px); padding: 0 var(--space-3, 12px); }
 }
 
@@ -398,6 +410,7 @@
    tokens. Aquí solo va lo que no es un token. */
 html[data-theme="dark"] .oknav__logo img,
 html[data-theme="dark"] .oknav__dhead img { filter: brightness(0) invert(1); }
+html[data-theme="dark"] .oknav__brandmark { color: var(--text-primary, #E9EDF6); }
 html[data-theme="dark"] .oknav__acth { background: #E9EEF7; border-color: transparent; }
 html[data-theme="dark"] .oknav__scrim { background: rgba(0,0,0,.62); }
 /* El cinturillo baja de intensidad en oscuro: el azul pleno deslumbra. */

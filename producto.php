@@ -192,14 +192,14 @@ $ldCrumbs = [
   <!-- Tema (claro/oscuro): antes de la hoja para pintar ya con el tema elegido -->
   <script src="/assets/theme.js?v=20260721a"></script>
   <link rel="stylesheet" href="/styles.css?v=20260727b">
-  <link rel="stylesheet" href="/assets/shop-header.css?v=20260717f">
+  <link rel="stylesheet" href="/assets/shop-header.css?v=20260728m">
   <link rel="stylesheet" href="/assets/producto.css?v=20260716b">
-  <link rel="stylesheet" href="/assets/oki.css?v=20260716d">
+  <link rel="stylesheet" href="/assets/oki.css?v=20260727m">
   <?php if ($images): ?><link rel="preload" as="image" href="<?= e($images[0]) ?>" fetchpriority="high"><?php endif; ?>
 
   <script type="application/ld+json"><?= json_encode($ld, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?></script>
   <script type="application/ld+json"><?= json_encode($ldCrumbs, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?></script>
-  <link rel="stylesheet" href="/assets/oknav.css?v=20260724a">
+  <link rel="stylesheet" href="/assets/oknav.css?v=20260727m">
 </head>
 
 <body id="top">
@@ -214,7 +214,7 @@ $ldCrumbs = [
      por JavaScript a propósito: los enlaces de navegación deben venir en el HTML
      para que Google los siga, que es justo por lo que la ficha se arma en el
      servidor).
-     Necesita:  <link rel="stylesheet" href="/assets/oknav.css?v=20260724a">
+     Necesita:  <link rel="stylesheet" href="/assets/oknav.css?v=20260727m">
                 <script src="/assets/oknav.js?v=20260724a" defer></script>
      Todos los <svg> llevan width/height propios: sin tamaño intrínseco un icono
      se pinta gigante mientras el CSS va en camino (ya pasó con el del correo).
@@ -256,7 +256,7 @@ $ldCrumbs = [
       </button>
 
       <a class="oknav__logo" href="/" aria-label="Ok.station — Ir al inicio">
-        <img src="/assets/img/okstation-logo.webp" alt="Ok.station" width="158" height="24">
+        <span class="oknav__brandmark" aria-hidden="true"><strong>OK.</strong><span>station</span></span>
       </a>
 
       <div class="oknav__search">
@@ -376,7 +376,7 @@ $ldCrumbs = [
 <div class="oknav__scrim" id="oknavScrim" hidden></div>
 <aside class="oknav__drawer" id="oknavDrawer" aria-label="Menú" hidden>
   <div class="oknav__dhead">
-    <img src="/assets/img/okstation-logo.webp" alt="Ok.station" width="132" height="20">
+    <span class="oknav__brandmark" aria-label="Ok.station"><strong>OK.</strong><span>station</span></span>
     <button type="button" class="oknav__dclose" id="oknavDClose" aria-label="Cerrar menú">&times;</button>
   </div>
 

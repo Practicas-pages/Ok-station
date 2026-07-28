@@ -13,8 +13,8 @@
 <!-- Tema (claro/oscuro): antes de la hoja para pintar ya con el tema elegido -->
 <script src="assets/theme.js?v=20260721a"></script>
 <link rel="stylesheet" href="styles.css">
-<link rel="stylesheet" href="assets/shop-header.css?v=20260716a">
-<link rel="stylesheet" href="assets/oki.css?v=20260716d">
+<link rel="stylesheet" href="assets/shop-header.css?v=20260728m">
+<link rel="stylesheet" href="assets/oki.css?v=20260727m">
 <style>
 /* ══════════════════════════════════════════════════════════════════
    Tienda dinámica (compra rápida) — vista de tabla + pre-carrito.
@@ -570,9 +570,17 @@ body.td-predrag .td-trash{display:flex}
   .td-head,.td-row{grid-template-columns:52px minmax(0,1fr) 80px 92px}
   .td-head > div:last-child{display:none}
   .td-row{position:relative}
-  .td-wish{position:absolute;left:12px;top:5px;width:24px;height:24px;
+  .td-wish{position:absolute;left:10px;top:4px;width:36px;height:36px;
     background:rgba(255,255,255,.94);border-color:rgba(16,24,40,.12);box-shadow:0 1px 4px rgba(16,24,40,.18)}
-  .td-wish svg{width:13px;height:13px}
+  .td-wish svg{width:16px;height:16px}
+  .td-panel{border-radius:14px}
+  .td-panelh{padding:12px 14px}
+  .td-head,.td-row{padding-left:12px;padding-right:12px}
+  .td-add{height:44px}
+  .td-ci{grid-template-columns:auto minmax(0,1fr)}
+  .td-ci .td-qty{grid-column:1 / -1;justify-self:start}
+  .td-qty button{width:36px;height:36px}
+  .td-go{height:48px}
 }
 
 /* ══ MODO OSCURO (html[data-theme="dark"], lo pone theme.js) ══
@@ -629,7 +637,7 @@ html[data-theme="dark"] .td-go:disabled{ background:#232D46; color:#67708A }
 /* La MINIATURA del producto conserva su fondo claro a propósito: las fotos
    vienen recortadas sobre blanco y sobre oscuro salen con un halo. */
 </style>
-<link rel="stylesheet" href="/assets/oknav.css?v=20260724a">
+<link rel="stylesheet" href="/assets/oknav.css?v=20260727m">
 </head>
 <body>
 <!-- ─────────────────────────────────────────────────────────────────────────
@@ -638,7 +646,7 @@ html[data-theme="dark"] .td-go:disabled{ background:#232D46; color:#67708A }
      por JavaScript a propósito: los enlaces de navegación deben venir en el HTML
      para que Google los siga, que es justo por lo que la ficha se arma en el
      servidor).
-     Necesita:  <link rel="stylesheet" href="/assets/oknav.css?v=20260724a">
+     Necesita:  <link rel="stylesheet" href="/assets/oknav.css?v=20260727m">
                 <script src="/assets/oknav.js?v=20260724a" defer></script>
      Todos los <svg> llevan width/height propios: sin tamaño intrínseco un icono
      se pinta gigante mientras el CSS va en camino (ya pasó con el del correo).
@@ -680,7 +688,7 @@ html[data-theme="dark"] .td-go:disabled{ background:#232D46; color:#67708A }
       </button>
 
       <a class="oknav__logo" href="/" aria-label="Ok.station — Ir al inicio">
-        <img src="/assets/img/okstation-logo.webp" alt="Ok.station" width="158" height="24">
+        <span class="oknav__brandmark" aria-hidden="true"><strong>OK.</strong><span>station</span></span>
       </a>
 
       <div class="oknav__search">
@@ -800,7 +808,7 @@ html[data-theme="dark"] .td-go:disabled{ background:#232D46; color:#67708A }
 <div class="oknav__scrim" id="oknavScrim" hidden></div>
 <aside class="oknav__drawer" id="oknavDrawer" aria-label="Menú" hidden>
   <div class="oknav__dhead">
-    <img src="/assets/img/okstation-logo.webp" alt="Ok.station" width="132" height="20">
+    <span class="oknav__brandmark" aria-label="Ok.station"><strong>OK.</strong><span>station</span></span>
     <button type="button" class="oknav__dclose" id="oknavDClose" aria-label="Cerrar menú">&times;</button>
   </div>
 
@@ -854,7 +862,7 @@ html[data-theme="dark"] .td-go:disabled{ background:#232D46; color:#67708A }
     <a href="cuenta.html" id="acct-login" aria-label="Iniciar sesión">Cuenta</a>
   </div>
   <div class="shopbar__top">
-    <a class="shopbar__logo" href="index.html" aria-label="Ok.station — Ir al inicio"><img src="assets/img/okstation-logo.webp" alt="Ok.station" width="158" height="24"></a>
+    <a class="shopbar__logo" href="index.html" aria-label="Ok.station — Ir al inicio"><span class="logo__ok">OK</span><span class="logo__dot">.</span><span class="logo__station">station</span></a>
     <!-- Barra vieja, oculta: el encabezado real es oknav. Su buscador filtra la TABLA
          de esta página (ver OKtienda.buscarEnVivo en el script de abajo). -->
     <div class="shopbar__spacer" aria-hidden="true"></div>

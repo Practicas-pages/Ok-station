@@ -208,7 +208,7 @@ function mxn($n): string { return '$' . number_format((float) $n, 2); }
       border:1.5px solid rgba(255,255,255,.55);background:transparent;color:#fff}
     .bar .theme-toggle:hover{background:rgba(255,255,255,.16);border-color:#fff;color:#fff}
   </style>
-  <link rel="stylesheet" href="/assets/oknav.css?v=20260724a">
+  <link rel="stylesheet" href="/assets/oknav.css?v=20260727m">
 </head>
 <body>
   <!-- ─────────────────────────────────────────────────────────────────────────
@@ -217,7 +217,7 @@ function mxn($n): string { return '$' . number_format((float) $n, 2); }
      por JavaScript a propósito: los enlaces de navegación deben venir en el HTML
      para que Google los siga, que es justo por lo que la ficha se arma en el
      servidor).
-     Necesita:  <link rel="stylesheet" href="/assets/oknav.css?v=20260724a">
+     Necesita:  <link rel="stylesheet" href="/assets/oknav.css?v=20260727m">
                 <script src="/assets/oknav.js?v=20260724a" defer></script>
      Todos los <svg> llevan width/height propios: sin tamaño intrínseco un icono
      se pinta gigante mientras el CSS va en camino (ya pasó con el del correo).
@@ -259,7 +259,7 @@ function mxn($n): string { return '$' . number_format((float) $n, 2); }
       </button>
 
       <a class="oknav__logo" href="/" aria-label="Ok.station — Ir al inicio">
-        <img src="/assets/img/okstation-logo.webp" alt="Ok.station" width="158" height="24">
+        <span class="oknav__brandmark" aria-hidden="true"><strong>OK.</strong><span>station</span></span>
       </a>
 
       <div class="oknav__search">
@@ -379,7 +379,7 @@ function mxn($n): string { return '$' . number_format((float) $n, 2); }
 <div class="oknav__scrim" id="oknavScrim" hidden></div>
 <aside class="oknav__drawer" id="oknavDrawer" aria-label="Menú" hidden>
   <div class="oknav__dhead">
-    <img src="/assets/img/okstation-logo.webp" alt="Ok.station" width="132" height="20">
+    <span class="oknav__brandmark" aria-label="Ok.station"><strong>OK.</strong><span>station</span></span>
     <button type="button" class="oknav__dclose" id="oknavDClose" aria-label="Cerrar menú">&times;</button>
   </div>
 
