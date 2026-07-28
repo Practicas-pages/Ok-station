@@ -2455,10 +2455,10 @@ html[data-theme="dark"] #site .side-back:hover{background:rgba(255,255,255,.08)}
     if(!keys.length){$("items").innerHTML='<div class="cart-empty">Tu carrito está vacío.<br>Agrega productos desde el catálogo.</div>';}
     else{$("items").innerHTML=keys.map(function(k){var c=cart[k],p=c.p;
       return '<div class="ci">'+cartThumb(p)+'<div><div class="nm">'+okEsc(p.name)+'</div><div class="pu">'+mxn(p.price)+' c/u</div><div class="qty"><button data-dec="'+p.id+'">−</button><span>'+c.qty+'</span><button data-inc="'+p.id+'">+</button></div></div><div><div class="lt">'+mxn(p.price*c.qty)+'</div><button class="rm" data-rm="'+p.id+'">Quitar</button></div></div>';}).join("");}
-    /* Si el carrito cambió después de cotizar, esa tarifa ya no corresponde: se
-       descarta antes de calcular el total, para no cobrar el envío de otro carrito.
-       Se vuelve a preguntar cuando el cliente llegue al paso de entrega. */
-    if(shipMode==="envio" && envioSel && envioFirma!==firmaCarrito()){ envioSel=null; envioOpciones=[]; }
+    /* Si cambió la dirección O el carrito después de cotizar, esa tarifa ya no
+       corresponde: se descarta antes de calcular el total, para no cobrar el envío
+       de otro pedido ni el de otra ciudad. */
+    if(shipMode==="envio" && envioSel && envioFirma!==firmaCotizacion()){ envioSel=null; envioOpciones=[]; envioError=""; }
     var tt=totals(); $("sub").textContent=mxn(tt.sub);
     /* La línea de "Entrega" NO puede decir "Gratis" cuando el envío todavía no se
        ha cotizado: con envío a domicilio elegido y sin dirección, decía gratis y
@@ -2862,12 +2862,19 @@ html[data-theme="dark"] #site .side-back:hover{background:rgba(255,255,255,.08)}
       .then(function(j){
         if(!j||!j.ok){ btn.disabled=false; btn.textContent="Agregar dirección"; return bad((j&&j.error)||"No se pudo guardar."); }
         okAddr=j.addresses||[]; renderLoc(); hide("locOv"); flash("Dirección agregada");
+        /* Una dirección nueva es un destino nuevo: la tarifa que hubiera en pantalla
+           es de otro lugar. Se descarta siempre, se abra el checkout o no. */
+        envioSel=null; envioOpciones=[]; envioError="";
         /* Si se llegó desde el CHECKOUT (paso Entrega), la recién creada queda elegida
            y el checkout se repinta con ella (la más nueva es el id más alto). */
         if($("coOv").classList.contains("show") && coStep===2){
           var nueva=okAddr.reduce(function(m,a){return a.id>m.id?a:m;},okAddr[0]||{id:0});
           if(nueva&&nueva.id) coAddrId=nueva.id;
           renderCheckout();
+        } else if(shipMode==="envio"){
+          cotizarEnvioCarrito();
+        } else {
+          renderCart();
         }
       }).catch(function(){ btn.disabled=false; btn.textContent="Agregar dirección"; bad("Sin conexión con el servidor."); });
   }
@@ -2877,6 +2884,13 @@ html[data-theme="dark"] #site .side-back:hover{background:rgba(255,255,255,.08)}
       .then(function(j){
         if(!j||!j.ok) return;
         okAddr=j.addresses||[]; renderLoc(); hide("locOv"); flash("Entrega actualizada");
+        /* Cambiar de dirección cambia el envío: Tijuana cuesta $130 y Guadalajara
+           $145 o más. Sin esto se quedaba en pantalla la tarifa de la dirección
+           anterior —el error que se reportó—, así que se tira y se vuelve a
+           preguntar. La elección explícita manda sobre la predeterminada. */
+        coAddrId=id;
+        envioSel=null; envioOpciones=[]; envioError="";
+        if(shipMode==="envio") cotizarEnvioCarrito(); else renderCart();
       }).catch(function(){});
   }
 
@@ -2974,11 +2988,22 @@ html[data-theme="dark"] #site .side-back:hover{background:rgba(255,255,255,.08)}
      pintar: create.php vuelve a cotizar y usa SU número. */
   var envioOpciones=[], envioCargando=false, envioError="", envioCache={}, envioFirma="";
 
-  /* Firma del carrito: qué productos y en qué cantidad. Sirve de llave de caché —
-     mientras no cambie ni el carrito ni la dirección, la cotización es la misma. */
+  /* Firma del carrito: qué productos y en qué cantidad. */
   function firmaCarrito(){
     return Object.keys(cart).sort().map(function(k){return k+"x"+cart[k].qty;}).join(",");
   }
+  /* A qué dirección se está cotizando. La elegida a mano manda; si no hay ninguna,
+     la predeterminada del cliente. Carrito y checkout preguntan lo mismo, para que
+     no puedan estar cotizando a direcciones distintas sin darse cuenta. */
+  function direccionEnvioId(){
+    if(coAddrId) return coAddrId;
+    var d=addrDefault();
+    return d?d.id:0;
+  }
+  /* Firma COMPLETA de una cotización: dirección + carrito. Es lo que decide si la
+     tarifa que tenemos guardada sigue valiendo. Antes solo miraba el carrito, y por
+     eso al cambiar de dirección se quedaba el costo de la anterior. */
+  function firmaCotizacion(){ return direccionEnvioId()+"|"+firmaCarrito(); }
 
   /* Una sola puerta hacia la cotización, para el carrito Y para el checkout.
      La caché no es un lujo: la API de Exel se queda sin contestar cuando se le
@@ -2996,7 +3021,7 @@ html[data-theme="dark"] #site .side-back:hover{background:rgba(255,255,255,.08)}
       var res=(j&&j.ok&&j.opciones&&j.opciones.length)
         ? {ok:true, opciones:j.opciones, destino:j.destino}
         : {ok:false, error:(j&&j.error)||"No pudimos calcular el envío."};
-      if(res.ok){ envioCache[llave]=res; envioFirma=firmaCarrito(); }   // solo se guarda lo bueno
+      if(res.ok){ envioCache[llave]=res; envioFirma=addressId+"|"+firmaCarrito(); }   // solo se guarda lo bueno
       cb(res);
     }).catch(function(){
       cb({ok:false, error:"No pudimos calcular el envío. Revisa tu conexión."});
@@ -3026,11 +3051,10 @@ html[data-theme="dark"] #site .side-back:hover{background:rgba(255,255,255,.08)}
      llegar hasta el final para enterarte de cuánto cuesta el envío. */
   function cotizarEnvioCarrito(){
     if(shipMode!=="envio" || !shopToken()){ renderCart(); return; }
-    var d=addrDefault();
-    if(!d){ renderCart(); return; }          // sin dirección guardada no hay nada que preguntar
-    coAddrId=coAddrId||d.id;
+    var id=direccionEnvioId();
+    if(!id){ renderCart(); return; }          // sin dirección guardada no hay nada que preguntar
     envioCargando=true; renderCart();
-    cotizarEnvio(d.id, function(res){
+    cotizarEnvio(id, function(res){
       envioCargando=false;
       if(res.ok){ envioOpciones=res.opciones; envioSel=res.opciones[0]; envioError=""; }
       else { envioOpciones=[]; envioSel=null; envioError=res.error; }
