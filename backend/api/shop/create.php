@@ -137,7 +137,64 @@ if ($precioCambio) {
 }
 if (!$resolved) fail('No pudimos identificar los productos de tu carrito.', 422);
 
-$shipCost = ($shipMode === 'envio') ? round((float) ShopCatalog::SHIP_COST, 2) : 0.0;
+/* ── Costo del envío: lo cotiza EXEL, aquí y ahora ──
+   El navegador manda qué transportista eligió el cliente, pero NUNCA cuánto cuesta:
+   eso se vuelve a preguntar aquí, igual que se hace con los precios. Si se confiara
+   en el número del navegador, cualquiera podría pagar $1 de envío.
+   Ya no se usa la tarifa plana de ShopCatalog::SHIP_COST ($99): resultó estar por
+   debajo del costo real de Exel —$130 el más barato, dentro de Tijuana—, así que
+   cada envío se vendía con pérdida. Si Exel no contesta, el pedido NO se crea: es
+   preferible pedirle al cliente que reintente que cobrarle un envío inventado. */
+$shipCost = 0.0;
+$shipCarrier = '';
+if ($shipMode === 'envio') {
+    require_once __DIR__ . '/../lib/ExelEnvios.php';
+
+    $addressId = (int) ($b['address_id'] ?? 0);
+    $st = db()->prepare('SELECT postal_code FROM user_addresses WHERE id = ? AND user_id = ? LIMIT 1');
+    $st->execute([$addressId, (int) $user['id']]);
+    $dirEnvio = $st->fetch();
+    if (!$dirEnvio) fail('Elige una dirección de envío guardada.', 422);
+
+    /* Las claves con las que Exel conoce cada producto no vienen en $resolved (que
+       trae lo del cobro), así que se leen aparte con los ids ya validados. */
+    $ids = array_column($resolved, 'id');
+    $qtyPorId = [];
+    foreach ($resolved as $r) $qtyPorId[(int) $r['id']] = (int) $r['qty'];
+    $inPlaceholders = implode(',', array_fill(0, count($ids), '?'));
+    $qx = db()->prepare("SELECT id, supplier_id, supplier_ref FROM products WHERE id IN ($inPlaceholders)");
+    $qx->execute($ids);
+
+    $paraExel = [];
+    foreach ($qx->fetchAll() as $r) {
+        $clave = trim((string) ($r['supplier_id'] ?? '')) ?: trim((string) ($r['supplier_ref'] ?? ''));
+        if ($clave !== '') $paraExel[] = ['id_producto' => $clave, 'cantidad' => $qtyPorId[(int) $r['id']] ?? 1];
+    }
+
+    $coti = $paraExel ? ExelEnvios::cotizar((string) $dirEnvio['postal_code'], $paraExel) : null;
+    if ($coti === null) {
+        fail('No pudimos calcular el envío en este momento. Vuelve a intentarlo o elige recoger en tienda.', 503);
+    }
+
+    /* Se cobra la opción que el cliente eligió; si esa clave ya no viene en la
+       cotización (cambió el carrito, o Exel dejó de ofrecerla), se usa la más
+       barata, que es la primera. Nunca se inventa un número. */
+    $elegida = null;
+    $clavePedida = trim((string) ($b['transportista'] ?? ''));
+    foreach ($coti['opciones'] as $o) { if ($o['clave'] === $clavePedida) { $elegida = $o; break; } }
+    if ($elegida === null) $elegida = $coti['opciones'][0];
+
+    $shipCost    = round((float) $elegida['costo'], 2);
+    $shipCarrier = (string) $elegida['transportista'];
+
+    /* El transportista se anexa a la dirección porque shop_orders no tiene columna
+       propia para él, y quien prepara el pedido necesita saberlo (no es lo mismo
+       dejarlo en el reparto local de Exel que darlo a FedEx). Se recorta para no
+       pasarse del tope de 400 de la columna. */
+    if ($shipCarrier !== '') {
+        $shipAddress = mb_substr(trim($shipAddress) . ' · Envío: ' . $shipCarrier, 0, 400);
+    }
+}
 $totalIncl = round($totalIncl, 2);
 $subtotal  = round($totalIncl / (1 + $ivaRate), 2);   // base sin IVA
 $tax       = round($totalIncl - $subtotal, 2);        // IVA desglosado (a la tasa del destino)

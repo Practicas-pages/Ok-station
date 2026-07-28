@@ -896,6 +896,13 @@ html.q-lock, html.q-lock body{overflow:hidden}
 #site .addr b{font-size:.9rem; font-weight:700}
 #site .addr span{font-size:.82rem; color:var(--muted)}
 #site .addr__note{font-style:italic}
+/* Opciones de envío (las que cotiza Exel). Reusan la tarjeta .addr —misma forma de
+   elegir que la dirección—, así que aquí solo va lo propio: el costo alineado a la
+   derecha y el aviso de cuando no se pudo cotizar. */
+#site .coenvio .addr{flex-direction:row; align-items:center; justify-content:space-between; gap:10px}
+#site .coenvio .addr span{font-weight:800; color:var(--ink); white-space:nowrap}
+#site .coenvio__err{margin:12px 0 0; padding:10px 12px; border-radius:10px; background:#FEF3C7; color:#92400E; font-size:.85rem; line-height:1.45}
+html[data-theme="dark"] #site .coenvio__err{background:#3A2E12; color:#F5D98B}
 #site .addr__tag{display:inline-block; margin-left:6px; padding:1px 7px; border-radius:99px; background:var(--blue); color:#fff; font-size:.64rem; font-weight:800; vertical-align:middle}
 #site .addr--new{flex-direction:row; align-items:center; gap:9px; border-style:dashed; justify-content:center; color:var(--blue)}
 #site .addr--new b{color:var(--blue)}
@@ -1680,7 +1687,7 @@ html[data-theme="dark"] #site .side-back:hover{background:rgba(255,255,255,.08)}
              catálogo de respaldo encima del "Cargando…" hasta que contestaba la BD). -->
         <div class="catalog"><div class="catbar"><span class="ctitle" id="catTitle">Todos los productos</span><button type="button" class="clearq" id="clearQ" data-clearq hidden>Ver todos los productos</button><div class="catbar-right"><!-- region viva: al filtrar desde la navbar no hay cambio de página que anunciar --><span class="cnt" id="catCount" role="status" aria-live="polite"></span><div class="viewtoggle"><button type="button" data-view="list" title="Lista" aria-label="Ver como lista"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="8" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="20" y2="12"/><line x1="8" y1="18" x2="20" y2="18"/><line x1="3.5" y1="6" x2="3.51" y2="6"/><line x1="3.5" y1="12" x2="3.51" y2="12"/><line x1="3.5" y1="18" x2="3.51" y2="18"/></svg></button><button type="button" data-view="grid" class="on" title="Cuadros" aria-label="Ver como cuadros"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg></button></div></div></div><div class="grid" id="grid"></div></div>
         <aside class="cart" id="cart"><div class="ch">Tu carrito <button class="close" id="cartClose">×</button></div><div class="items" id="items"></div>
-          <div class="sum"><div class="ship"><button class="on" data-ship="retiro"><b>Recoger en OK.station</b>Gratis</button><button data-ship="envio"><b>Envío a domicilio</b>$99</button></div>
+          <div class="sum"><div class="ship"><button class="on" data-ship="retiro"><b>Recoger en OK.station</b>Gratis</button><button data-ship="envio"><b>Envío a domicilio</b>Se calcula con tu CP</button></div>
             <div class="sline"><span>Subtotal</span><span id="sub">$0.00</span></div><div class="sline"><span>Entrega</span><span id="shipCost">Recoge en tienda</span></div><div class="sline total"><span>Total</span><span id="total">$0.00</span></div>
             <button class="checkout" id="checkoutBtn" disabled>Finalizar compra</button><div class="taxnote" id="taxnote">Precios con IVA incluido</div></div></aside>
       </div>
@@ -2430,7 +2437,13 @@ html[data-theme="dark"] #site .side-back:hover{background:rgba(255,255,255,.08)}
      hace desde el carrito ("Finalizar compra") o desde la ficha del producto. */
   function changeQty(id,d){var c=cart[id]; if(!c)return; c.qty+=d; if(c.qty<=0)delete cart[id]; else c.qty=Math.min(c.p.stock,c.qty); renderCart();}
   function removeItem(id){delete cart[id]; renderCart();}
-  function totals(){var sub=0,n=0; for(var k in cart){sub+=cart[k].p.price*cart[k].qty; n+=cart[k].qty;} var ship=(n>0&&shipMode==="envio")?99:0; return {sub:sub,ship:ship,total:sub+ship,n:n};}
+  /* Envío elegido en el checkout: {clave, transportista, costo}. Vive aquí porque el
+     costo YA NO ES FIJO — lo cotiza Exel según el código postal del cliente y el
+     carrito, así que hasta que no hay dirección elegida no hay número que mostrar.
+     (Antes eran $99 planos, que resultaron estar por debajo del costo real: el envío
+     más barato que cotiza Exel son $130 dentro de Tijuana.) */
+  var envioSel=null;
+  function totals(){var sub=0,n=0; for(var k in cart){sub+=cart[k].p.price*cart[k].qty; n+=cart[k].qty;} var ship=(n>0&&shipMode==="envio"&&envioSel)?envioSel.costo:0; return {sub:sub,ship:ship,total:sub+ship,n:n};}
   /* Miniatura del carrito: la foto REAL del producto (Icecat). Si no tiene, su emoji
      sobre el gradiente de su categoría — nunca el ícono gris de "sin imagen". */
   function cartThumb(p){
@@ -2917,12 +2930,63 @@ html[data-theme="dark"] #site .side-back:hover{background:rgba(255,255,255,.08)}
     var body2='<h3 style="margin:0 0 4px;font-size:1.2rem">Finaliza tu compra</h3>'+
       '<p class="desc" style="max-width:none;font-size:.82rem;margin:0 0 12px;color:var(--muted)">Paso 2 de 2 · Entrega</p>'+
       entrega+
+      (envio?'<div id="coEnvio" class="coenvio"></div>':'')+
       '<div id="coSummary"></div>'+
       '<button class="maddbtn" style="margin-top:16px" data-copay>Pagar</button>'+
       '<button type="button" class="afback" data-coback>← Volver al contacto</button>'+
       '<p class="desc" style="font-size:.8rem;text-align:center;margin-top:8px">Pago seguro con Mercado Pago 🔒</p>';
     $("coModal").innerHTML=head+body2+'</div>';
     paintCheckout();
+    if(envio) cargarEnvios();
+  }
+
+  /* ── Opciones de envío (las cotiza Exel) ──────────────────────────────────
+     El costo del envío ya no es un número fijo nuestro: depende del código postal
+     del cliente y de lo que lleve en el carrito, y lo pone Exel, que es quien
+     embarca. Así que hasta que no hay dirección elegida no hay precio que enseñar.
+     Se pide al servidor —nunca al navegador— y lo que se elige aquí es solo para
+     pintar: create.php vuelve a cotizar y usa SU número. */
+  var envioOpciones=[], envioCargando=false, envioError="";
+  function cargarEnvios(){
+    var host=$("coEnvio"); if(!host) return;
+    if(!coAddrId){ envioOpciones=[]; envioError=""; pintarEnvios(); return; }
+    var items=Object.keys(cart).map(function(k){return {id:+k, qty:cart[k].qty};});
+    if(!items.length){ envioOpciones=[]; pintarEnvios(); return; }
+    envioCargando=true; envioError=""; pintarEnvios();
+    authFetch("/backend/api/shop/envio-opciones.php",{
+      method:"POST", body:JSON.stringify({address_id:coAddrId, items:items})
+    }).then(function(j){
+      envioCargando=false;
+      if(j&&j.ok&&j.opciones&&j.opciones.length){
+        envioOpciones=j.opciones;
+        /* Se preselecciona la MÁS BARATA (vienen ordenadas): es lo que casi todos
+           eligen, y así el total aparece de una vez en vez de quedarse en blanco. */
+        envioSel=envioOpciones[0];
+      } else {
+        envioOpciones=[]; envioSel=null;
+        envioError=(j&&j.error)||"No pudimos calcular el envío.";
+      }
+      pintarEnvios(); paintCheckout();
+    }).catch(function(){
+      envioCargando=false; envioOpciones=[]; envioSel=null;
+      envioError="No pudimos calcular el envío. Revisa tu conexión.";
+      pintarEnvios(); paintCheckout();
+    });
+  }
+  function pintarEnvios(){
+    var host=$("coEnvio"); if(!host) return;
+    if(envioCargando){ host.innerHTML='<p class="desc" style="max-width:none;font-size:.85rem;margin:10px 0 0">Calculando el envío…</p>'; return; }
+    if(envioError){
+      host.innerHTML='<p class="coenvio__err">'+esc(envioError)+'</p>'+
+        '<button type="button" class="afback" data-coback style="margin-top:6px">← Elegir recoger en tienda</button>';
+      return;
+    }
+    if(!envioOpciones.length){ host.innerHTML=""; return; }
+    host.innerHTML='<p class="desc" style="max-width:none;font-size:.88rem;margin:12px 0 6px">¿Cómo quieres que llegue?</p>'+
+      envioOpciones.map(function(o){
+        return '<button type="button" class="addr'+(envioSel&&envioSel.clave===o.clave?" addr--on":"")+'" data-coenvio="'+esc(o.clave)+'">'+
+          '<b>'+esc(o.transportista)+'</b><span>'+mxn(o.costo)+'</span></button>';
+      }).join("");
   }
   /* IVA aplicable en el checkout: retiro→BC 8%; envío→según el estado de la dirección elegida. */
   function checkoutRate(){ if(shipMode!=="envio") return 0.08; var a=coAddrSel(); return a?ivaForEstado(a.state||""):(okGeo.iva_rate||0.08); }
@@ -2941,7 +3005,14 @@ html[data-theme="dark"] #site .side-back:hover{background:rgba(255,255,255,.08)}
       '<div class="sline"><span>Entrega</span><span>'+(ct.ship?"Envío "+mxn(ct.ship):"Recoger · Gratis")+'</span></div>'+
       '<div class="sline total"><span>Total</span><span>'+mxn(ct.total)+'</span></div>'+
       (natl?'<p class="desc" style="font-size:.78rem;color:#c2410c;margin-top:6px">'+ICO_PIN+' Envío fuera de Baja California: el IVA se ajusta al 16%.</p>':'');
-    var btn=document.querySelector("[data-copay]"); if(btn) btn.textContent="Pagar "+mxn(ct.total);
+    var btn=document.querySelector("[data-copay]");
+    if(btn){
+      /* Con envío a domicilio no se puede pagar hasta saber cuánto cuesta: el total
+         estaría mintiendo. Con recoger en tienda no aplica (es gratis). */
+      var faltaEnvio=(shipMode==="envio" && !envioSel);
+      btn.disabled=faltaEnvio;
+      btn.textContent=faltaEnvio ? (envioCargando?"Calculando el envío…":"Elige cómo enviarlo") : ("Pagar "+mxn(ct.total));
+    }
   }
   function submitShop(){
     var tok=shopToken(); if(!tok){renderCheckout();return;}
@@ -2954,6 +3025,7 @@ html[data-theme="dark"] #site .side-back:hover{background:rgba(255,255,255,.08)}
       if(!a){flash("Elige o agrega una dirección de envío");return;}
       addr=a.recipient+" · "+a.label+(a.notes?" · "+a.notes:"");
       estado=a.state||okGeo.state||"Baja California";
+      if(!envioSel){flash("Elige cómo quieres que llegue tu pedido");return;}
     }
     /* seen_unit = el precio de LISTA que este carrito le mostró al cliente. El servidor
        lo compara con el vigente y bloquea si difiere >3% (deriva por sync de Exel). */
@@ -2961,7 +3033,11 @@ html[data-theme="dark"] #site .side-back:hover{background:rgba(255,255,255,.08)}
     if(!items.length){flash("Tu carrito está vacío");return;}
     var btn=document.querySelector("[data-copay]"); if(btn){btn.disabled=true;btn.textContent="Procesando…";}
     fetch("/backend/api/shop/create.php",{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+tok},
+      /* address_id y transportista: el servidor los usa para VOLVER A COTIZAR con Exel
+         y fijar él mismo el costo del envío. Lo que va aquí es la elección, no el
+         precio — el precio nunca lo pone el navegador. */
       body:JSON.stringify({items:items,ship_mode:shipMode,ship_address:addr,contact_phone:phone,state:estado,
+        address_id:(envio?coAddrId:0), transportista:(envioSel?envioSel.clave:""),
         contact_email:(coEmailOther?coEmailVal.trim():"")})})   /* vacío = avisos al correo de la cuenta */
       .then(function(r){return r.json();})
       .then(function(j){
@@ -2996,9 +3072,17 @@ html[data-theme="dark"] #site .side-back:hover{background:rgba(255,255,255,.08)}
     /* Correo de avisos: el de la cuenta (un clic) u otro que escriba. */
     var cm=e.target.closest("[data-comail]");
     if(cm){ coEmailOther=(cm.dataset.comail==="otro"); renderCheckout(); if(coEmailOther)setTimeout(function(){var f=$("coEmail");if(f)f.focus();},50); return; }
-    /* Dirección de envío elegida (de la libreta). */
+    /* Dirección de envío elegida (de la libreta). Cambiar de dirección invalida la
+       cotización: el costo depende del código postal, así que se vuelve a pedir. */
     var ca=e.target.closest("[data-coaddr]");
-    if(ca){ coAddrId=+ca.dataset.coaddr; renderCheckout(); return; }
+    if(ca){ coAddrId=+ca.dataset.coaddr; envioSel=null; renderCheckout(); return; }
+    /* Opción de envío elegida (transportista). */
+    var ce=e.target.closest("[data-coenvio]");
+    if(ce){
+      var op=(envioOpciones||[]).filter(function(o){return o.clave===ce.dataset.coenvio;})[0];
+      if(op){ envioSel=op; pintarEnvios(); paintCheckout(); }
+      return;
+    }
     /* Alta de dirección: abre la LIBRETA (con geolocalización y mapa) encima. */
     if(e.target.closest("[data-conewaddr]")){ locForm(); show("locOv"); return; }
   });
