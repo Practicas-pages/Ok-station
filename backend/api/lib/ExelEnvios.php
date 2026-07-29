@@ -65,10 +65,10 @@ final class ExelEnvios
      */
     public static function cotizar(string $cp, array $items): ?array
     {
-        if (!self::configurado()) return null;
+        if (!self::configurado()) { self::log('abortado: EXEL_API_KEY no configurada (revisa backend/.env)'); return null; }
 
-        $cp = preg_replace('/\D/', '', $cp) ?? '';
-        if (strlen($cp) !== 5) return null;          // sin CP válido no hay nada que preguntar
+        $cpLimpio = preg_replace('/\D/', '', $cp) ?? '';
+        if (strlen($cpLimpio) !== 5) { self::log("abortado: CP inválido ('{$cp}')"); return null; }
 
         $productos = [];
         foreach ($items as $it) {
@@ -76,21 +76,63 @@ final class ExelEnvios
             $qty = max(1, (int) ($it['cantidad'] ?? 1));
             if ($id !== '') $productos[] = ['id_producto' => $id, 'cantidad' => $qty];
         }
-        if (!$productos) return null;
+        if (!$productos) { self::log("abortado: ningún producto trae clave de Exel (cp={$cpLimpio})"); return null; }
 
         $cuerpo = json_encode([
             'id_localidad' => self::LOCALIDAD_ORIGEN,
-            'cp'           => $cp,
+            'cp'           => $cpLimpio,
             'productos'    => $productos,
         ], JSON_UNESCAPED_UNICODE);
-        if ($cuerpo === false) return null;
+        if ($cuerpo === false) { self::log('abortado: no se pudo serializar el cuerpo'); return null; }
 
-        $resp = self::enviar($cuerpo);
-        return $resp === null ? null : self::interpretar($resp);
+        /* ── Hasta 2 intentos ──
+           El endpoint de fletes es de SOLO LECTURA (no compra ni reserva nada), así
+           que reintentar un fallo TRANSITORIO —timeout, 5xx, o la página HTML de
+           error que a veces suelta su servidor— es seguro y arregla justo la
+           intermitencia "a veces cotiza, a veces no". Un rechazo ESTABLE (CP sin
+           cobertura, error de negocio de Exel) NO se reintenta: daría el mismo no y
+           solo alargaría la espera del cliente en el checkout. Cada fallo se registra
+           con su motivo para que en producción se pueda ver POR QUÉ falló (hasta hoy
+           era una caja negra: null sin rastro). */
+        $MAX = 2;
+        for ($intento = 1; $intento <= $MAX; $intento++) {
+            $r = self::enviar($cuerpo);
+
+            /* Sin cuerpo aprovechable (error de red / HTTP != 200 / vacío): transitorio. */
+            if ($r['body'] === null) {
+                self::log(sprintf('intento %d/%d SIN respuesta (http=%d, %dms, cp=%s)%s',
+                    $intento, $MAX, $r['code'], $r['ms'], $cpLimpio,
+                    $r['err'] !== '' ? " curl=\"{$r['err']}\"" : ''));
+                continue;   // reintenta si quedan intentos
+            }
+
+            $parsed = self::interpretar($r['body']);
+            if ($parsed !== null) {
+                if ($intento > 1) self::log("recuperado al intento {$intento} (cp={$cpLimpio}, opciones=" . count($parsed['opciones']) . ")");
+                return $parsed;
+            }
+
+            /* Respondió 200 pero no se pudo interpretar: clasificamos para el log y
+               para decidir si vale la pena reintentar. */
+            $cl = self::clasificar($r['body']);
+            self::log(sprintf('intento %d/%d respuesta no usable [%s] (http=%d, %dms, cp=%s): %s',
+                $intento, $MAX, $cl['tipo'], $r['code'], $r['ms'], $cpLimpio, $cl['detalle']));
+            if (!$cl['transitorio']) return null;   // rechazo estable → no reintentar
+        }
+
+        self::log("cotización fallida tras {$MAX} intento(s) (cp={$cpLimpio})");
+        return null;
     }
 
-    /** La llamada HTTP, aislada. Nunca lanza: devuelve el cuerpo crudo o null. */
-    private static function enviar(string $json): ?string
+    /**
+     * La llamada HTTP, aislada. Nunca lanza. Devuelve metadatos para poder registrar
+     * el motivo del fallo y decidir el reintento:
+     *   ['body' => ?string,  // cuerpo crudo si HTTP 200 y no vacío; null si no sirve
+     *    'err'  => string,   // mensaje de curl (timeout, DNS, etc.) o ''
+     *    'code' => int,      // código HTTP (0 si ni siquiera conectó)
+     *    'ms'   => int]      // cuánto tardó, en milisegundos
+     */
+    private static function enviar(string $json): array
     {
         $base = rtrim((string) env('EXEL_API_BASE', 'https://api01.exeldelnorte.com.mx'), '/');
         $ch = curl_init($base . '/fletes_y_transportistas');
@@ -105,13 +147,15 @@ final class ExelEnvios
                 'Content-Type: application/json',
             ],
         ]);
+        $t0   = microtime(true);
         $resp = curl_exec($ch);
+        $ms   = (int) round((microtime(true) - $t0) * 1000);
         $err  = curl_error($ch);
         $code = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
         curl_close($ch);
 
-        if ($err !== '' || $code !== 200 || !is_string($resp) || $resp === '') return null;
-        return $resp;
+        $body = ($err === '' && $code === 200 && is_string($resp) && $resp !== '') ? $resp : null;
+        return ['body' => $body, 'err' => $err, 'code' => $code, 'ms' => $ms];
     }
 
     /**
@@ -160,5 +204,50 @@ final class ExelEnvios
 
         usort($opciones, fn($a, $b) => $a['costo'] <=> $b['costo']);
         return ['destino' => $destino, 'opciones' => $opciones];
+    }
+
+    /**
+     * Clasifica una respuesta HTTP 200 que interpretar() rechazó, para el log y para
+     * decidir el reintento. `transitorio => true` significa "vale la pena reintentar"
+     * (su servidor se cayó por dentro); `false` es un rechazo ESTABLE (mismo no si se
+     * repite): CP sin cobertura o error de negocio de Exel.
+     * @return array{tipo:string, transitorio:bool, detalle:string}
+     */
+    private static function clasificar(string $body): array
+    {
+        $t = ltrim($body);
+        // Su API devuelve HTML (o un warning de PHP) cuando truena por dentro → transitorio.
+        if ($t !== '' && $t[0] === '<') {
+            return ['tipo' => 'html-error', 'transitorio' => true, 'detalle' => self::snippet($body)];
+        }
+        $j = json_decode($body, true);
+        if (!is_array($j)) {
+            return ['tipo' => 'no-json', 'transitorio' => true, 'detalle' => self::snippet($body)];
+        }
+        $res = $j['resultado'] ?? null;
+        if ($res !== true) {
+            // Al fallar, `resultado` trae el TEXTO del error ("ERROR: favor de..."): rechazo estable.
+            $msg = is_string($res) ? $res : json_encode($res, JSON_UNESCAPED_UNICODE);
+            return ['tipo' => 'resultado-error', 'transitorio' => false, 'detalle' => self::snippet((string) $msg)];
+        }
+        if (empty($j['datos']) || !is_array($j['datos'])) {
+            return ['tipo' => 'sin-datos', 'transitorio' => false, 'detalle' => 'resultado=true pero sin datos'];
+        }
+        // resultado=true con datos, pero ningún flete > 0 → ese CP no tiene servicio.
+        return ['tipo' => 'sin-opciones', 'transitorio' => false, 'detalle' => 'datos sin flete válido (CP sin cobertura)'];
+    }
+
+    /** Recorte de una línea para el log (sin HTML, sin secretos: el body es la cotización, no la llave). */
+    private static function snippet(?string $s): string
+    {
+        $s = trim(strip_tags((string) $s));
+        $s = preg_replace('/\s+/', ' ', $s) ?? '';
+        return mb_strimwidth($s, 0, 180, '…');
+    }
+
+    /** Deja rastro en el log de PHP con un prefijo buscable: `grep '\[exel.fletes\]'`. */
+    private static function log(string $msg): void
+    {
+        error_log('[exel.fletes] ' . $msg);
     }
 }
