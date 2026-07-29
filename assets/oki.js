@@ -903,7 +903,14 @@
     (storeReady() ? QUICKS_STORE : QUICKS).forEach(function (q) {
       var b = document.createElement("button");
       b.type = "button"; b.textContent = q;
-      b.addEventListener("click", function () { send(q.replace(/^[^\s]+\s/, "")); });
+      b.addEventListener("click", function () {
+        /* Se recorta SOLO el prefijo decorativo (el emoji de los atajos de la
+           tienda). Los atajos sin emoji van completos: este recorte a ciegas
+           convertía "No sé qué necesito" en "sé qué necesito" en las 23 páginas
+           que no son la tienda, y el cliente veía su mensaje mutilado. */
+        var esEmoji = !/^[0-9A-Za-zÁÉÍÓÚÜÑáéíóúüñ¿¡]/.test(q.charAt(0));
+        send(esEmoji ? q.replace(/^[^\s]+\s/, "") : q);
+      });
       quick.appendChild(b);
     });
     var listChip = document.createElement("button");
@@ -1089,10 +1096,17 @@
     busy = true;
     typing(true);
 
+    /* Tiempo límite: sin esto, un servidor colgado dejaba a OKi "escribiendo…"
+       para siempre y el chat quedaba mudo hasta recargar la página. 25 s cubre
+       la respuesta más lenta de la IA con margen. */
+    var ctrl = ("AbortController" in window) ? new AbortController() : null;
+    var timer = ctrl && setTimeout(function () { ctrl.abort(); }, 25000);
+
     fetch(API, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ messages: history })
+      body: JSON.stringify({ messages: history }),
+      signal: ctrl ? ctrl.signal : undefined
     })
       .then(function (r) { return r.json(); })
       .then(function (data) {
@@ -1110,7 +1124,7 @@
         typing(false);
         addMsg("No me pude conectar 😕. Intenta de nuevo en un momento.", "bot");
       })
-      .then(function () { busy = false; input.focus(); });
+      .then(function () { if (timer) clearTimeout(timer); busy = false; input.focus(); });
   }
 
   /* ── API pública mínima: window.OKi ──

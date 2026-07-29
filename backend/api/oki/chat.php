@@ -155,9 +155,13 @@ if ($nav !== null) {
 $reply = oki_brain_reply($text, $prev);
 
 /* Las preguntas de consejo o explicación necesitan razonamiento, aunque alguna palabra
-   también coincida con una respuesta comercial del cerebro por reglas. */
+   también coincida con una respuesta comercial del cerebro por reglas. La respuesta de
+   reglas NO se tira: si la IA no puede contestar (sin llave, sin cuota, caída), el dato
+   comercial exacto que sí teníamos es mejor respuesta que "no pude generar nada". */
+$replyReglas = null;
 if ($reply !== null
     && (oki_is_advice(oki_norm($text)) || oki_needs_explanation(oki_norm($text)))) {
+    $replyReglas = $reply;
     $reply = null;
 }
 
@@ -198,6 +202,11 @@ if ($reply === null && Gemini::available()) {
 }
 
 /* ── 7) Respaldo si la IA no está configurada, no tiene cuota o no respondió ── */
+if ($reply === null && $replyReglas !== null) {
+    /* La IA no pudo, pero el cerebro por reglas SÍ tenía una respuesta para esta
+       pregunta (se apartó en el paso 5 esperando algo mejor). Se entrega esa. */
+    respond(['ok' => true, 'reply' => $replyReglas, 'source' => 'reglas-respaldo']);
+}
 if ($reply === null) {
     respond([
         'ok'       => true,
