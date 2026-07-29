@@ -1,0 +1,924 @@
+<!DOCTYPE html>
+<html lang="es-MX">
+<head>
+  <meta charset="UTF-8">
+  <script src="assets/site-guard.js?v=20260728n"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Finaliza tu compra — Ok.station</title>
+  <link rel="icon" href="/assets/img/OKD-Isotipo-Azul-96.png?v=20260710" type="image/png" sizes="96x96">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+  <!-- Tema (claro/oscuro): antes de la hoja para pintar ya con el tema elegido -->
+  <script src="assets/theme.js?v=20260721a"></script>
+  <link rel="stylesheet" href="styles.css?v=20260728d">
+  <!-- .auth-field / .auth-row / .auth-field__error para el formulario de dirección -->
+  <link rel="stylesheet" href="assets/auth.css?v=20260625">
+  <!-- Mascota/chatbot OKi -->
+  <link rel="stylesheet" href="assets/oki.css?v=20260728a">
+  <style>
+    /* ── Checkout de la tienda. Página propia (no modal) para "Finalizar compra":
+       recoge contacto + dirección + envío; el PAGO es el último paso (Mercado Pago).
+       Todo con las variables del tema para que funcione claro/oscuro igual que el
+       resto del sitio. ── */
+    .co-page { background: var(--surface-page); }
+    main.co { max-width: 1160px; margin: 0 auto; padding: 26px 20px 72px; }
+
+    .co-top { display: flex; align-items: center; gap: 10px; margin: 4px 0 18px; }
+    .co-back { display: inline-flex; align-items: center; gap: 6px; color: var(--text-secondary);
+      font-size: 0.88rem; font-weight: 600; text-decoration: none; }
+    .co-back:hover { color: var(--brand-blue); }
+    .co-title { font-size: 1.6rem; font-weight: 800; letter-spacing: -0.01em; color: var(--text-primary); margin: 0 0 22px; }
+
+    .co-grid { display: grid; grid-template-columns: minmax(0, 1fr) 384px; gap: 28px; align-items: start; }
+    @media (max-width: 920px) { .co-grid { grid-template-columns: minmax(0, 1fr); } }
+    /* min-width:0 en los hijos: por omisión un ítem de grid es min-width:auto y puede
+       DESBORDAR su pista si su contenido mínimo es más ancho (p. ej. un botón .btn con
+       nowrap). Esto los obliga a respetar la columna y a que el contenido se ajuste. */
+    .co-left, .co-aside { min-width: 0; }
+
+    /* ── Tarjetas de sección ── */
+    .co-card { background: var(--surface-card); border: 1px solid var(--border-light);
+      border-radius: var(--radius-md); box-shadow: var(--shadow-sm); padding: 20px 22px; margin-bottom: 16px; }
+    .co-sec { display: flex; align-items: center; gap: 9px; margin-bottom: 14px; }
+    .co-sec svg { width: 18px; height: 18px; color: var(--brand-blue); flex: 0 0 auto; }
+    .co-sec h2 { font-size: 1.02rem; font-weight: 700; color: var(--text-primary); margin: 0; }
+
+    /* ── Campos ── */
+    .co-field { margin-bottom: 14px; }
+    .co-field:last-child { margin-bottom: 0; }
+    .co-field > label { display: block; font-size: 0.82rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px; }
+    .co-input { width: 100%; padding: 11px 13px; border: 1.5px solid var(--border-light);
+      border-radius: var(--radius-sm); background: var(--surface-card); color: var(--text-primary);
+      font: inherit; font-size: 0.92rem; transition: border-color 0.15s, box-shadow 0.15s; }
+    .co-input:focus { outline: none; border-color: var(--brand-blue); box-shadow: 0 0 0 3px rgba(6,108,255,0.12); }
+    textarea.co-input { resize: vertical; min-height: 46px; }
+    .co-hint { display: block; font-size: 0.76rem; color: var(--text-muted); margin-top: 6px; }
+
+    .co-emailrow { display: flex; align-items: center; justify-content: space-between; gap: 12px;
+      padding: 11px 13px; border: 1.5px solid var(--border-light); border-radius: var(--radius-sm); background: var(--surface-page); }
+    .co-emailval { font-size: 0.9rem; color: var(--text-primary); font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+    .co-link { background: none; border: none; padding: 0; font: inherit; font-size: 0.82rem; font-weight: 600;
+      color: var(--brand-blue); cursor: pointer; white-space: nowrap; }
+    .co-link:hover { text-decoration: underline; }
+
+    /* ── Modo de entrega (Domicilio / Recoger) ── */
+    .co-modes { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    @media (max-width: 460px) { .co-modes { grid-template-columns: 1fr; } }
+    .co-mode { display: flex; align-items: flex-start; gap: 11px; padding: 14px; text-align: left;
+      border: 1.5px solid var(--border-light); border-radius: var(--radius-sm); background: var(--surface-card);
+      font: inherit; cursor: pointer; transition: border-color 0.15s, background 0.15s, box-shadow 0.15s; }
+    .co-mode:hover { border-color: var(--border-medium); }
+    .co-mode.is-active { border-color: var(--brand-blue); background: var(--brand-blue-light); box-shadow: 0 0 0 3px rgba(6,108,255,0.10); }
+    .co-mode svg { width: 22px; height: 22px; color: var(--brand-blue); flex: 0 0 auto; margin-top: 1px; }
+    .co-mode b { display: block; font-size: 0.9rem; color: var(--text-primary); }
+    .co-mode small { display: block; font-size: 0.76rem; color: var(--text-muted); margin-top: 2px; }
+    .co-retiro-note { display: flex; align-items: center; gap: 8px; margin: 14px 0 0; padding: 11px 13px;
+      background: var(--surface-page); border-radius: var(--radius-sm); font-size: 0.82rem; color: var(--text-secondary); }
+
+    /* ── Libreta de direcciones ── */
+    .co-addr { display: flex; align-items: flex-start; gap: 11px; width: 100%; text-align: left; padding: 13px;
+      border: 1.5px solid var(--border-light); border-radius: var(--radius-sm); background: var(--surface-card);
+      font: inherit; cursor: pointer; margin-bottom: 10px; transition: border-color 0.15s, background 0.15s, box-shadow 0.15s; }
+    .co-addr:hover { border-color: var(--border-medium); }
+    .co-addr.is-active { border-color: var(--brand-blue); background: var(--brand-blue-light); box-shadow: 0 0 0 3px rgba(6,108,255,0.10); }
+    .co-addr__radio { width: 18px; height: 18px; border-radius: 50%; border: 2px solid var(--border-medium);
+      flex: 0 0 auto; margin-top: 2px; position: relative; transition: border-color 0.15s; }
+    .co-addr.is-active .co-addr__radio { border-color: var(--brand-blue); }
+    .co-addr.is-active .co-addr__radio::after { content: ""; position: absolute; inset: 3px; border-radius: 50%; background: var(--brand-blue); }
+    .co-addr__body { flex: 1; min-width: 0; }
+    .co-addr__rec { font-size: 0.9rem; font-weight: 600; color: var(--text-primary); }
+    .co-addr__badge { display: inline-block; margin-left: 7px; padding: 1px 7px; border-radius: var(--radius-full);
+      background: var(--brand-blue-light); color: var(--brand-blue); font-size: 0.68rem; font-weight: 700; vertical-align: middle; }
+    .co-addr__line { font-size: 0.82rem; color: var(--text-muted); margin-top: 2px; }
+    .co-addbtn { display: inline-flex; align-items: center; gap: 7px; padding: 10px 14px; margin-top: 2px;
+      border: 1.5px dashed var(--border-medium); border-radius: var(--radius-sm); background: none;
+      font: inherit; font-size: 0.86rem; font-weight: 600; color: var(--brand-blue); cursor: pointer; transition: background 0.15s, border-color 0.15s; }
+    .co-addbtn:hover { background: var(--brand-blue-light); border-color: var(--brand-blue); }
+    .co-addbtn svg { width: 15px; height: 15px; }
+
+    .co-addrform { margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border-light); }
+    .co-field--sm { flex: 0 0 34%; }
+    .co-check { display: flex; align-items: center; gap: 8px; font-size: 0.84rem; color: var(--text-secondary); margin: 4px 0 12px; cursor: pointer; }
+    .co-check input { width: 16px; height: 16px; accent-color: var(--brand-blue); }
+    .co-addrform-actions { display: flex; gap: 10px; }
+    .co-addrform-actions .btn { flex: 0 0 auto; }
+
+    /* ── Opciones de envío ── */
+    .co-ship { display: flex; align-items: center; gap: 11px; width: 100%; text-align: left; padding: 13px;
+      border: 1.5px solid var(--border-light); border-radius: var(--radius-sm); background: var(--surface-card);
+      font: inherit; cursor: pointer; margin-bottom: 10px; transition: border-color 0.15s, background 0.15s, box-shadow 0.15s; }
+    .co-ship:hover { border-color: var(--border-medium); }
+    .co-ship.is-active { border-color: var(--brand-blue); background: var(--brand-blue-light); box-shadow: 0 0 0 3px rgba(6,108,255,0.10); }
+    .co-ship__radio { width: 18px; height: 18px; border-radius: 50%; border: 2px solid var(--border-medium); flex: 0 0 auto; position: relative; }
+    .co-ship.is-active .co-ship__radio { border-color: var(--brand-blue); }
+    .co-ship.is-active .co-ship__radio::after { content: ""; position: absolute; inset: 3px; border-radius: 50%; background: var(--brand-blue); }
+    .co-ship__name { flex: 1; font-size: 0.9rem; font-weight: 500; color: var(--text-primary); }
+    .co-ship__cost { font-size: 0.92rem; font-weight: 700; color: var(--text-primary); }
+    .co-loading { display: flex; align-items: center; gap: 9px; padding: 6px 2px; font-size: 0.86rem; color: var(--text-muted); }
+    .co-note { font-size: 0.84rem; color: var(--text-secondary); padding: 4px 2px; }
+    .co-note--warn { color: var(--color-warning); }
+
+    /* ── Nota de pago + botón + alerta ── */
+    .co-paynote { display: flex; align-items: flex-start; gap: 10px; padding: 14px 16px; margin-bottom: 14px;
+      background: var(--brand-blue-light); border: 1px solid rgba(6,108,255,0.18); border-radius: var(--radius-sm); }
+    .co-paynote svg { width: 18px; height: 18px; color: var(--brand-blue); flex: 0 0 auto; margin-top: 1px; }
+    .co-paynote p { margin: 0; font-size: 0.84rem; color: var(--text-secondary); line-height: 1.45; }
+    .co-paynote b { color: var(--text-primary); }
+    .co-alert { padding: 11px 14px; margin-bottom: 14px; border-radius: var(--radius-sm);
+      background: #FEF2F2; border: 1px solid #FECACA; color: #B91C1C; font-size: 0.86rem; }
+    :root[data-theme="dark"] .co-alert { background: rgba(220,38,38,0.12); border-color: rgba(220,38,38,0.35); color: #FCA5A5; }
+    /* white-space:normal: .btn trae nowrap; sin esto un texto largo ("Realizar
+       pedido · $12,345.67" o el aviso de envío) no cabe en móvil y ensancha el botón
+       más allá del viewport, arrastrando toda la rejilla con scroll horizontal. */
+    .co-submit { font-size: 1rem; padding: 15px; white-space: normal; }
+    .co-spin { display: inline-block; width: 15px; height: 15px; vertical-align: -2px; margin-right: 8px;
+      border: 2px solid rgba(255,255,255,0.45); border-top-color: #fff; border-radius: 50%; animation: co-rot 0.7s linear infinite; }
+    .co-spin--blue { border-color: var(--border-light); border-top-color: var(--brand-blue); }
+    @keyframes co-rot { to { transform: rotate(360deg); } }
+
+    /* ── Puerta de sesión / carrito vacío ── */
+    .co-gate { text-align: center; padding: 12px 8px 6px; }
+    .co-gate__ico { width: 56px; height: 56px; margin: 0 auto 14px; border-radius: 50%; background: var(--brand-blue-light);
+      display: flex; align-items: center; justify-content: center; }
+    .co-gate__ico svg { width: 26px; height: 26px; color: var(--brand-blue); }
+    .co-gate h2 { font-size: 1.15rem; font-weight: 700; margin: 0 0 6px; color: var(--text-primary); }
+    .co-gate p { font-size: 0.9rem; color: var(--text-muted); margin: 0 0 18px; }
+    .co-gate__btns { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+
+    /* ── Resumen del pedido (columna derecha) ── */
+    .co-aside { position: sticky; top: 96px; }
+    @media (max-width: 920px) { .co-aside { position: static; } }
+    .co-sumcard { background: var(--surface-card); border: 1px solid var(--border-light);
+      border-radius: var(--radius-md); box-shadow: var(--shadow-sm); overflow: hidden; }
+    .co-sumhead { padding: 16px 20px; border-bottom: 1px solid var(--border-light); }
+    .co-sumhead h2 { font-size: 1rem; font-weight: 700; margin: 0; color: var(--text-primary); }
+    .co-sumbody { padding: 8px 20px 20px; }
+    .co-items { display: flex; flex-direction: column; }
+    .co-item { display: flex; gap: 12px; padding: 14px 0; border-bottom: 1px solid var(--border-light); }
+    .co-thumb { width: 56px; height: 56px; flex: 0 0 auto; border-radius: var(--radius-sm); overflow: hidden;
+      background: #fff; border: 1px solid var(--border-light); display: flex; align-items: center; justify-content: center; }
+    .co-thumb img { width: 100%; height: 100%; object-fit: contain; }
+    .co-thumb--ph::after { content: ""; width: 22px; height: 22px; border-radius: 5px; background: var(--border-light); }
+    .co-it-main { flex: 1; min-width: 0; }
+    .co-it-name { font-size: 0.85rem; font-weight: 500; color: var(--text-primary); margin: 0 0 8px;
+      display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; line-height: 1.35; }
+    .co-qty { display: flex; align-items: center; gap: 0; }
+    .co-qty button { width: 26px; height: 26px; border: 1px solid var(--border-light); background: var(--surface-card);
+      color: var(--text-secondary); font-size: 1rem; line-height: 1; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+    .co-qty button:first-child { border-radius: var(--radius-xs) 0 0 var(--radius-xs); }
+    .co-qty button:hover { background: var(--surface-page); color: var(--brand-blue); }
+    .co-qty > span { min-width: 34px; height: 26px; display: flex; align-items: center; justify-content: center;
+      border-top: 1px solid var(--border-light); border-bottom: 1px solid var(--border-light); font-size: 0.85rem; font-weight: 600; color: var(--text-primary); }
+    .co-qty button[data-inc] { border-radius: 0 var(--radius-xs) var(--radius-xs) 0; }
+    .co-rm { margin-left: 10px !important; width: auto !important; border: none !important; background: none !important;
+      font-size: 0.76rem !important; color: var(--text-muted) !important; padding: 0 !important; }
+    .co-rm:hover { color: var(--color-error) !important; text-decoration: underline; }
+    .co-it-price { text-align: right; flex: 0 0 auto; }
+    .co-it-price b { font-size: 0.9rem; color: var(--text-primary); }
+    .co-save { display: block; font-size: 0.72rem; color: var(--color-success); font-weight: 600; margin-top: 3px; }
+    .co-tot { padding-top: 14px; }
+    .co-tline { display: flex; justify-content: space-between; font-size: 0.88rem; color: var(--text-secondary); margin-bottom: 9px; }
+    .co-tline--total { font-size: 1.08rem; font-weight: 800; color: var(--text-primary); margin: 12px 0 0;
+      padding-top: 12px; border-top: 1px solid var(--border-light); }
+    .co-natl { display: flex; align-items: flex-start; gap: 6px; font-size: 0.76rem; color: var(--color-warning); margin: 12px 0 0; }
+    .co-natl svg { width: 13px; height: 13px; flex: 0 0 auto; margin-top: 1px; }
+    .co-muted { color: var(--text-muted); font-size: 0.88rem; text-align: center; padding: 20px 0; }
+    .co-securenote { display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: 14px; font-size: 0.76rem; color: var(--text-muted); }
+    .co-securenote svg { width: 13px; height: 13px; }
+    @media (prefers-reduced-motion: reduce) { .co-spin { animation: none; } }
+  </style>
+  <link rel="stylesheet" href="/assets/oknav.css?v=20260728r">
+</head>
+<body class="co-page">
+
+  <!-- ─────────────────────────────────────────────────────────────────────────
+     Ok.station — NAVBAR UNIFICADO · marcado canónico (copia maestra, igual que el
+     resto del sitio). Necesita oknav.css + oknav.js.
+     ───────────────────────────────────────────────────────────────────────── -->
+<header class="oknav" id="oknav">
+  <div class="oknav__belt">
+    <div class="oknav__wrap">
+      <nav class="oknav__beltlinks" aria-label="Enlaces rápidos">
+        <a href="/quienes-somos.html">¿Quiénes somos?</a>
+        <a href="/contactanos.html">Contacto</a>
+      </nav>
+      <p class="oknav__belttag">Te atendemos con gusto y una sonrisa — tú lo imaginas, nosotros lo hacemos. Aquí en Centro Comercial Otay, Tijuana.</p>
+      <div class="oknav__beltsocial">
+        <a href="https://www.facebook.com/okdock.station" target="_blank" rel="noopener" aria-label="Facebook">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+        </a>
+        <a href="https://www.instagram.com/okdock.station/" target="_blank" rel="noopener" aria-label="Instagram">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>
+        </a>
+        <a href="mailto:station@okdock.mx" aria-label="Correo">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 5L2 7"/></svg>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <div class="oknav__row oknav__row--main">
+    <div class="oknav__wrap">
+      <button type="button" class="oknav__burger" id="oknavBurger"
+              aria-label="Abrir menú" aria-expanded="false" aria-controls="oknavDrawer">
+        <span></span><span></span><span></span>
+      </button>
+
+      <a class="oknav__logo" href="/" aria-label="Ok.station — Ir al inicio">
+        <span class="oknav__brandmark" aria-hidden="true"><strong>OK.</strong><span>station</span></span>
+      </a>
+
+      <div class="oknav__search">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2.2" stroke-linecap="round" aria-hidden="true">
+          <circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/>
+        </svg>
+        <input id="oknavQ" type="search" autocomplete="off" role="combobox"
+               aria-expanded="false" aria-autocomplete="list" aria-controls="oknavAc"
+               aria-label="Buscar productos (escribe y pulsa Enter)"
+               placeholder="Busca tinta, tóner, papel, carpetas y más…">
+        <div class="oknav__ac" id="oknavAc" role="listbox" aria-label="Sugerencias" hidden></div>
+      </div>
+
+      <div class="oknav__actions" id="oknavActions">
+        <button type="button" class="oknav__loc" id="oknavLoc" aria-label="Ubicación de entrega">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+               stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/>
+          </svg>
+          <span class="oknav__loctxt">
+            <small id="oknavLocTop" hidden>Entrega en</small>
+            <b id="oknavLocMain">Elige tu ubicación</b>
+          </span>
+        </button>
+
+        <a class="oknav__acct" id="oknavAcct" href="/cuenta.html" aria-label="Iniciar sesión">
+          <span class="oknav__acctbox">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                 stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/>
+            </svg>
+            <span class="oknav__lbl">Cuenta</span>
+          </span>
+        </a>
+
+        <button type="button" class="oknav__ico" id="oknavWish" aria-label="Favoritos" title="Favoritos">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+               stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M20.8 4.6a5.5 5.5 0 00-7.8 0L12 5.6l-1-1a5.5 5.5 0 00-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 000-7.8z"/>
+          </svg>
+          <span class="oknav__ct" id="oknavWishCt" hidden>0</span>
+        </button>
+
+        <button type="button" class="oknav__cart" id="oknavCart" aria-label="Ver carrito">
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+               stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
+            <path d="M1 1h4l2.7 13.4a2 2 0 002 1.6h9.7a2 2 0 002-1.6L23 6H6"/>
+          </svg>
+          <span id="oknavCartTotal">$0.00</span>
+          <span class="oknav__ct" id="oknavCartCt" hidden>0</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="oknav__row oknav__row--nav">
+    <div class="oknav__wrap">
+      <nav class="oknav__mobile-stores" aria-label="Accesos de compra">
+        <a class="oknav__mobile-store" href="/tienda.html#store">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+               stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M3 9l2-5h14l2 5"/><path d="M5 13v7h14v-7"/><path d="M9 20v-5h6v5"/>
+            <path d="M3 9a3 3 0 006 0 3 3 0 006 0 3 3 0 006 0"/>
+          </svg>
+          Tienda
+        </a>
+        <a class="oknav__mobile-store oknav__mobile-store--quick" href="/tienda-dinamica.html">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+               stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M13 2L4 14h8l-1 8 9-12h-8l1-8z"/>
+          </svg>
+          Tienda rápida
+        </a>
+      </nav>
+
+      <button type="button" class="oknav__cats" id="oknavCats"
+              aria-expanded="false" aria-controls="oknavCatsMenu" aria-haspopup="true">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2.4" stroke-linecap="round" aria-hidden="true">
+          <line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="17" x2="20" y2="17"/>
+        </svg>
+        Categorías
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <polyline points="6 9 12 15 18 9"/>
+        </svg>
+      </button>
+
+      <a class="oknav__ofertas" id="oknavOfertas" href="/tienda.html#store">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+        </svg>
+        Ofertas
+      </a>
+
+      <span class="oknav__sep" aria-hidden="true"></span>
+
+      <nav class="oknav__links" aria-label="Servicios">
+        <a href="/index.html#citas">Citas</a>
+        <a href="/index.html#fotos">Imprime tus fotos</a>
+        <a href="/index.html#testimonios">Reseñas</a>
+        <a href="/index.html#visitanos">Visítanos</a>
+        <a class="oknav__gostore" href="/tienda.html#store">Tienda</a>
+        <a class="oknav__gostore oknav__gostore--rapida" href="/tienda-dinamica.html">Tienda rápida</a>
+      </nav>
+
+      <a class="oknav__wa" href="https://wa.me/526647194117?text=Hola,%20quiero%20solicitar%20informaci%C3%B3n"
+         target="_blank" rel="noopener">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+          <path d="M.057 24l1.687-6.163a11.867 11.867 0 01-1.587-5.945C.16 5.335 5.495 0 12.05 0a11.82 11.82 0 018.413 3.488 11.82 11.82 0 013.48 8.414c-.003 6.557-5.338 11.892-11.893 11.892a11.9 11.9 0 01-5.688-1.448L.057 24zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884a9.86 9.86 0 001.51 5.26l-.999 3.648 3.978-1.040z"/>
+        </svg>
+        WhatsApp
+      </a>
+    </div>
+  </div>
+
+  <div class="oknav__catsmenu" id="oknavCatsMenu" hidden></div>
+</header>
+
+<div class="oknav__scrim" id="oknavScrim" hidden></div>
+<aside class="oknav__drawer" id="oknavDrawer" aria-label="Menú" hidden>
+  <div class="oknav__dhead">
+    <span class="oknav__brandmark" aria-label="Ok.station"><strong>OK.</strong><span>station</span></span>
+    <button type="button" class="oknav__dclose" id="oknavDClose" aria-label="Cerrar menú">&times;</button>
+  </div>
+  <p class="oknav__dtitle">Tienda</p>
+  <div class="oknav__dlist">
+    <a href="/tienda.html#store">Ver todo el catálogo</a>
+    <a href="/tienda.html#store" data-cat="ofertas">Ofertas del día</a>
+    <a href="/tienda.html#cart">Mi carrito</a>
+    <a href="/tienda.html#deseados">Mis favoritos</a>
+    <a href="/tienda.html#ubicacion">Ubicación de entrega</a>
+  </div>
+  <p class="oknav__dtitle">Servicios</p>
+  <div class="oknav__dlist">
+    <a href="/index.html#citas">Citas</a>
+    <a href="/index.html#fotos">Imprime tus fotos</a>
+    <a href="/index.html#testimonios">Reseñas</a>
+    <a href="/index.html#visitanos">Visítanos</a>
+  </div>
+  <p class="oknav__dtitle">Ok.station</p>
+  <div class="oknav__dlist">
+    <button type="button" id="oknavTema">Modo oscuro <span id="oknavTemaEstado"></span></button>
+    <a href="/quienes-somos.html">¿Quiénes somos?</a>
+    <a href="/contactanos.html">Contacto</a>
+    <a href="https://wa.me/526647194117?text=Hola,%20quiero%20solicitar%20informaci%C3%B3n" target="_blank" rel="noopener">Escríbenos por WhatsApp</a>
+  </div>
+  <p class="oknav__dtitle">Síguenos</p>
+  <div class="oknav__dsocial">
+    <a href="https://www.facebook.com/okdock.station" target="_blank" rel="noopener" aria-label="Facebook">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+    </a>
+    <a href="https://www.instagram.com/okdock.station/" target="_blank" rel="noopener" aria-label="Instagram">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>
+    </a>
+    <a href="mailto:station@okdock.mx" aria-label="Correo">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 5L2 7"/></svg>
+    </a>
+  </div>
+</aside>
+
+  <main class="co">
+    <div class="co-top">
+      <a class="co-back" href="/tienda.html#cart">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+        Volver al carrito
+      </a>
+    </div>
+    <h1 class="co-title">Finaliza tu compra</h1>
+
+    <!-- Carrito vacío (ocupa todo el ancho) -->
+    <div class="co-card co-gate" id="coEmpty" hidden>
+      <div class="co-gate__ico">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.7 13.4a2 2 0 002 1.6h9.7a2 2 0 002-1.6L23 6H6"/></svg>
+      </div>
+      <h2>Tu carrito está vacío</h2>
+      <p>Agrega productos para poder finalizar tu compra.</p>
+      <div class="co-gate__btns"><a class="btn btn--primary" href="/tienda.html#store">Ir a la tienda</a></div>
+    </div>
+
+    <div class="co-grid" id="coGrid">
+      <!-- ══ Columna izquierda: datos ══ -->
+      <div class="co-left">
+
+        <!-- Puerta de sesión (si no hay cuenta) -->
+        <div class="co-card co-gate" id="coGate" hidden>
+          <div class="co-gate__ico">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          </div>
+          <h2>Inicia sesión para finalizar tu compra</h2>
+          <p>Con tu cuenta guardamos tus direcciones y el seguimiento de tus pedidos.</p>
+          <div class="co-gate__btns">
+            <a class="btn btn--primary" id="coGateLogin" href="/cuenta.html?next=/checkout.html">Iniciar sesión</a>
+            <a class="btn btn--light" id="coGateReg" href="/cuenta.html?next=/checkout.html">Crear cuenta</a>
+          </div>
+        </div>
+
+        <!-- Formulario de checkout (si hay sesión) -->
+        <div id="coForm" hidden>
+
+          <section class="co-card">
+            <div class="co-sec">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+              <h2>Información de contacto</h2>
+            </div>
+            <div class="co-field">
+              <label>Correo para los avisos de tu compra</label>
+              <div class="co-emailrow">
+                <span class="co-emailval" id="coEmailAcct">—</span>
+                <button type="button" class="co-link" id="coEmailToggle">Usar otro correo</button>
+              </div>
+              <input type="email" id="coEmailOther" class="co-input" style="margin-top:10px" placeholder="otro@correo.com" autocomplete="email" hidden>
+            </div>
+            <div class="co-field">
+              <label for="coPhone">WhatsApp de contacto</label>
+              <input type="tel" id="coPhone" class="co-input" inputmode="numeric" maxlength="14" placeholder="664 000 0000" autocomplete="tel">
+              <span class="co-hint">10 dígitos. Te escribimos por aquí para coordinar tu pedido.</span>
+            </div>
+          </section>
+
+          <section class="co-card">
+            <div class="co-sec">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="1" y="3" width="15" height="13"/><path d="M16 8h4l3 3v5h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+              <h2>¿Cómo quieres recibirlo?</h2>
+            </div>
+            <div class="co-modes">
+              <button type="button" class="co-mode is-active" data-mode="envio">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="1" y="3" width="15" height="13"/><path d="M16 8h4l3 3v5h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+                <span><b>Enviar a domicilio</b><small>Lo llevamos a tu dirección</small></span>
+              </button>
+              <button type="button" class="co-mode" data-mode="retiro">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 9l2-5h14l2 5"/><path d="M5 13v7h14v-7"/><path d="M9 20v-5h6v5"/><path d="M3 9a3 3 0 006 0 3 3 0 006 0 3 3 0 006 0"/></svg>
+                <span><b>Recoger en tienda</b><small>Gratis · Centro Comercial Otay</small></span>
+              </button>
+            </div>
+            <p class="co-retiro-note" id="coRetiroNote" hidden>
+              <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex:0 0 auto"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+              Recoges en Centro Comercial Otay, Tijuana. Te avisamos cuando esté listo.
+            </p>
+          </section>
+
+          <section class="co-card" id="coEnvioCard">
+            <div class="co-sec">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+              <h2>Dirección de envío</h2>
+            </div>
+            <div id="coAddrList"></div>
+            <button type="button" class="co-addbtn" id="coAddToggle">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Agregar dirección
+            </button>
+
+            <form id="coAddrForm" class="co-addrform" hidden novalidate>
+              <div class="auth-row">
+                <div class="auth-field"><label for="af-rec">Nombre de quien recibe</label><input id="af-rec" type="text" maxlength="160" autocomplete="name"></div>
+                <div class="auth-field"><label for="af-phone">Teléfono</label><input id="af-phone" type="tel" inputmode="numeric" maxlength="14" autocomplete="tel"></div>
+              </div>
+              <div class="auth-row">
+                <div class="auth-field"><label for="af-street">Calle</label><input id="af-street" type="text" maxlength="200" autocomplete="address-line1"></div>
+                <div class="auth-field co-field--sm"><label for="af-ext">Número ext.</label><input id="af-ext" type="text" maxlength="30"></div>
+                <div class="auth-field co-field--sm"><label for="af-int">Int. (opcional)</label><input id="af-int" type="text" maxlength="30"></div>
+              </div>
+              <div class="auth-row">
+                <div class="auth-field"><label for="af-neigh">Colonia</label><input id="af-neigh" type="text" maxlength="160"></div>
+                <div class="auth-field"><label for="af-city">Ciudad</label><input id="af-city" type="text" maxlength="120"></div>
+              </div>
+              <div class="auth-row">
+                <div class="auth-field"><label for="af-state">Estado</label><select id="af-state" class="co-input"></select></div>
+                <div class="auth-field co-field--sm"><label for="af-cp">C.P.</label><input id="af-cp" type="text" inputmode="numeric" maxlength="5" autocomplete="postal-code"></div>
+              </div>
+              <div class="auth-field"><label for="af-notes">Referencias (opcional)</label><input id="af-notes" type="text" maxlength="255" placeholder="Entre calles, color de casa…"></div>
+              <label class="co-check"><input type="checkbox" id="af-default"> Usar como dirección predeterminada</label>
+              <div class="co-alert" id="coAddrAlert" role="alert" hidden></div>
+              <div class="co-addrform-actions">
+                <button type="submit" class="btn btn--primary" id="coAddrSave">Guardar dirección</button>
+                <button type="button" class="btn btn--light" id="coAddrCancel">Cancelar</button>
+              </div>
+            </form>
+          </section>
+
+          <section class="co-card" id="coShipCard">
+            <div class="co-sec">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="1" y="3" width="15" height="13"/><path d="M16 8h4l3 3v5h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+              <h2>Opciones de envío</h2>
+            </div>
+            <div id="coShipBox"></div>
+          </section>
+
+          <section class="co-card">
+            <div class="co-sec">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+              <h2>Comentarios <span style="font-weight:400;color:var(--text-muted);font-size:.85rem">(opcional)</span></h2>
+            </div>
+            <textarea id="coComments" class="co-input" rows="2" maxlength="1000" placeholder="Referencias, indicaciones de entrega, número de factura, etc."></textarea>
+          </section>
+
+          <div class="co-paynote">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            <p><b>El pago es el último paso.</b> Al confirmar tu pedido te llevamos a <b>Mercado Pago</b> para completar el pago de forma segura.</p>
+          </div>
+
+          <div class="co-alert" id="coAlert" role="alert" hidden></div>
+          <button type="button" class="btn btn--primary btn--block co-submit" id="coSubmit">Realizar pedido</button>
+        </div>
+      </div>
+
+      <!-- ══ Columna derecha: resumen ══ -->
+      <aside class="co-aside">
+        <div class="co-sumcard">
+          <div class="co-sumhead"><h2>Resumen del pedido</h2></div>
+          <div class="co-sumbody">
+            <div id="coSum"><p class="co-muted">Cargando…</p></div>
+            <div class="co-securenote">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+              <span>Compra protegida · datos cifrados</span>
+            </div>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </main>
+
+  <script src="assets/shop-cart.js?v=20260717a"></script>
+  <script>
+  /* ─────────────────────────────────────────────────────────────────────────
+     Ok.station — Checkout (página de "Finalizar compra")
+     -----------------------------------------------------------------------------
+     Recoge contacto + entrega + envío y crea el pedido con shop/create.php. El PAGO
+     no vive aquí: al crear el pedido se redirige a pago.html?shop=<id> (Mercado Pago).
+     Reutiliza las MISMAS APIs y la misma convención de IVA que el modal de la tienda:
+       · Precio de catálogo trae IVA 8% incluido (products.php). Se saca la base
+         (÷1.08) y se le aplica el IVA del DESTINO (8% frontera / 16% nacional).
+       · El servidor recotiza precio y envío por su cuenta: aquí solo se PINTA.
+     ───────────────────────────────────────────────────────────────────────── */
+  (function () {
+    "use strict";
+    var API = "/backend/api";
+    function $(id) { return document.getElementById(id); }
+    function token() { try { return localStorage.getItem("okstation.token"); } catch (e) { return null; } }
+    function storedUser() { try { return JSON.parse(localStorage.getItem("okstation.user") || "null"); } catch (e) { return null; } }
+    function esc(s) { var d = document.createElement("div"); d.textContent = s == null ? "" : s; return d.innerHTML; }
+    function mxn(n) { return new Intl.NumberFormat("es-MX", { style: "currency", currency: "MXN", minimumFractionDigits: 2 }).format(+n || 0); }
+    function soloTel(s) { var d = (s || "").replace(/\D/g, ""); if (d.length === 12 && d.slice(0, 2) === "52") d = d.slice(2); return d; }
+    function fmtPhone(s) { var d = soloTel(s).slice(0, 10); var o = d.slice(0, 3); if (d.length > 3) o += " " + d.slice(3, 6); if (d.length > 6) o += " " + d.slice(6, 10); return o; }
+    /* MISMA regla del IVA que ivaForEstado() de la tienda: BC (norte) 8%, resto 16%. */
+    function ivaForEstado(nombre) { var n = (nombre || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, ""); return (n.indexOf("baja california") >= 0 && n.indexOf("sur") < 0) ? 0.08 : 0.16; }
+    var NEXT = "/cuenta.html?next=/checkout.html";
+
+    /* ── Estado ── */
+    var CART = [];                 // [{id,name,price,qty,old,image}] desde OKtienda.carrito()
+    var ADDR = [], STATES = [];    // libreta + estados de México (de addresses.php)
+    var shipMode = "envio";        // "envio" | "retiro"
+    var selAddrId = 0;
+    var shipOpts = null, selShipClave = "", shipLoading = false, shipError = "";
+    var shipCache = {};            // clave: addrId|firmaDelCarrito → opciones
+    var emailOther = false;
+
+    /* ── Iconos ── */
+    var ICON_PIN = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>';
+
+    /* ── Carrito ── */
+    function rawCartIds() { try { var c = JSON.parse(localStorage.getItem("okstation_cart") || "{}"); return Object.keys(c).filter(function (k) { return (+c[k]) > 0; }); } catch (e) { return []; } }
+    function readCart() { CART = (window.OKtienda && window.OKtienda.carrito()) || []; }
+    function cartSig() { return CART.map(function (it) { return it.id + "x" + it.qty; }).sort().join(","); }
+
+    function selAddr() { for (var i = 0; i < ADDR.length; i++) if (ADDR[i].id === selAddrId) return ADDR[i]; return null; }
+    function selShip() { if (!shipOpts) return null; for (var i = 0; i < shipOpts.length; i++) if (shipOpts[i].clave === selShipClave) return shipOpts[i]; return null; }
+
+    /* ── Totales (misma matemática que checkoutTotals() de la tienda) ── */
+    function totals() {
+      var sub8 = 0; CART.forEach(function (it) { sub8 += it.price * it.qty; });
+      var base = sub8 / 1.08;                                   // catálogo con IVA 8% → base
+      var a = selAddr();
+      /* Hasta que se elige una dirección no se sabe el estado: se muestra la tasa de
+         frontera (8%, la de la tienda en Tijuana) como provisional, en vez de asustar
+         con un 16% que quizá no aplique. Al elegir domicilio se recalcula con su estado. */
+      var rate = (shipMode === "envio" && a) ? ivaForEstado(a.state) : 0.08;
+      var subIva = base * (1 + rate);
+      var s = selShip();
+      var ship = shipMode === "retiro" ? 0 : (s ? +s.costo : null);
+      return { sub8: sub8, base: base, rate: rate, iva: subIva - base, subIva: subIva, ship: ship, total: subIva + (ship || 0) };
+    }
+
+    /* ── Alertas ── */
+    function setAlert(id, msg) { var a = $(id); a.textContent = msg; a.hidden = false; }
+    function clearAlert(id) { $(id).hidden = true; }
+
+    /* ── Estado general de la página ── */
+    function paintState() {
+      var ids = rawCartIds();
+      if (!ids.length) { $("coEmpty").hidden = false; $("coGrid").hidden = true; return; }
+      $("coEmpty").hidden = true; $("coGrid").hidden = false;
+      if (!token()) { $("coGate").hidden = false; $("coForm").hidden = true; }
+      else { $("coGate").hidden = true; $("coForm").hidden = false; }
+    }
+
+    /* ── Resumen (columna derecha) ── */
+    function renderSummary() {
+      readCart();
+      var box = $("coSum"); if (!box) return;
+      if (!CART.length) { box.innerHTML = rawCartIds().length ? '<p class="co-muted">Cargando tu carrito…</p>' : '<p class="co-muted">Tu carrito está vacío.</p>'; return; }
+      var t = totals();
+      var items = CART.map(function (it) {
+        var line = it.price * it.qty;
+        var save = (it.old && it.old > it.price) ? (it.old - it.price) * it.qty : 0;
+        return '<div class="co-item">' +
+          '<div class="co-thumb">' + (it.image ? '<img src="' + esc(it.image) + '" alt="" loading="lazy" onerror="this.remove();this.parentNode.classList.add(\'co-thumb--ph\')">' : '') + '</div>' +
+          '<div class="co-it-main"><p class="co-it-name">' + esc(it.name) + '</p>' +
+            '<div class="co-qty"><button type="button" data-dec="' + it.id + '" aria-label="Quitar uno">&minus;</button>' +
+              '<span>' + it.qty + '</span>' +
+              '<button type="button" data-inc="' + it.id + '" aria-label="Agregar uno">+</button>' +
+              '<button type="button" class="co-rm" data-rm="' + it.id + '">Quitar</button></div>' +
+          '</div>' +
+          '<div class="co-it-price"><b>' + mxn(line) + '</b>' + (save > 0 ? '<span class="co-save">Ahorras ' + mxn(save) + '</span>' : '') + '</div>' +
+        '</div>';
+      }).join("");
+      box.innerHTML =
+        '<div class="co-items">' + items + '</div>' +
+        '<div class="co-tot">' +
+          '<div class="co-tline"><span>Subtotal</span><span>' + mxn(t.base) + '</span></div>' +
+          '<div class="co-tline"><span>IVA (' + Math.round(t.rate * 100) + '%)</span><span>' + mxn(t.iva) + '</span></div>' +
+          '<div class="co-tline"><span>Envío</span><span>' + shipLabel(t) + '</span></div>' +
+          '<div class="co-tline co-tline--total"><span>Total</span><span>' + mxn(t.total) + '</span></div>' +
+          (t.rate > 0.081 ? '<p class="co-natl">' + ICON_PIN + '<span>Envío fuera de Baja California: el IVA aplica al 16%.</span></p>' : '') +
+        '</div>';
+      wireQty();
+    }
+    function shipLabel(t) {
+      if (shipMode === "retiro") return "Recoger · Gratis";
+      if (shipLoading) return "Calculando…";
+      if (t.ship == null) return "Elige una opción";
+      return mxn(t.ship);
+    }
+    function wireQty() {
+      $("coSum").querySelectorAll("[data-inc]").forEach(function (b) { b.addEventListener("click", function () { window.OKtienda.cambiar(+b.getAttribute("data-inc"), 1); }); });
+      $("coSum").querySelectorAll("[data-dec]").forEach(function (b) { b.addEventListener("click", function () { window.OKtienda.cambiar(+b.getAttribute("data-dec"), -1); }); });
+      $("coSum").querySelectorAll("[data-rm]").forEach(function (b) { b.addEventListener("click", function () { window.OKtienda.quitar(+b.getAttribute("data-rm")); }); });
+    }
+
+    /* ── Botón "Realizar pedido" (label + habilitar/deshabilitar) ── */
+    function paintSubmit() {
+      var btn = $("coSubmit"); if (!btn) return;
+      var t = totals();
+      var faltaEnvio = (shipMode === "envio" && (!selAddr() || !selShip()));
+      btn.disabled = faltaEnvio || !CART.length;
+      if (!CART.length) { btn.textContent = "Tu carrito está vacío"; return; }
+      if (faltaEnvio) {
+        if (shipLoading) { btn.textContent = "Calculando el envío…"; }
+        else if (!selAddr()) { btn.textContent = "Elige una dirección"; }
+        else if (shipError || (shipOpts && !shipOpts.length)) { btn.textContent = "Elige recoger en tienda"; }
+        else { btn.textContent = "Elige cómo enviarlo"; }
+        return;
+      }
+      btn.textContent = "Realizar pedido · " + mxn(t.total);
+    }
+
+    /* ── Direcciones ── */
+    function renderAddresses() {
+      var box = $("coAddrList");
+      if (!ADDR.length) { box.innerHTML = '<p class="co-note">Aún no tienes direcciones guardadas. Agrega una para calcular el envío.</p>'; return; }
+      box.innerHTML = ADDR.map(function (a) {
+        return '<button type="button" class="co-addr' + (a.id === selAddrId ? ' is-active' : '') + '" data-addr="' + a.id + '">' +
+          '<span class="co-addr__radio"></span>' +
+          '<span class="co-addr__body">' +
+            '<span class="co-addr__rec">' + esc(a.recipient) + (a.is_default ? '<span class="co-addr__badge">Predeterminada</span>' : '') + '</span>' +
+            '<span class="co-addr__line">' + esc(a.label) + '</span>' +
+            (a.notes ? '<span class="co-addr__line">' + esc(a.notes) + '</span>' : '') +
+          '</span>' +
+        '</button>';
+      }).join("");
+      box.querySelectorAll("[data-addr]").forEach(function (b) {
+        b.addEventListener("click", function () {
+          selAddrId = +b.getAttribute("data-addr");
+          renderAddresses(); quoteShip(); renderSummary(); paintSubmit();
+        });
+      });
+    }
+
+    /* ── Opciones de envío ── */
+    function renderShip() {
+      $("coShipCard").hidden = (shipMode !== "envio");
+      if (shipMode !== "envio") return;
+      var box = $("coShipBox");
+      if (!selAddr()) { box.innerHTML = '<p class="co-note">Elige o agrega una dirección para ver las opciones de envío.</p>'; return; }
+      if (shipLoading) { box.innerHTML = '<div class="co-loading"><span class="co-spin co-spin--blue"></span> Calculando el envío a tu dirección…</div>'; return; }
+      if (shipError) { box.innerHTML = '<p class="co-note co-note--warn">' + esc(shipError) + '</p>'; return; }
+      if (!shipOpts || !shipOpts.length) { box.innerHTML = '<p class="co-note">No hay opciones de envío para esta dirección. Prueba con recoger en tienda.</p>'; return; }
+      box.innerHTML = shipOpts.map(function (o) {
+        return '<button type="button" class="co-ship' + (o.clave === selShipClave ? ' is-active' : '') + '" data-ship="' + esc(o.clave) + '">' +
+          '<span class="co-ship__radio"></span>' +
+          '<span class="co-ship__name">' + esc(o.transportista || "Envío") + '</span>' +
+          '<span class="co-ship__cost">' + mxn(o.costo) + '</span>' +
+        '</button>';
+      }).join("");
+      box.querySelectorAll("[data-ship]").forEach(function (b) {
+        b.addEventListener("click", function () {
+          selShipClave = b.getAttribute("data-ship");
+          renderShip(); renderSummary(); paintSubmit();
+        });
+      });
+    }
+    function quoteShip() {
+      if (shipMode !== "envio") { renderShip(); return; }
+      var a = selAddr();
+      if (!a || !CART.length) { shipOpts = null; selShipClave = ""; shipError = ""; renderShip(); return; }
+      var key = a.id + "|" + cartSig();
+      if (shipCache[key]) {
+        shipOpts = shipCache[key]; shipLoading = false; shipError = "";
+        if (shipOpts.length && !selShip()) selShipClave = shipOpts[0].clave;
+        renderShip(); renderSummary(); paintSubmit(); return;
+      }
+      shipLoading = true; shipError = ""; shipOpts = null; selShipClave = "";
+      renderShip(); renderSummary(); paintSubmit();
+      fetch(API + "/shop/envio-opciones.php", {
+        method: "POST", headers: { "Content-Type": "application/json", Authorization: "Bearer " + token() },
+        body: JSON.stringify({ address_id: a.id, items: CART.map(function (it) { return { id: +it.id, qty: it.qty }; }) })
+      }).then(function (r) { return r.json(); }).then(function (j) {
+        shipLoading = false;
+        if (j && j.ok && j.opciones && j.opciones.length) { shipOpts = j.opciones.slice(); shipCache[key] = shipOpts; selShipClave = shipOpts[0].clave; }
+        else { shipOpts = []; shipError = (j && j.error) || "No pudimos calcular el envío. Intenta de nuevo o elige recoger en tienda."; }
+        renderShip(); renderSummary(); paintSubmit();
+      }).catch(function () {
+        shipLoading = false; shipOpts = []; shipError = "Sin conexión para calcular el envío. Intenta de nuevo.";
+        renderShip(); renderSummary(); paintSubmit();
+      });
+    }
+
+    /* ── Modo de entrega ── */
+    function setMode(mode) {
+      shipMode = (mode === "retiro") ? "retiro" : "envio";
+      document.querySelectorAll(".co-mode").forEach(function (b) { b.classList.toggle("is-active", b.getAttribute("data-mode") === shipMode); });
+      $("coRetiroNote").hidden = (shipMode !== "retiro");
+      $("coEnvioCard").hidden = (shipMode === "retiro");
+      renderShip();
+      if (shipMode === "envio") quoteShip();
+      renderSummary(); paintSubmit();
+    }
+
+    /* ── Formulario de nueva dirección ── */
+    function fillStates() {
+      var sel = $("af-state");
+      sel.innerHTML = '<option value="">Selecciona…</option>' + STATES.map(function (s) { return '<option value="' + esc(s) + '">' + esc(s) + '</option>'; }).join("");
+    }
+    function toggleAddrForm(show) {
+      $("coAddrForm").hidden = !show;
+      $("coAddToggle").hidden = show;
+      if (show) { clearAlert("coAddrAlert"); try { $("af-rec").focus(); } catch (e) {} }
+    }
+    function saveAddress() {
+      clearAlert("coAddrAlert");
+      var payload = {
+        recipient: $("af-rec").value.trim(), phone: soloTel($("af-phone").value),
+        street: $("af-street").value.trim(), ext_num: $("af-ext").value.trim(), int_num: $("af-int").value.trim(),
+        neighborhood: $("af-neigh").value.trim(), city: $("af-city").value.trim(),
+        state: $("af-state").value, postal_code: $("af-cp").value.trim(),
+        notes: $("af-notes").value.trim(), is_default: $("af-default").checked ? 1 : 0
+      };
+      var btn = $("coAddrSave"); btn.disabled = true; var orig = btn.textContent; btn.innerHTML = '<span class="co-spin"></span>Guardando…';
+      fetch(API + "/shop/address-save.php", {
+        method: "POST", headers: { "Content-Type": "application/json", Authorization: "Bearer " + token() },
+        body: JSON.stringify(payload)
+      }).then(function (r) { return r.json(); }).then(function (j) {
+        btn.disabled = false; btn.textContent = orig;
+        if (j && j.ok && j.addresses) {
+          ADDR = j.addresses;
+          /* Selecciona la recién creada (viene su id) o, si no, la predeterminada. */
+          selAddrId = j.id || (ADDR[0] && ADDR[0].id) || 0;
+          toggleAddrForm(false);
+          $("coAddrForm").reset();
+          renderAddresses(); quoteShip(); renderSummary(); paintSubmit();
+        } else {
+          setAlert("coAddrAlert", (j && j.error) || "No se pudo guardar la dirección.");
+        }
+      }).catch(function () { btn.disabled = false; btn.textContent = orig; setAlert("coAddrAlert", "Sin conexión con el servidor."); });
+    }
+
+    /* ── Crear el pedido → Mercado Pago ── */
+    function submit() {
+      clearAlert("coAlert");
+      if (!token()) { location.href = NEXT; return; }
+      if (!CART.length) { setAlert("coAlert", "Tu carrito está vacío."); return; }
+      var phone = soloTel($("coPhone").value);
+      if (phone.length !== 10) { setAlert("coAlert", "Ingresa un WhatsApp válido (10 dígitos)."); $("coPhone").focus(); return; }
+      var body = {
+        items: CART.map(function (it) { return { id: +it.id, qty: it.qty, seen_unit: +it.price || 0 }; }),
+        ship_mode: shipMode, contact_phone: phone,
+        contact_email: emailOther ? $("coEmailOther").value.trim() : "",
+        comments: $("coComments").value.trim()
+      };
+      if (shipMode === "envio") {
+        var a = selAddr(); if (!a) { setAlert("coAlert", "Elige o agrega una dirección de envío."); return; }
+        var s = selShip(); if (!s) { setAlert("coAlert", "Elige cómo quieres que llegue tu pedido."); return; }
+        body.ship_address = a.recipient + " · " + a.label + (a.notes ? (" · " + a.notes) : "");
+        body.state = a.state; body.address_id = a.id; body.transportista = s.clave;
+      }
+      var btn = $("coSubmit"); var orig = btn.textContent; btn.disabled = true; btn.innerHTML = '<span class="co-spin"></span>Creando tu pedido…';
+      fetch(API + "/shop/create.php", {
+        method: "POST", headers: { "Content-Type": "application/json", Authorization: "Bearer " + token() },
+        body: JSON.stringify(body)
+      }).then(function (r) { if (r.status === 401) return { __unauth: true }; return r.json(); }).then(function (j) {
+        if (j && j.__unauth) { setAlert("coAlert", "Tu sesión expiró. Inicia sesión de nuevo."); setTimeout(function () { location.href = NEXT; }, 1600); return; }
+        if (j && j.ok && j.order) { try { localStorage.removeItem("okstation_cart"); } catch (e) {} location.href = "pago.html?shop=" + j.order.id; return; }
+        btn.disabled = false; btn.textContent = orig; paintSubmit();
+        /* 409: el carrito cambió (precio/stock). Se avisa y se re-hidrata el resumen. */
+        if (j && (j.price_changed || j.out_of_stock || j.unavailable)) {
+          setAlert("coAlert", (j && j.error) || "Algo cambió en tu carrito. Revisa el total antes de continuar.");
+          if (window.OKtienda) window.dispatchEvent(new CustomEvent("oktienda:carrito"));
+          shipCache = {}; quoteShip();
+          return;
+        }
+        setAlert("coAlert", (j && j.error) || "No se pudo crear el pedido. Inténtalo de nuevo.");
+      }).catch(function () { btn.disabled = false; btn.textContent = orig; paintSubmit(); setAlert("coAlert", "Sin conexión con el servidor."); });
+    }
+
+    /* ── Carga de datos del usuario (correo/teléfono + libreta) ── */
+    function loadUserData() {
+      var su = storedUser();
+      $("coEmailAcct").textContent = (su && su.email) || "tu correo de la cuenta";
+      Promise.all([
+        fetch(API + "/me.php", { headers: { Authorization: "Bearer " + token() } }).then(function (r) { return r.json(); }).catch(function () { return null; }),
+        fetch(API + "/shop/addresses.php", { headers: { Authorization: "Bearer " + token() } }).then(function (r) { return r.json(); }).catch(function () { return null; })
+      ]).then(function (res) {
+        var me = res[0], adr = res[1];
+        if (me && me.ok && me.user) {
+          if (me.user.email) $("coEmailAcct").textContent = me.user.email;
+          var ph = soloTel(me.user.phone || "");
+          if (ph.length === 10) $("coPhone").value = fmtPhone(ph);
+        }
+        if (adr && adr.ok) {
+          ADDR = adr.addresses || [];
+          STATES = adr.states || [];
+          selAddrId = (ADDR[0] && ADDR[0].id) || 0;   // la predeterminada viene primero
+        }
+        fillStates();
+        renderAddresses();
+        if (!ADDR.length && shipMode === "envio") toggleAddrForm(true);
+        quoteShip();
+        paintSubmit();
+      });
+    }
+
+    /* ── Cambios del carrito (llega también en la primera hidratación) ── */
+    function onCartChange() {
+      readCart();
+      paintState();
+      if (!rawCartIds().length) { paintSubmit(); return; }
+      renderSummary();
+      /* El carrito cambió de firma → la cotización previa ya no aplica. */
+      if (shipMode === "envio") quoteShip();
+      paintSubmit();
+    }
+
+    /* ── Wiring ── */
+    function init() {
+      paintState();
+      renderSummary();
+
+      document.querySelectorAll(".co-mode").forEach(function (b) { b.addEventListener("click", function () { setMode(b.getAttribute("data-mode")); }); });
+      $("coEmailToggle").addEventListener("click", function () {
+        emailOther = !emailOther;
+        $("coEmailOther").hidden = !emailOther;
+        this.textContent = emailOther ? "Usar el correo de mi cuenta" : "Usar otro correo";
+        if (emailOther) try { $("coEmailOther").focus(); } catch (e) {}
+      });
+      $("coPhone").addEventListener("input", function () { this.value = fmtPhone(this.value); });
+      $("af-phone").addEventListener("input", function () { this.value = fmtPhone(this.value); });
+      $("af-cp").addEventListener("input", function () { this.value = this.value.replace(/\D/g, "").slice(0, 5); });
+      $("coAddToggle").addEventListener("click", function () { toggleAddrForm(true); });
+      $("coAddrCancel").addEventListener("click", function () { toggleAddrForm(false); });
+      $("coAddrForm").addEventListener("submit", function (e) { e.preventDefault(); saveAddress(); });
+      $("coSubmit").addEventListener("click", submit);
+
+      if (token()) loadUserData();
+
+      /* El puente shop-cart.js hidrata el carrito de forma asíncrona y emite este
+         evento al terminar (y en cada cambio de cantidad). */
+      window.addEventListener("oktienda:carrito", onCartChange);
+      /* Por si ya estaba hidratado antes de enganchar el listener. */
+      if ((window.OKtienda && window.OKtienda.carrito().length)) onCartChange();
+    }
+
+    if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
+    else init();
+  })();
+  </script>
+  <!-- Mascota/chatbot OKi (astronauta) -->
+  <script src="assets/catalogo.js?v=20260714a" defer></script>
+  <script src="assets/oki.js?v=20260728a" defer></script>
+  <script src="/assets/oknav.js?v=20260724a" defer></script>
+</body>
+</html>

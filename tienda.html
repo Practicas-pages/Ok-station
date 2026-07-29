@@ -3141,7 +3141,11 @@ html[data-theme="dark"] #site .side-back:hover{background:rgba(255,255,255,.08)}
         else{ flash((j&&j.error)||"No se pudo crear el pedido"); if(btn){btn.disabled=false;paintCheckout();} }
       }).catch(function(){ flash("Error de conexión, intenta de nuevo"); if(btn){btn.disabled=false;paintCheckout();} });
   }
-  $("checkoutBtn").addEventListener("click",function(){$("app").classList.remove("cart-open"); coStep=1; renderCheckout(); show("coOv");});
+  /* "Finalizar compra" ahora lleva a la PÁGINA de checkout (checkout.html), en vez
+     del modal coOv: ahí se recoge contacto + dirección + envío y, al confirmar, se
+     crea el pedido y se pasa a Mercado Pago. El modal se conserva por si algo aún lo
+     invoca, pero el flujo normal es la página. */
+  $("checkoutBtn").addEventListener("click",function(){$("app").classList.remove("cart-open"); location.href="checkout.html";});
   $("coOv").addEventListener("click",function(e){
     if(e.target.id==="coOv"||e.target.closest("[data-close]")){hide("coOv"); return;}
     if(e.target.closest("[data-cologin]")){location.href="cuenta.html?next=tienda.html%23store"; return;}
