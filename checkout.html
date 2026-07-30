@@ -732,7 +732,17 @@
       var box = $("coShipBox");
       if (!selAddr()) { box.innerHTML = '<p class="co-note">Elige o agrega una dirección para ver las opciones de envío.</p>'; return; }
       if (shipLoading) { box.innerHTML = '<div class="co-loading"><span class="co-spin co-spin--blue"></span> Calculando el envío a tu dirección…</div>'; return; }
-      if (shipError) { box.innerHTML = '<p class="co-note co-note--warn">' + esc(shipError) + '</p>'; return; }
+      if (shipError) {
+        /* La paquetería (Almacén 4) a veces no responde en el momento; suele ser
+           pasajero. Un reintento a los segundos casi siempre cotiza, así que se ofrece
+           un botón en vez de obligar a recargar o cambiar de dirección. */
+        box.innerHTML = '<p class="co-note co-note--warn">' + esc(shipError) + '</p>' +
+          '<button type="button" class="co-addbtn" id="coShipRetry" style="margin-top:2px">' +
+          '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>' +
+          ' Reintentar cálculo de envío</button>';
+        var rb = $("coShipRetry"); if (rb) rb.addEventListener("click", reintentarEnvio);
+        return;
+      }
       if (!shipOpts || !shipOpts.length) { box.innerHTML = '<p class="co-note">No hay opciones de envío para esta dirección. Prueba con recoger en tienda.</p>'; return; }
       box.innerHTML = shipOpts.map(function (o) {
         return '<button type="button" class="co-ship' + (o.clave === selShipClave ? ' is-active' : '') + '" data-ship="' + esc(o.clave) + '">' +
@@ -747,6 +757,14 @@
           renderShip(); renderSummary(); paintSubmit();
         });
       });
+    }
+    function reintentarEnvio() {
+      var a = selAddr(); if (!a) return;
+      /* Fuerza una llamada NUEVA: borra la cotización cacheada de esta dirección+carrito
+         para que quoteShip vuelva a preguntar en vez de repetir el error guardado. */
+      delete shipCache[a.id + "|" + cartSig()];
+      shipError = ""; shipOpts = null; selShipClave = "";
+      quoteShip();
     }
     function quoteShip() {
       if (shipMode !== "envio") { renderShip(); return; }
