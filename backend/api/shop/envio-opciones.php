@@ -61,23 +61,33 @@ foreach ($q->fetchAll() as $r) {
     $paraExel[] = ['id_producto' => $clave, 'cantidad' => $pedidos[(int) $r['id']] ?? 1];
 }
 
-/* Un carrito sin nada de Exel no se puede cotizar con ellos: sale de la tienda y
-   hoy eso no está resuelto. Se dice claro en vez de inventar una tarifa. */
+require_once __DIR__ . '/../lib/EnvioRespaldo.php';
+
+/** Opción de RESPALDO por zona: se ofrece cuando la paquetería no cotiza, para que la
+ *  venta nunca se trabe (envío disponible el 100%). `respaldo:true` avisa al front que
+ *  es una tarifa estimada. El monto lo confirma create.php de la misma forma. */
+function respaldoEnvio(string $cp)
+{
+    respond(['ok' => true, 'respaldo' => true, 'destino' => [], 'opciones' => [[
+        'clave'        => 'RESPALDO',
+        'transportista' => EnvioRespaldo::etiquetaCliente(),
+        'costo'        => EnvioRespaldo::tarifa($cp),
+    ]]], 200);
+}
+
+/* Un carrito sin claves de paquetería igual se puede enviar desde la tienda: se
+   ofrece la tarifa de respaldo en vez de trabar la venta. */
 if (!$paraExel) {
-    respond(['ok' => false, 'error' => 'Estos productos no se envían por paquetería. Puedes recogerlos en la tienda.'], 200);
+    respaldoEnvio((string) $dir['postal_code']);
 }
 
 $r = ExelEnvios::cotizar((string) $dir['postal_code'], $paraExel);
 
+/* La paquetería no cotizó (caída o throttle). En lugar de dejar sin envío al cliente,
+   se ofrece la tarifa de RESPALDO por zona (estimada; ver EnvioRespaldo). Cuando la
+   paquetería vuelva a responder, se usa su precio real. */
 if ($r === null) {
-    /* Sin cotización NO se ofrece envío. Antes se cobraba una tarifa plana de $99
-       que resultó estar por debajo del costo real (el más barato son $130), así que
-       caer a un número inventado significaría vender con pérdida sin enterarse.
-       Mejor decirle al cliente que recoja o lo intente de nuevo. */
-    respond([
-        'ok'    => false,
-        'error' => 'No pudimos calcular el envío en este momento. Vuelve a intentarlo o elige recoger en tienda.',
-    ], 200);
+    respaldoEnvio((string) $dir['postal_code']);
 }
 
 respond(['ok' => true, 'destino' => $r['destino'], 'opciones' => $r['opciones']]);

@@ -178,20 +178,29 @@ if ($shipMode === 'envio') {
     }
 
     $coti = $paraExel ? ExelEnvios::cotizar((string) $dirEnvio['postal_code'], $paraExel) : null;
+
     if ($coti === null) {
-        fail('No pudimos calcular el envío en este momento. Vuelve a intentarlo o elige recoger en tienda.', 503);
+        /* La paquetería no cotizó (caída/throttle) o el carrito no trae claves suyas.
+           Para no trabar la venta se cobra la tarifa de RESPALDO por zona (estimada,
+           la MISMA que se le mostró al cliente en envio-opciones). El monto sigue
+           saliendo del SERVIDOR por CP, no del navegador. Se marca en el pedido como
+           "tarifa estimada" para que quien lo prepara sepa que no viene confirmada por
+           la paquetería y la ajuste si hace falta. */
+        require_once __DIR__ . '/../lib/EnvioRespaldo.php';
+        $shipCost    = round(EnvioRespaldo::tarifa($cpEnvio), 2);
+        $shipCarrier = EnvioRespaldo::etiquetaPedido();
+    } else {
+        /* Se cobra la opción que el cliente eligió; si esa clave ya no viene en la
+           cotización (cambió el carrito, o dejó de ofrecerla), se usa la más barata,
+           que es la primera. */
+        $elegida = null;
+        $clavePedida = trim((string) ($b['transportista'] ?? ''));
+        foreach ($coti['opciones'] as $o) { if ($o['clave'] === $clavePedida) { $elegida = $o; break; } }
+        if ($elegida === null) $elegida = $coti['opciones'][0];
+
+        $shipCost    = round((float) $elegida['costo'], 2);
+        $shipCarrier = (string) $elegida['transportista'];
     }
-
-    /* Se cobra la opción que el cliente eligió; si esa clave ya no viene en la
-       cotización (cambió el carrito, o Exel dejó de ofrecerla), se usa la más
-       barata, que es la primera. Nunca se inventa un número. */
-    $elegida = null;
-    $clavePedida = trim((string) ($b['transportista'] ?? ''));
-    foreach ($coti['opciones'] as $o) { if ($o['clave'] === $clavePedida) { $elegida = $o; break; } }
-    if ($elegida === null) $elegida = $coti['opciones'][0];
-
-    $shipCost    = round((float) $elegida['costo'], 2);
-    $shipCarrier = (string) $elegida['transportista'];
 
     /* El transportista se anexa a la dirección porque shop_orders no tiene columna
        propia para él, y quien prepara el pedido necesita saberlo (no es lo mismo
