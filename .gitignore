@@ -82,3 +82,4 @@ dump_*.sql
 
 # Imágenes de productos descargadas por el runner (generadas, no se versionan)
 assets/img/products/
+backend/tools/backups/
