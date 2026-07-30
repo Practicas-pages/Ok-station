@@ -54,22 +54,31 @@ if (mb_strlen($comments) > 1000) fail('Los comentarios son demasiado largos.');
 if (strlen($phone) !== 10) fail('Ingresa un teléfono válido (10 dígitos) para poder contactarte.');
 if ($shipMode === 'envio' && mb_strlen($shipAddress) < 10) fail('Ingresa la dirección de envío completa.');
 if (mb_strlen($shipAddress) > 400) fail('La dirección es demasiado larga.');
-/* El ESTADO decide la tasa de IVA (8% frontera vs 16% nacional), así que es un dato
-   FISCAL, no cosmético. Se valida contra la MISMA lista que usa la libreta de
-   direcciones (Addresses::ESTADOS) por dos razones:
-     1. Sin tope, un estado largo revienta `ship_state VARCHAR(60)` y el pedido
-        muere con un 500 opaco ("No se pudo crear el pedido").
-     2. Con envío y estado vacío se caía al 8% de frontera para TODO el país.
-        Ahora el estado es obligatorio cuando hay envío. */
-if ($shipMode === 'envio' && !in_array($state, Addresses::ESTADOS, true)) {
-    fail('Selecciona el estado de entrega para calcular el IVA correcto.');
+/* ── Dirección de envío y su CP: la FUENTE DE VERDAD del IVA ──
+   El IVA (8% frontera / 16% nacional) se decide por el CÓDIGO POSTAL de entrega, NO
+   por el estado que el cliente escribió. Antes se usaba el estado tecleado y una
+   dirección mal capturada (p. ej. "Mochis" con un CP de Tijuana) cobraba envío local
+   de Tijuana pero IVA nacional: incoherente. El CP es el MISMO dato con el que Exel
+   cotiza el flete, así que IVA y envío siempre concuerdan. Se lee de la BD por
+   address_id (no de lo que mande el navegador) y de paso valida que la dirección sea
+   del usuario; se reutiliza más abajo para cotizar el envío. */
+$cpEnvio  = '';
+$dirEnvio = null;
+if ($shipMode === 'envio') {
+    $addressId = (int) ($b['address_id'] ?? 0);
+    $stDir = db()->prepare('SELECT postal_code, state FROM user_addresses WHERE id = ? AND user_id = ? LIMIT 1');
+    $stDir->execute([$addressId, (int) $user['id']]);
+    $dirEnvio = $stDir->fetch();
+    if (!$dirEnvio) fail('Elige una dirección de envío guardada.', 422);
+    $cpEnvio = preg_replace('/\D/', '', (string) $dirEnvio['postal_code']);
+    if (strlen($cpEnvio) !== 5) fail('La dirección de envío no tiene un código postal válido.', 422);
 }
 
-/* IVA por GEOLOCALIZACIÓN (autoritativo en el servidor):
+/* IVA autoritativo en el servidor:
    - RECOGER en tienda = Tijuana (Baja California) → 8%.
-   - ENVÍO = según el ESTADO de entrega (BC 8% / resto del país 16%).
+   - ENVÍO = según el CP de entrega (BC norte 21xxx/22xxx → 8%; resto del país → 16%).
    ShopCatalog::resolve() devuelve la base SIN IVA; aquí se le aplica el IVA del destino. */
-$ivaRate = ($shipMode === 'envio') ? Geo::ivaForState($state) : 0.08;
+$ivaRate = ($shipMode === 'envio') ? Geo::ivaForPostalCode($cpEnvio) : 0.08;
 
 /* Resolver cada ítem contra el catálogo del SERVIDOR (precio autoritativo).
    resolve() usa el catálogo REAL (products) y, si el id no está, el demo hardcodeado. */
@@ -150,11 +159,8 @@ $shipCarrier = '';
 if ($shipMode === 'envio') {
     require_once __DIR__ . '/../lib/ExelEnvios.php';
 
-    $addressId = (int) ($b['address_id'] ?? 0);
-    $st = db()->prepare('SELECT postal_code FROM user_addresses WHERE id = ? AND user_id = ? LIMIT 1');
-    $st->execute([$addressId, (int) $user['id']]);
-    $dirEnvio = $st->fetch();
-    if (!$dirEnvio) fail('Elige una dirección de envío guardada.', 422);
+    /* $dirEnvio (postal_code + state) ya se leyó arriba —validando que sea del
+       usuario— al calcular el IVA por CP; aquí se reutiliza para cotizar. */
 
     /* Las claves con las que Exel conoce cada producto no vienen en $resolved (que
        trae lo del cobro), así que se leen aparte con los ids ya validados. */
@@ -199,7 +205,13 @@ $totalIncl = round($totalIncl, 2);
 $subtotal  = round($totalIncl / (1 + $ivaRate), 2);   // base sin IVA
 $tax       = round($totalIncl - $subtotal, 2);        // IVA desglosado (a la tasa del destino)
 $total     = round($totalIncl + $shipCost, 2);        // IVA incluido + envío
-$ivaState  = ($shipMode === 'envio') ? $state : 'Baja California';   // ya validado contra ESTADOS
+/* ship_state coherente con el IVA cobrado: si el CP es de BC norte (8%), el estado ES
+   Baja California aunque el cliente haya escrito otra cosa; si es nacional (16%), se
+   usa el estado real de la dirección guardada (ya validado al guardarla). Así el
+   registro nunca queda como "8% de frontera a Sinaloa". */
+$ivaState  = ($shipMode === 'envio')
+    ? (Geo::isBCPostalCode($cpEnvio) ? 'Baja California' : (string) $dirEnvio['state'])
+    : 'Baja California';
 
 $pdo = db();
 $pdo->beginTransaction();

@@ -580,8 +580,10 @@
     function mxn(n) { return new Intl.NumberFormat("es-MX", { style: "currency", currency: "MXN", minimumFractionDigits: 2 }).format(+n || 0); }
     function soloTel(s) { var d = (s || "").replace(/\D/g, ""); if (d.length === 12 && d.slice(0, 2) === "52") d = d.slice(2); return d; }
     function fmtPhone(s) { var d = soloTel(s).slice(0, 10); var o = d.slice(0, 3); if (d.length > 3) o += " " + d.slice(3, 6); if (d.length > 6) o += " " + d.slice(6, 10); return o; }
-    /* MISMA regla del IVA que ivaForEstado() de la tienda: BC (norte) 8%, resto 16%. */
-    function ivaForEstado(nombre) { var n = (nombre || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, ""); return (n.indexOf("baja california") >= 0 && n.indexOf("sur") < 0) ? 0.08 : 0.16; }
+    /* IVA por CÓDIGO POSTAL (mismo criterio que el servidor en create.php / Geo):
+       BC norte (21xxx/22xxx) 8%, resto 16%. Se usa el CP —no el estado tecleado— para
+       que el IVA mostrado concuerde con el envío que cotiza Exel, que también va por CP. */
+    function ivaForCp(cp) { cp = (cp || "").replace(/\D/g, ""); return /^2[12]/.test(cp) ? 0.08 : 0.16; }
     var NEXT = "/cuenta.html?next=/checkout.html";
 
     /* ── Estado ── */
@@ -609,10 +611,10 @@
       var sub8 = 0; CART.forEach(function (it) { sub8 += it.price * it.qty; });
       var base = sub8 / 1.08;                                   // catálogo con IVA 8% → base
       var a = selAddr();
-      /* Hasta que se elige una dirección no se sabe el estado: se muestra la tasa de
+      /* Hasta que se elige una dirección no se sabe el CP: se muestra la tasa de
          frontera (8%, la de la tienda en Tijuana) como provisional, en vez de asustar
-         con un 16% que quizá no aplique. Al elegir domicilio se recalcula con su estado. */
-      var rate = (shipMode === "envio" && a) ? ivaForEstado(a.state) : 0.08;
+         con un 16% que quizá no aplique. Al elegir domicilio se recalcula con su CP. */
+      var rate = (shipMode === "envio" && a) ? ivaForCp(a.postal_code) : 0.08;
       var subIva = base * (1 + rate);
       var s = selShip();
       var ship = shipMode === "retiro" ? 0 : (s ? +s.costo : null);

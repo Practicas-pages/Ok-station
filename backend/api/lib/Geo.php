@@ -50,6 +50,27 @@ final class Geo
         return self::isBC($state) ? self::IVA_FRONTERA : self::IVA_NACIONAL;
     }
 
+    /**
+     * ¿El CÓDIGO POSTAL es de Baja California norte (frontera 8%)?
+     * Los CP de BC norte son 21xxx (Mexicali) y 22xxx (Tijuana, Ensenada, Tecate,
+     * Rosarito). BC Sur (23xxx) NO es frontera. Ninguna otra entidad usa el prefijo
+     * 21/22, así que basta y es inequívoco. Se prefiere el CP al estado tecleado
+     * porque es el MISMO dato con el que Exel cotiza el envío: así el IVA y el flete
+     * nunca se contradicen (una dirección con CP de Tijuana cobra 8% y envío local,
+     * no 16% con envío local como pasaba al fiarse del estado escrito a mano).
+     */
+    public static function isBCPostalCode(string $cp): bool
+    {
+        $cp = preg_replace('/\D/', '', $cp) ?? '';
+        return strlen($cp) === 5 && preg_match('/^2[12]/', $cp) === 1;
+    }
+
+    /** Tasa de IVA que le corresponde a un código postal (8% BC norte / 16% resto). */
+    public static function ivaForPostalCode(string $cp): float
+    {
+        return self::isBCPostalCode($cp) ? self::IVA_FRONTERA : self::IVA_NACIONAL;
+    }
+
     /** IP real del cliente (respeta proxy/CDN). */
     public static function clientIp(array $server): string
     {
