@@ -21,11 +21,10 @@
     /* ── Pasos ── */
     .ct-steps { display: flex; align-items: center; justify-content: center; gap: 10px; flex-wrap: wrap;
       padding: 16px 0 22px; font-size: 0.9rem; }
-    .ct-step { display: inline-flex; align-items: center; gap: 8px; color: var(--text-muted); font-weight: 600; }
-    .ct-step__n { width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
-      background: var(--border-light); color: var(--text-muted); font-size: 0.78rem; font-weight: 700; }
+    .ct-step { color: var(--text-muted); font-weight: 600; text-decoration: none; }
+    a.ct-step:hover { color: var(--brand-blue); text-decoration: underline; }
     .ct-step.is-active { color: var(--brand-blue); }
-    .ct-step.is-active .ct-step__n { background: var(--brand-blue); color: #fff; }
+    .ct-step--done { color: var(--text-faint); cursor: default; }   /* Pedido completado: no se puede saltar a él */
     .ct-step__sep { color: var(--text-faint); }
 
     .ct-title { font-size: 1.6rem; font-weight: 800; letter-spacing: -0.01em; color: var(--text-primary); margin: 0 0 18px; }
@@ -269,11 +268,11 @@
 
   <main class="ct">
     <nav class="ct-steps" aria-label="Pasos de compra">
-      <span class="ct-step is-active"><span class="ct-step__n">1</span> Carrito</span>
+      <a class="ct-step is-active" href="/carrito.html" aria-current="step">Carrito</a>
       <span class="ct-step__sep" aria-hidden="true">→</span>
-      <span class="ct-step"><span class="ct-step__n">2</span> Finalizar compra</span>
+      <a class="ct-step" href="/checkout.html">Finalizar compra</a>
       <span class="ct-step__sep" aria-hidden="true">→</span>
-      <span class="ct-step"><span class="ct-step__n">3</span> Pedido completado</span>
+      <span class="ct-step ct-step--done" aria-disabled="true">Pedido completado</span>
     </nav>
 
     <h1 class="ct-title">Tu carrito</h1>

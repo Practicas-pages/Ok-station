@@ -30,10 +30,13 @@
     .co-page { background: var(--surface-page); }
     main.co { max-width: 1160px; margin: 0 auto; padding: 26px 20px 72px; }
 
-    .co-top { display: flex; align-items: center; gap: 10px; margin: 4px 0 18px; }
-    .co-back { display: inline-flex; align-items: center; gap: 6px; color: var(--text-secondary);
-      font-size: 0.88rem; font-weight: 600; text-decoration: none; }
-    .co-back:hover { color: var(--brand-blue); }
+    .co-steps { display: flex; align-items: center; justify-content: center; gap: 10px; flex-wrap: wrap;
+      padding: 16px 0 22px; font-size: 0.92rem; }
+    .co-step { color: var(--text-muted); font-weight: 600; text-decoration: none; }
+    a.co-step:hover { color: var(--brand-blue); text-decoration: underline; }
+    .co-step.is-active { color: var(--brand-blue); }
+    .co-step--done { color: var(--text-faint); cursor: default; }   /* Pedido completado: no se puede saltar a él */
+    .co-step__sep { color: var(--text-faint); }
     .co-title { font-size: 1.6rem; font-weight: 800; letter-spacing: -0.01em; color: var(--text-primary); margin: 0 0 22px; }
 
     .co-grid { display: grid; grid-template-columns: minmax(0, 1fr) 384px; gap: 28px; align-items: start; }
@@ -398,12 +401,13 @@
 </aside>
 
   <main class="co">
-    <div class="co-top">
-      <a class="co-back" href="/tienda.html#cart">
-        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
-        Volver al carrito
-      </a>
-    </div>
+    <nav class="co-steps" aria-label="Pasos de compra">
+      <a class="co-step" href="/carrito.html">Carrito</a>
+      <span class="co-step__sep" aria-hidden="true">→</span>
+      <a class="co-step is-active" href="/checkout.html" aria-current="step">Finalizar compra</a>
+      <span class="co-step__sep" aria-hidden="true">→</span>
+      <span class="co-step co-step--done" aria-disabled="true">Pedido completado</span>
+    </nav>
     <h1 class="co-title">Finaliza tu compra</h1>
 
     <!-- Carrito vacío (ocupa todo el ancho) -->
