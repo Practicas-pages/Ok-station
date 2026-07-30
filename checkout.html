@@ -584,6 +584,15 @@
        BC norte (21xxx/22xxx) 8%, resto 16%. Se usa el CP —no el estado tecleado— para
        que el IVA mostrado concuerde con el envío que cotiza Exel, que también va por CP. */
     function ivaForCp(cp) { cp = (cp || "").replace(/\D/g, ""); return /^2[12]/.test(cp) ? 0.08 : 0.16; }
+    /* Nombre de la opción de envío SIN mencionar al proveedor de origen: al cliente se
+       le muestra "Almacén 4" (el almacén desde el que sale la mercancía), como en el
+       resto del sitio. El reparto local propio se muestra como "Envío local". */
+    function nombreEnvio(t) {
+      var raw = (t || "").trim();
+      if (/local/i.test(raw)) return "Envío local (Almacén 4)";
+      var limpio = raw.replace(/\b(propio|exel)\b/gi, "").replace(/\s{2,}/g, " ").trim();
+      return (limpio || "Envío estándar") + " (Almacén 4)";
+    }
     var NEXT = "/cuenta.html?next=/checkout.html";
 
     /* ── Estado ── */
@@ -728,7 +737,7 @@
       box.innerHTML = shipOpts.map(function (o) {
         return '<button type="button" class="co-ship' + (o.clave === selShipClave ? ' is-active' : '') + '" data-ship="' + esc(o.clave) + '">' +
           '<span class="co-ship__radio"></span>' +
-          '<span class="co-ship__name">' + esc(o.transportista || "Envío") + '</span>' +
+          '<span class="co-ship__name">' + esc(nombreEnvio(o.transportista)) + '</span>' +
           '<span class="co-ship__cost">' + mxn(o.costo) + '</span>' +
         '</button>';
       }).join("");

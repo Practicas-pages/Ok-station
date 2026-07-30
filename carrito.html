@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="es-MX">
+<head>
+  <meta charset="UTF-8">
+  <script src="assets/site-guard.js?v=20260728n"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Tu carrito — Ok.station</title>
+  <link rel="icon" href="/assets/img/OKD-Isotipo-Azul-96.png?v=20260710" type="image/png" sizes="96x96">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+  <script src="assets/theme.js?v=20260721a"></script>
+  <link rel="stylesheet" href="styles.css?v=20260728d">
+  <link rel="stylesheet" href="assets/oki.css?v=20260728a">
+  <style>
+    [hidden] { display: none !important; }
+    .ct-page { background: var(--surface-page); }
+    main.ct { max-width: 1160px; margin: 0 auto; padding: 20px 20px 72px; }
+
+    /* ── Pasos ── */
+    .ct-steps { display: flex; align-items: center; justify-content: center; gap: 10px; flex-wrap: wrap;
+      padding: 16px 0 22px; font-size: 0.9rem; }
+    .ct-step { display: inline-flex; align-items: center; gap: 8px; color: var(--text-muted); font-weight: 600; }
+    .ct-step__n { width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+      background: var(--border-light); color: var(--text-muted); font-size: 0.78rem; font-weight: 700; }
+    .ct-step.is-active { color: var(--brand-blue); }
+    .ct-step.is-active .ct-step__n { background: var(--brand-blue); color: #fff; }
+    .ct-step__sep { color: var(--text-faint); }
+
+    .ct-title { font-size: 1.6rem; font-weight: 800; letter-spacing: -0.01em; color: var(--text-primary); margin: 0 0 18px; }
+
+    .ct-grid { display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 26px; align-items: start; }
+    @media (max-width: 900px) { .ct-grid { grid-template-columns: minmax(0, 1fr); } }
+    .ct-left, .ct-aside { min-width: 0; }
+
+    /* ── Lista de productos ── */
+    .ct-card { background: var(--surface-card); border: 1px solid var(--border-light);
+      border-radius: var(--radius-md); box-shadow: var(--shadow-sm); overflow: hidden; }
+    .ct-head { display: flex; justify-content: space-between; padding: 14px 20px; border-bottom: 1px solid var(--border-light);
+      font-size: 0.76rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--text-muted); }
+    .ct-item { display: flex; gap: 16px; padding: 18px 20px; border-bottom: 1px solid var(--border-light); align-items: flex-start; }
+    .ct-item:last-child { border-bottom: none; }
+    .ct-thumb { width: 76px; height: 76px; flex: 0 0 auto; border-radius: var(--radius-sm); overflow: hidden;
+      background: #fff; border: 1px solid var(--border-light); display: flex; align-items: center; justify-content: center; }
+    .ct-thumb img { width: 100%; height: 100%; object-fit: contain; }
+    .ct-thumb--ph::after { content: ""; width: 26px; height: 26px; border-radius: 6px; background: var(--border-light); }
+    .ct-it-main { flex: 1; min-width: 0; }
+    .ct-it-name { font-size: 0.95rem; font-weight: 600; color: var(--text-primary); margin: 0 0 4px; line-height: 1.35; }
+    .ct-it-desc { font-size: 0.8rem; color: var(--text-muted); margin: 0 0 12px; overflow: hidden; text-overflow: ellipsis;
+      display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; }
+    .ct-qty { display: inline-flex; align-items: center; border: 1.5px solid var(--border-light); border-radius: var(--radius-full); overflow: hidden; }
+    .ct-qty button { width: 32px; height: 32px; border: none; background: var(--surface-card); color: var(--text-secondary);
+      font-size: 1.05rem; line-height: 1; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+    .ct-qty button:hover { color: var(--brand-blue); background: var(--surface-page); }
+    .ct-qty > span { min-width: 34px; text-align: center; font-size: 0.9rem; font-weight: 600; color: var(--text-primary); }
+    .ct-del { margin-left: 14px; background: none; border: none; padding: 6px; cursor: pointer; color: var(--text-muted); vertical-align: middle; }
+    .ct-del:hover { color: var(--color-error); }
+    .ct-del svg { width: 18px; height: 18px; }
+    .ct-it-price { text-align: right; flex: 0 0 auto; min-width: 96px; }
+    .ct-it-now { font-size: 1rem; font-weight: 700; color: var(--brand-blue); }
+    .ct-it-old { display: block; font-size: 0.8rem; color: var(--text-faint); text-decoration: line-through; }
+    .ct-save { display: inline-block; margin-top: 4px; padding: 1px 8px; border-radius: var(--radius-full);
+      background: rgba(22,163,74,0.10); color: var(--color-success); font-size: 0.72rem; font-weight: 700; }
+
+    .ct-actions { display: flex; justify-content: space-between; align-items: center; margin-top: 16px; flex-wrap: wrap; gap: 12px; }
+    .ct-link { display: inline-flex; align-items: center; gap: 7px; color: var(--brand-blue); font-weight: 600;
+      font-size: 0.9rem; text-decoration: none; }
+    .ct-link:hover { text-decoration: underline; }
+    .ct-link svg { width: 16px; height: 16px; }
+
+    /* ── Totales ── */
+    .ct-aside { position: sticky; top: 96px; }
+    @media (max-width: 900px) { .ct-aside { position: static; } }
+    .ct-sum { background: var(--surface-card); border: 1px solid var(--border-light);
+      border-radius: var(--radius-md); box-shadow: var(--shadow-sm); padding: 20px 22px; }
+    .ct-sum h2 { font-size: 1rem; font-weight: 700; margin: 0 0 16px; color: var(--text-primary); }
+    .ct-line { display: flex; justify-content: space-between; font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 12px; }
+    .ct-line b { color: var(--text-primary); font-weight: 600; }
+    .ct-line small { font-size: 0.8rem; color: var(--text-muted); }
+    .ct-total { display: flex; justify-content: space-between; align-items: baseline; font-size: 1.15rem; font-weight: 800;
+      color: var(--text-primary); margin: 14px 0 4px; padding-top: 14px; border-top: 1px solid var(--border-light); }
+    .ct-total span:last-child { color: var(--brand-blue); }
+    .ct-note { font-size: 0.78rem; color: var(--text-muted); margin: 2px 0 16px; line-height: 1.45; }
+    .ct-btn { display: block; width: 100%; text-align: center; padding: 14px; border-radius: var(--radius-sm);
+      font: inherit; font-size: 1rem; font-weight: 700; cursor: pointer; border: none; text-decoration: none; box-sizing: border-box; }
+    .ct-btn--go { background: var(--brand-blue); color: #fff; margin-bottom: 10px; transition: background 0.15s; }
+    .ct-btn--go:hover { background: var(--brand-blue-hover); }
+    .ct-btn--ghost { background: var(--surface-card); color: var(--text-secondary); border: 1.5px solid var(--border-light); }
+    .ct-btn--ghost:hover { border-color: var(--border-medium); color: var(--text-primary); }
+    .ct-secure { display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: 14px; font-size: 0.76rem; color: var(--text-muted); }
+    .ct-secure svg { width: 13px; height: 13px; }
+
+    /* ── Vacío ── */
+    .ct-empty { text-align: center; padding: 40px 20px; }
+    .ct-empty__ico { width: 62px; height: 62px; margin: 0 auto 16px; border-radius: 50%; background: var(--brand-blue-light);
+      display: flex; align-items: center; justify-content: center; }
+    .ct-empty__ico svg { width: 28px; height: 28px; color: var(--brand-blue); }
+    .ct-empty h2 { font-size: 1.2rem; font-weight: 700; margin: 0 0 6px; color: var(--text-primary); }
+    .ct-empty p { color: var(--text-muted); margin: 0 0 18px; }
+    .ct-muted { color: var(--text-muted); text-align: center; padding: 24px 0; }
+  </style>
+  <link rel="stylesheet" href="/assets/oknav.css?v=20260728r">
+</head>
+<body class="ct-page">
+
+<header class="oknav" id="oknav">
+  <div class="oknav__belt">
+    <div class="oknav__wrap">
+      <nav class="oknav__beltlinks" aria-label="Enlaces rápidos">
+        <a href="/quienes-somos.html">¿Quiénes somos?</a>
+        <a href="/contactanos.html">Contacto</a>
+      </nav>
+      <p class="oknav__belttag">Te atendemos con gusto y una sonrisa — tú lo imaginas, nosotros lo hacemos. Aquí en Centro Comercial Otay, Tijuana.</p>
+      <div class="oknav__beltsocial">
+        <a href="https://www.facebook.com/okdock.station" target="_blank" rel="noopener" aria-label="Facebook">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+        </a>
+        <a href="https://www.instagram.com/okdock.station/" target="_blank" rel="noopener" aria-label="Instagram">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>
+        </a>
+        <a href="mailto:station@okdock.mx" aria-label="Correo">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 5L2 7"/></svg>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <div class="oknav__row oknav__row--main">
+    <div class="oknav__wrap">
+      <button type="button" class="oknav__burger" id="oknavBurger" aria-label="Abrir menú" aria-expanded="false" aria-controls="oknavDrawer">
+        <span></span><span></span><span></span>
+      </button>
+      <a class="oknav__logo" href="/" aria-label="Ok.station — Ir al inicio">
+        <span class="oknav__brandmark" aria-hidden="true"><strong>OK.</strong><span>station</span></span>
+      </a>
+      <div class="oknav__search">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true">
+          <circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/>
+        </svg>
+        <input id="oknavQ" type="search" autocomplete="off" role="combobox" aria-expanded="false" aria-autocomplete="list" aria-controls="oknavAc"
+               aria-label="Buscar productos (escribe y pulsa Enter)" placeholder="Busca tinta, tóner, papel, carpetas y más…">
+        <div class="oknav__ac" id="oknavAc" role="listbox" aria-label="Sugerencias" hidden></div>
+      </div>
+      <div class="oknav__actions" id="oknavActions">
+        <button type="button" class="oknav__loc" id="oknavLoc" aria-label="Ubicación de entrega">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/>
+          </svg>
+          <span class="oknav__loctxt"><small id="oknavLocTop" hidden>Entrega en</small><b id="oknavLocMain">Elige tu ubicación</b></span>
+        </button>
+        <a class="oknav__acct" id="oknavAcct" href="/cuenta.html" aria-label="Iniciar sesión">
+          <span class="oknav__acctbox">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/>
+            </svg>
+            <span class="oknav__lbl">Cuenta</span>
+          </span>
+        </a>
+        <button type="button" class="oknav__ico" id="oknavWish" aria-label="Favoritos" title="Favoritos">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M20.8 4.6a5.5 5.5 0 00-7.8 0L12 5.6l-1-1a5.5 5.5 0 00-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 000-7.8z"/>
+          </svg>
+          <span class="oknav__ct" id="oknavWishCt" hidden>0</span>
+        </button>
+        <button type="button" class="oknav__cart" id="oknavCart" aria-label="Ver carrito">
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.7 13.4a2 2 0 002 1.6h9.7a2 2 0 002-1.6L23 6H6"/>
+          </svg>
+          <span id="oknavCartTotal">$0.00</span>
+          <span class="oknav__ct" id="oknavCartCt" hidden>0</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="oknav__row oknav__row--nav">
+    <div class="oknav__wrap">
+      <nav class="oknav__mobile-stores" aria-label="Accesos de compra">
+        <a class="oknav__mobile-store" href="/tienda.html#store">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M3 9l2-5h14l2 5"/><path d="M5 13v7h14v-7"/><path d="M9 20v-5h6v5"/><path d="M3 9a3 3 0 006 0 3 3 0 006 0 3 3 0 006 0"/>
+          </svg>
+          Tienda
+        </a>
+        <a class="oknav__mobile-store oknav__mobile-store--quick" href="/tienda-dinamica.html">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M13 2L4 14h8l-1 8 9-12h-8l1-8z"/>
+          </svg>
+          Tienda rápida
+        </a>
+      </nav>
+      <button type="button" class="oknav__cats" id="oknavCats" aria-expanded="false" aria-controls="oknavCatsMenu" aria-haspopup="true">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true">
+          <line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="17" x2="20" y2="17"/>
+        </svg>
+        Categorías
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <polyline points="6 9 12 15 18 9"/>
+        </svg>
+      </button>
+      <a class="oknav__ofertas" id="oknavOfertas" href="/tienda.html#store">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+        </svg>
+        Ofertas
+      </a>
+      <span class="oknav__sep" aria-hidden="true"></span>
+      <nav class="oknav__links" aria-label="Servicios">
+        <a href="/index.html#citas">Citas</a>
+        <a href="/index.html#fotos">Imprime tus fotos</a>
+        <a href="/index.html#testimonios">Reseñas</a>
+        <a href="/index.html#visitanos">Visítanos</a>
+        <a class="oknav__gostore" href="/tienda.html#store">Tienda</a>
+        <a class="oknav__gostore oknav__gostore--rapida" href="/tienda-dinamica.html">Tienda rápida</a>
+      </nav>
+      <a class="oknav__wa" href="https://wa.me/526647194117?text=Hola,%20quiero%20solicitar%20informaci%C3%B3n" target="_blank" rel="noopener">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+          <path d="M.057 24l1.687-6.163a11.867 11.867 0 01-1.587-5.945C.16 5.335 5.495 0 12.05 0a11.82 11.82 0 018.413 3.488 11.82 11.82 0 013.48 8.414c-.003 6.557-5.338 11.892-11.893 11.892a11.9 11.9 0 01-5.688-1.448L.057 24zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884a9.86 9.86 0 001.51 5.26l-.999 3.648 3.978-1.040z"/>
+        </svg>
+        WhatsApp
+      </a>
+    </div>
+  </div>
+  <div class="oknav__catsmenu" id="oknavCatsMenu" hidden></div>
+</header>
+
+<div class="oknav__scrim" id="oknavScrim" hidden></div>
+<aside class="oknav__drawer" id="oknavDrawer" aria-label="Menú" hidden>
+  <div class="oknav__dhead">
+    <span class="oknav__brandmark" aria-label="Ok.station"><strong>OK.</strong><span>station</span></span>
+    <button type="button" class="oknav__dclose" id="oknavDClose" aria-label="Cerrar menú">&times;</button>
+  </div>
+  <p class="oknav__dtitle">Tienda</p>
+  <div class="oknav__dlist">
+    <a href="/tienda.html#store">Ver todo el catálogo</a>
+    <a href="/tienda.html#store" data-cat="ofertas">Ofertas del día</a>
+    <a href="/carrito.html">Mi carrito</a>
+    <a href="/tienda.html#deseados">Mis favoritos</a>
+    <a href="/tienda.html#ubicacion">Ubicación de entrega</a>
+  </div>
+  <p class="oknav__dtitle">Servicios</p>
+  <div class="oknav__dlist">
+    <a href="/index.html#citas">Citas</a>
+    <a href="/index.html#fotos">Imprime tus fotos</a>
+    <a href="/index.html#testimonios">Reseñas</a>
+    <a href="/index.html#visitanos">Visítanos</a>
+  </div>
+  <p class="oknav__dtitle">Ok.station</p>
+  <div class="oknav__dlist">
+    <button type="button" id="oknavTema">Modo oscuro <span id="oknavTemaEstado"></span></button>
+    <a href="/quienes-somos.html">¿Quiénes somos?</a>
+    <a href="/contactanos.html">Contacto</a>
+    <a href="https://wa.me/526647194117?text=Hola,%20quiero%20solicitar%20informaci%C3%B3n" target="_blank" rel="noopener">Escríbenos por WhatsApp</a>
+  </div>
+  <p class="oknav__dtitle">Síguenos</p>
+  <div class="oknav__dsocial">
+    <a href="https://www.facebook.com/okdock.station" target="_blank" rel="noopener" aria-label="Facebook">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+    </a>
+    <a href="https://www.instagram.com/okdock.station/" target="_blank" rel="noopener" aria-label="Instagram">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>
+    </a>
+    <a href="mailto:station@okdock.mx" aria-label="Correo">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 5L2 7"/></svg>
+    </a>
+  </div>
+</aside>
+
+  <main class="ct">
+    <nav class="ct-steps" aria-label="Pasos de compra">
+      <span class="ct-step is-active"><span class="ct-step__n">1</span> Carrito</span>
+      <span class="ct-step__sep" aria-hidden="true">→</span>
+      <span class="ct-step"><span class="ct-step__n">2</span> Finalizar compra</span>
+      <span class="ct-step__sep" aria-hidden="true">→</span>
+      <span class="ct-step"><span class="ct-step__n">3</span> Pedido completado</span>
+    </nav>
+
+    <h1 class="ct-title">Tu carrito</h1>
+
+    <!-- Vacío -->
+    <div class="ct-card ct-empty" id="ctEmpty" hidden>
+      <div class="ct-empty__ico">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.7 13.4a2 2 0 002 1.6h9.7a2 2 0 002-1.6L23 6H6"/></svg>
+      </div>
+      <h2>Tu carrito está vacío</h2>
+      <p>Agrega productos desde la tienda para continuar.</p>
+      <a class="ct-btn ct-btn--go" href="/tienda.html#store" style="display:inline-block;width:auto;padding:12px 26px">Ir a la tienda</a>
+    </div>
+
+    <div class="ct-grid" id="ctGrid">
+      <div class="ct-left">
+        <div class="ct-card">
+          <div class="ct-head"><span>Producto</span><span>Total</span></div>
+          <div id="ctItems"><p class="ct-muted">Cargando tu carrito…</p></div>
+        </div>
+        <div class="ct-actions">
+          <a class="ct-link" href="/tienda.html#store">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+            Seguir comprando
+          </a>
+        </div>
+      </div>
+
+      <aside class="ct-aside">
+        <div class="ct-sum">
+          <h2>Totales del carrito</h2>
+          <div class="ct-line"><span>Subtotal <small>(IVA incluido)</small></span><b id="ctSub">$0.00</b></div>
+          <div class="ct-line"><span>Envío estándar <small>(Almacén 4)</small></span><span id="ctShip">Se calcula al finalizar</span></div>
+          <div class="ct-total"><span>Total</span><span id="ctTotal">$0.00</span></div>
+          <p class="ct-note">El envío y el IVA final se calculan en el siguiente paso, según tu domicilio de entrega.</p>
+          <a class="ct-btn ct-btn--go" href="checkout.html">Finalizar compra</a>
+          <a class="ct-btn ct-btn--ghost" href="/tienda.html#store">Seguir comprando</a>
+          <div class="ct-secure">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            <span>Compra protegida · datos cifrados</span>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </main>
+
+  <script src="assets/shop-cart.js?v=20260717a"></script>
+  <script>
+  /* ─────────────────────────────────────────────────────────────────────────
+     Ok.station — Página de carrito (carrito.html)
+     Lista completa del carrito con su propia URL, antes de "Finalizar compra".
+     Usa el mismo puente OKtienda (shop-cart.js) que el resto del e-commerce, así
+     que comparte carrito con la tienda y el checkout. El envío y el IVA se calculan
+     en checkout.html (por domicilio/CP); aquí solo se muestra el subtotal.
+     ───────────────────────────────────────────────────────────────────────── */
+  (function () {
+    "use strict";
+    function $(id) { return document.getElementById(id); }
+    function esc(s) { var d = document.createElement("div"); d.textContent = s == null ? "" : s; return d.innerHTML; }
+    function mxn(n) { return new Intl.NumberFormat("es-MX", { style: "currency", currency: "MXN", minimumFractionDigits: 2 }).format(+n || 0); }
+
+    function rawIds() { try { var c = JSON.parse(localStorage.getItem("okstation_cart") || "{}"); return Object.keys(c).filter(function (k) { return (+c[k]) > 0; }); } catch (e) { return []; } }
+    function cart() { return (window.OKtienda && window.OKtienda.carrito()) || []; }
+
+    function render() {
+      var items = cart(), ids = rawIds();
+      $("ctEmpty").hidden = ids.length > 0;
+      $("ctGrid").hidden = ids.length === 0;
+      if (!ids.length) return;
+
+      var box = $("ctItems");
+      if (!items.length) { box.innerHTML = '<p class="ct-muted">Cargando tu carrito…</p>'; return; }
+
+      var sub = 0;
+      box.innerHTML = items.map(function (it) {
+        var line = it.price * it.qty; sub += line;
+        var save = (it.old && it.old > it.price) ? (it.old - it.price) * it.qty : 0;
+        return '<div class="ct-item">' +
+          '<div class="ct-thumb">' + (it.image ? '<img src="' + esc(it.image) + '" alt="" loading="lazy" onerror="this.remove();this.parentNode.classList.add(\'ct-thumb--ph\')">' : '') + '</div>' +
+          '<div class="ct-it-main">' +
+            '<p class="ct-it-name">' + esc(it.name) + '</p>' +
+            (it.cat ? '<p class="ct-it-desc">' + esc(it.cat) + '</p>' : '') +
+            '<div style="display:flex;align-items:center">' +
+              '<div class="ct-qty"><button type="button" data-dec="' + it.id + '" aria-label="Quitar uno">&minus;</button>' +
+                '<span>' + it.qty + '</span>' +
+                '<button type="button" data-inc="' + it.id + '" aria-label="Agregar uno">+</button></div>' +
+              '<button type="button" class="ct-del" data-rm="' + it.id + '" aria-label="Quitar producto" title="Quitar">' +
+                '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>' +
+              '</button>' +
+            '</div>' +
+          '</div>' +
+          '<div class="ct-it-price"><span class="ct-it-now">' + mxn(line) + '</span>' +
+            (it.old && it.old > it.price ? '<span class="ct-it-old">' + mxn(it.old * it.qty) + '</span>' : '') +
+            (save > 0 ? '<span class="ct-save">Ahorras ' + mxn(save) + '</span>' : '') +
+          '</div>' +
+        '</div>';
+      }).join("");
+
+      $("ctSub").textContent = mxn(sub);
+      $("ctTotal").textContent = mxn(sub);
+      wire();
+    }
+
+    function wire() {
+      $("ctItems").querySelectorAll("[data-inc]").forEach(function (b) { b.addEventListener("click", function () { window.OKtienda.cambiar(+b.getAttribute("data-inc"), 1); }); });
+      $("ctItems").querySelectorAll("[data-dec]").forEach(function (b) { b.addEventListener("click", function () { window.OKtienda.cambiar(+b.getAttribute("data-dec"), -1); }); });
+      $("ctItems").querySelectorAll("[data-rm]").forEach(function (b) { b.addEventListener("click", function () { window.OKtienda.quitar(+b.getAttribute("data-rm")); }); });
+    }
+
+    render();
+    window.addEventListener("oktienda:carrito", render);
+  })();
+  </script>
+  <script src="assets/catalogo.js?v=20260714a" defer></script>
+  <script src="assets/oki.js?v=20260728a" defer></script>
+  <script src="/assets/oknav.js?v=20260724a" defer></script>
+</body>
+</html>
