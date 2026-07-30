@@ -22,6 +22,11 @@
        recoge contacto + dirección + envío; el PAGO es el último paso (Mercado Pago).
        Todo con las variables del tema para que funcione claro/oscuro igual que el
        resto del sitio. ── */
+    /* El atributo hidden DEBE ganarle a cualquier display propio: sin esto, un
+       .co-retiro-note (display:flex) o .co-grid (display:grid) siguen visibles aunque
+       se les ponga hidden, porque el display de autor le gana al [hidden] del navegador.
+       Pasaba con la nota de "Recoger en tienda" apareciendo en modo Enviar a domicilio. */
+    [hidden] { display: none !important; }
     .co-page { background: var(--surface-page); }
     main.co { max-width: 1160px; margin: 0 auto; padding: 26px 20px 72px; }
 
