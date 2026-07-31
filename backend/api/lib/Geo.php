@@ -71,11 +71,15 @@ final class Geo
         return self::isBCPostalCode($cp) ? self::IVA_FRONTERA : self::IVA_NACIONAL;
     }
 
-    /** IP real del cliente (respeta proxy/CDN). */
+    /**
+     * IP real del cliente. Detrás de Cloudflare + real_ip (Paso A de
+     * deploy/CLOUDFLARE.md), la IP verdadera llega en REMOTE_ADDR; X-Forwarded-For es
+     * FALSIFICABLE (Cloudflare anexa la IP real, pero el primer valor lo pone quien
+     * llama), así que ya NO se lee — se usaría para geolocalizar/limitar con una IP
+     * inventada. En local (php -S) REMOTE_ADDR es loopback y la geo cae al respaldo BC.
+     */
     public static function clientIp(array $server): string
     {
-        $xff = (string) ($server['HTTP_X_FORWARDED_FOR'] ?? '');
-        if ($xff !== '') return trim(explode(',', $xff)[0]);
         return (string) ($server['REMOTE_ADDR'] ?? '');
     }
 

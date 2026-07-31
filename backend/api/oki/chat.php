@@ -131,8 +131,11 @@ if (isset($b['messages']) && is_array($b['messages'])) {
 }
 
 /* ── 2) Límite de uso ── */
-$ip = $_SERVER['HTTP_X_FORWARDED_FOR'] ?? $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
-$ip = trim(explode(',', $ip)[0]);
+/* Detrás de Cloudflare + real_ip (Paso A de deploy/CLOUDFLARE.md), la IP verdadera
+   llega en REMOTE_ADDR. X-Forwarded-For es FALSIFICABLE por el cliente (Cloudflare le
+   ANEXA la IP real, pero el primer valor lo pone quien llama), así que ya no se lee:
+   si no, un atacante mandaría un XFF distinto en cada request y se saltaría el límite. */
+$ip = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
 oki_rate_limit($ip);
 
 /* ── 3) Saludo ── */
