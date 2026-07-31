@@ -141,4 +141,35 @@ final class Addresses
             throw $e;
         }
     }
+
+    /**
+     * Borra una dirección del usuario. Si era la predeterminada y quedan otras, promueve
+     * la más reciente a predeterminada (para no dejar al usuario sin default).
+     * Valida la propiedad: solo borra si la dirección es de ese usuario.
+     * @return bool  true si existía y se borró.
+     */
+    public static function delete(PDO $pdo, int $userId, int $id): bool
+    {
+        $st = $pdo->prepare('SELECT is_default FROM user_addresses WHERE id = ? AND user_id = ? LIMIT 1');
+        $st->execute([$id, $userId]);
+        $row = $st->fetch();
+        if (!$row) return false;
+        $eraDefault = (bool) $row['is_default'];
+
+        $pdo->beginTransaction();
+        try {
+            $pdo->prepare('DELETE FROM user_addresses WHERE id = ? AND user_id = ?')->execute([$id, $userId]);
+            if ($eraDefault) {
+                $q = $pdo->prepare('SELECT id FROM user_addresses WHERE user_id = ? ORDER BY id DESC LIMIT 1');
+                $q->execute([$userId]);
+                $nueva = (int) ($q->fetchColumn() ?: 0);
+                if ($nueva) $pdo->prepare('UPDATE user_addresses SET is_default = 1 WHERE id = ?')->execute([$nueva]);
+            }
+            $pdo->commit();
+            return true;
+        } catch (Throwable $e) {
+            if ($pdo->inTransaction()) $pdo->rollBack();
+            throw $e;
+        }
+    }
 }
