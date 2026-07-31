@@ -32,7 +32,17 @@
   /* Sombra FINA: apenas despega la barra del contenido al hacer scroll, sin cajón. */
   box-shadow: 0 1px 3px rgba(12, 20, 50, .06);
   font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  /* Sticky inteligente: la barra se desliza al bajar y vuelve al subir (oknav.js
+     pone/quita .oknav--oculta). Solo cambia el transform, así que no repinta. */
+  transition: transform .28s ease;
 }
+/* Escondida (bajando): sube su propio alto y desaparece. Al subir se le quita
+   la clase y vuelve sola con la transición. */
+.oknav--oculta { transform: translateY(-100%); }
+/* Con un menú desplegado (buscador, categorías, cajón) nunca se esconde, aunque
+   el usuario siga desplazándose: la lógica de oknav.js ya lo evita, y esto es el
+   cinturón por si algún estilo intentara ocultarla en ese momento. */
+.oknav:focus-within.oknav--oculta { transform: none; }
 /* Cada fila pinta su propio fondo sólido. En navegadores móviles la barra sticky puede
    promoverse a otra capa al hacer scroll; depender solo del fondo del padre hacía que
    esa capa se viera transparente durante algunos cuadros. */
@@ -442,25 +452,33 @@
     cursor: pointer;
   }
   .oknav__search input::placeholder { color: transparent; }
-  .oknav__row--main > .oknav__wrap:has(.oknav__search:focus-within) {
+  /* Abierta = enfocada O con la clase .is-open que pone oknav.js al tocar la lupa.
+     La clase es la que manda: el foco del campo diminuto no siempre prendía al
+     tocarlo, y sin foco la barra no se abría (era el "error del buscador"). */
+  .oknav__row--main > .oknav__wrap:has(.oknav__search:focus-within),
+  .oknav__row--main > .oknav__wrap:has(.oknav__search.is-open) {
     grid-template-areas:
       "burger logo . actions"
       "search search search search";
     row-gap: 8px;
   }
-  .oknav__search:focus-within {
+  .oknav__search:focus-within,
+  .oknav__search.is-open {
     position: relative; left: auto; right: auto; bottom: auto;
     width: 100%; height: 44px; z-index: 10;
   }
-  .oknav__search:focus-within > svg {
+  .oknav__search:focus-within > svg,
+  .oknav__search.is-open > svg {
     left: 13px; transform: translateY(-50%);
   }
-  .oknav__search:focus-within input {
+  .oknav__search:focus-within input,
+  .oknav__search.is-open input {
     width: 100%; padding: 10px 38px 10px 40px;
     color: var(--text-primary, #12141C); caret-color: currentColor;
     cursor: text;
   }
-  .oknav__search:focus-within input::placeholder {
+  .oknav__search:focus-within input::placeholder,
+  .oknav__search.is-open input::placeholder {
     color: var(--text-muted, #717890);
   }
   .oknav__row--nav > .oknav__wrap {

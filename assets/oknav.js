@@ -284,6 +284,53 @@
     if (ac && !ac.hidden && !e.target.closest(".oknav__search")) acCerrar();
   });
 
+  /* ── Buscador en móvil: abrir a lo ancho de forma fiable ────────────────
+     En teléfono el buscador parte como una lupa y debe abrirse a todo el ancho.
+     Antes eso dependía solo de :focus-within del CSS, pero al tocar un campo tan
+     pequeño el foco no siempre prendía (o se perdía), y la barra no se abría:
+     ese era el "error del buscador". Aquí se ancla con una clase .is-open que
+     controla el JS: tocar la lupa abre y enfoca; tocar fuera o Escape cierra.
+     En escritorio no estorba: las reglas que usan .is-open viven en el @media. */
+  var searchBox = nav.querySelector(".oknav__search");
+  var mqBusca = window.matchMedia("(max-width: 480px)");
+  if (searchBox && q) {
+    var abrirBusqueda = function () {
+      searchBox.classList.add("is-open");
+      /* Enfocar en el siguiente cuadro: el reflow del grid (la barra baja a su
+         propio renglón) ya ocurrió y el teclado no salta de golpe. */
+      requestAnimationFrame(function () {
+        try { q.focus({ preventScroll: true }); } catch (e) { q.focus(); }
+      });
+    };
+    var cerrarBusqueda = function () {
+      if (!searchBox.classList.contains("is-open")) return;
+      if (q.value.trim() !== "") return;   // con texto escrito no se colapsa sola
+      searchBox.classList.remove("is-open");
+      acCerrar();
+    };
+    /* pointerdown gana el foco nativo del campo, que en esta lupa diminuta no
+       siempre prendía (era el "error del buscador" en el táctil). El click es el
+       respaldo para punteros que no emiten eventos pointer (ratón, escritorio).
+       Solo en móvil y solo al ABRIR: ya abierta, el campo se comporta normal
+       (seleccionar texto, mover el cursor, etc.). */
+    var tocarParaAbrir = function (e) {
+      if (!mqBusca.matches) return;
+      if (!searchBox.classList.contains("is-open")) {
+        e.preventDefault();
+        abrirBusqueda();
+      }
+    };
+    searchBox.addEventListener("pointerdown", tocarParaAbrir);
+    searchBox.addEventListener("click", tocarParaAbrir);
+    /* Si el foco entra por otra vía (teclado, lector de pantalla), también abre. */
+    q.addEventListener("focus", function () { searchBox.classList.add("is-open"); });
+    q.addEventListener("blur", function () { setTimeout(cerrarBusqueda, 120); });
+    q.addEventListener("keydown", function (e) { if (e.key === "Escape") cerrarBusqueda(); });
+    document.addEventListener("click", function (e) {
+      if (!e.target.closest(".oknav__search")) cerrarBusqueda();
+    });
+  }
+
   /* ── Páginas que filtran su propia lista (la compra rápida) ──────────────
      Ahí el desplegable no se abre nunca, así que el campo NO debe anunciarse como un
      combobox con lista de sugerencias: un lector de pantalla prometería algo que no
@@ -439,6 +486,47 @@
       if (window.OKTheme) { window.OKTheme.toggle(); pintaTema(); }
     });
   }
+
+  /* ── Sticky inteligente ────────────────────────────────────────────────
+     Pedido del usuario: al DESPLAZARSE hacia abajo la barra se esconde para dar
+     más pantalla; al subir, reaparece. Solo cuando hace scroll la VENTANA
+     (portada, ficha, checkout, carrito, categorías…). En la tienda el scroll
+     vive en un contenedor propio con overflow:hidden en el body: ahí este
+     listener no dispara y la barra no se esconde —si lo hiciera dejaría un hueco,
+     porque en la tienda la barra no cuelga del flujo del scroll.
+     Nunca se esconde cerca del tope, ni con el buscador / categorías / cajón
+     abiertos (taparía justo lo que el usuario acaba de abrir). */
+  (function stickyInteligente() {
+    var ultimo = window.pageYOffset || document.documentElement.scrollTop || 0;
+    var pendiente = false;
+    var UMBRAL = 8;   // px de bajada seguida para esconder (ignora el temblor del dedo)
+
+    function hayAlgoAbierto() {
+      return (ac && !ac.hidden) ||
+             (catsMenu && !catsMenu.hidden) ||
+             (cajon && !cajon.hidden) ||
+             !!nav.querySelector(".oknav__search.is-open");
+    }
+    function evaluar() {
+      pendiente = false;
+      var y = window.pageYOffset || document.documentElement.scrollTop || 0;
+      var alto = nav.getBoundingClientRect().height || 0;
+      if (y <= alto || hayAlgoAbierto()) {
+        nav.classList.remove("oknav--oculta"); ultimo = y; return;
+      }
+      var d = y - ultimo;
+      if (d > UMBRAL) { nav.classList.add("oknav--oculta"); ultimo = y; }     // bajando → esconder
+      else if (d < 0) { nav.classList.remove("oknav--oculta"); ultimo = y; }  // subiendo → mostrar
+      // movimientos menores al umbral: se acumulan (no se actualiza ultimo)
+    }
+    window.addEventListener("scroll", function () {
+      if (!pendiente) { pendiente = true; requestAnimationFrame(evaluar); }
+    }, { passive: true });
+    /* Volver con "atrás" o cambiar de orientación: que aparezca, no que quede
+       escondida por un estado viejo. */
+    window.addEventListener("pageshow", function () { nav.classList.remove("oknav--oculta"); });
+    window.addEventListener("orientationchange", function () { nav.classList.remove("oknav--oculta"); });
+  })();
 
   /* Arranque */
   refresh(); paintAcct(); cargaLoc(); pintaTema();
