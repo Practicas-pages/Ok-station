@@ -611,6 +611,14 @@ body.td-predrag .td-trash{display:flex}
    mejora de escritorio, donde el navegador sí ofrece un drag fiable). */
 @media(max-width:640px){
   html,body{height:100%;overflow:hidden}
+  /* En la compra rápida la navbar se queda SOLO con logo + buscador + carrito.
+     La fila de Tienda/Tienda rápida/Categorías/Ofertas sobra aquí: la tienda ya
+     trae sus propios Filtros y Categorías, y el cajón ☰ guarda el resto de la
+     navegación. En un layout de pantalla fija esa fila robaba ~100px al listado.
+     Al esconderla, oknav.js vuelve a medir --oknav-h (tiene un ResizeObserver) y
+     .td-wrap crece solo para llenar el hueco. Solo afecta a esta página: la regla
+     vive en su <style>, no en oknav.css. */
+  .oknav__row--nav, .oknav__catsmenu{display:none}
   .td-wrap{
     position:relative;height:calc(100dvh - var(--oknav-h,0px));min-height:0;
     padding:8px;box-sizing:border-box;display:flex;flex-direction:column;overflow:hidden
