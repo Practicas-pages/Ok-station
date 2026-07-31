@@ -893,6 +893,11 @@ html.q-lock, html.q-lock body{overflow:hidden}
 /* ── Libreta de direcciones (modal de ubicación) ── */
 #site .addrs{display:flex; flex-direction:column; gap:9px}
 #site .addr{display:flex; flex-direction:column; gap:2px; width:100%; text-align:left; padding:12px 14px; border:1.5px solid var(--line); border-radius:12px; background:#fff; cursor:pointer; font:inherit; color:var(--ink); transition:border-color .15s, box-shadow .15s}
+#site .addr-wrap{position:relative}
+#site .addr-wrap .addr{padding-right:42px}
+#site .addr__del{position:absolute; top:9px; right:9px; width:30px; height:30px; border:none; background:transparent; color:#9aa4b2; cursor:pointer; border-radius:8px; display:flex; align-items:center; justify-content:center; z-index:2; transition:background .15s, color .15s}
+#site .addr__del:hover{background:#fdeaea; color:#dc2626}
+#site .addr__del svg{width:16px; height:16px}
 #site .addr:hover{border-color:var(--blue); box-shadow:0 6px 18px rgba(8,12,30,.10)}
 #site .addr--on{border-color:var(--blue); background:#f5f9ff}
 #site .addr b{font-size:.9rem; font-weight:700}
@@ -2623,10 +2628,15 @@ html[data-theme="dark"] #site .side-back:hover{background:rgba(255,255,255,.08)}
   /* Lista: cada dirección es seleccionable (marca la predeterminada) + alta nueva. */
   function locList(list){
     var items=list.map(function(a){
-      return '<button type="button" class="addr'+(a.is_default?" addr--on":"")+'" data-addr="'+a.id+'">'+
+      return '<div class="addr-wrap">'+
+        '<button type="button" class="addr'+(a.is_default?" addr--on":"")+'" data-addr="'+a.id+'">'+
         '<b>'+esc(a.recipient)+(a.is_default?' <span class="addr__tag">Predeterminada</span>':'')+'</b>'+
         '<span>'+esc(a.label)+'</span>'+
-        (a.notes?'<span class="addr__note">'+esc(a.notes)+'</span>':'')+'</button>';
+        (a.notes?'<span class="addr__note">'+esc(a.notes)+'</span>':'')+'</button>'+
+        '<button type="button" class="addr__del" data-del="'+a.id+'" aria-label="Borrar dirección" title="Borrar dirección">'+
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>'+
+        '</button>'+
+      '</div>';
     }).join("");
     $("locModal").innerHTML=locShell(
       (list.length?'<p class="desc" style="max-width:none;font-size:.88rem;margin-bottom:12px">Elige a dónde enviamos tu pedido.</p>':'')+
@@ -2634,6 +2644,18 @@ html[data-theme="dark"] #site .side-back:hover{background:rgba(255,255,255,.08)}
       '<div class="addrs">'+items+
         '<button type="button" class="addr addr--new" id="addrNew"><span class="addr__plus">+</span><b>Agregar dirección</b></button>'+
       '</div>');
+  }
+
+  /* Borra una dirección de la libreta (con confirmación). */
+  function deleteAddr(id){
+    if(!confirm("¿Borrar esta dirección? No se puede deshacer.")) return;
+    authFetch("/backend/api/shop/address-delete.php",{method:"POST",body:JSON.stringify({id:id})}).then(function(j){
+      if(!j||!j.ok){ flash((j&&j.error)||"No se pudo borrar la dirección"); return; }
+      okAddr=j.addresses||[];
+      /* Si borraste la que estaba elegida para el envío, cae a la predeterminada. */
+      if(coAddrId===id){ var d=okAddr.filter(function(a){return a.is_default;})[0]||okAddr[0]; coAddrId=d?d.id:0; }
+      renderLoc(); locList(okAddr); flash("Dirección borrada");
+    }).catch(function(){ flash("Error de conexión, intenta de nuevo"); });
   }
 
   /* Formulario de alta. Campos pensados para entregar de verdad en México:
@@ -2784,14 +2806,10 @@ html[data-theme="dark"] #site .side-back:hover{background:rgba(255,255,255,.08)}
         afReverse(pos.coords.latitude,pos.coords.longitude);
       },function(err){
         if(b){b.disabled=false; b.innerHTML=ICO_PIN+" Usar mi ubicación actual";}
-        /* 1=PERMISSION_DENIED, 2=POSITION_UNAVAILABLE, 3=TIMEOUT: cada uno se
-           resuelve distinto, así que no pueden compartir el mismo aviso. */
-        if(err && err.code===1){ afGeoBlocked(); return; }
-        if(err && err.code===3){
-          afGeoBox('Tu teléfono tardó demasiado en responder. Vuelve a intentarlo o escribe tu dirección a mano.',"info");
-        } else {
-          afGeoBox('No pudimos leer tu ubicación (puede ser la señal del GPS). Escribe tu dirección a mano y listo.',"info");
-        }
+        /* Sin GPS (permiso negado, señal o timeout) caemos a la geolocalización por IP
+           (Cloudflare): rellena lo que se pueda —estado, ciudad, CP aproximado— para no
+           dejar al cliente con la mano vacía. afGeoIp() pone su propio aviso. */
+        afGeoIp();
       },{enableHighAccuracy:true,timeout:10000,maximumAge:60000});
     }
 
@@ -2799,7 +2817,9 @@ html[data-theme="dark"] #site .side-back:hover{background:rgba(255,255,255,.08)}
        más vale decirlo de una vez que fingir que se está buscando. */
     if(!forzar && navigator.permissions && navigator.permissions.query){
       navigator.permissions.query({name:"geolocation"}).then(function(st){
-        if(st.state==="denied"){ afGeoBlocked(); return; }
+        /* Permiso ya negado → no insistimos con el GPS; usamos la geo por IP (Cloudflare)
+           para rellenar lo que se pueda. */
+        if(st.state==="denied"){ afGeoIp(); return; }
         /* En "prompt" el navegador va a preguntar: se avisa para que nadie ignore
            el cuadrito del navegador creyendo que la página se trabó. */
         if(st.state==="prompt"){ afGeoBox('Tu navegador te va a preguntar si compartes tu ubicación — toca <b>Permitir</b>.',"info"); }
@@ -2834,6 +2854,19 @@ html[data-theme="dark"] #site .side-back:hover{background:rgba(255,255,255,.08)}
       set("afCp",a.zip); set("afCity",a.city);
       if(a.state){ var sel=$("afState"); if(sel){ for(var i=0;i<sel.options.length;i++){ if(sel.options[i].text.toLowerCase()===a.state.toLowerCase()){sel.selectedIndex=i;break;} } } }
     }).catch(function(){});
+  }
+
+  /* Respaldo por IP (geolocalización de Cloudflare) cuando no hay GPS: rellena lo que se
+     pueda —estado, ciudad, CP aproximado—; el cliente corrige calle y número. */
+  function afGeoIp(){
+    fetch("/backend/api/shop/geo.php").then(function(r){return r.json();}).then(function(j){
+      if(!j||!j.ok){ afGeoBox('No pudimos ubicarte; escribe tu dirección a mano.',"info"); return; }
+      var set=function(id,v){var el=$(id); if(el&&v)el.value=v;};
+      set("afCity",j.city);
+      if(j.zip){ var cp=$("afCp"); if(cp) cp.value=(""+j.zip).replace(/\D/g,"").slice(0,5); }
+      if(j.state){ var sel=$("afState"); if(sel){ for(var i=0;i<sel.options.length;i++){ if(sel.options[i].text.toLowerCase()===(""+j.state).toLowerCase()){sel.selectedIndex=i;break;} } } }
+      afGeoBox('Ubicación aproximada por tu conexión. Corrige tu calle, número y C.P.',"info");
+    }).catch(function(){ afGeoBox('No pudimos ubicarte; escribe tu dirección a mano.',"info"); });
   }
 
   function saveAddr(){
@@ -2903,6 +2936,7 @@ html[data-theme="dark"] #site .side-back:hover{background:rgba(255,255,255,.08)}
     if(e.target.closest("#afBack"))  return locList(okAddr||[]);
     if(e.target.closest("#afGeo"))   return afGeoStart();
     if(e.target.closest("#afSave"))  return saveAddr();
+    var del=e.target.closest("[data-del]"); if(del) return deleteAddr(+del.dataset.del);
     var a=e.target.closest("[data-addr]"); if(a) return pickAddr(+a.dataset.addr);
   });
   /* Enter envía el formulario, pero no desde el <select> (ahí Enter elige opción). */
