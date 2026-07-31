@@ -493,6 +493,11 @@
             </button>
 
             <form id="coAddrForm" class="co-addrform" hidden novalidate>
+              <button type="button" class="co-addbtn" id="coGeoBtn" style="width:100%;justify-content:center;margin:0 0 6px">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                Usar mi ubicación automáticamente
+              </button>
+              <p class="co-note" id="coGeoStatus" style="margin:0 0 12px" hidden></p>
               <div class="auth-row">
                 <div class="auth-field"><label for="af-rec">Nombre de quien recibe</label><input id="af-rec" type="text" maxlength="160" autocomplete="name"></div>
                 <div class="auth-field"><label for="af-phone">Teléfono</label><input id="af-phone" type="tel" inputmode="numeric" maxlength="14" autocomplete="tel"></div>
@@ -822,6 +827,59 @@
       $("coAddToggle").hidden = show;
       if (show) { clearAlert("coAddrAlert"); try { $("af-rec").focus(); } catch (e) {} }
     }
+
+    /* ── Sugerir la dirección automáticamente ──
+       GPS del navegador → geo-reverse.php (OpenStreetMap) para una dirección precisa;
+       si el cliente no da permiso, respaldo por IP con geo.php (la geolocalización de
+       Cloudflare). Solo PRE-LLENA: el cliente revisa y corrige lo que haga falta. */
+    function setEstadoSelect(nombre) {
+      if (!nombre) return false;
+      var norm = function (s) { return (s || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").trim(); };
+      var opts = $("af-state").options, n = norm(nombre);
+      for (var i = 0; i < opts.length; i++) {
+        if (opts[i].value && (norm(opts[i].value) === n || norm(opts[i].text) === n)) { $("af-state").value = opts[i].value; return true; }
+      }
+      return false;
+    }
+    function llenarDireccion(a, aproximado) {
+      var set = function (id, v) { if (v) $(id).value = v; };
+      set("af-street", a.street);
+      set("af-ext", a.ext_num);
+      set("af-neigh", a.colonia || a.neighborhood);
+      set("af-city", a.city);
+      if (a.zip || a.postal_code) $("af-cp").value = (a.zip || a.postal_code).replace(/\D/g, "").slice(0, 5);
+      setEstadoSelect(a.state);
+      var st = $("coGeoStatus"); st.hidden = false;
+      st.textContent = aproximado
+        ? "Ubicación aproximada por tu conexión. Corrige tu calle, número y C.P., y pon quién recibe."
+        : "¡Listo! Revisa que todo esté bien y completa quién recibe y su teléfono.";
+    }
+    function ubicacionPorIp() {   // respaldo: geolocalización por IP (Cloudflare)
+      fetch(API + "/shop/geo.php").then(function (r) { return r.json(); }).then(function (j) {
+        if (j && j.ok && (j.state || j.city || j.zip)) llenarDireccion({ city: j.city, zip: j.zip, state: j.state }, true);
+        else geoError();
+      }).catch(geoError);
+    }
+    function geoError() {
+      var st = $("coGeoStatus"); st.hidden = false;
+      st.textContent = "No pudimos obtener tu ubicación; escríbela a mano.";
+    }
+    function usarMiUbicacion() {
+      var btn = $("coGeoBtn"), st = $("coGeoStatus");
+      st.hidden = false; st.textContent = "Obteniendo tu ubicación…";
+      if (!navigator.geolocation) { ubicacionPorIp(); return; }
+      var orig = btn.innerHTML; btn.disabled = true;
+      navigator.geolocation.getCurrentPosition(function (pos) {
+        btn.disabled = false; btn.innerHTML = orig;
+        fetch(API + "/shop/geo-reverse.php?lat=" + pos.coords.latitude + "&lon=" + pos.coords.longitude,
+              { headers: { Authorization: "Bearer " + token() } })
+          .then(function (r) { return r.json(); })
+          .then(function (j) { if (j && j.ok && j.address) llenarDireccion(j.address, false); else ubicacionPorIp(); })
+          .catch(ubicacionPorIp);
+      }, function () {   // permiso denegado / no disponible → geo por IP
+        btn.disabled = false; btn.innerHTML = orig; ubicacionPorIp();
+      }, { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 });
+    }
     function saveAddress() {
       clearAlert("coAddrAlert");
       var payload = {
@@ -942,6 +1000,7 @@
       $("af-phone").addEventListener("input", function () { this.value = fmtPhone(this.value); });
       $("af-cp").addEventListener("input", function () { this.value = this.value.replace(/\D/g, "").slice(0, 5); });
       $("coAddToggle").addEventListener("click", function () { toggleAddrForm(true); });
+      $("coGeoBtn").addEventListener("click", usarMiUbicacion);
       $("coAddrCancel").addEventListener("click", function () { toggleAddrForm(false); });
       $("coAddrForm").addEventListener("submit", function (e) { e.preventDefault(); saveAddress(); });
       $("coSubmit").addEventListener("click", submit);
