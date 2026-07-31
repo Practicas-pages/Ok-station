@@ -100,6 +100,11 @@
     .co-addr__badge { display: inline-block; margin-left: 7px; padding: 1px 7px; border-radius: var(--radius-full);
       background: var(--brand-blue-light); color: var(--brand-blue); font-size: 0.68rem; font-weight: 700; vertical-align: middle; }
     .co-addr__line { font-size: 0.82rem; color: var(--text-muted); margin-top: 2px; }
+    .co-addr-wrap { position: relative; }
+    .co-addr-wrap .co-addr { padding-right: 42px; }
+    .co-addr__del { position: absolute; top: 10px; right: 10px; width: 30px; height: 30px; border: none; background: transparent; color: var(--text-faint); cursor: pointer; border-radius: 8px; display: flex; align-items: center; justify-content: center; z-index: 2; transition: background 0.15s, color 0.15s; }
+    .co-addr__del:hover { background: rgba(220,38,38,0.10); color: var(--color-error); }
+    .co-addr__del svg { width: 16px; height: 16px; }
     .co-addbtn { display: inline-flex; align-items: center; gap: 7px; padding: 10px 14px; margin-top: 2px;
       border: 1.5px dashed var(--border-medium); border-radius: var(--radius-sm); background: none;
       font: inherit; font-size: 0.86rem; font-weight: 600; color: var(--brand-blue); cursor: pointer; transition: background 0.15s, border-color 0.15s; }
@@ -717,14 +722,17 @@
       var box = $("coAddrList");
       if (!ADDR.length) { box.innerHTML = '<p class="co-note">Aún no tienes direcciones guardadas. Agrega una para calcular el envío.</p>'; return; }
       box.innerHTML = ADDR.map(function (a) {
-        return '<button type="button" class="co-addr' + (a.id === selAddrId ? ' is-active' : '') + '" data-addr="' + a.id + '">' +
+        return '<div class="co-addr-wrap">' +
+          '<button type="button" class="co-addr' + (a.id === selAddrId ? ' is-active' : '') + '" data-addr="' + a.id + '">' +
           '<span class="co-addr__radio"></span>' +
           '<span class="co-addr__body">' +
             '<span class="co-addr__rec">' + esc(a.recipient) + (a.is_default ? '<span class="co-addr__badge">Predeterminada</span>' : '') + '</span>' +
             '<span class="co-addr__line">' + esc(a.label) + '</span>' +
             (a.notes ? '<span class="co-addr__line">' + esc(a.notes) + '</span>' : '') +
           '</span>' +
-        '</button>';
+        '</button>' +
+        '<button type="button" class="co-addr__del" data-del="' + a.id + '" aria-label="Borrar dirección" title="Borrar dirección"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>' +
+        '</div>';
       }).join("");
       box.querySelectorAll("[data-addr]").forEach(function (b) {
         b.addEventListener("click", function () {
@@ -732,6 +740,21 @@
           renderAddresses(); quoteShip(); renderSummary(); paintSubmit();
         });
       });
+      box.querySelectorAll("[data-del]").forEach(function (b) {
+        b.addEventListener("click", function () { borrarDireccion(+b.getAttribute("data-del")); });
+      });
+    }
+    function borrarDireccion(id) {
+      if (!confirm("¿Borrar esta dirección? No se puede deshacer.")) return;
+      fetch(API + "/shop/address-delete.php", {
+        method: "POST", headers: { "Content-Type": "application/json", Authorization: "Bearer " + token() },
+        body: JSON.stringify({ id: id })
+      }).then(function (r) { return r.json(); }).then(function (j) {
+        if (!j || !j.ok) { setAlert("coAlert", (j && j.error) || "No se pudo borrar la dirección."); return; }
+        ADDR = j.addresses || [];
+        if (selAddrId === id) selAddrId = (ADDR[0] && ADDR[0].id) || 0;   // cae a la predeterminada
+        renderAddresses(); quoteShip(); renderSummary(); paintSubmit();
+      }).catch(function () { setAlert("coAlert", "Sin conexión con el servidor."); });
     }
 
     /* ── Opciones de envío ── */

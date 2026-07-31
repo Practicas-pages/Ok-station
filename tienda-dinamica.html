@@ -261,6 +261,11 @@ html[data-theme="dark"] .side-back:hover{background:rgba(255,255,255,.08)}
 .loc-err{margin:0 0 12px;padding:10px 12px;border-radius:10px;background:#fdeaea;color:#8a1c1c;font-size:.85rem}
 .addrs{display:flex;flex-direction:column;gap:9px}
 .addr{display:flex;flex-direction:column;gap:2px;width:100%;text-align:left;padding:12px 14px;border:1.5px solid var(--line,#e3e6ee);border-radius:12px;background:#fff;cursor:pointer;font:inherit;color:var(--ink,#111);transition:border-color .15s,box-shadow .15s}
+.addr-wrap{position:relative}
+.addr-wrap .addr{padding-right:42px}
+.addr__del{position:absolute;top:9px;right:9px;width:30px;height:30px;border:none;background:transparent;color:#9aa4b2;cursor:pointer;border-radius:8px;display:flex;align-items:center;justify-content:center;z-index:2;transition:background .15s,color .15s}
+.addr__del:hover{background:#fdeaea;color:#dc2626}
+.addr__del svg{width:16px;height:16px}
 .addr:hover{border-color:var(--brand-blue,#066CFF);box-shadow:0 6px 18px rgba(8,12,30,.10)}
 .addr--on{border-color:var(--brand-blue,#066CFF);background:#f5f9ff}
 .addr b{font-size:.9rem;font-weight:700}
@@ -2238,10 +2243,13 @@ html[data-theme="dark"] .td-go:disabled{ background:#232D46; color:#67708A }
   function locList(list){
     $("tdLocTitle").textContent = "¿A dónde te lo enviamos?";
     var items = list.map(function(a){
-      return '<button type="button" class="addr'+(a.is_default?" addr--on":"")+'" data-addr="'+a.id+'">'+
+      return '<div class="addr-wrap">'+
+        '<button type="button" class="addr'+(a.is_default?" addr--on":"")+'" data-addr="'+a.id+'">'+
         '<b>'+esc(a.recipient)+(a.is_default?' <span class="addr__tag">Predeterminada</span>':'')+'</b>'+
         '<span>'+esc(a.label || (a.city+" "+a.postal_code))+'</span>'+
-        (a.notes?'<span class="addr__note">'+esc(a.notes)+'</span>':'')+'</button>';
+        (a.notes?'<span class="addr__note">'+esc(a.notes)+'</span>':'')+'</button>'+
+        '<button type="button" class="addr__del" data-del="'+a.id+'" aria-label="Borrar dirección" title="Borrar dirección"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>'+
+      '</div>';
     }).join("");
     $("tdLocBody").innerHTML =
       '<div class="loc-err" id="locErr" role="alert" hidden></div>'+
@@ -2310,7 +2318,7 @@ html[data-theme="dark"] .td-go:disabled{ background:#232D46; color:#67708A }
       afReverse(pos.coords.latitude,pos.coords.longitude);
     },function(){
       if(b){ b.disabled=false; b.innerHTML=ICO_PIN+" Usar mi ubicación actual"; }
-      locMsg("No pudimos leer tu ubicación; escribe tu dirección.");
+      afGeoIp();   // sin GPS → geolocalización por IP (Cloudflare) rellena lo que se pueda
     },{enableHighAccuracy:true,timeout:10000,maximumAge:60000});
   }
   function afShowMap(lat,lon){
@@ -2338,6 +2346,19 @@ html[data-theme="dark"] .td-go:disabled{ background:#232D46; color:#67708A }
       set("afCp",a.zip); set("afCity",a.city);
       if(a.state){ var sel=$("afState"); if(sel){ for(var i=0;i<sel.options.length;i++){ if(sel.options[i].text.toLowerCase()===a.state.toLowerCase()){ sel.selectedIndex=i; break; } } } }
     }).catch(function(){});
+  }
+
+  /* Respaldo por IP (geolocalización de Cloudflare) cuando no hay GPS: rellena lo que se
+     pueda —estado, ciudad, CP aproximado—; el cliente corrige calle y número. */
+  function afGeoIp(){
+    fetch("backend/api/shop/geo.php").then(function(r){return r.json();}).then(function(j){
+      if(!j||!j.ok){ locMsg("No pudimos ubicarte; escribe tu dirección a mano."); return; }
+      var set=function(id,vv){ var el=$(id); if(el&&vv) el.value=vv; };
+      set("afCity",j.city);
+      if(j.zip){ var cp=$("afCp"); if(cp) cp.value=(""+j.zip).replace(/\D/g,"").slice(0,5); }
+      if(j.state){ var sel=$("afState"); if(sel){ for(var i=0;i<sel.options.length;i++){ if(sel.options[i].text.toLowerCase()===(""+j.state).toLowerCase()){ sel.selectedIndex=i; break; } } } }
+      locMsg("Ubicación aproximada por tu conexión. Corrige tu calle, número y C.P.");
+    }).catch(function(){ locMsg("No pudimos ubicarte; escribe tu dirección a mano."); });
   }
 
   function saveAddr(){
@@ -2369,6 +2390,15 @@ html[data-theme="dark"] .td-go:disabled{ background:#232D46; color:#67708A }
       if ($("tdCartDrawer").classList.contains("open")) renderCart();
     }).catch(function(){ btn.disabled=false; btn.textContent="Agregar dirección"; bad("Sin conexión con el servidor."); });
   }
+  function deleteAddr(id){
+    if(!confirm("¿Borrar esta dirección? No se puede deshacer.")) return;
+    authFetch("backend/api/shop/address-delete.php",{method:"POST",body:JSON.stringify({id:id})}).then(function(j){
+      if(!j||!j.ok){ locMsg((j&&j.error)||"No se pudo borrar la dirección"); return; }
+      locAddrs=j.addresses||[];
+      coAddr=locAddrs.filter(function(a){return a.is_default;})[0]||locAddrs[0]||null;
+      renderLoc(); locList(locAddrs);
+    }).catch(function(){ locMsg("Error de conexión, intenta de nuevo"); });
+  }
   function pickAddr(id){
     authFetch("backend/api/shop/address-default.php", { method:"POST", body:JSON.stringify({ id:id }) }).then(function(j){
       if (!j || !j.ok) return;
@@ -2384,6 +2414,7 @@ html[data-theme="dark"] .td-go:disabled{ background:#232D46; color:#67708A }
     if (e.target.closest("#afBack"))  return locList(locAddrs||[]);
     if (e.target.closest("#afGeo"))   return afGeoStart();
     if (e.target.closest("#afSave"))  return saveAddr();
+    var del = e.target.closest("[data-del]"); if (del) return deleteAddr(+del.dataset.del);
     var a = e.target.closest("[data-addr]"); if (a) return pickAddr(+a.dataset.addr);
   });
   $("tdLocDrawer").addEventListener("keydown", function(e){
