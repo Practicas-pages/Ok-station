@@ -758,7 +758,7 @@
       /* Si la paquetería no cotizó, la única opción es la tarifa de respaldo por zona
          (clave RESPALDO): se avisa que es estimada y que hay recoger en tienda gratis. */
       (shipOpts.some(function (o) { return o.clave === "RESPALDO"; })
-        ? '<p class="co-note" style="margin-top:4px">Tarifa estimada por zona; el monto final se confirma al preparar tu pedido. Si prefieres, puedes <b>recoger en tienda</b> gratis.</p>'
+        ? '<p class="co-note" style="margin-top:4px">Tarifa estimada; el monto final se confirma al preparar tu pedido. Si prefieres, puedes <b>recoger en tienda</b> gratis.</p>'
         : "");
       box.querySelectorAll("[data-ship]").forEach(function (b) {
         b.addEventListener("click", function () {

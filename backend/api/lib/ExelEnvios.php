@@ -226,7 +226,16 @@ final class ExelEnvios
         }
         $res = $j['resultado'] ?? null;
         if ($res !== true) {
-            // Al fallar, `resultado` trae el TEXTO del error ("ERROR: favor de..."): rechazo estable.
+            /* Respuesta EN BLANCO {"resultado":"","mensaje":"","datos":""}: es el throttle
+               de Exel (contesta rápido pero sin nada). Se trata como TRANSITORIA para que
+               se REINTENTE — así son 2 intentos reales antes de caer al respaldo. Un
+               mensaje de error de verdad (texto en 'resultado') sí es estable: no se repite. */
+            $blanco = ($res === '' || $res === null)
+                   && trim((string) ($j['mensaje'] ?? '')) === ''
+                   && empty($j['datos']);
+            if ($blanco) {
+                return ['tipo' => 'respuesta-vacia', 'transitorio' => true, 'detalle' => 'Exel contestó en blanco (throttle)'];
+            }
             $msg = is_string($res) ? $res : json_encode($res, JSON_UNESCAPED_UNICODE);
             return ['tipo' => 'resultado-error', 'transitorio' => false, 'detalle' => self::snippet((string) $msg)];
         }
