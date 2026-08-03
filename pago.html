@@ -10,6 +10,11 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+  <!-- Mercado Pago (SDK del formulario de tarjeta): adelantamos la conexión al CDN
+       para que cargue más rápido y con menos fallos en redes móviles. -->
+  <link rel="preconnect" href="https://sdk.mercadopago.com" crossorigin>
+  <link rel="dns-prefetch" href="https://sdk.mercadopago.com">
+  <link rel="preconnect" href="https://http2.mlstatic.com" crossorigin>
   <!-- Tema (claro/oscuro): antes de la hoja para pintar ya con el tema elegido -->
   <script src="assets/theme.js?v=20260721a"></script>
   <link rel="stylesheet" href="styles.css?v=20260728d">
@@ -559,13 +564,65 @@
       $("pago-pro").addEventListener("click", startCheckoutPro);
       $("pago-cancel-mp").addEventListener("click", function () { location.href = backHref; });
 
+      /* Resalta "Pagar en Mercado Pago" como la opción principal. Ese botón NO usa
+         el SDK: crea la preferencia en el servidor (create.php mode=pro) y redirige
+         al checkout de Mercado Pago, así que funciona aunque el formulario de tarjeta
+         de aquí no cargue (por una extensión que bloquea MP, una red lenta, etc.). */
+      function promoverPagoPro() {
+        var pro = $("pago-pro");
+        if (pro && !pro.classList.contains("btn--primary")) {
+          pro.classList.remove("btn--light");
+          pro.classList.add("btn--primary");
+        }
+      }
+      /* Cuando el formulario de tarjeta EN EL SITIO no puede cargar, no dejamos al
+         cliente con un error rojo que parece que todo se rompió: se lo explicamos con
+         calma y volvemos "Pagar en Mercado Pago" la opción evidente. */
+      function mpFallbackPro(msg) {
+        var brick = $("mp-brick");
+        if (brick) brick.innerHTML = '<p style="color:var(--text-muted);font-size:.9rem;text-align:center;margin:8px 0 2px">' + esc(msg) + '</p>';
+        var or = document.querySelector(".pago-or"); if (or) or.style.display = "none";
+        promoverPagoPro();
+        var pro = $("pago-pro"); if (pro) { try { pro.scrollIntoView({ block: "center", behavior: "smooth" }); } catch (e) {} }
+      }
+      /* Carga el SDK de Mercado Pago con REINTENTOS. Vive en un CDN externo y en redes
+         móviles —o con alguna extensión del navegador— un intento suelto falla de vez
+         en cuando; reintentar un par de veces recupera la mayoría de esos casos sin
+         molestar al cliente. Si ya está cargado (volver atrás, segunda visita), se
+         reutiliza sin volver a pedirlo.
+         PLAZO GLOBAL de 12s: si la petición al CDN se CUELGA (conexión abierta que ni
+         carga ni aborta —redes lentas/proxies—), el navegador puede tardar minutos en
+         disparar onerror; sin este plazo el spinner giraría eterno y nunca se promovería
+         Checkout Pro. exito()/fallo() disparan UNA sola vez y nunca ambos. */
+      function conSdkMP(ok, err) {
+        if (window.MercadoPago) { ok(); return; }
+        var intentos = 0, MAX = 3, terminado = false;
+        var plazo = setTimeout(function () { fallo(); }, 12000);
+        function exito() { if (terminado) return; terminado = true; clearTimeout(plazo); ok(); }
+        function fallo() { if (terminado) return; terminado = true; clearTimeout(plazo); err(); }
+        (function probar() {
+          if (terminado) return;                       // el plazo global ya cerró: no seguir
+          intentos++;
+          loadScript("https://sdk.mercadopago.com/js/v2", function () {
+            if (terminado) return;
+            if (window.MercadoPago) exito();
+            else if (intentos < MAX) setTimeout(probar, 600 * intentos);
+            else fallo();
+          }, function () {
+            if (terminado) return;
+            if (intentos < MAX) setTimeout(probar, 600 * intentos);
+            else fallo();
+          });
+        })();
+      }
+
       if (!S.publicKey) {
         // Sin llave pública no se puede tokenizar aquí: dejamos solo Checkout Pro.
-        $("mp-brick").innerHTML = '<p style="color:var(--text-muted);font-size:.88rem;text-align:center;margin:6px 0">El pago con tarjeta en el sitio no está disponible ahora. Usa el botón de abajo para pagar en Mercado Pago.</p>';
+        mpFallbackPro('El pago con tarjeta aquí mismo no está disponible por ahora. Puedes pagar de forma segura con el botón de aquí abajo.');
         return;
       }
 
-      loadScript("https://sdk.mercadopago.com/js/v2", function () {
+      conSdkMP(function () {
         try {
           var mp = new MercadoPago(S.publicKey, { locale: "es-MX" });
           var builder = mp.bricks();
@@ -610,16 +667,22 @@
             }
           });
           // Respaldo: si el Brick no dispara onReady en ~12s (recursos de MP bloqueados),
-          // avisamos y dejamos claro que se puede usar "Pagar en Mercado Pago".
+          // el SDK cargó pero el formulario no terminó de pintar. NO borramos el Brick
+          // (aún puede aparecer): solo resaltamos "Pagar en Mercado Pago" y damos el aviso.
           setTimeout(function () {
             var l = $("mp-brick-loader");
-            if (l) l.innerHTML = '<p style="color:var(--text-muted);font-size:.85rem;text-align:center;margin:6px 0">¿No cargó el formulario de tarjeta? Usa el botón “Pagar en Mercado Pago” de abajo.</p>';
+            if (l) {
+              l.innerHTML = '<p style="color:var(--text-muted);font-size:.85rem;text-align:center;margin:6px 0">¿No cargó el formulario de tarjeta? Usa el botón “Pagar en Mercado Pago” de aquí abajo.</p>';
+              promoverPagoPro();
+            }
           }, 12000);
         } catch (e) {
-          $("mp-brick").innerHTML = '<p style="color:var(--color-error);font-size:.88rem;text-align:center;margin:6px 0">No se pudo cargar el formulario de tarjeta. Usa "Pagar en Mercado Pago".</p>';
+          mpFallbackPro('No se pudo iniciar el formulario de tarjeta. Usa el botón de aquí abajo para pagar con Mercado Pago.');
         }
       }, function () {
-        $("mp-brick").innerHTML = '<p style="color:var(--color-error);font-size:.88rem;text-align:center;margin:6px 0">No se pudo cargar Mercado Pago. Revisa tu conexión o usa "Pagar en Mercado Pago".</p>';
+        // El SDK no cargó tras varios intentos: casi siempre una extensión que bloquea
+        // Mercado Pago o una red intermitente. Checkout Pro no depende de ese SDK.
+        mpFallbackPro('No pudimos cargar el formulario de tarjeta (a veces lo bloquea una extensión del navegador o una red lenta). Puedes pagar de forma segura con el botón de aquí abajo.');
       });
     }
 
