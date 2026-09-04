@@ -11,22 +11,41 @@
 declare(strict_types=1);
 
 require __DIR__ . '/../api/lib/env.php';
-load_env(__DIR__ . '/../.env');
 
-$dsn = sprintf(
-    'mysql:host=%s;port=%d;dbname=%s;charset=utf8mb4',
-    env('DATABASE_HOST', '127.0.0.1'),
-    (int) env('DATABASE_PORT', 3306),
-    env('DATABASE_NAME', '')
-);
+/* Conexión: usa la MISMA fuente que la web (backend/api/config.php). Antes este
+   runner leía backend/.env por su cuenta y, si el .env no estaba disponible para
+   el contexto CLI, conectaba como usuario vacío ('' -> "Access denied for user ''").
+   Tomar config.php garantiza que migrate conecte con lo que de verdad usa el sitio.
+   Si no existe config.php, cae al .env (comportamiento anterior). */
+$configFile = __DIR__ . '/../api/config.php';
+if (is_file($configFile)) {
+    $CONFIG = require $configFile;
+    $d = ($CONFIG['db'] ?? []) + [
+        'host' => '127.0.0.1', 'port' => 3306, 'name' => '',
+        'user' => '', 'pass' => '', 'charset' => 'utf8mb4',
+    ];
+    $dsn    = "mysql:host={$d['host']};port={$d['port']};dbname={$d['name']};charset={$d['charset']}";
+    $dbUser = (string) $d['user'];
+    $dbPass = (string) $d['pass'];
+} else {
+    load_env(__DIR__ . '/../.env');
+    $dsn = sprintf(
+        'mysql:host=%s;port=%d;dbname=%s;charset=utf8mb4',
+        env('DATABASE_HOST', '127.0.0.1'),
+        (int) env('DATABASE_PORT', 3306),
+        env('DATABASE_NAME', '')
+    );
+    $dbUser = (string) env('DATABASE_USER', '');
+    $dbPass = (string) env('DATABASE_PASSWORD', '');
+}
 
 try {
-    $pdo = new PDO($dsn, env('DATABASE_USER', ''), env('DATABASE_PASSWORD', ''), [
+    $pdo = new PDO($dsn, $dbUser, $dbPass, [
         PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
     ]);
 } catch (Throwable $e) {
     fwrite(STDERR, "✗ No se pudo conectar a la base de datos.\n  " . $e->getMessage() . "\n");
-    fwrite(STDERR, "  Revisa DATABASE_* en backend/.env\n");
+    fwrite(STDERR, "  Revisa la conexión en backend/api/config.php (o DATABASE_* en backend/.env)\n");
     exit(1);
 }
 

@@ -21,7 +21,6 @@ if (PHP_SAPI !== 'cli') {
 }
 
 require __DIR__ . '/../api/lib/env.php';
-load_env(__DIR__ . '/../.env');
 
 $email = trim((string) ($argv[1] ?? ''));
 $slug  = trim((string) ($argv[2] ?? 'administrador'));   // administrador | directivo | empleado | cliente
@@ -30,14 +29,32 @@ if ($email === '') {
     exit(1);
 }
 
-$dsn = sprintf(
-    'mysql:host=%s;port=%d;dbname=%s;charset=utf8mb4',
-    env('DATABASE_HOST', '127.0.0.1'),
-    (int) env('DATABASE_PORT', 3306),
-    env('DATABASE_NAME', '')
-);
+/* Conexión: usa la MISMA fuente que la web (backend/api/config.php); si no existe,
+   cae al .env. Evita el "Access denied for user ''" cuando el .env no está
+   disponible para el contexto CLI (mismo arreglo que migrate.php). */
+$configFile = __DIR__ . '/../api/config.php';
+if (is_file($configFile)) {
+    $CONFIG = require $configFile;
+    $d = ($CONFIG['db'] ?? []) + [
+        'host' => '127.0.0.1', 'port' => 3306, 'name' => '',
+        'user' => '', 'pass' => '', 'charset' => 'utf8mb4',
+    ];
+    $dsn    = "mysql:host={$d['host']};port={$d['port']};dbname={$d['name']};charset={$d['charset']}";
+    $dbUser = (string) $d['user'];
+    $dbPass = (string) $d['pass'];
+} else {
+    load_env(__DIR__ . '/../.env');
+    $dsn = sprintf(
+        'mysql:host=%s;port=%d;dbname=%s;charset=utf8mb4',
+        env('DATABASE_HOST', '127.0.0.1'),
+        (int) env('DATABASE_PORT', 3306),
+        env('DATABASE_NAME', '')
+    );
+    $dbUser = (string) env('DATABASE_USER', '');
+    $dbPass = (string) env('DATABASE_PASSWORD', '');
+}
 try {
-    $pdo = new PDO($dsn, env('DATABASE_USER', ''), env('DATABASE_PASSWORD', ''), [
+    $pdo = new PDO($dsn, $dbUser, $dbPass, [
         PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
     ]);
 } catch (Throwable $e) {
