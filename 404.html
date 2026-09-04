@@ -3,16 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <!-- Tema (claro/oscuro): antes de los estilos para pintar ya con el tema elegido -->
   <script src="assets/theme.js?v=20260721a"></script>
-  <!-- Las paginas de error NUNCA deben indexarse: si no, Google las guarda como
-       si fueran contenido y las muestra en resultados. -->
   <meta name="robots" content="noindex, follow">
   <title>Página no encontrada — Ok.station</title>
   <meta name="theme-color" content="#066CFF">
   <link rel="icon" href="/assets/img/OKD-Isotipo-Azul-96.png" type="image/png" sizes="96x96">
-  <!-- Estilos EN LA PAGINA a proposito: una pagina de error tiene que verse bien
-       incluso si styles.css no carga (que es justo cuando suele aparecer). -->
   <style>
     *{box-sizing:border-box}
     body{margin:0;min-height:100vh;display:grid;place-items:center;padding:24px;
@@ -38,8 +33,6 @@
     .brand{margin-top:26px;font-size:.82rem;color:#8b93a3}
     .brand b{color:#066CFF}
 
-    /* ── Modo oscuro (html[data-theme="dark"], lo pone theme.js) ──
-       Esta página es autosuficiente, así que trae su propio bloque. ── */
     html[data-theme="dark"] body{background:#0F1524;color:#E9EDF6}
     html[data-theme="dark"] .card{background:#171F31;border-color:#26314A;
       box-shadow:0 10px 40px rgba(0,0,0,.35)}
@@ -55,8 +48,6 @@
     <h1>No encontramos esta página</h1>
     <p>Puede que el enlace esté mal escrito o que la página ya no exista.
        Desde aquí puedes seguir:</p>
-    <!-- Enlaces ABSOLUTOS (con /) a proposito: esta pagina se muestra desde
-         cualquier direccion, y unos relativos apuntarian al lugar equivocado. -->
     <div class="btns">
       <a class="btn primary" href="/">Ir al inicio</a>
       <a class="btn ghost" href="/tienda">Ver la tienda</a>

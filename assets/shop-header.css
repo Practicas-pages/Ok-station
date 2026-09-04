@@ -1,25 +1,13 @@
-/* ─────────────────────────────────────────────────────────────────────────
-   Ok.station — Barra del e-commerce (reutilizable)
-   -----------------------------------------------------------------------------
-   Es la MISMA barra superior de la tienda (degradado + buscador + chips + carril
-   de categorías), empaquetada para poder ponerla en OTRAS páginas — hoy, la ficha
-   de producto (producto.php).
-   Todo cuelga de `.shopbar`, un envoltorio propio, y define AQUÍ sus tokens de
-   color, así que no depende de las variables locales de tienda.html ni pisa nada
-   del resto del sitio. Los valores son los mismos que la barra de la tienda: si un
-   día se unifican en un solo lugar, esta es la copia canónica.
-   ───────────────────────────────────────────────────────────────────────── */
 .shopbar {
-  --sb-grad: #066CFF;   /* SIN degradado: azul plano de la marca */
+  --sb-grad: #066CFF;
   --sb-grad-brand: #066CFF;
   --sb-blue:#066CFF; --sb-blue-h:#0558CC; --sb-cyan:#00C6FF; --sb-amber:#FF8A00;
   --sb-line:#E3E8F1; --sb-muted:#5b6474; --sb-paper:#F5F8FD; --sb-ink:#12141C;
-  --sb-col:1200px;   /* ancho de contenido; casa con .pdp .wrap */
+  --sb-col:1200px;
   position: sticky; top: 0; z-index: 60;
   font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
 }
 
-/* ── Fila 1: buscador + acciones (degradado de marca) ── */
 .shopbar__top { display: flex; align-items: center; gap: 10px; padding: 10px max(14px, calc((100% - var(--sb-col)) / 2)); background: var(--sb-grad); }
 .shopbar__logo { flex: none; display: flex; align-items: center; text-decoration: none; }
 .shopbar__logo img { height: 26px; width: auto; display: block; filter: brightness(0) invert(1); }
@@ -29,7 +17,6 @@
 .shopbar__hamb span { display: block; width: 20px; height: 2.4px; background: #fff; border-radius: 2px; }
 .shopbar__hamb:hover { background: rgba(255,255,255,.14); }
 
-/* Buscador con autocompletado (mismo look que la tienda) */
 .shopbar__search { flex: 1; min-width: 0; position: relative; }
 .shopbar__search input { width: 100%; font: inherit; padding: 10px 14px 10px 40px; border: none; border-radius: 11px; background: #fff; color: var(--sb-ink); }
 .shopbar__search input:focus { outline: none; box-shadow: 0 0 0 3px rgba(255,255,255,.5); }
@@ -50,7 +37,6 @@
 
 .shopbar__actions { flex: none; display: flex; align-items: center; gap: 10px; }
 
-/* Chip de ubicación (mismo look que .tb-loc de la tienda; enlaza a /tienda#ubicacion). */
 .shopbar .tb-loc { flex: none; display: flex; align-items: center; gap: 6px; padding: 6px 10px; border: 1.5px solid transparent; border-radius: 12px; background: none; color: #fff; cursor: pointer; text-align: left; max-width: 190px; text-decoration: none; transition: border-color .15s, background .15s; }
 .shopbar .tb-loc:hover { background: rgba(255,255,255,.16); border-color: rgba(255,255,255,.5); }
 .shopbar .tb-loc:focus-visible { outline: 3px solid #fff; outline-offset: 2px; }
@@ -59,16 +45,12 @@
 .shopbar .tb-loc small { font-size: .68rem; color: rgba(255,255,255,.75); font-weight: 600; }
 .shopbar .tb-loc b { font-size: .82rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-/* Chips (mismos valores que .tb-* de la tienda) */
 .shopbar .tb-cuenta, .shopbar .tb-fav, .shopbar .tb-cart { flex: none; display: flex; align-items: center; gap: 7px; padding: 8px 15px; border-radius: 99px; border: 1.5px solid var(--sb-line); background: #fff; color: var(--sb-ink); font-weight: 600; font-size: .85rem; white-space: nowrap; text-decoration: none; cursor: pointer; position: relative; box-shadow: 0 4px 14px rgba(8,12,30,.16); transition: transform .18s cubic-bezier(.34,1.56,.64,1), box-shadow .18s, border-color .15s, background .15s; }
 .shopbar .tb-cuenta:hover, .shopbar .tb-fav:hover, .shopbar .tb-cart:hover { border-color: #d5deee; box-shadow: 0 12px 28px rgba(8,12,30,.24); transform: translateY(-2px); }
 .shopbar .tb-cuenta > svg, .shopbar .tb-cart svg { width: 17px; height: 17px; flex: none; color: var(--sb-blue); }
-/* Colchón anti-parpadeo: el botón sube al pasar el cursor; el colchón viaja al revés
-   para que la zona sensible no se mueva (mismo truco que en la tienda). */
 .shopbar .tb-cuenta::after, .shopbar .tb-fav::after, .shopbar .tb-cart::after, .shopbar .tb-wa::after { content: ""; position: absolute; inset: -5px; border-radius: inherit; transition: transform .18s cubic-bezier(.34,1.56,.64,1); }
 .shopbar .tb-cuenta:hover::after, .shopbar .tb-fav:hover::after, .shopbar .tb-cart:hover::after, .shopbar .tb-wa:hover::after { transform: translateY(2px); }
 
-/* Cuenta: chip con avatar (session-nav lo llena) */
 .shopbar .tb-cuenta { box-shadow: 0 3px 10px rgba(8,12,30,.14); }
 .shopbar .tb-cuenta.tb-cuenta--user { padding: 5px 10px 5px 6px; gap: 8px; }
 .shopbar .tb-avatar { width: 30px; height: 30px; border-radius: 50%; background: var(--sb-grad-brand); color: #fff; display: grid; place-items: center; font-weight: 700; font-size: .8rem; flex: none; transition: background .15s, color .15s; }
@@ -78,27 +60,19 @@
 .shopbar .tb-cuenta[aria-expanded="true"] svg.tb-caret { color: #fff; transform: rotate(180deg); }
 .shopbar .tb-cuenta[aria-expanded="true"] .tb-avatar { background: var(--sb-cyan); color: #0A2A5E; }
 
-/* WhatsApp (verde de marca) */
 .shopbar .tb-wa { position: relative; flex: none; display: grid; place-items: center; width: 40px; height: 40px; border-radius: 99px; background: #25D366; border: none; box-shadow: 0 6px 16px rgba(37,211,102,.42); transition: transform .18s cubic-bezier(.34,1.56,.64,1), box-shadow .18s; }
 .shopbar .tb-wa svg { width: 21px; height: 21px; color: #fff; transition: transform .2s; }
 .shopbar .tb-wa:hover { box-shadow: 0 12px 30px rgba(37,211,102,.55); transform: translateY(-2px) scale(1.06); }
 .shopbar .tb-wa:hover svg { transform: scale(1.12); }
 
-/* Favoritos: blanco, solo ícono */
 .shopbar .tb-fav { width: 40px; height: 40px; padding: 0; justify-content: center; gap: 0; }
 .shopbar .tb-fav svg { width: 19px; height: 19px; flex: none; color: var(--sb-blue); }
-/* Carrito: el macizo */
 .shopbar .tb-cart { font-weight: 800; padding: 9px 17px; font-size: .9rem; box-shadow: 0 8px 22px rgba(8,12,30,.28); }
 .shopbar .tb-cart:hover { box-shadow: 0 16px 34px rgba(8,12,30,.34); }
 .shopbar .tb-cart svg { width: 19px; height: 19px; }
 .shopbar .tb-cart .ct, .shopbar .tb-fav .ct { position: absolute; top: -6px; right: -4px; background: var(--sb-amber); color: #fff; border-radius: 99px; font-size: .66rem; font-weight: 800; min-width: 20px; height: 20px; display: grid; place-items: center; padding: 0 5px; border: 2px solid var(--sb-blue); }
 
-/* Menú de cuenta (lo arma session-nav). session-nav ancla el menú a .shopbar__actions
-   (todo el grupo de chips), no al chip. Con right:0 se pegaba al borde DERECHO del grupo
-   (bajo el carrito), viéndose "abierto de lado". El chip de cuenta es el PRIMERO del
-   grupo, así que left:0 lo deja justo DEBAJO del chip (como en el home). */
 .shopbar .tb-acctmenu { position: absolute; top: calc(100% + 10px); left: 0; right: auto; min-width: 232px; background: #fff; border: 1px solid var(--sb-line); border-radius: 14px; box-shadow: 0 20px 54px rgba(12,20,50,.30); padding: 6px; z-index: 80; }
-/* En móvil, anclar a la derecha para que un menú de 232px no se salga de la pantalla. */
 @media (max-width: 640px) { .shopbar .tb-acctmenu { left: auto; right: 0; } }
 .shopbar .tb-acctmenu[hidden] { display: none; }
 .shopbar .tb-accthead { padding: 10px 12px 9px; border-bottom: 1px solid var(--sb-line); margin-bottom: 4px; }
@@ -111,7 +85,6 @@
 
 .shopbar .tb-cuenta:focus-visible, .shopbar .tb-fav:focus-visible, .shopbar .tb-cart:focus-visible, .shopbar .tb-wa:focus-visible, .shopbar .pop:focus-visible { outline: 3px solid #0a1a3a; outline-offset: 2px; }
 
-/* Estado activo: el botón cuyo panel está abierto se pinta de azul (igual que el e-commerce). */
 .shopbar .tb-fav.on, .shopbar .tb-cart.on { background: var(--sb-blue); border-color: #fff; color: #fff; }
 .shopbar .tb-fav.on svg, .shopbar .tb-cart.on svg { color: #fff; }
 .shopbar .tb-fav.on:hover, .shopbar .tb-cart.on:hover { background: var(--sb-blue-h, #0558CC); }
@@ -120,7 +93,6 @@
 .shopbar .tb-fav.on { box-shadow: 0 6px 18px rgba(6,108,255,.4); }
 .shopbar .tb-fav.on .ct, .shopbar .tb-cart.on .ct { border-color: #fff; }
 
-/* ── Fila 2: carril de categorías (degradado con velo) ── */
 .shopbar__cats { display: flex; align-items: center; gap: 12px; padding: 5px max(14px, calc((100% - var(--sb-col)) / 2)); background: linear-gradient(rgba(8,12,30,.16), rgba(8,12,30,.16)), var(--sb-grad); }
 .shopbar__back { flex: none; display: inline-flex; align-items: center; gap: 6px; color: #fff; font-weight: 700; font-size: .82rem; text-decoration: none; padding: 6px 12px; border-radius: 99px; background: rgba(9,14,34,.42); border: 1.5px solid rgba(255,255,255,.6); backdrop-filter: blur(8px); transition: background .15s; }
 .shopbar__back:hover { background: rgba(9,14,34,.56); }
@@ -141,8 +113,6 @@
 .shopbar__railnav:hover:not(:disabled) { background: rgba(9,14,34,.85); transform: scale(1.09); }
 .shopbar__railnav:disabled { opacity: .32; cursor: default; }
 
-/* ── Responsivo ── */
-/* La ubicación se reduce a solo ícono en cuanto la barra se aprieta (es el chip más ancho). */
 @media (max-width: 1080px) {
   .shopbar .tb-loc__txt { display: none; }
   .shopbar .tb-loc { padding: 9px 10px; }
@@ -157,7 +127,6 @@
   .shopbar .tb-cuenta, .shopbar .tb-cart { padding: 9px 13px; }
 }
 @media (max-width: 640px) {
-  /* El buscador pasa a su propia fila completa; las acciones quedan arriba. */
   .shopbar__top { flex-wrap: wrap; row-gap: 9px; }
   .shopbar__search { order: 5; flex: 1 0 100%; }
   .shopbar__actions { margin-left: auto; }
@@ -166,20 +135,11 @@
   .shopbar .tb-cuenta, .shopbar .tb-fav, .shopbar .tb-cart, .shopbar .tb-wa, .shopbar .pop, .shopbar__rail { transition: none !important; }
 }
 
-/* ─────────────────────────────────────────────────────────────────────────
-   Paneles del carrito y de favoritos (fuera de la tienda)
-   -----------------------------------------------------------------------------
-   Se muestran EN LA PROPIA página (no redirigen a la tienda). Mismos valores que
-   el panel de la tienda para que se sienta el mismo carrito. Los llena
-   assets/shop-header.js con los datos de window.OKtienda (que son los REALES). El
-   "Finalizar compra" sí lleva a la tienda, para no duplicar el checkout.
-   ───────────────────────────────────────────────────────────────────────── */
 .sb-scrim { position: fixed; inset: 0; background: rgba(18,20,28,.45); z-index: 118; opacity: 0; pointer-events: none; transition: opacity .25s; }
 .sb-scrim.show { opacity: 1; pointer-events: auto; }
 
 .sb-panel { position: fixed; top: 0; right: 0; height: 100%; width: min(400px,92vw); background: #fff; display: flex; flex-direction: column; transform: translateX(100%); transition: transform .3s cubic-bezier(.4,0,.2,1); z-index: 120; box-shadow: -18px 0 50px rgba(18,20,28,.22); font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
 .sb-panel.show { transform: translateX(0); }
-/* Cabecera con el degradado de la barra (como el carrito de la tienda) */
 .sb-panel__head { display: flex; align-items: center; gap: 8px; padding: 16px 18px; color: #fff; font-weight: 800; font-size: 1.02rem; letter-spacing: -.01em; flex: none; background: #066CFF; }
 .sb-panel__close { margin-left: auto; flex: none; width: 32px; height: 32px; padding: 0; border: 1px solid rgba(255,255,255,.4); background: rgba(255,255,255,.16); color: #fff; border-radius: 50%; font-size: 1.15rem; line-height: 1; display: grid; place-items: center; cursor: pointer; transition: background .15s, transform .15s; }
 .sb-panel__close:hover { background: rgba(255,255,255,.34); transform: scale(1.08); }
@@ -187,7 +147,6 @@
 .sb-panel__empty { color: #5b6474; text-align: center; padding: 44px 20px; font-size: .9rem; line-height: 1.5; }
 .sb-panel__empty a { color: #066CFF; font-weight: 700; text-decoration: none; }
 
-/* Renglón de producto (carrito) */
 .sb-ci { display: grid; grid-template-columns: 46px 1fr auto; gap: 11px; align-items: center; padding: 10px 0; border-bottom: 1px solid #eef1f7; }
 .sb-ci__t { width: 46px; height: 46px; border-radius: 9px; background: #eef2f8; border: 1px solid #E3E8F1; overflow: hidden; display: grid; place-items: center; }
 .sb-ci__t img { width: 100%; height: 100%; object-fit: contain; padding: 2px; box-sizing: border-box; }
@@ -201,7 +160,6 @@
 .sb-ci__lt { font-weight: 800; font-size: .85rem; font-variant-numeric: tabular-nums; color: #12141C; }
 .sb-ci__rm { border: none; background: none; color: #c2410c; font-size: .68rem; cursor: pointer; padding: 0; }
 
-/* Pie con envío + subtotal/entrega/total + checkout (igual que el carrito de la tienda) */
 .sb-panel__foot { flex: none; border-top: 1px solid #E3E8F1; padding: 14px 18px calc(14px + env(safe-area-inset-bottom)); }
 .sb-ship { display: flex; gap: 7px; margin-bottom: 12px; }
 .sb-ship button { flex: 1; border: 1.5px solid #E3E8F1; background: #F5F8FD; border-radius: 9px; padding: 8px 6px; font-size: .76rem; font-weight: 600; color: #33404f; cursor: pointer; text-align: center; }
@@ -214,7 +172,6 @@
 .sb-checkout:hover { transform: translateY(-2px); box-shadow: 0 18px 46px rgba(6,108,255,.36); }
 .sb-panel__note { font-size: .74rem; color: #5b6474; text-align: center; margin: 9px 0 0; }
 
-/* ── Favoritos: MODAL CENTRADO "Tus deseados" (igual que la tienda), no un cajón ── */
 .sb-ov { position: fixed; inset: 0; background: rgba(18,20,28,.5); z-index: 119; display: none; align-items: center; justify-content: center; padding: 18px; opacity: 0; transition: opacity .2s; }
 .sb-ov.show { display: flex; opacity: 1; }
 .sb-modal { position: relative; background: #fff; border-radius: 22px; max-width: 460px; width: 100%; max-height: 90vh; overflow: auto; box-shadow: 0 26px 74px rgba(18,20,28,.24); padding: 26px 24px 24px; }
@@ -224,7 +181,6 @@
 .sb-modal__desc { font-size: .86rem; color: #5b6474; line-height: 1.5; margin: 0; }
 .sb-modal__list { display: flex; flex-direction: column; gap: 10px; margin-top: 14px; }
 .sb-modal__empty { padding: 26px 0; text-align: center; color: #5b6474; line-height: 1.5; }
-/* Tarjeta de un favorito (mismo look que la tienda) */
 .sb-wi { display: flex; gap: 12px; align-items: center; border: 1px solid #E3E8F1; border-radius: 14px; padding: 10px 12px; }
 .sb-wi__t { flex: 0 0 auto; width: 46px; height: 46px; border-radius: 12px; overflow: hidden; background: #fff; border: 1px solid #E3E8F1; display: grid; place-items: center; }
 .sb-wi__t img { width: 100%; height: 100%; object-fit: contain; padding: 3px; box-sizing: border-box; }
@@ -240,10 +196,6 @@
 html.sb-lock, html.sb-lock body { overflow: hidden; }
 
 
-/* ══ MODO OSCURO — html[data-theme="dark"] ══════════════════════════════════
-   Mismo defecto que el resto: superficies con #fff a mano y texto por token.
-   El menú de la cuenta (.tb-acctmenu) era el más visible: se veía como una
-   tarjeta blanca con los enlaces casi borrados. */
 html[data-theme="dark"] :is(.sb-panel, .sb-modal, .shopbar__ac, .tb-acctmenu) {
   background: var(--surface-card);
   border-color: var(--border-light);
@@ -251,60 +203,38 @@ html[data-theme="dark"] :is(.sb-panel, .sb-modal, .shopbar__ac, .tb-acctmenu) {
 }
 html[data-theme="dark"] .sb-panel   { box-shadow: -18px 0 50px rgba(0,0,0,.55); }
 html[data-theme="dark"] :is(.sb-modal, .shopbar__ac, .tb-acctmenu) { box-shadow: 0 22px 60px rgba(0,0,0,.55); }
-/* Enlaces del menú de cuenta y filas del autocompletado. */
 html[data-theme="dark"] :is(.tb-acctmenu a, .tb-acctmenu button) { color: var(--text-primary); }
 html[data-theme="dark"] :is(.tb-acctmenu a:hover, .tb-acctmenu button:hover, .shopbar__ac-item:hover) {
   background: var(--brand-blue-light);
 }
 
-/* ── Producto SIN foto: logo de Ok.station en las miniaturas del header ──
-   Las cajas ya centran (place-items:center) y contienen (object-fit:contain), así
-   que aquí solo se le da más aire que a una foto normal para que el logo no llegue
-   a las orillas. Sustituye al 📦 genérico que salía antes. */
 .shopbar__ac-img .ph-logo,
 .sb-ci__t .ph-logo,
 .sb-wi__t .ph-logo { padding: 8px; opacity: .9; }
 
-/* Los tokens propios de la barra (--sb-ink, --sb-muted, --sb-line, --sb-paper) se
-   declaran en .shopbar con valores CLAROS fijos, así que en oscuro el nombre del
-   cliente y los enlaces del menú quedaban casi invisibles. Redefinirlos aquí
-   arregla de una vez el encabezado, los enlaces y sus separadores.
-   La MARCA (azul, cian, ámbar y los degradados) no se toca: ya funciona en oscuro. */
 html[data-theme="dark"] .shopbar {
   --sb-line: #26314A;
   --sb-muted: #8A94AB;
   --sb-paper: #1B2338;
   --sb-ink: #E9EDF6;
 }
-/* "Cerrar sesión" en rojo, igual que en el menú del home. */
 html[data-theme="dark"] .shopbar .tb-acctlogout,
 .shopbar .tb-acctlogout { color: var(--color-error, #DC2626); font-weight: 600; }
 
-/* Ronda 2 del barrido: botones que seguían con blanco fijo.
-   NO se tocan .shopbar__ac-img ni .sb-wi__t (miniaturas de producto: las fotos
-   vienen recortadas sobre blanco), ni .pop:hover (vive sobre el degradado). */
 html[data-theme="dark"] :is(.sb-modal__x, .sb-wi__heart) {
   background: var(--surface-page);
   border-color: var(--border-medium);
   color: var(--text-primary);
 }
-/* ── MODO OSCURO DE LA BARRA ───────────────────────────────────────────────
-   Esta barra (ficha de producto y compra rápida) NO tenía oscuro: en modo
-   noche seguía saliendo el degradado brillante del tema claro.
-   Mismos tokens que la barra de la tienda (--nav-top / --nav-bottom, definidos
-   en styles.css) para que las tres barras del sitio se vean idénticas.
-   Liso, no degradado; y lo SELECCIONADO va en blanco, no en azul. */
 html[data-theme="dark"] .shopbar__top  { background: var(--nav-top, #1C2745); }
 html[data-theme="dark"] .shopbar__cats { background: var(--nav-bottom, #151D34); border-top: 1px solid var(--nav-line, rgba(255,255,255,.10)); }
 
-/* Buscador: cristal oscuro en vez de blanco. */
 html[data-theme="dark"] .shopbar__search input {
   background: rgba(8,13,26,.55); color: #E9EDF6; border: 1px solid rgba(255,255,255,.18);
 }
 html[data-theme="dark"] .shopbar__search input::placeholder { color: #8A94AB; }
 html[data-theme="dark"] .shopbar__search svg { color: #8A94AB; }
 
-/* Píldoras de la barra en fantasma noche (cuenta, favoritos, carrito, filtros). */
 html[data-theme="dark"] .shopbar :is(.tb-cuenta, .tb-fav, .tb-cart, .tb-filt) {
   background: rgba(255,255,255,.08) !important; color: #fff !important;
   border-color: rgba(255,255,255,.30) !important; box-shadow: none !important;
@@ -313,12 +243,10 @@ html[data-theme="dark"] .shopbar :is(.tb-cuenta, .tb-fav, .tb-cart, .tb-filt) sv
 html[data-theme="dark"] .shopbar :is(.tb-cuenta, .tb-fav, .tb-cart, .tb-filt):hover {
   background: rgba(255,255,255,.16) !important;
 }
-/* SELECCIONADO = blanco (no azul), igual que en la tienda. */
 html[data-theme="dark"] .shopbar :is(.tb-fav, .tb-cart).on {
   background: #fff !important; color: #12141C !important; border-color: #fff !important; box-shadow: none !important;
 }
 html[data-theme="dark"] .shopbar :is(.tb-fav, .tb-cart).on svg { color: #12141C; }
-/* Chips de categoría: fantasma; el activo en blanco. Ofertas mantiene su naranja. */
 html[data-theme="dark"] .shopbar .pop:not(.on):not(.hot) {
   background: rgba(255,255,255,.08); color: #E9EDF6; border-color: rgba(255,255,255,.26);
 }

@@ -1,22 +1,7 @@
-/* ============================================================
-   Ok.station — Expediente de cita (Fase 1, frontend)
-   ------------------------------------------------------------
-   Módulo autocontenido que SE ENGANCHA al wizard de citas
-   existente (home.html / index.html) SIN modificar su lógica
-   ni su diseño. Agrega:
-     1. Requisitos dinámicos por trámite (debajo de las tarjetas).
-     2. Sección desplegable "Subir documentos" en el paso "Tus datos".
-     3. Aviso de calidad de documentos.
-     4. Venta cruzada (upselling) según el trámite.
-
-   Expone window.OKCitaExpediente.getState() para que la Fase 2
-   (backend + ticket + admin) lea documentos y servicios elegidos.
-   No envía nada al servidor todavía: la carga real es Fase 2.
-   ============================================================ */
 (function () {
   "use strict";
 
-  var MAX_MB = 10;                         /* tamaño máximo por archivo */
+  var MAX_MB = 10;
   var ACCEPT = ".pdf,.jpg,.jpeg,.png";
   var ACCEPT_MIME = ["application/pdf", "image/jpeg", "image/png"];
   var WA = "https://wa.me/526647194117?text=";
@@ -29,11 +14,7 @@
   function qs(sel, ctx) { return (ctx || document).querySelector(sel); }
   function qsa(sel, ctx) { return Array.prototype.slice.call((ctx || document).querySelectorAll(sel)); }
 
-  /* ── Requisitos por trámite (informativos: qué traer / preparar) ──
-     Cada entrada es un string (viñeta) o {group, items:[...]} para subsecciones. */
   var REQS = {
-    /* Pasaporte mexicano (SRE) — 4 combinaciones oficiales (fuente: hojas de
-       requisitos 2026): primera vez / renovación × mayor / menor de edad. */
     pasaporte_mexicano_primera_mayor: [
       "CURP",
       "Acta de nacimiento",
@@ -186,7 +167,6 @@
     ]
   };
 
-  /* ── Documentos que el cliente puede subir antes de la cita ── */
   var DOCS = {
     pasaporte_mexicano: [
       { key: "acta", label: "Acta de nacimiento" },
@@ -239,7 +219,6 @@
     ]
   };
 
-  /* ── Catálogo de venta cruzada ── */
   var UP = {
     curp:      { q: "¿No tienes tu CURP?",                 cta: "Tramitar CURP",               wa: "Hola, necesito tramitar mi CURP para mi cita." },
     acta:      { q: "¿No tienes tu Acta de Nacimiento?",   cta: "Obtener Acta",                wa: "Hola, necesito obtener mi acta de nacimiento para mi cita." },
@@ -248,7 +227,6 @@
     copias:    { q: "¿Necesitas copias certificadas?",     cta: "Solicitar apoyo",             wa: "Hola, necesito copias certificadas para mi cita." }
   };
 
-  /* Sugerencias por trámite (claves del catálogo UP) */
   var UPSELL = {
     pasaporte_mexicano: ["curp", "acta", "fotos", "copias"],
     pasaporte_americano: ["acta", "fotos", "copias"],
@@ -281,30 +259,15 @@
     medica: "Cita Médica / Examen"
   };
 
-  /* ── Precios de los servicios adicionales (MXN, IVA incluido) ──
-     EDITAR: ajusta estos montos a tus precios reales de mostrador.
-     · UP_PRICE          → precio base de cada servicio (aplica a todos los trámites).
-     · UP_PRICE_TRAMITE  → sobrescribe el precio para un trámite concreto, por si el
-                           mismo servicio cuesta distinto según el proceso.
-                           Ej.: { visa: { copias: 25 }, i94: { impresion: 10 } }
-     Un valor null (o ausente) oculta el precio y se cotiza en mostrador. */
   var UP_PRICE = {
-    curp:      50,   /* PLACEHOLDER — confirmar */
-    acta:      150,  /* PLACEHOLDER — confirmar */
-    fotos:     90,   /* PLACEHOLDER — confirmar */
-    impresion: 15,   /* PLACEHOLDER — confirmar */
-    copias:    20    /* PLACEHOLDER — confirmar */
+    curp:      50,
+    acta:      150,
+    fotos:     90,
+    impresion: 15,
+    copias:    20
   };
   var UP_PRICE_TRAMITE = {
-    /* Ejemplo (descomenta y ajusta si algún proceso cambia el precio):
-       visa: { copias: 25 },
-       apostille: { copias: 30 } */
   };
-  /* Devuelve el precio de un servicio para el trámite activo (o null si no aplica).
-     Prioridad: catálogo del SERVIDOR (window.OK_APPT_SERVICE_PRICES, sincronizado
-     desde /appointments/prices.php) → override local por trámite → base local.
-     Se antepone el servidor para que lo que se MUESTRA coincida con lo que se COBRA
-     (el backend es la autoridad del monto). */
   function upPrice(upKey, tramiteKey) {
     var srv = window.OK_APPT_SERVICE_PRICES;
     if (srv && typeof srv === "object" && srv[upKey] != null) return +srv[upKey];
@@ -317,12 +280,10 @@
     catch (e) { return "$" + n; }
   }
 
-  /* ── Estado interno (lo lee la Fase 2) ── */
-  var current = null;            /* clave de trámite activa (con subtipo si aplica) */
-  var docFiles = {};             /* { docKey: File } archivos elegidos */
-  var services = {};             /* { upKey: true } servicios extra marcados */
+  var current = null;
+  var docFiles = {};
+  var services = {};
 
-  /* Trámite seleccionado leído del DOM (independiente de app.js) */
   function selectedTramite() {
     var btn = qs(".tramite-btn.is-selected");
     return btn ? btn.getAttribute("data-tramite") : null;
@@ -333,10 +294,6 @@
   }
   function passportTramite() { var r = qs("input[name='cita-ppt-tramite']:checked"); return r ? r.value : ""; }
   function passportEdad()    { var r = qs("input[name='cita-ppt-edad']:checked");    return r ? r.value : ""; }
-  /* Clave compuesta:
-       americano → pasaporte_americano
-       mexicano  → pasaporte_mexicano_<primera|renovacion>_<mayor|menor> (4 combinaciones)
-     Si falta algún dato del pasaporte mexicano, devuelve "pasaporte" (placeholder). */
   function resolveKey() {
     var t = selectedTramite();
     if (!t) return null;
@@ -352,7 +309,6 @@
     return t;
   }
 
-  /* ── Render: caja de requisitos (paso 1) ── */
   function renderReqs() {
     var box = qs("#cita-requisitos");
     if (!box) return;
@@ -361,7 +317,6 @@
     if (!key) { box.hidden = true; box.innerHTML = ""; return; }
 
     if (key === "pasaporte") {
-      /* Pasaporte elegido pero falta el subtipo (lo pide el modal del propio wizard) */
       box.hidden = false;
       box.innerHTML = '<div class="cita-reqs__head"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg><b>Elige el tipo de pasaporte</b></div><p class="cita-reqs__note">Selecciona <b>Mexicano</b> o <b>Americano</b> para ver los requisitos de tu trámite.</p>';
       return;
@@ -383,9 +338,6 @@
       if (typeof entry === "string") { loose.push(entry); return; }
     });
     if (loose.length) out += ul(loose);
-    /* Los grupos van dentro de un contenedor multicolumna: cada grupo es un
-       bloque INDIVISIBLE que se acomoda en las columnas que quepan (título +
-       puntos juntos y en orden), llenando el ancho sin descuadrar. */
     var groups = "";
     data.forEach(function (entry) {
       if (typeof entry === "object" && entry.group) {
@@ -401,7 +353,6 @@
     }).join("") + '</ul>';
   }
 
-  /* ── Render: sección de documentos (paso 4) ── */
   function renderDocs() {
     var wrap = qs("#cita-docs");
     if (!wrap) return;
@@ -411,9 +362,6 @@
       wrap.innerHTML = '<p class="cita-docs__empty">Selecciona primero un trámite (paso 1) para ver los documentos que puedes adjuntar.</p>';
       return;
     }
-    /* Los DOCUMENTOS de cada persona ahora se piden dentro del paso
-       "Información de cada persona" (app.js), integrados en el cuestionario.
-       Esta caja queda solo para los SERVICIOS ADICIONALES opcionales (venta cruzada). */
     var html = '';
 
     var ups = UPSELL[key] || [];
@@ -444,7 +392,6 @@
     refreshDocStatuses();
   }
 
-  /* Validación + estado de cada input de archivo */
   function bindDocInputs() {
     qsa("[data-doc-input]").forEach(function (inp) {
       inp.addEventListener("change", function () {
@@ -494,7 +441,6 @@
     return (b / 1048576).toFixed(1) + " MB";
   }
 
-  /* Al cambiar de trámite se reinicia el expediente (archivos y servicios) */
   function onTramiteChanged() {
     var key = resolveKey();
     if (key === current) return;
@@ -506,13 +452,12 @@
     if (wrap && !wrap.hidden) renderDocs();
   }
 
-  /* ── Toggle de la sección "Subir documentos" ── */
   function bindToggle() {
     var toggle = qs("#cita-docs-toggle");
     var wrap = qs("#cita-docs");
     if (!toggle || !wrap) return;
     toggle.addEventListener("click", function () {
-      var open = wrap.hidden;          /* va a abrirse */
+      var open = wrap.hidden;
       if (open) renderDocs();
       wrap.hidden = !open;
       toggle.setAttribute("aria-expanded", open ? "true" : "false");
@@ -522,23 +467,15 @@
   }
 
   function init() {
-    if (!qs(".tramite-grid")) return;    /* no estamos en una página con el wizard */
+    if (!qs(".tramite-grid")) return;
 
-    /* Escuchar selección de trámite (sin depender del estado interno de app.js).
-       DELEGACIÓN: un solo listener capta el clic en cualquier .tramite-btn,
-       INCLUIDAS las tarjetas CLONADAS del carrusel infinito que crea app.js.
-       Los clones no heredan listeners por-elemento; por eso, al elegir un
-       trámite desde una tarjeta clonada, la caja de requisitos no se
-       actualizaba y seguía mostrando el servicio anterior. */
     document.addEventListener("click", function (e) {
       var btn = e.target.closest ? e.target.closest(".tramite-btn") : null;
       if (btn) setTimeout(onTramiteChanged, 0);
     });
-    /* Subtipo de pasaporte (radios del modal del propio wizard) */
     qsa("input[name='cita-subtype']").forEach(function (r) {
       r.addEventListener("change", function () { setTimeout(onTramiteChanged, 0); });
     });
-    /* Pasaporte mexicano: primera/renovación y menor/mayor (radios del modal) */
     qsa("input[name='cita-ppt-tramite'], input[name='cita-ppt-edad']").forEach(function (r) {
       r.addEventListener("change", function () { setTimeout(onTramiteChanged, 0); });
     });
@@ -549,7 +486,6 @@
     onTramiteChanged();
   }
 
-  /* API pública para la Fase 2 (backend + ticket + admin) */
   window.OKCitaExpediente = {
     getState: function () {
       var docs = Object.keys(docFiles).map(function (k) {
@@ -565,10 +501,7 @@
       });
       return { tramite: current, documents: docs, services: svc };
     },
-    /* lista de documentos requeridos del trámite activo (para ticket/admin Fase 2) */
     requiredDocs: function () { return (DOCS[current] || []).slice(); },
-    /* Catálogo de documentos para un trámite/subtipo dados (lo usa app.js para
-       pedir los documentos de cada persona dentro de su cuestionario). */
     docsFor: function (tramite, subtype) {
       var key = (tramite === "pasaporte") ? (subtype ? "pasaporte_" + subtype : "pasaporte") : tramite;
       return (DOCS[key] || []).slice();

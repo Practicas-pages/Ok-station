@@ -1,20 +1,5 @@
-/* ─────────────────────────────────────────────────────────────────────────
-   Ok.station — Libreta de direcciones REUTILIZABLE (chip .tb-loc + drawer)
-   -----------------------------------------------------------------------------
-   Deja EDITAR la ubicación de entrega desde CUALQUIER página que traiga un chip
-   .tb-loc (hoy la ficha de producto), sin tener que ir a la tienda. Al cargar,
-   pinta el chip con la dirección predeterminada del usuario (misma libreta que la
-   tienda y la compra rápida: tabla user_addresses vía /backend/api/shop/…).
-
-   Autocontenido: inyecta su propio CSS y construye su drawer, así es "drop-in".
-   Usa rutas ABSOLUTAS (la ficha vive en /producto/<id>-<slug>, donde las
-   relativas se romperían). Si ya existe otra libreta en la página (la tienda o la
-   compra rápida definen la suya), este módulo NO se activa para no duplicar.
-   ───────────────────────────────────────────────────────────────────────── */
 (function () {
   "use strict";
-  // La tienda y la compra rápida traen su propia libreta (usan #tdLocBtn / #locBtn).
-  // Este módulo es solo para páginas que NO la tienen (la ficha usa .tb-loc sin esos ids).
   if (document.getElementById("tdLocBtn") || document.getElementById("locBtn")) return;
 
   var API = "/backend/api/shop/";
@@ -36,7 +21,6 @@
 
   function defaultAddr() { return addrs.filter(function (a) { return a.is_default; })[0] || addrs[0] || null; }
 
-  /* Pinta TODOS los chips .tb-loc con la dirección predeterminada (o el genérico). */
   function paintChips() {
     var d = token() ? defaultAddr() : null;
     chips.forEach(function (chip) {
@@ -47,8 +31,6 @@
     });
   }
 
-  /* Lista INLINE (p. ej. en el perfil): muestra las direcciones guardadas + botón para
-     gestionarlas. Se activa si la página tiene un contenedor [data-ab-list]. */
   function renderInline() {
     var box = document.querySelector("[data-ab-list]");
     if (!box) return;
@@ -73,8 +55,6 @@
     css.textContent =
       ".ab-scrim{position:fixed;inset:0;background:rgba(10,14,30,.5);z-index:80;opacity:0;pointer-events:none;transition:opacity .25s}" +
       ".ab-scrim.show{opacity:1;pointer-events:auto}" +
-      /* Arranca BAJO la navbar pegajosa (--oknav-h la publica oknav.js): a pantalla
-         completa, la cabecera con la ✕ quedaba escondida tras las cejillas. */
       ".ab-drawer{position:fixed;top:var(--oknav-h,0px);right:0;height:auto;bottom:0;width:min(420px,94vw);background:#fff;z-index:81;display:flex;flex-direction:column;transform:translateX(100%);transition:transform .3s cubic-bezier(.4,0,.2,1);box-shadow:-12px 0 44px rgba(10,14,30,.24)}" +
       ".ab-drawer.show{transform:translateX(0)}" +
       ".ab-dh{display:flex;align-items:center;gap:10px;padding:16px 18px;border-bottom:1px solid #eef1f6}" +
@@ -124,7 +104,6 @@
   function close() { if (drawer) { drawer.classList.remove("show"); scrim.classList.remove("show"); } }
 
   function open() {
-    // Sin sesión no hay dónde guardar → a iniciar sesión y volver a ESTA página.
     if (!token()) { location.href = "/cuenta?next=" + encodeURIComponent(location.pathname + location.search + location.hash); return; }
     ensureUI();
     titleEl.textContent = "¿A dónde te lo enviamos?";
@@ -214,19 +193,16 @@
     var a = e.target.closest("[data-addr]"); if (a) { pickAddr(+a.dataset.addr); return; }
   }
 
-  /* ── Arranque ── */
   function init() {
     chips = [].slice.call(document.querySelectorAll(".tb-loc"));
     var inline = document.querySelector("[data-ab-list]");
-    if (!chips.length && !inline) return;    // nada que enganchar en esta página
+    if (!chips.length && !inline) return;
     injectCSS();
     chips.forEach(function (chip) {
       chip.addEventListener("click", function (e) { e.preventDefault(); open(); });
     });
-    // Botón "Gestionar/Agregar" de la lista inline (perfil).
     document.addEventListener("click", function (e) { if (e.target.closest("[data-ab-open]")) { e.preventDefault(); open(); } });
-    refreshAll();  // genérico primero
-    // Si hay sesión, trae la predeterminada para pintar el chip / lista en TODAS las páginas.
+    refreshAll();
     if (token()) {
       authFetch("addresses.php").then(function (j) {
         if (j && j.ok) { addrs = j.addresses || []; if (j.states && j.states.length) STATES = j.states; refreshAll(); }

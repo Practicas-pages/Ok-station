@@ -3,7 +3,6 @@
 <head>
   <meta charset="UTF-8">
 
-  <!-- Modo mantenimiento: bloquea el acceso directo sin credenciales válidas -->
   <script src="assets/site-guard.js?v=20260728n"></script>
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -13,14 +12,12 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
-  <!-- Tema (claro/oscuro): antes de la hoja para pintar ya con el tema elegido -->
   <script src="assets/theme.js?v=20260721a"></script>
   <link rel="stylesheet" href="styles.css?v=20260728d">
   <link rel="stylesheet" href="assets/admin.css?v=20260727m">
 </head>
 <body class="admin">
 
-  <!-- Sidebar -->
   <aside class="admin-sidebar" id="admin-sidebar">
     <a href="index.html" class="logo admin-sidebar__logo"><span class="logo__ok">OK</span><span class="logo__dot">.</span><span class="logo__station">station</span></a>
     <nav class="admin-nav" aria-label="Navegación del panel">
@@ -52,10 +49,6 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
         Usuarios
       </button>
-      <!-- La vista "Servicios" se retiró (jul 2026): la tabla `services` nunca se
-           llenó ni se usa — los precios reales se administran en la pestaña
-           "Precios" (settings). Si algún día se construye el catálogo editable,
-           ver git log (renderServices en admin.js y admin/services.php). -->
       <button class="admin-nav__item" data-view="resenas">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
         Reseñas
@@ -72,7 +65,6 @@
     </nav>
   </aside>
 
-  <!-- Main -->
   <div class="admin-main">
     <header class="admin-topbar">
       <button class="admin-burger" id="admin-burger" aria-label="Abrir menú">
@@ -94,11 +86,9 @@
 
     <div class="admin-content">
 
-      <!-- DASHBOARD -->
       <section data-view="dashboard">
         <div class="stat-grid" id="stat-grid"></div>
 
-        <!-- Operativo: lo que el empleado necesita atender primero -->
         <div class="admin-cols admin-cols--ops">
           <div class="admin-card">
             <div class="admin-card__head"><h3>Citas próximas</h3><button class="admin-link" data-goto="citas">Ver todas →</button></div>
@@ -115,14 +105,12 @@
           <div class="table-wrap"><table class="admin-table" id="recent-orders"></table></div>
         </div>
 
-        <!-- Analítica -->
         <div class="admin-card">
           <div class="admin-card__head"><h3>Ventas (últimos 7 días)</h3><span class="admin-card__hint">MXN</span></div>
           <div id="chart-sales" class="chart"></div>
         </div>
       </section>
 
-      <!-- PEDIDOS -->
       <section data-view="pedidos" hidden>
         <div class="admin-toolbar">
           <div class="admin-filters" id="order-filters">
@@ -151,7 +139,6 @@
         </div>
       </section>
 
-      <!-- TIENDA (e-commerce) -->
       <section data-view="tienda" hidden>
         <div class="admin-toolbar">
           <div class="admin-filters" id="shop-filters">
@@ -179,9 +166,6 @@
         </div>
       </section>
 
-      <!-- CATÁLOGO — productos de la tienda y el estado de sus imágenes.
-           Vista de consulta (no edita el catálogo): el catálogo lo llena el runner
-           de Exel. Sirve para cazar productos sin fotos antes de publicarlos. -->
       <section data-view="catalogo" hidden>
         <div class="stat-grid stat-grid--compact" id="catalog-stats"></div>
         <div class="admin-toolbar">
@@ -230,7 +214,6 @@
         </div>
       </section>
 
-      <!-- CITAS -->
       <section data-view="citas" hidden>
         <div class="admin-toolbar">
           <div class="admin-filters" id="appt-filters">
@@ -248,7 +231,6 @@
         </div>
       </section>
 
-      <!-- USUARIOS / RESEÑAS -->
       <section data-view="usuarios" hidden>
         <div class="admin-toolbar">
           <input type="search" class="admin-search" id="user-search" placeholder="Buscar por nombre, correo o teléfono…" aria-label="Buscar usuario" autocomplete="off">
@@ -263,7 +245,6 @@
         <div class="admin-card"><div class="table-wrap"><table class="admin-table" id="reviews-table"></table></div></div>
       </section>
 
-      <!-- REPORTES (corte de caja: ventas + pedidos + citas) -->
       <section data-view="reportes" hidden>
         <div class="admin-toolbar">
           <div class="admin-filters" id="report-period">
@@ -280,7 +261,6 @@
         </div>
       </section>
 
-      <!-- PRECIOS (solo administrador/directivo): editar precios de impresión + IVA -->
       <section data-view="precios" hidden>
         <div class="admin-card">
           <div class="admin-card__head"><h3>Precios de impresión</h3><span class="admin-card__hint">Se aplican al instante</span></div>
@@ -294,17 +274,11 @@
   <div class="admin-demo" id="admin-demo">Modo demostración · datos simulados (listo para conectar a CloudPanel)</div>
   <div class="admin-overlay" id="admin-overlay" hidden></div>
 
-  <!-- Librerías para el comprobante PDF de cita -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" defer></script>
   <script src="assets/cita-ticket.js?v=20260706c" defer></script>
-  <!-- Generador del recibo de TIENDA: permite que el panel descargue el PDF de una
-       compra aunque el cliente todavía no lo haya generado desde "Mis compras". -->
   <script src="assets/shop-ticket.js?v=20260722a" defer></script>
   <script src="assets/admin.js?v=20260727c" defer></script>
-  <!-- Selector de fotos de la vista de Catálogo. Va DESPUÉS de admin.js y en archivo
-       aparte: se engancha solo por delegación en [data-foto], así que si fallara, el
-       catálogo sigue listando productos igual que antes. -->
   <script src="assets/admin-fotos.js?v=20260723a" defer></script>
 </body>
 </html>

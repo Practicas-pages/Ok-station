@@ -1,13 +1,3 @@
-/* ============================================================
-   Ok.station — Historial de COMPRAS de la tienda (perfil): listar, pagar
-   y RECIBO PDF (generarlo tras el pago exitoso, descargarlo y que el
-   servidor lo mande por correo).
-   Flujo del recibo: cuando una compra está PAGADA y aún no tiene recibo,
-   este módulo lo genera con shop-ticket.js, lo sube a shop/ticket-store.php
-   (que lo guarda y se lo envía al cliente por correo con el PDF adjunto)
-   y deja el botón "Descargar recibo" listo. Así el recibo aparece solo,
-   justo después de volver del pago (pago.html redirige a #tienda).
-   ============================================================ */
 (function () {
   "use strict";
   var API = "/backend/api";
@@ -33,8 +23,6 @@
   }
 
   var pollTimer = null;
-  /* Compras a las que ya se les intentó generar el recibo en esta visita
-     (para no duplicar la subida si load() se ejecuta varias veces). */
   var generating = {};
 
   function payBlock(o) {
@@ -85,19 +73,16 @@
           '</div>';
         }).join("");
         wire();
-        // Recién pagadas y sin recibo: generarlo YA (descargable + correo con PDF).
         if (ticketsEnabled) {
           list.forEach(function (o) {
             if (o.payment_status === "pagado" && !+o.has_ticket && !generating[o.id]) ensureTicket(o.id);
           });
         }
-        // Si alguna compra quedó "procesando" (volviste del checkout), refresca el estado.
         if (list.some(function (o) { return o.payment_status === "procesando"; })) schedulePoll();
       })
       .catch(function () { host.innerHTML = '<p style="color:var(--color-error)">No se pudo cargar tu historial de compras.</p>'; });
   }
 
-  /* Tras volver del checkout, el webhook puede tardar unos segundos: reintenta. */
   function schedulePoll() {
     var tries = 0;
     if (pollTimer) clearInterval(pollTimer);
@@ -114,15 +99,13 @@
     }, 4000);
   }
 
-  /* Espera a que jsPDF (y de paso el logo) estén listos antes de generar. */
   function waitForLibs(cb, tries) {
     tries = tries || 0;
     if (window.jspdf && window.jspdf.jsPDF && window.OKShopTicket) { cb(); return; }
-    if (tries > 25) { cb(); return; }   // ~5s: se intenta igual (OKShopTicket devuelve null si no hay libs)
+    if (tries > 25) { cb(); return; }
     setTimeout(function () { waitForLibs(cb, tries + 1); }, 200);
   }
 
-  /* Detalle completo (con productos) → PDF del recibo. */
   function buildTicket(id) {
     return getJSON("shop/get.php?id=" + id).then(function (res) {
       if (!res || !res.ok || !res.order) throw new Error("detalle");
@@ -134,9 +117,6 @@
     });
   }
 
-  /* Genera el recibo de una compra pagada y lo sube: el servidor lo guarda y
-     manda el correo con el PDF adjunto. Best-effort y silencioso: si algo
-     falla, el botón "Descargar recibo" lo vuelve a intentar al tocarlo. */
   function ensureTicket(id) {
     generating[id] = true;
     waitForLibs(function () {
@@ -157,7 +137,6 @@
     btn.disabled = true; btn.textContent = "Descargando…";
     var done = function () { btn.disabled = false; btn.textContent = orig; };
 
-    /* Con recibo guardado: se descarga el MISMO PDF que se envió por correo. */
     if (+btn.dataset.has) {
       fetch(API + "/shop/ticket.php?id=" + id, { headers: { Authorization: "Bearer " + token() } })
         .then(function (r) { if (!r.ok) throw new Error("err"); return r.blob(); })
@@ -173,8 +152,6 @@
       return;
     }
 
-    /* Sin recibo guardado aún: se genera aquí mismo, se descarga y se sube
-       (la subida dispara el correo). */
     waitForLibs(function () {
       buildTicket(id)
         .then(function (t) {

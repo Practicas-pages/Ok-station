@@ -1,8 +1,3 @@
-/* ============================================================
-   Ok.station — Sesión en el header del sitio (index)
-   Si hay sesión, reemplaza el botón "Cuenta" por un menú con
-   avatar + nombre → Mi perfil / Mis pedidos / Mis citas / Panel (staff) / Salir.
-   ============================================================ */
 (function () {
   "use strict";
   function esc(s) { var d = document.createElement("div"); d.textContent = String(s == null ? "" : s); return d.innerHTML; }
@@ -13,15 +8,13 @@
   if (!acct) return;
 
   var u = user();
-  if (!token() || !u) return; // sin sesión → se queda el botón "Cuenta"
+  if (!token() || !u) return;
 
-  // [hidden] no basta porque .btn fija display:flex → ocultamos también por estilo.
   var login = document.getElementById("acct-login");
   if (login) { login.hidden = true; login.style.display = "none"; }
 
   var roles = u.roles || [];
   var isStaff = roles.indexOf("administrador") >= 0 || roles.indexOf("empleado") >= 0 || roles.indexOf("directivo") >= 0;
-  /* El empleado puro ve "Panel de empleado"; admin/directivo ven "Panel administrativo". */
   var isEmpOnly = roles.indexOf("empleado") >= 0 && roles.indexOf("administrador") < 0 && roles.indexOf("directivo") < 0;
   var panelLabel = isEmpOnly ? "Panel de empleado" : "Panel administrativo";
   var first = (u.full_name || "Mi cuenta").trim().split(/\s+/)[0];
@@ -46,15 +39,9 @@
     '</div>';
   acct.appendChild(wrap);
 
-  /* Topbar de la TIENDA (tienda.html): el botón .tb-cuenta no vive dentro de #acct.
-     Le damos el MISMO menú desplegable que el home (todo el sitio conectado), anclado
-     al chip. (En otras páginas no existe .tb-cuenta y esto es un no-op.) */
   var tb = document.querySelector(".tb-cuenta");
   if (tb && tb.parentNode && !tb.parentNode.querySelector(".tb-acctmenu")) {
-    tb.setAttribute("href", "/perfil");               // respaldo si el JS fallara (absoluto: sirve desde /producto/…)
-    /* MISMO chip que el home: avatar con tu inicial (degradado de marca) + nombre +
-       flecha. Antes era un ícono genérico de persona y SIN flecha, aunque igual
-       despliega el menú: ni se veía igual que el home ni avisaba que se abre. */
+    tb.setAttribute("href", "/perfil");
     tb.classList.add("tb-cuenta--user");
     tb.innerHTML =
       '<span class="tb-avatar" aria-hidden="true">' + esc(initial) + '</span>' +
@@ -62,7 +49,7 @@
       '<svg class="tb-caret" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>';
     tb.setAttribute("aria-label", "Cuenta de " + (u.full_name || first));
 
-    var host = tb.parentNode;                          // .tb-actions
+    var host = tb.parentNode;
     host.style.position = "relative";
     var tbMenu = document.createElement("div");
     tbMenu.className = "tb-acctmenu"; tbMenu.hidden = true; tbMenu.setAttribute("role", "menu");
@@ -80,13 +67,10 @@
     function tbClose() { tbMenu.hidden = true; tb.setAttribute("aria-expanded", "false"); }
     function tbToggle(e) { if (e) e.preventDefault(); var willOpen = tbMenu.hidden; tbMenu.hidden = !willOpen; tb.setAttribute("aria-expanded", String(willOpen)); }
     tb.addEventListener("click", tbToggle);
-    /* .tb-cuenta es un <a role=button>: Enter dispara click solo; la barra ESPACIADORA no. */
     tb.addEventListener("keydown", function (e) { if (e.key === " " || e.key === "Spacebar") tbToggle(e); });
     document.addEventListener("click", function (e) {
       if (!tbMenu.hidden && !tbMenu.contains(e.target) && !tb.contains(e.target)) tbClose();
     });
-    /* Escape en CAPTURA: si el menú está abierto, ciérralo y NO dejes que el Escape
-       global de la tienda cierre además el carrito/drawers. */
     document.addEventListener("keydown", function (e) {
       if (e.key === "Escape" && !tbMenu.hidden) { e.stopPropagation(); tbClose(); }
     }, true);
@@ -107,9 +91,6 @@
   });
   document.addEventListener("click", function (e) { if (!wrap.contains(e.target)) close(); });
   document.addEventListener("keydown", function (e) { if (e.key === "Escape") close(); });
-  /* Cerrar al hacer scroll: el header se oculta al bajar y el menú, anclado a él,
-     quedaba "volando" sobre la página. Cerrarlo es el comportamiento esperado de
-     un menú de encabezado (y evita que se despegue del botón). */
   window.addEventListener("scroll", function () { if (!menu.hidden) close(); }, { passive: true });
   wrap.querySelector("#acct-logout").addEventListener("click", function () {
     try { localStorage.removeItem("okstation.token"); localStorage.removeItem("okstation.user"); } catch (e) {}
@@ -117,17 +98,13 @@
   });
 })();
 
-/* ============================================================
-   Navbar inteligente: al bajar se oculta, al subir reaparece.
-   Bloque autocontenido (no depende del menú de cuenta de arriba).
-   ============================================================ */
 (function () {
   var header = document.querySelector(".site-header");
   if (!header) return;
   var lastY = window.pageYOffset || 0;
   var ticking = false;
-  var DELTA = 6;        // umbral para no parpadear con micro-scrolls
-  var SHOW_NEAR_TOP = 90; // siempre visible cerca del inicio
+  var DELTA = 6;
+  var SHOW_NEAR_TOP = 90;
 
   function update() {
     var y = window.pageYOffset || 0;
@@ -135,8 +112,8 @@
       header.classList.remove("site-header--hidden");
     } else {
       var diff = y - lastY;
-      if (diff > DELTA) header.classList.add("site-header--hidden");        // bajando → ocultar
-      else if (diff < -DELTA) header.classList.remove("site-header--hidden"); // subiendo → mostrar
+      if (diff > DELTA) header.classList.add("site-header--hidden");
+      else if (diff < -DELTA) header.classList.remove("site-header--hidden");
     }
     lastY = y;
     ticking = false;

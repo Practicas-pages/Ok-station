@@ -1,25 +1,16 @@
-/* ============================================================
-   Ok.station — Lógica de cuentas (front-end)
-   Login, registro, perfil, cambio y restablecimiento de contraseña.
-   Habla con el backend PHP (CloudPanel) vía JSON + JWT (Bearer).
-   ============================================================ */
 (function () {
   "use strict";
 
-  /* EDITAR si el API vive en otro dominio o subcarpeta.
-     Por defecto asume mismo dominio: https://tudominio/backend/api */
   var API_BASE = "/backend/api";
 
   var TKEY = "okstation.token";
   var UKEY = "okstation.user";
 
-  /* ── Sesión ── */
   function getToken() { try { return localStorage.getItem(TKEY); } catch (e) { return null; } }
   function setSession(t, u) { try { localStorage.setItem(TKEY, t); localStorage.setItem(UKEY, JSON.stringify(u)); } catch (e) {} }
   function clearSession() { try { localStorage.removeItem(TKEY); localStorage.removeItem(UKEY); } catch (e) {} }
   function cachedUser() { try { return JSON.parse(localStorage.getItem(UKEY) || "null"); } catch (e) { return null; } }
 
-  /* ── Fetch al API ── */
   function api(path, method, data, auth) {
     var headers = { "Content-Type": "application/json" };
     if (auth && getToken()) headers["Authorization"] = "Bearer " + getToken();
@@ -36,7 +27,6 @@
     });
   }
 
-  /* ── Helpers de UI ── */
   function qs(s, c) { return (c || document).querySelector(s); }
   function showAlert(el, type, msg) {
     if (!el) return;
@@ -46,8 +36,6 @@
   }
   function clearAlert(el) { if (el) { el.hidden = true; el.textContent = ""; } }
 
-  /* ── Validación inline por campo (sin alerts del navegador) ──
-     Cada input usa un <span id="{input.id}-error"> para su mensaje. */
   var EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   function fieldDigits(s) { return String(s || "").replace(/\D/g, ""); }
   function setFieldError(input, msg) {
@@ -58,7 +46,6 @@
     else input.removeAttribute("aria-invalid");
     return !msg;
   }
-  /* Limpia el error de un campo en cuanto el usuario lo corrige */
   function liveClear(inputs) {
     inputs.forEach(function (inp) {
       if (inp) inp.addEventListener("input", function () { setFieldError(inp, ""); });
@@ -70,23 +57,15 @@
     else { btn.disabled = false; btn.textContent = labelWhenIdle || btn.dataset.label || "Enviar"; }
   }
 
-  /* ============================================================
-     Guard: páginas que requieren sesión (body[data-requires-auth])
-     ============================================================ */
   function enforceGuard() {
     if (!document.body.hasAttribute("data-requires-auth")) return true;
     if (!getToken()) {
-      /* Recuerda a dónde iba el usuario para volver AHÍ tras iniciar sesión,
-         en vez de dejarlo siempre en el perfil (navegación lógica entre páginas). */
       try { sessionStorage.setItem("oks_intended", location.pathname + location.search + location.hash); } catch (e) {}
       window.location.href = "cuenta.html"; return false;
     }
     return true;
   }
 
-  /* ============================================================
-     Página: cuenta.html (login + registro con tabs)
-     ============================================================ */
   function initAuthTabs() {
     var tabs = document.querySelectorAll(".auth-tab");
     var panels = { login: qs("#panel-login"), register: qs("#panel-register") };
@@ -100,7 +79,6 @@
       Object.keys(panels).forEach(function (k) { if (panels[k]) panels[k].hidden = k !== name; });
     }
     tabs.forEach(function (t) { t.addEventListener("click", function () { activate(t.dataset.tab); }); });
-    /* permite abrir directo en registro con #registro */
     if (location.hash === "#registro") activate("register");
   }
 
@@ -123,7 +101,6 @@
         setLoading(btn, false, "Iniciar sesión");
         if (res.body.ok) {
           setSession(res.body.token, res.body.user);
-          /* El staff (empleado/administrador/directivo) entra directo a su panel; el cliente, a su perfil. */
           var roles = (res.body.user && res.body.user.roles) || [];
           var staff = roles.indexOf("administrador") >= 0 || roles.indexOf("empleado") >= 0 || roles.indexOf("directivo") >= 0;
           window.location.href = staff ? "admin.html" : afterAuthDest("perfil.html");
@@ -133,14 +110,7 @@
     });
   }
 
-  /* Tras iniciar sesión/registrarse, regresa a donde el usuario quería ir (si guardó
-     'oks_intended', p. ej. al intentar agendar una cita o hacer un pedido sin sesión).
-     Solo acepta una URL del MISMO sitio y que no sea una página de auth (anti open-redirect
-     y anti bucle). Si no hay destino guardado, usa el fallback (perfil.html). */
   function afterAuthDest(fallback) {
-    /* Prioridad: ?next de la URL (contexto explícito, p. ej. cuenta.html?next=tienda.html#store)
-       y si no, el destino guardado 'oks_intended'. 'oks_intended' se limpia SIEMPRE para que no
-       quede colgado y desvíe un login posterior. */
     var qnext = null, snext = null;
     try { qnext = new URLSearchParams(location.search).get("next"); } catch (e) {}
     try { snext = sessionStorage.getItem("oks_intended"); sessionStorage.removeItem("oks_intended"); } catch (e) {}
@@ -211,9 +181,6 @@
     });
   }
 
-  /* ============================================================
-     Página: restablecer.html (token en la URL)
-     ============================================================ */
   function initReset() {
     var form = qs("#form-reset");
     if (!form) return;
@@ -241,23 +208,17 @@
     });
   }
 
-  /* ============================================================
-     Página: perfil.html (requiere sesión)
-     ============================================================ */
   function initProfile() {
     var page = qs("#profile-page");
     if (!page) return;
 
-    /* Pinta de inmediato lo que haya en caché para evitar parpadeo */
     fillProfile(cachedUser());
 
-    /* Trae datos frescos del servidor */
     api("me.php", "GET", null, true).then(function (res) {
       if (res.status === 401) { clearSession(); window.location.href = "cuenta.html"; return; }
       if (res.body.ok) { setSession(getToken(), res.body.user); fillProfile(res.body.user); }
     });
 
-    /* Editar info */
     var infoForm = qs("#profile-form");
     if (infoForm) {
       var infoBox = qs("#profile-alert");
@@ -275,7 +236,6 @@
       });
     }
 
-    /* Cambiar contraseña */
     var passForm = qs("#password-form");
     if (passForm) {
       var passBox = qs("#password-alert");
@@ -298,7 +258,6 @@
       });
     }
 
-    /* Cerrar sesión */
     var logout = qs("#btn-logout");
     if (logout) {
       logout.addEventListener("click", function () {
@@ -308,11 +267,6 @@
       });
     }
 
-    /* ── Navegación por PESTAÑAS (cambia el apartado visible, SIN scroll) ──
-       Cada enlace de la barra muestra su apartado y oculta los demás:
-         Mis pedidos → #pedidos · Mis citas → #citas · Datos personales → #account-settings
-       Al abrir el perfil, la vista por defecto es "Mis pedidos" (o la que pida el
-       enlace directo #citas / #datos / #info / #password). */
     var views = { pedidos: qs("#pedidos"), tienda: qs("#tienda"), citas: qs("#citas"), datos: qs("#account-settings") };
     var tabs  = {
       pedidos: qs('.profile-nav a[href="#pedidos"]'),
@@ -352,26 +306,20 @@
       if (f.full_name) f.full_name.value = u.full_name || "";
       if (f.phone) { if (window.OKPhone) window.OKPhone.set(f.phone, u.phone || ""); else f.phone.value = u.phone || ""; }
     }
-    /* Acceso al panel solo para staff (oculto para clientes) */
     var adminLink = qs("#profile-admin-link");
     if (adminLink) {
       var roles = (u && u.roles) || [];
       var staff = roles.indexOf("administrador") >= 0 || roles.indexOf("empleado") >= 0 || roles.indexOf("directivo") >= 0;
       adminLink.hidden = !staff;
       if (staff) {
-        /* El empleado puro ve "Panel de empleado"; admin/directivo "Panel administrativo". */
         var empOnly = roles.indexOf("empleado") >= 0 && roles.indexOf("administrador") < 0 && roles.indexOf("directivo") < 0;
         adminLink.textContent = "▸ " + (empOnly ? "Panel de empleado" : "Panel administrativo");
       }
     }
   }
 
-  /* ── Init ── */
   function init() {
 
-  // ==========================================
-  // MODO MANTENIMIENTO
-  // ==========================================
 
   const MAINTENANCE_MODE = false;
 
@@ -401,9 +349,6 @@
     }
   }
 
-  // ==========================================
-  // CÓDIGO ORIGINAL
-  // ==========================================
 
   if (!enforceGuard()) return;
 

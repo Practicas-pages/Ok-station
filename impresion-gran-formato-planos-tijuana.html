@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-<!-- Ok.station — Página de servicio: Impresión de gran formato y planos. Mismo design system que index/home. -->
 <html lang="es-MX">
 <head>
   <meta charset="UTF-8">
@@ -39,10 +38,8 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" media="print" onload="this.media='all'">
   <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"></noscript>
 
-  <!-- Tema (claro/oscuro): antes de la hoja para pintar ya con el tema elegido -->
   <script src="assets/theme.js?v=20260721a"></script>
   <link rel="stylesheet" href="styles.css?v=20260728d">
-  <!-- Mascota/chatbot OKi -->
   <link rel="stylesheet" href="assets/oki.css?v=20260728a">
   <style>
     .breadcrumb { padding: 14px 0 0; }
@@ -54,14 +51,12 @@
     .breadcrumb [aria-current="page"] { color: var(--brand-blue, #066CFF); font-weight: 600; }
     .svc-meta { color: var(--brand-blue, #066CFF); font-weight: 600; }
 
-    /* Breadcrumb dentro del hero oscuro → texto claro */
     .breadcrumb--hero { padding: 0 0 14px; }
     .breadcrumb--hero ol { color: rgba(255,255,255,0.78); }
     .breadcrumb--hero a { color: rgba(255,255,255,0.78); }
     .breadcrumb--hero a:hover { color: #fff; }
     .breadcrumb--hero [aria-current="page"] { color: #fff; }
 
-    /* Tarjeta de precios de referencia */
     .price-card { max-width: 620px; margin: 0 auto; background: #fff; border: 1px solid var(--border-light, #e6eaf2); border-radius: var(--radius-lg, 18px); box-shadow: 0 18px 50px rgba(4,12,40,0.16); padding: 26px clamp(20px,4vw,34px); }
     .price-card ul { list-style: none; margin: 0; padding: 0; }
     .price-card li { display: flex; justify-content: space-between; gap: 16px; align-items: baseline; padding: 13px 0; border-bottom: 1px dashed var(--border-light, #e6eaf2); }
@@ -110,23 +105,8 @@
 
 <body id="top">
 <a class="skip-link" href="#main">Saltar al contenido principal</a>
-<!-- ─────────────────────────────────────────────────────────────────────────
-     Ok.station — NAVBAR UNIFICADO · marcado canónico
-     Esta es la COPIA MAESTRA. Va pegada tal cual en cada página (no se inyecta
-     por JavaScript a propósito: los enlaces de navegación deben venir en el HTML
-     para que Google los siga, que es justo por lo que la ficha se arma en el
-     servidor).
-     Necesita:  <link rel="stylesheet" href="/assets/oknav.css?v=20260728r">
-                <script src="/assets/oknav.js?v=20260724a" defer></script>
-     Todos los <svg> llevan width/height propios: sin tamaño intrínseco un icono
-     se pinta gigante mientras el CSS va en camino (ya pasó con el del correo).
-     ───────────────────────────────────────────────────────────────────────── -->
 <header class="oknav" id="oknav">
 
-  <!-- ══ CINTURILLO · lo mismo que traía .header-bar del sitio ═══════════════
-       Enlaces a la izquierda, lema al centro y redes a la derecha. En celular
-       se oculta entero: sus enlaces ya están en el cajón ☰ y aquí solo haría
-       más alta una barra que ya es pegajosa. -->
   <div class="oknav__belt">
     <div class="oknav__wrap">
       <nav class="oknav__beltlinks" aria-label="Enlaces rápidos">
@@ -148,7 +128,6 @@
     </div>
   </div>
 
-  <!-- ══ FILA 1 · logo · buscador · ubicación · cuenta · deseados · carrito ══ -->
   <div class="oknav__row oknav__row--main">
     <div class="oknav__wrap">
 
@@ -166,9 +145,6 @@
              stroke-width="2.2" stroke-linecap="round" aria-hidden="true">
           <circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/>
         </svg>
-        <!-- Sin botón de buscar: se envía con Enter, igual que el buscador del
-             resto del sitio (.shopbar__search). Con botón quedaban DOS lupas
-             en el mismo campo. -->
         <input id="oknavQ" type="search" autocomplete="off" role="combobox"
                aria-expanded="false" aria-autocomplete="list" aria-controls="oknavAc"
                aria-label="Buscar productos (escribe y pulsa Enter)"
@@ -221,7 +197,6 @@
     </div>
   </div>
 
-  <!-- ══ FILA 2 · tienda ┃ servicios ······ WhatsApp ══════════════════════ -->
   <div class="oknav__row oknav__row--nav">
     <div class="oknav__wrap">
       <nav class="oknav__mobile-stores" aria-label="Accesos de compra">
@@ -285,13 +260,9 @@
     </div>
   </div>
 
-  <!-- Desplegable de categorías (lo llena oknav.js con las de la BD) -->
   <div class="oknav__catsmenu" id="oknavCatsMenu" hidden></div>
 </header>
 
-<!-- ══ Cajón ☰ (celular y tablet) ═══════════════════════════════════════════
-     Aquí viven las cosas que NO merecen una fila propia en el encabezado:
-     los servicios, "¿Quiénes somos?/Contacto" y las redes sociales. -->
 <div class="oknav__scrim" id="oknavScrim" hidden></div>
 <aside class="oknav__drawer" id="oknavDrawer" aria-label="Menú" hidden>
   <div class="oknav__dhead">
@@ -318,8 +289,6 @@
 
   <p class="oknav__dtitle">Ok.station</p>
   <div class="oknav__dlist">
-    <!-- En celular el botón de tema no cabe en la barra (se iba a un tercer
-         renglón), así que vive aquí. Lo mueve OKTheme, el mismo de theme.js. -->
     <button type="button" id="oknavTema">Modo oscuro <span id="oknavTemaEstado"></span></button>
     <a href="/quienes-somos.html">¿Quiénes somos?</a>
     <a href="/contactanos.html">Contacto</a>
@@ -342,7 +311,6 @@
 
 
 <main id="main">
-  <!-- HERO premium (estética actual): imagen de fondo + degradado + título con acento -->
   <section class="hero" aria-labelledby="svc-title" style="min-height:clamp(520px,72vh,760px)">
     <div class="hero__bg" aria-hidden="true">
       <img class="hero__bg-img" src="assets/img/plano.webp" alt="" loading="eager" decoding="async" onerror="this.style.display='none'">
@@ -470,7 +438,6 @@
 
 <script src="app.js?v=20260630e" defer></script>
 <script src="assets/session-nav.js?v=20260630c" defer></script>
-<!-- Mascota/chatbot OKi (astronauta) -->
 <script src="assets/catalogo.js?v=20260714a" defer></script>
 <script src="assets/oki.js?v=20260728a" defer></script>
   <script src="/assets/oknav.js?v=20260724a" defer></script>

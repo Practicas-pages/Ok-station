@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-<!-- Ok.station — Landing pública: Pedido de impresión en línea. Contenido SEO + CTA al flujo autenticado (cuenta.html → pedido.html). Mismo design system que index/home. -->
 <html lang="es-MX">
 <head>
   <meta charset="UTF-8">
@@ -39,10 +38,8 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" media="print" onload="this.media='all'">
   <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"></noscript>
 
-  <!-- Tema (claro/oscuro): antes de la hoja para pintar ya con el tema elegido -->
   <script src="assets/theme.js?v=20260721a"></script>
   <link rel="stylesheet" href="styles.css?v=20260728d">
-  <!-- Mascota/chatbot OKi -->
   <link rel="stylesheet" href="assets/oki.css?v=20260728a">
   <style>
     .breadcrumb { padding: 14px 0 0; }
@@ -53,7 +50,6 @@
     .breadcrumb a:hover { color: var(--brand-blue, #066CFF); text-decoration: underline; }
     .breadcrumb [aria-current="page"] { color: var(--brand-blue, #066CFF); font-weight: 600; }
     .svc-meta { color: var(--brand-blue, #066CFF); font-weight: 600; }
-    /* Tabla de precios de referencia (reutiliza tokens del design system) */
     .price-table { width: 100%; max-width: 620px; margin: 0 auto; border-collapse: collapse; font-size: 0.92rem; }
     .price-table th, .price-table td { text-align: left; padding: 12px 14px; border-bottom: 1px solid var(--border-light, #E6E9EF); }
     .price-table th { color: var(--text-muted, #6B7280); font-weight: 600; font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.03em; }
@@ -102,23 +98,8 @@
 
 <body id="top">
 <a class="skip-link" href="#main">Saltar al contenido principal</a>
-<!-- ─────────────────────────────────────────────────────────────────────────
-     Ok.station — NAVBAR UNIFICADO · marcado canónico
-     Esta es la COPIA MAESTRA. Va pegada tal cual en cada página (no se inyecta
-     por JavaScript a propósito: los enlaces de navegación deben venir en el HTML
-     para que Google los siga, que es justo por lo que la ficha se arma en el
-     servidor).
-     Necesita:  <link rel="stylesheet" href="/assets/oknav.css?v=20260728r">
-                <script src="/assets/oknav.js?v=20260724a" defer></script>
-     Todos los <svg> llevan width/height propios: sin tamaño intrínseco un icono
-     se pinta gigante mientras el CSS va en camino (ya pasó con el del correo).
-     ───────────────────────────────────────────────────────────────────────── -->
 <header class="oknav" id="oknav">
 
-  <!-- ══ CINTURILLO · lo mismo que traía .header-bar del sitio ═══════════════
-       Enlaces a la izquierda, lema al centro y redes a la derecha. En celular
-       se oculta entero: sus enlaces ya están en el cajón ☰ y aquí solo haría
-       más alta una barra que ya es pegajosa. -->
   <div class="oknav__belt">
     <div class="oknav__wrap">
       <nav class="oknav__beltlinks" aria-label="Enlaces rápidos">
@@ -140,7 +121,6 @@
     </div>
   </div>
 
-  <!-- ══ FILA 1 · logo · buscador · ubicación · cuenta · deseados · carrito ══ -->
   <div class="oknav__row oknav__row--main">
     <div class="oknav__wrap">
 
@@ -158,9 +138,6 @@
              stroke-width="2.2" stroke-linecap="round" aria-hidden="true">
           <circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/>
         </svg>
-        <!-- Sin botón de buscar: se envía con Enter, igual que el buscador del
-             resto del sitio (.shopbar__search). Con botón quedaban DOS lupas
-             en el mismo campo. -->
         <input id="oknavQ" type="search" autocomplete="off" role="combobox"
                aria-expanded="false" aria-autocomplete="list" aria-controls="oknavAc"
                aria-label="Buscar productos (escribe y pulsa Enter)"
@@ -213,7 +190,6 @@
     </div>
   </div>
 
-  <!-- ══ FILA 2 · tienda ┃ servicios ······ WhatsApp ══════════════════════ -->
   <div class="oknav__row oknav__row--nav">
     <div class="oknav__wrap">
       <nav class="oknav__mobile-stores" aria-label="Accesos de compra">
@@ -277,13 +253,9 @@
     </div>
   </div>
 
-  <!-- Desplegable de categorías (lo llena oknav.js con las de la BD) -->
   <div class="oknav__catsmenu" id="oknavCatsMenu" hidden></div>
 </header>
 
-<!-- ══ Cajón ☰ (celular y tablet) ═══════════════════════════════════════════
-     Aquí viven las cosas que NO merecen una fila propia en el encabezado:
-     los servicios, "¿Quiénes somos?/Contacto" y las redes sociales. -->
 <div class="oknav__scrim" id="oknavScrim" hidden></div>
 <aside class="oknav__drawer" id="oknavDrawer" aria-label="Menú" hidden>
   <div class="oknav__dhead">
@@ -310,8 +282,6 @@
 
   <p class="oknav__dtitle">Ok.station</p>
   <div class="oknav__dlist">
-    <!-- En celular el botón de tema no cabe en la barra (se iba a un tercer
-         renglón), así que vive aquí. Lo mueve OKTheme, el mismo de theme.js. -->
     <button type="button" id="oknavTema">Modo oscuro <span id="oknavTemaEstado"></span></button>
     <a href="/quienes-somos.html">¿Quiénes somos?</a>
     <a href="/contactanos.html">Contacto</a>
@@ -347,8 +317,6 @@
             Haz tu pedido en línea
           </a>
           <a href="cuenta.html" class="btn btn--light btn--lg">Crear cuenta / iniciar sesión</a>
-          <!-- Enlace SECUNDARIO a la tienda: quien pide impresiones en linea tambien
-               compra papeleria en linea. Relacion real, sin quitarle el foco al pedido. -->
           <a href="tienda.html" class="btn btn--light btn--lg">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 9l1-5h16l1 5"/><path d="M4 9v11h16V9"/><path d="M9 20v-6h6v6"/></svg>
             Comprar papelería en línea
@@ -465,7 +433,6 @@
 
 <script src="app.js?v=20260630e" defer></script>
 <script src="assets/session-nav.js?v=20260630c" defer></script>
-<!-- Mascota/chatbot OKi (astronauta) -->
 <script src="assets/catalogo.js?v=20260714a" defer></script>
 <script src="assets/oki.js?v=20260728a" defer></script>
   <script src="/assets/oknav.js?v=20260724a" defer></script>

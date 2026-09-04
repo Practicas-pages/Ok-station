@@ -1,22 +1,6 @@
-/* ============================================================
-   Ok.station — Selector de código de país para teléfonos (+52 / +1)
-   Mejora progresiva: para CADA <input type="tel"> del sitio…
-     · añade un selector de país (México +52 / EE. UU. +1),
-     · fuerza que solo se escriban dígitos (máx. 10 = número local),
-     · expone el número completo listo para guardar: "+52 6647194117".
-   No depende de ningún framework. Si el script falla, los campos siguen
-   funcionando como <input type="tel"> normales (no rompe el envío).
-
-   API pública (window.OKPhone):
-     full(input)  → "+52 6647194117" (código + 10 dígitos) o "" si vacío
-     cc(input)    → "+52" | "+1" (código elegido)
-     set(input,v) → coloca en el campo un valor guardado ("+52 664…")
-     init(root)   → mejora los tel dentro de root (por defecto, document)
-   ============================================================ */
 (function () {
   "use strict";
 
-  /* Ícono de WhatsApp (solo se usa en los campos de contacto que ya lo traían). */
   var OPTS = '<option value="+52">🇲🇽 +52</option>' +
              '<option value="+1">🇺🇸 +1</option>';
 
@@ -32,13 +16,11 @@
     var s = selectOf(input);
     return (s && s.value) ? s.value : "+52";
   }
-  /* Número completo para guardar/enviar: código + hasta 10 dígitos. */
   function full(input) {
     if (!input) return "";
     var d = onlyDigits(input.value, 10);
     return d ? (cc(input) + " " + d) : "";
   }
-  /* Coloca un valor guardado ("+52 6647194117") repartiéndolo en selector + campo. */
   function set(input, stored) {
     if (!input) return;
     var str = String(stored == null ? "" : stored).trim();
@@ -49,7 +31,6 @@
     if (s) s.value = (code === "+1") ? "+1" : "+52";
     input.value = onlyDigits(rest, 10);
   }
-  /* Filtro en vivo: solo dígitos, máx. 10; conserva la posición del cursor. */
   function bindDigitFilter(input) {
     input.addEventListener("input", function () {
       var pos = input.selectionStart, before = input.value, clean = onlyDigits(before, 10);
@@ -58,7 +39,7 @@
         try {
           var removed = before.length - clean.length;
           input.setSelectionRange(Math.max(0, pos - removed), Math.max(0, pos - removed));
-        } catch (e) { /* algunos navegadores no permiten selección en type=tel */ }
+        } catch (e) {   }
       }
     });
   }
@@ -77,8 +58,6 @@
     var wrap = input.closest ? input.closest(".input-prefix") : null;
     var tag = wrap ? wrap.querySelector(".input-prefix__tag") : null;
     if (tag) {
-      /* Campo de contacto que ya trae el prefijo "+52": conservamos el ícono y
-         cambiamos el texto "+52" por un <select>. */
       if (!tag.querySelector(".input-prefix__cc")) {
         for (var i = tag.childNodes.length - 1; i >= 0; i--) {
           if (tag.childNodes[i].nodeType === 3) tag.removeChild(tag.childNodes[i]);
@@ -86,8 +65,6 @@
         tag.appendChild(makeSelect());
       }
     } else {
-      /* Campo suelto (registro, perfil, cuestionario): lo envolvemos con un prefijo
-         neutro (--plain) + selector, legible en cualquier fondo. */
       wrap = document.createElement("div");
       wrap.className = "input-prefix";
       var parent = input.parentNode;
@@ -101,17 +78,6 @@
     }
     bindDigitFilter(input);
   }
-  /* ── Prellenado con el teléfono REGISTRADO (opt-in) ──
-     El sitio pedía el mismo número una y otra vez (citas, fotos, perfil…) aunque
-     el usuario ya lo dio al registrarse y el login lo deja en localStorage
-     ("okstation.user", lo guarda auth.js con lo que devuelve user_public, que
-     incluye phone). Los campos que quieran ese valor por defecto se marcan con
-     data-prefill-phone. Reglas:
-       · solo si el campo está VACÍO (jamás pisa lo que el usuario tecleó),
-       · sigue siendo 100% editable,
-       · sin sesión (o sin teléfono guardado) no hace nada.
-     Es el mismo patrón que YA usan la libreta de direcciones (address-book.js)
-     y el checkout de la compra rápida (me.phone): aquí solo se centraliza. */
   function userPhone() {
     try {
       var u = JSON.parse(localStorage.getItem("okstation.user") || "null");
@@ -125,7 +91,7 @@
     if (!r.querySelectorAll) return;
     var list = r.querySelectorAll('input[type="tel"][data-prefill-phone]');
     for (var i = 0; i < list.length; i++) {
-      if (!onlyDigits(list[i].value)) set(list[i], tel);   // set() reparte lada + 10 dígitos
+      if (!onlyDigits(list[i].value)) set(list[i], tel);
     }
   }
 

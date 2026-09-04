@@ -1,10 +1,3 @@
-/* ============================================================
-   Ok.station — Comprobante PDF de cita (módulo compartido)
-   Expone window.OKCitaTicket(appt) → data-URI del PDF (o null si faltan libs).
-   Reutilizado por: wizard de citas (app.js), "Mis citas" (perfil) y panel admin.
-   Requiere jsPDF (window.jspdf) y QRCode cargados en la página.
-   appt: { code, tramite, passport_subtype, party_size, date, time, status, name, phone }
-   ============================================================ */
 (function () {
   "use strict";
 
@@ -13,7 +6,6 @@
     curp: "CURP", acta: "Acta de Nacimiento", ine: "INE / Credencial", licencia: "Licencia de conducir",
     apostille: "Apostille / Traducción", medica: "Cita médica / Examen"
   };
-  /* Nombres de estado (slug → etiqueta) para mostrar el estado del acta en el ticket. */
   var ACTA_STATE_NAMES = {
     aguascalientes: "Aguascalientes", baja_california: "Baja California", baja_california_sur: "Baja California Sur",
     campeche: "Campeche", chiapas: "Chiapas", chihuahua: "Chihuahua", ciudad_de_mexico: "Ciudad de México",
@@ -25,7 +17,6 @@
     zacatecas: "Zacatecas"
   };
   var SUBTYPE = { mexicano: "Mexicano", americano: "Americano" };
-  /* Tipo de trámite por persona (renovación con/sin documentos, etc.). */
   var DOCTYPE = {
     primera:   "Primera vez",
     renov_con: "Renovación con documentos",
@@ -34,14 +25,6 @@
   };
   var STATUS = { pendiente: "Pendiente de confirmar", confirmada: "Confirmada", completada: "Completada", cancelada: "Cancelada", no_show: "No asistió" };
 
-  /* ============================================================
-     CUESTIONARIO POR TRÁMITE (requisitos que el cliente captura por persona).
-     Fuente: hojas oficiales de requisitos de Ok.station. Se define UNA sola vez
-     aquí y lo consumen: el wizard (app.js, para pintar el formulario), el
-     comprobante PDF (abajo) y el panel admin (admin.js) — todos muestran las
-     mismas etiquetas. Tipos: text | tel | textarea | select | check | date.
-     Campos con help = texto de ayuda/ejemplo para que el usuario sepa qué poner.
-     ============================================================ */
   var OKQ_CFG = {
     pasaporte_mexicano: [
       { k: "curp",         q: "¿Cuál es tu CURP?",                                   help: "18 caracteres. La encuentras en tu acta o en gob.mx/curp. Ej: GOMC900512MBCNZR09", type: "text" },
@@ -114,11 +97,9 @@
     if (tramite === "medica") return "medica";
     return null;
   }
-  /* Devuelve los campos del cuestionario para un trámite/subtipo/tipo de trámite. */
   function okqFields(tramite, subtype, doctype) {
     var key = okqKey(tramite, subtype);
     var arr = (key && OKQ_CFG[key]) ? OKQ_CFG[key].slice() : [];
-    /* La visa láser solo se pide en renovación. */
     if (tramite === "visa" && (doctype === "renov_con" || doctype === "renov_sin")) {
       arr = [{ k: "visa_laser", q: "¿Tienes tu visa láser actual o vencida?", help: "Solo para renovación.", type: "check" }].concat(arr);
     }
@@ -129,23 +110,17 @@
   window.OKQ = {
     fields: okqFields,
     label: function (k) { return OKQ_LABELS[k] || k; },
-    /* Texto legible de un valor de respuesta (checkbox → Sí/No). */
     valueText: function (v) {
       if (v === true) return "Sí";
       if (v === false) return "No";
       return (v == null || v === "") ? "—" : String(v);
     }
   };
-  /* Contacto de Ok.station (WhatsApp canónico, 12 dígitos). */
   var WA_URL = "https://wa.me/526647194117?text=" + encodeURIComponent("Hola Ok.station, tengo una cita agendada y quiero confirmar / hacer mi pago.");
   var MAPS_URL = "https://www.google.com/maps/place/Ok.station/@32.5292376,-116.9514835,17z/data=!4m6!3m5!1s0x80d9475a2b534615:0x80c51bb5b3fe8f55!8m2!3d32.5292376!4d-116.9514835!16s%2Fg%2F11k63fhrhb";
 
-  /* Logo oficial para el encabezado del comprobante. Se precarga una vez y se
-     convierte a PNG (jsPDF no incrusta WebP directamente). Si aún no cargó o falla
-     la carga, el ticket usa el texto "Ok.station" como respaldo: nunca rompe la
-     generación del PDF. Misma ruta que usa el header/footer del sitio. */
   var LOGO_SRC = "assets/img/okstation-logo.webp";
-  var _ticketLogo = null;   /* { png, w, h } una vez lista */
+  var _ticketLogo = null;
   (function preloadTicketLogo() {
     try {
       if (typeof Image === "undefined") return;
@@ -154,12 +129,6 @@
         try {
           var w = img.naturalWidth || img.width, h = img.naturalHeight || img.height;
           if (!w || !h) return;
-          /* IMPORTANTE: reducir el logo antes de incrustarlo. El original mide
-             ~7826px de ancho; a resolución completa el PNG resultante inflaba el
-             PDF a ~41 MB y el comprobante se rechazaba por tamaño (send-receipt.php
-             corta a 5 MB) → el correo NUNCA se enviaba. En el ticket el logo se
-             dibuja a ~54 mm, así que 640px de ancho sobra para verse nítido y deja
-             el PDF en ~200 KB. Se conserva la proporción (w/h no cambia). */
           var MAXW = 640;
           var scale = w > MAXW ? (MAXW / w) : 1;
           var cw = Math.max(1, Math.round(w * scale)), ch = Math.max(1, Math.round(h * scale));
@@ -172,17 +141,9 @@
       img.src = LOGO_SRC;
     } catch (e) {}
   })();
-  /* Logo ya optimizado del ticket; lo reutiliza el comprobante de pedido (order.js)
-     para dibujar el mismo encabezado de marca. Devuelve null si aún no cargó. */
   window.OKTicketLogo = function () { return _ticketLogo; };
 
-  /* ── Precios de trámite/cita (MXN, por persona, IVA incluido). Los no listados se cotizan. ──
-     Estos valores por defecto coinciden con la semilla del servidor (settings appt.prices);
-     al cargar la página se sincronizan con el panel vía /appointments/prices.php (abajo). */
   var CITA_PRICES = { pasaporte: 200, pasaporte_americano: 400, visa: 800, sentri: 900, ine: 80, curp: 35, i94: 200, licencia: 40 };
-  /* Acta de Nacimiento: el precio depende del ESTADO (MXN, IVA incluido). Estos
-     defaults coinciden con la semilla del servidor (settings appt.acta_prices);
-     se sincronizan con /appointments/prices.php al cargar la página. */
   var ACTA_PRICES = {
     aguascalientes: 335, baja_california: 345, baja_california_sur: 345, campeche: 275, chiapas: 345,
     chihuahua: 325, ciudad_de_mexico: 300, coahuila: 370, colima: 305, durango: 345, guanajuato: 305,
@@ -191,14 +152,10 @@
     sinaloa: 320, sonora: 320, tabasco: 310, tamaulipas: 310, tlaxcala: 355, veracruz: 385, yucatan: 400,
     zacatecas: 365
   };
-  var CITA_TAX = 0.08;   /* IVA 8% (los precios ya lo incluyen, como el ticket de mostrador) */
+  var CITA_TAX = 0.08;
   function mxn0(n) { return new Intl.NumberFormat("es-MX", { style: "currency", currency: "MXN", maximumFractionDigits: 0 }).format(n); }
   function mxn2(n) { return new Intl.NumberFormat("es-MX", { style: "currency", currency: "MXN", minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n); }
-  /* Resuelve el precio unitario: usa el catálogo del servidor (OK_APPT_PRICES, claves
-     'pasaporte_mexicano'…) si ya se cargó; si no, los valores por defecto de arriba. */
   function apptUnit(tramite, subtype) {
-    /* Acta de nacimiento: precio por ESTADO (subtype = slug del estado). Usa el
-       catálogo del servidor si ya cargó; si no, los defaults locales de arriba. */
     if (tramite === "acta") {
       var ap = window.OK_APPT_ACTA_PRICES;
       if (ap && typeof ap === "object" && ap[subtype] != null) return +ap[subtype];
@@ -210,28 +167,21 @@
       return srv[key];
     }
     var unit = CITA_PRICES[tramite];
-    if (tramite === "pasaporte" && subtype === "americano") unit = CITA_PRICES.pasaporte_americano; // formato $200 + cita = $400
+    if (tramite === "pasaporte" && subtype === "americano") unit = CITA_PRICES.pasaporte_americano;
     return unit;
   }
-  /* Devuelve {quote, unit, total, party}. quote=true → "se cotiza" (precio a confirmar). */
   window.OKCitaPrice = function (tramite, subtype, party) {
     party = Math.max(1, parseInt(party, 10) || 1);
     var unit = apptUnit(tramite, subtype);
     if (unit == null || +unit <= 0) return { quote: true, party: party };
     return { quote: false, unit: +unit, party: party, total: +unit * party };
   };
-  /* Texto listo para mostrar al cliente. */
   window.OKCitaPriceText = function (tramite, subtype, party) {
     var p = window.OKCitaPrice(tramite, subtype, party);
     if (p.quote) return "Te confirmamos el precio";
     if (p.party > 1) return mxn0(p.unit) + " por persona · Total " + mxn0(p.total) + " (" + p.party + " personas)";
     return mxn0(p.unit);
   };
-  /* Filas [etiqueta, valor] de costo para resumen y ticket. Desglosa el IVA 8%
-     a partir del total (precio IVA incluido, igual que el ticket de mostrador).
-     extrasTotal (opcional) = suma de servicios adicionales marcados (IVA incluido);
-     se agrega al total del trámite. Si el trámite se cotiza, se ignora (todo el
-     anticipo se coordina en mostrador). */
   window.OKCitaPriceRows = function (tramite, subtype, party, extrasTotal) {
     var p = window.OKCitaPrice(tramite, subtype, party);
     if (p.quote) return [["Precio", "Te confirmamos el precio"]];
@@ -246,8 +196,6 @@
     return rows;
   };
   window.OKMxn0 = mxn0;
-  /* Rango de precios del acta (min–max) a partir del catálogo vigente (servidor o
-     defaults). Lo usa app.js para mostrar el rango en la tarjeta del trámite. */
   window.OKActaPriceRange = function () {
     var ap = (window.OK_APPT_ACTA_PRICES && typeof window.OK_APPT_ACTA_PRICES === "object") ? window.OK_APPT_ACTA_PRICES : ACTA_PRICES;
     var vals = [];
@@ -255,11 +203,7 @@
     if (!vals.length) return null;
     return { min: Math.min.apply(null, vals), max: Math.max.apply(null, vals) };
   };
-  /* Ya hay catálogo (los defaults de arriba): pinta los precios de las tarjetas de
-     trámite YA, sin esperar al servidor, para que nunca salga "a cotizar" por lentitud. */
   if (window.OKRenderTramitePrices) { try { window.OKRenderTramitePrices(); } catch (e) {} }
-  /* Sincroniza precios/IVA con el panel (público). Si falla, se quedan los defaults.
-     No bloquea el render: el resumen del wizard se construye al llegar al último paso. */
   try {
     fetch("/backend/api/appointments/prices.php")
       .then(function (r) { return r.json(); })
@@ -269,7 +213,6 @@
         if (j && j.acta_prices) window.OK_APPT_ACTA_PRICES = j.acta_prices;
         if (j && j.require_payment) window.OK_APPT_REQUIRE_PAY = j.require_payment;
         if (j && j.tax_rate) CITA_TAX = +j.tax_rate;
-        /* Re-pinta con los precios vigentes del servidor (por si difieren de los defaults). */
         if (window.OKRenderTramitePrices) { try { window.OKRenderTramitePrices(); } catch (e) {} }
       })
       .catch(function () {});
@@ -284,7 +227,6 @@
     return DIAS[d.getDay()] + " " + d.getDate() + " de " + MESES[d.getMonth()] + " de " + d.getFullYear();
   }
 
-  /** @returns {string|null} data-URI del PDF, o null si faltan librerías. */
   window.OKCitaTicket = function (appt) {
     if (!appt || !window.jspdf || !window.jspdf.jsPDF || typeof QRCode === "undefined") return null;
     var doc = new window.jspdf.jsPDF({ unit: "mm", format: "a4" });
@@ -300,7 +242,6 @@
     function dt(d) { return two(d.getDate()) + "/" + two(d.getMonth() + 1) + "/" + d.getFullYear() + " " + two(d.getHours()) + ":" + two(d.getMinutes()); }
     function sdate(iso) { if (!iso) return "—"; var p = String(iso).split("-"); if (p.length < 3) return String(iso); return two(+p[2]) + "/" + two(+p[1]) + "/" + p[0]; }
 
-    /* ── Franja de marca + título de comprobante de pago ── */
     gradBand(0, 0, PW, 3);
     doc.setTextColor(dark[0], dark[1], dark[2]); doc.setFont("helvetica", "bold"); doc.setFontSize(25);
     doc.text("Comprobante", x, 24);
@@ -314,7 +255,6 @@
     doc.setFont("helvetica", "normal"); doc.setFontSize(8); doc.setTextColor(muted[0], muted[1], muted[2]);
     doc.text("Una marca de OK Dock", RIGHT, 30, { align: "right" });
 
-    /* ── DE (negocio) ── */
     var dy = 50;
     doc.setFont("helvetica", "bold"); doc.setFontSize(8); doc.setTextColor(muted[0], muted[1], muted[2]); doc.text("DE", x, dy);
     doc.setFont("helvetica", "bold"); doc.setFontSize(10.5); doc.setTextColor(dark[0], dark[1], dark[2]); doc.text("Ok.station", x, dy + 6);
@@ -323,7 +263,6 @@
     doc.text("Carretera Aeropuerto 1900", x, dy + 16);
     doc.text("22425 Tijuana, B.C.", x, dy + 20.5);
 
-    /* ── Metadatos (folio de la cita y fechas), apilados a la derecha ── */
     var meta = [["EMITIDO", dt(new Date())], ["N° DE CITA", String(appt.code || "—")],
                 ["FECHA DE CITA", sdate(appt.date) + (appt.time ? " · " + appt.time + " hrs" : "")]];
     var my = dy;
@@ -333,13 +272,11 @@
       var vl = doc.splitTextToSize(String(r[1]), 70); doc.text(vl, RIGHT, my, { align: "right" }); my += vl.length * 4.4 + 2.5;
     });
 
-    /* ── CLIENTE ── */
     var cyc = dy + 30;
     doc.setFont("helvetica", "bold"); doc.setFontSize(8); doc.setTextColor(muted[0], muted[1], muted[2]); doc.text("CLIENTE", x, cyc);
     doc.setFont("helvetica", "bold"); doc.setFontSize(10.5); doc.setTextColor(dark[0], dark[1], dark[2]); doc.text(String(appt.name || "—"), x, cyc + 6);
     if (appt.phone) { doc.setFont("helvetica", "normal"); doc.setFontSize(9); doc.setTextColor(muted[0], muted[1], muted[2]); doc.text("Tel. " + appt.phone, x, cyc + 11); }
 
-    /* ── Tabla de conceptos (arranca justo bajo CLIENTE; el QR va al pie) ── */
     var ty = cyc + 18;
     var descX = x + 14, unitR = RIGHT - 30, impR = RIGHT;
     doc.setFont("helvetica", "bold"); doc.setFontSize(7.5); doc.setTextColor(muted[0], muted[1], muted[2]);
@@ -350,14 +287,11 @@
     var svcName = SERVICE_NAMES[appt.tramite] || appt.tramite;
     if (appt.tramite === "pasaporte" && appt.passport_subtype) svcName += " (" + (SUBTYPE[appt.passport_subtype] || appt.passport_subtype) + ")";
     if (appt.tramite === "acta" && appt.acta_state) svcName += " (" + (ACTA_STATE_NAMES[appt.acta_state] || appt.acta_state) + ")";
-    /* El precio del acta depende del ESTADO; los demás usan el subtipo de pasaporte. */
     var priceSub = (appt.tramite === "acta") ? (appt.acta_state || "") : appt.passport_subtype;
     var pr = window.OKCitaPrice(appt.tramite, priceSub, appt.party_size);
     var items = [];
     if (pr.quote) items.push({ qty: pr.party, desc: "Gestión de cita — " + svcName, unit: "", imp: "Te confirmamos el precio" });
     else items.push({ qty: pr.party, desc: "Gestión de cita — " + svcName, unit: mxn2(pr.unit), imp: mxn2(pr.total) });
-    /* Servicios adicionales: si traen precio, se muestran con su importe (y suman
-       al total de abajo); si no, quedan como "—" (se cotizan en mostrador). */
     var extrasTotal = 0;
     (appt.services || []).forEach(function (sv) {
       var svPrice = sv && +sv.price > 0 ? +sv.price : 0;
@@ -376,7 +310,6 @@
       ty += rh; doc.setDrawColor(242, 244, 248); doc.setLineWidth(0.3); doc.line(x, ty - 1.5, RIGHT, ty - 1.5); ty += 1.5;
     });
 
-    /* ── Totales (subtotal / IVA a la derecha, TOTAL en barra) ── */
     var rowsT = window.OKCitaPriceRows(appt.tramite, priceSub, appt.party_size, extrasTotal);
     var sub = null, iva = null, ivaLbl = "IVA", tot = null;
     rowsT.forEach(function (r) {
@@ -395,7 +328,6 @@
     else { doc.setFontSize(11); doc.text("Te confirmamos el precio", RIGHT - 8, ty + barH / 2 + 1.2, { align: "right" }); }
     ty += barH + 12;
 
-    /* ── Condiciones y forma de pago (izquierda) + QR de consulta (derecha) ── */
     var condY = ty;
     var paid = (appt.status === "confirmada" || appt.status === "completada");
     doc.setFont("helvetica", "bold"); doc.setFontSize(8.5); doc.setTextColor(muted[0], muted[1], muted[2]); doc.text("CONDICIONES Y FORMA DE PAGO", x, condY);
@@ -403,8 +335,7 @@
     var cond = paid
       ? "Pago recibido. Conserva este comprobante con tu folio para el día de tu cita."
       : "Se requiere el pago del 100% para confirmar tu cita. Conserva este comprobante con tu folio.";
-    doc.text(doc.splitTextToSize(cond, CW - 42), x, condY + 6);   /* ancho reducido: deja sitio al QR a la derecha */
-    /* QR (se conserva: escanear → ver tus citas). Se ancla abajo-derecha, sin encimar. */
+    doc.text(doc.splitTextToSize(cond, CW - 42), x, condY + 6);
     try {
       var tmp = document.createElement("div");
       new QRCode(tmp, { text: location.origin + "/perfil.html?cita=" + appt.code, width: 160, height: 160 });
@@ -418,7 +349,6 @@
       }
     } catch (e) {}
 
-    /* ── Pie: contacto (Google Maps / WhatsApp / correo) ── */
     doc.setDrawColor(rule[0], rule[1], rule[2]); doc.setLineWidth(0.4); doc.line(x, 276, RIGHT, 276);
     doc.setFont("helvetica", "normal"); doc.setFontSize(8.5); doc.setTextColor(muted[0], muted[1], muted[2]);
     doc.text("Ok.station · Centro Comercial Otay, Local G-03 · Tijuana, B.C.", x, 281);
@@ -429,8 +359,6 @@
     return doc.output("datauristring");
   };
 
-  /** Convierte el data-URI del PDF en un Blob URL (la descarga por data-URI no
-      funciona en muchos navegadores móviles; el Blob URL sí). @returns {string|null} */
   window.OKCitaTicketBlobUrl = function (appt) {
     var uri = window.OKCitaTicket(appt);
     if (!uri) return null;
@@ -443,29 +371,19 @@
     } catch (e) { return null; }
   };
 
-  /** Dispara la descarga/visualización del comprobante. Usa Blob URL para que
-      funcione también en celular (iOS/Android no abren enlaces data-URI). */
   window.OKCitaTicketDownload = function (appt) {
     var url = window.OKCitaTicketBlobUrl(appt);
     if (!url) return false;
     var a = document.createElement("a");
     a.href = url; a.download = "cita-" + (appt.code || "okstation") + ".pdf";
-    a.rel = "noopener"; a.target = "_blank";   /* móvil: abre el visor si no descarga */
+    a.rel = "noopener"; a.target = "_blank";
     document.body.appendChild(a); a.click(); document.body.removeChild(a);
     setTimeout(function () { URL.revokeObjectURL(url); }, 60000);
     return true;
   };
 
-  /* ============================================================
-     EXPEDIENTE (PDF para el TRABAJADOR) — distinto del comprobante/ticket.
-     Documento limpio con TODA la información que llenó el cliente de CADA
-     persona de la cita (datos, respuestas del cuestionario y documentos
-     subidos). Sin QR, sin precio, sin datos fiscales: es para operar el trámite.
-     appt: { code, tramite, passport_subtype, party_size, date, time, status,
-             name, phone, guests:[{name,dob,doctype,answers}], files:[...] }
-     ============================================================ */
   window.OKCitaExpedientePDF = function (appt) {
-    if (!appt || !window.jspdf || !window.jspdf.jsPDF) return null;   /* no requiere QRCode */
+    if (!appt || !window.jspdf || !window.jspdf.jsPDF) return null;
     var doc = new window.jspdf.jsPDF({ unit: "mm", format: "a4" });
     var MX = 12, PW = 210, x = MX, RIGHT = PW - MX, CW = PW - 2 * MX;
     var blue = [6, 108, 255], purple = [156, 29, 255], teal = [13, 148, 136], navy = [10, 31, 77],
@@ -478,8 +396,6 @@
     function labelOf(k) { return window.OKQ ? window.OKQ.label(k) : k; }
     function valueOf(k, ans) { return (window.OKQ ? window.OKQ.valueText(ans[k]) : String(ans[k])) || "—"; }
 
-    /* Agrupación temática de respuestas por trámite (SOLO presentación: ningún dato
-       se pierde; lo no clasificado cae en "Otros datos"). */
     var EXP_GROUPS = {
       visa: [
         { t: "Datos personales y estudios", c: blue,   keys: ["ocupacion", "direccion_casa", "empresa", "empresa_dir", "empresa_tel", "puesto", "salario", "estudios", "redes"] },
@@ -511,7 +427,6 @@
       if (rest.length) out.push({ t: cfg ? "Otros datos" : "Datos capturados", c: cfg ? teal : blue, fields: rest.map(function (k) { return { label: labelOf(k), value: valueOf(k, ans) }; }) });
       return out;
     }
-    /* Encabezado de sección: barra suave con acento de color. */
     function groupHeader(title, c) {
       needSpace(13);
       var hh = 8, bg = tint(c, 0.86);
@@ -521,7 +436,6 @@
       doc.text(String(title).toUpperCase(), x + 6, ty + 5.4);
       ty += hh + 4;
     }
-    /* Rejilla de 2 columnas etiqueta/valor. */
     function fieldsGrid(fields) {
       var gap = 8, colW = (CW - gap) / 2, wrap = colW - 1;
       for (var i = 0; i < fields.length; i += 2) {
@@ -542,7 +456,6 @@
       }
     }
 
-    /* ── Encabezado navy con folio + estado ── */
     var hy = 10, hh = 24, hr = 6;
     doc.setFillColor(navy[0], navy[1], navy[2]); doc.roundedRect(x, hy, CW, hh, hr, hr, "F");
     doc.setTextColor(255, 255, 255); doc.setFont("helvetica", "bold"); doc.setFontSize(16); doc.text("OK.station", x + 8, hy + 10.5);
@@ -557,7 +470,6 @@
     doc.setFillColor(bt[0], bt[1], bt[2]); doc.circle(bxx + 3.4, byy + 3.25, 0.9, "F");
     doc.setTextColor(bt[0], bt[1], bt[2]); doc.text(stTxt, bxx + 6, byy + 4.4);
 
-    /* ── Banda de datos de la cita (2×2) ── */
     ty = hy + hh + 6;
     var bandH = 26;
     doc.setFillColor(soft[0], soft[1], soft[2]); doc.setDrawColor(rule[0], rule[1], rule[2]); doc.setLineWidth(0.3); doc.roundedRect(x, ty, CW, bandH, 4, 4, "FD");
@@ -583,7 +495,6 @@
     });
     ty += bandH + 8;
 
-    /* Documentos agrupados por persona (guest_index). */
     var filesByGuest = {};
     (appt.files || []).forEach(function (f) {
       var gi2 = (f.guest_index === 0 || f.guest_index) ? parseInt(f.guest_index, 10) : NaN;
@@ -611,7 +522,6 @@
         doc.setFont("helvetica", "italic"); doc.setFontSize(9); doc.setTextColor(muted[0], muted[1], muted[2]); doc.text("Sin respuestas capturadas.", x + 2, ty); ty += 6;
       }
 
-      /* Documentos subidos por esta persona. */
       var gf = filesByGuest[gi] || [];
       groupHeader("Documentos subidos", green);
       if (gf.length) {
@@ -630,7 +540,6 @@
       if (gi < guests.length - 1) { needSpace(6); doc.setDrawColor(rule[0], rule[1], rule[2]); doc.setLineWidth(0.3); doc.line(x, ty, RIGHT, ty); ty += 8; }
     }
 
-    /* Pie con numeración en todas las páginas. */
     var total = doc.getNumberOfPages();
     for (var p = 1; p <= total; p++) {
       doc.setPage(p);
@@ -652,7 +561,6 @@
     } catch (e) { return null; }
   };
 
-  /** Descarga/visualiza el EXPEDIENTE (datos de las personas) para el trabajador. */
   window.OKCitaExpedienteDownload = function (appt) {
     var url = window.OKCitaExpedienteBlobUrl(appt);
     if (!url) return false;

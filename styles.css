@@ -1,58 +1,21 @@
-/* ============================================================
-   Ok.station — Sistema Visual Profesional v2.0
-   Arquitecto: Equipo Técnico Senior
-   Basado en OK Dock Brand Book
-   ============================================================
-
-   ÍNDICE DE CONTENIDO
-   01. Design Tokens (Custom Properties)
-   02. Reset & Base
-   03. Tipografía & Escala
-   04. Utilidades Globales
-   05. Botones
-   06. Logo
-   07. Header & Navegación
-   08. Hero Principal
-   09. Sección Servicios
-   10. Sección Citas (Wizard)
-   11. Sección Fotos (Upload)
-   12. Sección Testimonios
-   13. Sección FAQ
-   14. Sección Visítanos
-   15. Footer
-   16. Componentes Flotantes (WA, Toast, Scroll-Top)
-   17. Animaciones & Reveals
-   18. Accesibilidad
-   19. Responsive — Mobile First
-   ============================================================ */
 
 
-/* ============================================================
-   01. DESIGN TOKENS
-   ============================================================ */
 :root {
-  /* ── Paleta OFICIAL OK Dock (Brand Book) ──
-     PRIMARIOS: azul, gris, negro, blanco, púrpura. SECUNDARIOS: cian, naranja.
-     Los secundarios se usan principalmente DENTRO de los gradientes oficiales. */
-  --brand-blue:        #066CFF;   /* PANTONE 285 C */
+  --brand-blue:        #066CFF;
   --brand-blue-hover:  #0558CC;
   --brand-blue-light:  #EAF1FF;
-  --brand-purple:      #9C1DFF;   /* PANTONE 2582 C */
+  --brand-purple:      #9C1DFF;
   --brand-purple-hover:#7B16CC;
   --brand-purple-light:#F3E9FF;
-  --brand-cyan:        #00C6FF;   /* secundario · PANTONE 2985 C */
-  --brand-orange:      #FF7C19;   /* secundario · PANTONE 1495 C */
-  --brand-gray:        #DBDBDB;   /* PANTONE Cool Gray 1 C */
+  --brand-cyan:        #00C6FF;
+  --brand-orange:      #FF7C19;
+  --brand-gray:        #DBDBDB;
   --brand-black:       #000000;
 
-  /* ── Gradientes OFICIALES (segmentos del gradiente oficial del Brand Book) ── */
-  /* SIN degradados (acuerdo jul 2026): los tokens conservan su nombre para no tocar
-     cada uso, pero ahora valen COLORES PLANOS de la paleta azul existente. */
   --grad-azul-cyan:         #066CFF;
   --grad-naranja-purpura:   #FF7C19;
   --grad-purpura-azul-cyan: #066CFF;
   --grad-oficial:           #066CFF;
-  /* Alias de compatibilidad → mapeados a los oficiales */
   --grad-brand:   var(--grad-purpura-azul-cyan);
   --grad-blue:    var(--grad-azul-cyan);
   --grad-purple:  var(--grad-purpura-azul-cyan);
@@ -60,7 +23,6 @@
   --grad-hero-overlay: rgba(6,108,255,0.90);
   --grad-dark:    #0B0B12;
 
-  /* ── Superficies y fondos ── */
   --surface-bg:       #F2F4F8;
   --surface-page:     #F2F4F8;
   --surface-card:     #FFFFFF;
@@ -69,7 +31,6 @@
   --surface-dark-3:   #0D0E16;
   --surface-dark-4:   #0D0E16;
 
-  /* ── Texto ── */
   --text-primary:     #12141C;
   --text-secondary:   #4A5068;
   --text-muted:       #717890;
@@ -78,13 +39,11 @@
   --text-on-dark-2:   rgba(255,255,255,0.65);
   --text-on-dark-3:   rgba(255,255,255,0.40);
 
-  /* ── Bordes ── */
   --border-light:     #E4E7F0;
   --border-medium:    #C8CEDF;
   --border-dark:      #2A2D3E;
   --border-dark-2:    #353849;
 
-  /* ── Estados semánticos ── */
   --color-success:    #16A34A;
   --color-warning:    #D97706;
   --color-error:      #DC2626;
@@ -92,7 +51,6 @@
   --color-wa:         #25D366;
   --color-wa-dark:    #128C47;
 
-  /* ── Espaciado ── */
   --space-1:  4px;
   --space-2:  8px;
   --space-3:  12px;
@@ -107,7 +65,6 @@
   --space-20: 80px;
   --space-24: 96px;
 
-  /* ── Radios ── */
   --radius-xs:   6px;
   --radius-sm:   10px;
   --radius-md:   16px;
@@ -116,10 +73,6 @@
   --radius-2xl:  44px;
   --radius-full: 9999px;
 
-  /* ── Sombras ──
-     Afinadas para un acabado más sutil ("detalles finos"): difusiones más pegadas al
-     elemento y menos opacas que antes. La dirección y el color se conservan, así que
-     el sistema se siente igual, solo más discreto. */
   --shadow-xs:    0 1px 2px rgba(12,20,50,0.05);
   --shadow-sm:    0 2px 6px rgba(12,20,50,0.06), 0 1px 2px rgba(12,20,50,0.04);
   --shadow-md:    0 6px 18px rgba(12,20,50,0.07), 0 2px 6px rgba(12,20,50,0.04);
@@ -129,24 +82,17 @@
   --shadow-purple:0 12px 36px rgba(156,29,255,0.28), 0 4px 16px rgba(156,29,255,0.16);
   --shadow-wa:    0 8px 28px rgba(37,211,102,0.42);
 
-  /* ── Transiciones ── */
   --transition-fast:   0.14s ease;
   --transition-base:   0.22s ease;
   --transition-slow:   0.38s ease;
   --transition-spring: 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
 
-  /* ── Layout ── */
   --max-width: 1240px;
-  /* Padding vertical de sección: compacto pero con aire. Se reduce aún más
-     en pantallas grandes (tiers ≥1600/1920/2560) para densificar y evitar scroll. */
   --section-pad: clamp(48px, 6vw, 88px);
   --header-height: 76px;
 }
 
 
-/* ============================================================
-   02. RESET & BASE
-   ============================================================ */
 *, *::before, *::after {
   box-sizing: border-box;
   margin: 0;
@@ -155,21 +101,10 @@
 
 html {
   scroll-behavior: smooth;
-  /* El margen que se deja al saltar a un ancla tiene que ser el alto de la barra que
-     está pegada arriba. Donde manda la navbar unificada ese alto lo mide y publica
-     oknav.js en --oknav-h; el --header-height es el respaldo para las pantallas que
-     aún usan el encabezado antiguo (y para el primer pintado, antes del JS). */
   scroll-padding-top: calc(var(--oknav-h, var(--header-height, 76px)) + 16px);
-  /* Base 15px (antes 16): toda la tipografía en rem baja un pelín. Inter tiene una
-     x-height mayor que Poppins, así que a 15px se lee del mismo tamaño o un poco más
-     compacto, que es lo buscado. */
   font-size: 15px;
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
-  /* Refuerza el clip horizontal: <body> no recorta elementos position:fixed
-     (como el menú lateral cerrado), por eso el clip va también aquí.
-     'clip' en vez de 'hidden': evita el scroll horizontal IGUAL pero NO crea
-     un contenedor de scroll, así que no rompe position:sticky (navbar/sidebar). */
   overflow-x: clip;
 }
 
@@ -189,24 +124,12 @@ img, video, svg {
   display: block;
 }
 
-/* Red de seguridad para los íconos SVG en línea.
-   Un <svg> sin atributos width/height no mide 24px: mide 300x150 por defecto y,
-   con el max-width:100% de arriba, se estira hasta el ancho de su contenedor
-   (así salía el sobre del correo ocupando toda la pantalla). Aquí se le da una
-   medida sensata por si su regla propia no llega a aplicarse.
-   Va dentro de :where() para que su especificidad sea 0: cualquier regla con
-   clase (.btn svg, .header-bar__social svg, etc.) la sigue ganando, así que no
-   altera ningún tamaño intencional. */
 svg:where(:not([width]):not([height])) {
   width: 1.25em;
   height: 1.25em;
   flex-shrink: 0;
 }
 
-/* Los iconos SVG EN LÍNEA (los que traen width/height puestos, como los que
-   sustituyeron a los emojis 📍🔥❤🛒) fluyen CON el texto: el display:block del
-   reset de arriba los aventaba a su propio renglón (se vio en la lista de OKi).
-   Va en :where() para que cualquier regla con clase le siga ganando. */
 svg:where([width][height]) {
   display: inline-block;
   vertical-align: -0.125em;
@@ -241,9 +164,6 @@ h1, h2, h3, h4, h5, h6 {
   text-wrap: balance;
 }
 
-/* ============================================================
-   03. TIPOGRAFÍA & ESCALA
-   ============================================================ */
 .text-display {
   font-size: clamp(2.4rem, 5vw, 4rem);
   font-weight: 800;
@@ -301,9 +221,6 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 
-/* ============================================================
-   04. UTILIDADES GLOBALES
-   ============================================================ */
 .wrap {
   max-width: var(--max-width);
   margin: 0 auto;
@@ -410,7 +327,6 @@ h1, h2, h3, h4, h5, h6 {
   color: transparent;
 }
 
-/* Tags / Chips de estado */
 .tag {
   display: inline-flex;
   align-items: center;
@@ -441,9 +357,6 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 
-/* ============================================================
-   05. BOTONES
-   ============================================================ */
 .btn {
   display: inline-flex;
   align-items: center;
@@ -486,7 +399,6 @@ h1, h2, h3, h4, h5, h6 {
   transition: transform var(--transition-base);
 }
 
-/* Primario */
 .btn--primary {
   background: var(--brand-blue);
   color: #fff;
@@ -503,7 +415,6 @@ h1, h2, h3, h4, h5, h6 {
   transform: translateX(2px);
 }
 
-/* Gradiente de marca */
 .btn--brand {
   background: var(--grad-purple);
   color: #fff;
@@ -515,7 +426,6 @@ h1, h2, h3, h4, h5, h6 {
   box-shadow: 0 16px 44px rgba(6,108,255,0.36), 0 8px 20px rgba(6,108,255,0.22);
 }
 
-/* Outline sobre oscuro */
 .btn--outline-light {
   background: rgba(255,255,255,0.10);
   color: #fff;
@@ -529,7 +439,6 @@ h1, h2, h3, h4, h5, h6 {
   transform: translateY(-2px);
 }
 
-/* Claro sobre fondo blanco */
 .btn--light {
   background: #fff;
   color: var(--text-primary);
@@ -543,8 +452,6 @@ h1, h2, h3, h4, h5, h6 {
   border-color: var(--border-medium);
 }
 
-/* WhatsApp — verde de marca VIVO (degradado) con sombra de texto para legibilidad
-   del blanco encima (el degradado + text-shadow lo hacen legible sin apagar el verde). */
 .btn--wa {
   background: #25D366;
   color: #fff;
@@ -560,7 +467,6 @@ h1, h2, h3, h4, h5, h6 {
 
 .btn--wa:active { transform: translateY(-1px) scale(1.0); }
 
-/* Oscuro */
 .btn--dark {
   background: var(--text-primary);
   color: #fff;
@@ -572,7 +478,6 @@ h1, h2, h3, h4, h5, h6 {
   box-shadow: var(--shadow-md);
 }
 
-/* Ghost sobre oscuro */
 .btn--ghost-dark {
   background: transparent;
   color: rgba(255,255,255,0.7);
@@ -585,7 +490,6 @@ h1, h2, h3, h4, h5, h6 {
   border-color: rgba(255,255,255,0.35);
 }
 
-/* Tamaños */
 .btn--sm {
   font-size: 0.8125rem;
   padding: 10px 18px;
@@ -605,7 +509,6 @@ h1, h2, h3, h4, h5, h6 {
   width: 100%;
 }
 
-/* Botón deshabilitado */
 .btn:disabled,
 .btn[aria-disabled="true"] {
   opacity: 0.45;
@@ -615,9 +518,6 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 
-/* ============================================================
-   06. LOGO
-   ============================================================ */
 .logo {
   display: inline-flex;
   align-items: baseline;
@@ -651,8 +551,6 @@ h1, h2, h3, h4, h5, h6 {
   font-size: 1.25rem;
 }
 
-/* Logo como imagen (wordmark oficial okstation-logo.webp).
-   Escala con el font-size del contenedor; en fondos oscuros va en blanco. */
 .logo__img {
   display: block;
   height: 1.15em;
@@ -663,16 +561,11 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 
-/* ============================================================
-   07. HEADER & NAVEGACIÓN
-   ============================================================ */
 .site-header {
   position: sticky;
   top: 0;
   z-index: 100;
   height: var(--header-height);
-  /* BLANCO SÓLIDO siempre: antes era 90% blanco y el lienzo animado se transparentaba
-     detrás, tiñendo el header de colores al hacer scroll. Opaco = blanco constante. */
   background: #ffffff;
   border-bottom: 1px solid rgba(15,38,92,0.06);
   transition:
@@ -681,7 +574,6 @@ h1, h2, h3, h4, h5, h6 {
     box-shadow var(--transition-base);
   will-change: transform;
 }
-/* Navbar inteligente: se desliza hacia arriba al bajar; reaparece al subir (lo activa app/session-nav). */
 .site-header--hidden { transform: translateY(-100%); }
 
 .site-header.is-scrolled {
@@ -698,7 +590,6 @@ h1, h2, h3, h4, h5, h6 {
   gap: var(--space-6);
 }
 
-/* Nav links centradas */
 .nav__links {
   display: flex;
   align-items: center;
@@ -727,7 +618,6 @@ h1, h2, h3, h4, h5, h6 {
   background: var(--brand-blue-light);
 }
 
-/* Badge en nav (horario) */
 .nav__badge {
   display: none;
   font-size: 0.6875rem;
@@ -739,14 +629,12 @@ h1, h2, h3, h4, h5, h6 {
   margin-left: var(--space-2);
 }
 
-/* Acciones derechas */
 .nav__actions {
   display: flex;
   align-items: center;
   gap: var(--space-3);
 }
 
-/* Botón "Tienda" (nuevo) — gradiente animado como el banner de la tienda */
 .nav__tienda {
   gap: 7px;
   border: 0 !important;
@@ -763,7 +651,6 @@ h1, h2, h3, h4, h5, h6 {
 }
 @keyframes navTiendaFlow { 0%, 100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
 
-/* Botón "Compra rápida" (tienda dinámica) — gradiente morado como la página de compra rápida */
 .nav__rapida {
   gap: 7px;
   border: 0 !important;
@@ -794,26 +681,16 @@ h1, h2, h3, h4, h5, h6 {
   box-shadow: 0 3px 8px rgba(255, 124, 25, .4);
 }
 
-/* Justo por encima del menú hamburguesa (1201-1320px) el nav completo va muy
-   justo: se recorta la separación y se quita el globo "Nuevo" para que entre
-   sin desbordarse. */
 @media (max-width: 1320px) {
   .nav { gap: var(--space-4); }
   .nav__tienda-badge { display: none; }
 }
 
-/* En móvil el header oculta WhatsApp (hay botón flotante), así que sí cabe Tienda.
-   Se ahorra ancho ocultando el badge; en pantallas chicas queda solo el ícono. */
 @media (max-width: 768px) {
   .nav__tienda { padding: 9px 12px; }
   .nav__tienda-badge { display: none; }
 }
 
-/* La barra se desbordaba en celular: hasta 380px se ocultaba la etiqueta, pero un
-   teléfono normal mide 390-430px, así que "Compra rápida" y "Tienda" salían con
-   texto completo y, junto al logo + Cuenta + hamburguesa, empujaban el contenido
-   ~63px fuera de la pantalla. Debajo de 560px los dos botones quedan solo con su
-   ícono, que es lo que sí cabe. */
 @media (max-width: 560px) {
   .nav__tienda-label { display: none; }
   .nav__tienda,
@@ -839,7 +716,6 @@ h1, h2, h3, h4, h5, h6 {
   height: 14px;
 }
 
-/* Hamburger button */
 .nav__toggle {
   display: none;
   width: 44px;
@@ -864,7 +740,6 @@ h1, h2, h3, h4, h5, h6 {
   outline-offset: 2px;
 }
 
-/* Líneas del hamburger → animadas a X */
 .nav__toggle-bar {
   display: block;
   width: 22px;
@@ -897,20 +772,14 @@ h1, h2, h3, h4, h5, h6 {
   transform: rotate(-45deg);
 }
 
-/* Banner superior: enlaces rápidos · lema · redes sociales */
 .header-bar {
   background: var(--grad-purple);
   padding: 8px 16px;
   font-size: 0.8125rem;
   font-weight: 500;
   color: rgba(255,255,255,0.95);
-  /* Centra el lema en las páginas simples (contáctanos, legales) que usan
-     .header-bar como texto suelto. En la home el contenido va en .header-bar__inner
-     (flex), que se centra por su propio layout, así que esto no lo mueve. */
   text-align: center;
 }
-/* En la home el contenido va dentro de .header-bar__inner (.wrap con su propio
-   padding); anulamos el padding lateral extra para no desalinear esa barra. */
 .header-bar:has(.header-bar__inner) { padding-left: 0; padding-right: 0; }
 
 .header-bar__inner {
@@ -920,7 +789,6 @@ h1, h2, h3, h4, h5, h6 {
   gap: var(--space-5);
 }
 
-/* Enlaces de la izquierda (¿Quiénes somos? · Contacto) */
 .header-bar__links {
   display: flex;
   align-items: center;
@@ -940,14 +808,12 @@ h1, h2, h3, h4, h5, h6 {
   text-underline-offset: 3px;
 }
 
-/* Lema centrado */
 .header-bar__tagline {
   flex: 1 1 auto;
   text-align: center;
   margin: 0;
 }
 
-/* Iconos de redes a la derecha */
 .header-bar__social {
   display: flex;
   align-items: center;
@@ -970,14 +836,8 @@ h1, h2, h3, h4, h5, h6 {
 .header-bar__social svg { width: 14px; height: 14px; }
 
 
-/* ============================================================
-   08. HERO PRINCIPAL
-   ============================================================ */
 .hero {
   position: relative;
-  /* Antes ocupaba TODO el viewport (calc(100vh - header)) → forzaba scroll en
-     monitores/TV. Ahora se acota a ~700px máx para que se asome la siguiente
-     sección. Es un mínimo: si el contenido es más alto, el hero crece (no recorta). */
   min-height: calc(100vh - var(--header-height));
   min-height: min(calc(100svh - var(--header-height)), 700px);
   display: flex;
@@ -987,7 +847,6 @@ h1, h2, h3, h4, h5, h6 {
   padding: clamp(48px, 6vw, 80px) 0 clamp(44px, 5vw, 72px);
 }
 
-/* Imagen de fondo con overlay */
 .hero__bg {
   position: absolute;
   inset: 0;
@@ -1011,7 +870,6 @@ h1, h2, h3, h4, h5, h6 {
     linear-gradient(160deg, rgba(10,10,15,0.85) 0%, rgba(12,10,20,0.75) 100%);
 }
 
-/* Grid del hero */
 .hero__inner {
   position: relative;
   z-index: 1;
@@ -1024,7 +882,6 @@ h1, h2, h3, h4, h5, h6 {
   align-items: center;
 }
 
-/* Copy izquierdo */
 .hero__copy {
   color: #fff;
 }
@@ -1081,7 +938,6 @@ h1, h2, h3, h4, h5, h6 {
   margin-bottom: var(--space-10);
 }
 
-/* Stats del hero */
 .hero__stats {
   display: flex;
   gap: var(--space-8);
@@ -1109,7 +965,6 @@ h1, h2, h3, h4, h5, h6 {
   display: block;
 }
 
-/* Panel derecho del hero */
 .hero__panel {
   background: rgba(255,255,255,0.06);
   border: 1px solid rgba(255,255,255,0.12);
@@ -1145,7 +1000,6 @@ h1, h2, h3, h4, h5, h6 {
   margin-bottom: var(--space-6);
 }
 
-/* Quick access grid en hero panel */
 .quick-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -1209,7 +1063,6 @@ h1, h2, h3, h4, h5, h6 {
   line-height: 1.4;
 }
 
-/* Aviso de horario en hero */
 .hero__hours {
   margin-top: var(--space-5);
   padding: 12px 16px;
@@ -1241,7 +1094,6 @@ h1, h2, h3, h4, h5, h6 {
   color: var(--color-wa);
 }
 
-/* Scroll indicator */
 .hero__scroll {
   position: absolute;
   bottom: 28px;
@@ -1271,9 +1123,6 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 
-/* ============================================================
-   09. SECCIÓN SERVICIOS
-   ============================================================ */
 .services-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -1294,14 +1143,8 @@ h1, h2, h3, h4, h5, h6 {
     border-color var(--transition-base);
   position: relative;
   overflow: hidden;
-  /* Aísla el pintado de cada tarjeta: al desplazar el carrusel, el navegador
-     no repinta tarjetas vecinas → scroll más fluido, sin tirones de FPS.
-     (La tarjeta ya tenía overflow:hidden, así que no recorta nada nuevo ni
-     afecta la sombra del hover, que se dibuja fuera de la caja.) */
   contain: layout paint;
 }
-/* Uniformidad: la descripción crece y empuja etiquetas/enlace al fondo, de modo que
-   todas las tarjetas alinean su contenido aunque el texto tenga distinto largo. */
 .service-card > p { flex: 1 1 auto; }
 .service-card .service-tags { margin-top: var(--space-3); }
 .service-card .service-link { margin-top: var(--space-4); }
@@ -1312,7 +1155,6 @@ h1, h2, h3, h4, h5, h6 {
   border-color: transparent;
 }
 
-/* Cards destacadas (con gradiente) */
 .service-card--featured-blue {
   background: var(--grad-blue);
   border-color: transparent;
@@ -1331,7 +1173,6 @@ h1, h2, h3, h4, h5, h6 {
   box-shadow: var(--shadow-brand);
 }
 
-/* Ícono del servicio */
 .service-icon {
   width: 60px;
   height: 60px;
@@ -1371,8 +1212,6 @@ h1, h2, h3, h4, h5, h6 {
   margin-bottom: var(--space-3);
 }
 
-/* Encabezado de la tarjeta: ícono + título en una sola fila (compacto, sin
-   espacio vacío arriba). No cambia colores, tamaños ni el ícono en sí. */
 .service-card .service-head {
   display: flex;
   align-items: center;
@@ -1394,7 +1233,6 @@ h1, h2, h3, h4, h5, h6 {
   color: rgba(255,255,255,0.82);
 }
 
-/* Tags del servicio */
 .service-tags {
   display: flex;
   flex-wrap: wrap;
@@ -1409,7 +1247,6 @@ h1, h2, h3, h4, h5, h6 {
   border: 1px solid rgba(255,255,255,0.22);
 }
 
-/* Link de acción */
 .service-link {
   margin-top: var(--space-5);
   display: inline-flex;
@@ -1437,7 +1274,6 @@ h1, h2, h3, h4, h5, h6 {
   height: 16px;
 }
 
-/* Badge "Más popular" */
 .service-card__badge {
   position: absolute;
   top: 20px;
@@ -1453,9 +1289,6 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 
-/* ============================================================
-   10. SECCIÓN CITAS (WIZARD)
-   ============================================================ */
 .citas-section {
   background: #0D0E16;
   color: var(--text-on-dark);
@@ -1463,8 +1296,6 @@ h1, h2, h3, h4, h5, h6 {
 
 .cita-layout {
   display: grid;
-  /* minmax(0,1fr): permite que el panel ENCOJA bajo el ancho de su contenido
-     (sin esto, el grid desbordaba horizontalmente entre ~1080–1600px). */
   grid-template-columns: 300px minmax(0, 1fr);
   gap: var(--space-4);
   background: transparent;
@@ -1474,7 +1305,6 @@ h1, h2, h3, h4, h5, h6 {
   margin-top: clamp(40px, 5vw, 56px);
 }
 
-/* Aside izquierdo del wizard */
 .cita-aside {
   background: var(--grad-purple);
   border-radius: var(--radius-lg);
@@ -1513,7 +1343,6 @@ h1, h2, h3, h4, h5, h6 {
   z-index: 1;
 }
 
-/* Rail de pasos en el aside */
 .steps-rail {
   margin-top: auto;
   padding-top: var(--space-8);
@@ -1567,10 +1396,7 @@ h1, h2, h3, h4, h5, h6 {
   color: var(--brand-blue);
 }
 
-/* Panel del wizard */
 .cita-panel {
-  /* min-width:0 permite que el panel (ítem del grid) encoja bajo el ancho de su
-     contenido; sin esto, el carrusel de trámites lo estira y desborda la página. */
   min-width: 0;
   padding: clamp(20px, 3vw, 32px) clamp(20px, 3vw, 36px) clamp(24px, 3vw, 36px);
 }
@@ -1603,7 +1429,6 @@ h1, h2, h3, h4, h5, h6 {
   margin-bottom: var(--space-7);
 }
 
-/* Grid de trámites — 2×2 en escritorio (4 opciones) */
 .tramite-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -1613,12 +1438,10 @@ h1, h2, h3, h4, h5, h6 {
   align-items: stretch;
 }
 
-/* Tablet: mantiene 2 columnas mientras el espacio lo permita */
 @media (max-width: 1080px) {
   .tramite-grid { grid-template-columns: repeat(2, 1fr); }
 }
 
-/* Teléfonos: una sola columna (cada opción debajo de la otra) */
 @media (max-width: 560px) {
   .tramite-grid {
     grid-template-columns: 1fr;
@@ -1650,8 +1473,6 @@ h1, h2, h3, h4, h5, h6 {
     transform var(--transition-spring);
 }
 
-/* Acento por trámite — SOLO azul/púrpura (Brand Book). Alternan para dar variedad
-   sin salirse de la paleta oficial. */
 .tramite-btn[data-tramite="pasaporte"],
 .tramite-btn[data-tramite="sentri"],
 .tramite-btn[data-tramite="curp"],
@@ -1714,7 +1535,6 @@ h1, h2, h3, h4, h5, h6 {
   color: var(--text-on-dark-2);
 }
 
-/* Check de selección (arriba a la derecha) */
 .tramite-btn__check {
   position: absolute;
   top: 14px;
@@ -1734,7 +1554,6 @@ h1, h2, h3, h4, h5, h6 {
 
 .tramite-btn.is-selected .tramite-btn__check { opacity: 1; transform: scale(1); }
 
-/* Estados con alta especificidad para ganar a .citas-section .tramite-btn */
 .citas-section .tramite-btn:hover {
   transform: translateY(-4px);
   border-color: var(--taccent);
@@ -1752,7 +1571,6 @@ h1, h2, h3, h4, h5, h6 {
   box-shadow: 0 0 0 1.5px var(--taccent), 0 16px 38px -18px rgba(0,0,0,0.6);
 }
 
-/* Campos del wizard */
 .field-group {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -1811,17 +1629,13 @@ h1, h2, h3, h4, h5, h6 {
   min-height: 100px;
 }
 
-/* ── Paso "Tus datos": etiqueta opcional, prefijo de teléfono,
-      chips de contacto y consentimiento (mismo tema oscuro del wizard) ── */
 .field__opt {
   font-weight: 500;
   color: rgba(255,255,255,0.45);
 }
 
-/* Más compacto solo en este paso */
 .cita-step--datos .field { margin-bottom: var(--space-4); }
 
-/* Prefijo +52 en el teléfono */
 .input-prefix { display: flex; align-items: stretch; }
 .input-prefix__tag {
   display: inline-flex;
@@ -1839,18 +1653,12 @@ h1, h2, h3, h4, h5, h6 {
 }
 .input-prefix__wa { width: 16px; height: 16px; color: #25D366; }
 .input-prefix input { border-radius: 0 var(--radius-sm) var(--radius-sm) 0 !important; flex: 1 1 auto; min-width: 0; }
-/* Selector de código de país (+52 / +1) dentro del prefijo del teléfono.
-   Hereda el color del prefijo para verse bien en cada tema. */
 .input-prefix__cc {
   border: none; background: transparent; color: inherit;
   font: inherit; font-weight: inherit; line-height: 1.1;
   cursor: pointer; padding: 0 4px 0 2px;
-  /* Sin tope de ancho: el <select> se ajusta a su contenido ("🇲🇽 +52")
-     para que el "+52" nunca se recorte (en Windows la bandera se ve "MX"). */
 }
 .input-prefix__cc:focus { outline: none; }
-/* Prefijo creado por JS en campos sueltos (registro / perfil / cuestionario):
-   neutro y legible sobre cualquier fondo. */
 .input-prefix__tag--plain {
   background: #F2F4F8 !important;
   border: 1.5px solid #E2E8F0 !important;
@@ -1858,8 +1666,6 @@ h1, h2, h3, h4, h5, h6 {
   color: #1E293B !important;
 }
 
-/* ── Teléfono en el resumen del PEDIDO (tarjeta CLARA) ── el .input-prefix base es
-   para el wizard oscuro (texto blanco); aquí va en tono claro para que se lea. */
 .order-summary .input-prefix { margin: 6px 0 2px; box-shadow: var(--shadow-sm); border-radius: 12px; }
 .order-summary .input-prefix__tag {
   background: #eef3fb;
@@ -1888,7 +1694,6 @@ h1, h2, h3, h4, h5, h6 {
 .order-summary .input-prefix:focus-within input { border-color: var(--brand-blue) !important; }
 .order-summary .input-prefix input:focus { outline: none; }
 
-/* Chips: ¿cómo prefieres que te contactemos? (radios accesibles, sin JS) */
 .contact-pref { display: flex; flex-wrap: wrap; gap: var(--space-3); }
 .contact-pref input {
   position: absolute;
@@ -1923,7 +1728,6 @@ h1, h2, h3, h4, h5, h6 {
 }
 .contact-chip:has(input:focus-visible) { outline: 3px solid var(--brand-cyan); outline-offset: 2px; }
 
-/* Casilla de consentimiento */
 .cita-consent {
   display: flex;
   align-items: flex-start;
@@ -1942,7 +1746,6 @@ h1, h2, h3, h4, h5, h6 {
   cursor: pointer;
 }
 
-/* Horarios */
 .time-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -1997,7 +1800,6 @@ h1, h2, h3, h4, h5, h6 {
   opacity: 0.75;
 }
 
-/* ── Mensaje cuando no hay slots / falta elegir fecha ── */
 .time-grid__empty {
   grid-column: 1 / -1;
   margin: 0;
@@ -2010,9 +1812,6 @@ h1, h2, h3, h4, h5, h6 {
   text-align: center;
 }
 
-/* ============================================================
-   CALENDARIO DE CITAS (.okcal) — disponibilidad verde/naranja/rojo
-   ============================================================ */
 .okcal {
   background: var(--surface-dark-3);
   border: 1.5px solid var(--border-dark-2);
@@ -2091,8 +1890,6 @@ h1, h2, h3, h4, h5, h6 {
 .okcal__day:focus-visible { outline: 3px solid var(--brand-cyan); outline-offset: 2px; }
 .okcal__day:disabled { opacity: 0.3; cursor: not-allowed; }
 .okcal__day.is-empty { background: transparent; border: none; cursor: default; pointer-events: none; }
-/* Indicador de disponibilidad: además del color, cada nivel tiene una FORMA
-   distinta (A1, daltónicos): círculo lleno = total, rombo = media, × = sin. */
 .okcal-dot { width: 7px; height: 7px; border-radius: 50%; position: relative; }
 .okcal-dot--full { background: var(--brand-blue); }
 .okcal-dot--mid  { background: var(--brand-purple); border-radius: 1px; transform: rotate(45deg); }
@@ -2105,7 +1902,6 @@ h1, h2, h3, h4, h5, h6 {
 .okcal-dot--none::before { transform: translate(-50%, -50%) rotate(45deg); }
 .okcal-dot--none::after  { transform: translate(-50%, -50%) rotate(-45deg); }
 
-/* Mensaje de error inline de los campos del wizard (tema oscuro) */
 .field-error {
   display: block;
   margin-top: 6px;
@@ -2118,10 +1914,6 @@ h1, h2, h3, h4, h5, h6 {
   border-color: #F87171 !important;
 }
 
-/* ============================================================
-   Citas v3 — Más servicios, drawer, modal de subtipo y cantidad
-   ============================================================ */
-/* Botón "Más servicios" + chips de adicionales (sobre el panel oscuro) */
 .cita-more-row { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-top: 16px; }
 .cita-more {
   display: inline-flex; align-items: center; gap: 8px;
@@ -2137,7 +1929,6 @@ h1, h2, h3, h4, h5, h6 {
 .cita-extra__label { color: rgba(255,255,255,0.55); margin-right: 4px; }
 .cita-extra__chip { display: inline-block; background: rgba(255,255,255,0.12); border-radius: var(--radius-full); padding: 3px 10px; margin: 2px 3px; font-weight: 600; color: #fff; }
 
-/* Paso Cantidad de personas */
 .party-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 18px; }
 .party-opt {
   display: flex; flex-direction: column; gap: 2px; align-items: flex-start;
@@ -2161,7 +1952,6 @@ h1, h2, h3, h4, h5, h6 {
 .party-duration { margin-top: 14px; font-size: 0.9rem; color: rgba(255,255,255,0.82); }
 .party-duration b { color: #fff; }
 
-/* Modal: tipo de pasaporte */
 .cita-modal { position: fixed; inset: 0; z-index: 120; display: flex; align-items: center; justify-content: center; padding: 20px; }
 .cita-modal[hidden] { display: none; }
 .cita-modal__overlay { position: absolute; inset: 0; background: rgba(8,12,32,0.62); backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px); }
@@ -2181,7 +1971,6 @@ h1, h2, h3, h4, h5, h6 {
 .subtype-opt__text span { color: var(--text-muted); font-size: 0.78rem; }
 .subtype-opt:has(input:checked) { border-color: var(--brand-blue); background: var(--brand-blue-light); }
 
-/* Pasaporte mexicano: preguntas extra (primera/renovación · menor/mayor) */
 .subtype-extra { display: flex; flex-direction: column; gap: 16px; margin-bottom: 22px; padding-top: 20px; border-top: 1px solid var(--border-light); }
 .subtype-group__q { display: block; font-size: 0.85rem; font-weight: 600; color: var(--text-primary); margin-bottom: 10px; }
 .subtype-group__opts { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
@@ -2191,8 +1980,6 @@ h1, h2, h3, h4, h5, h6 {
 .subtype-chip input { accent-color: var(--brand-blue); width: 16px; height: 16px; flex-shrink: 0; }
 .subtype-chip:has(input:checked) { border-color: var(--brand-blue); background: var(--brand-blue-light); font-weight: 600; }
 
-/* Acta de nacimiento: TARJETAS de estado con su precio (modal). Mismo lenguaje
-   visual que las opciones del modal de pasaporte, en rejilla de 2 columnas. */
 .acta-opts { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 6px 0 20px; max-height: 46vh; overflow-y: auto; padding: 2px 4px 2px 2px; }
 .acta-opt {
   position: relative;
@@ -2202,7 +1989,6 @@ h1, h2, h3, h4, h5, h6 {
   cursor: pointer; font-size: 0.85rem; color: var(--text-primary);
   transition: border-color var(--transition-fast), background var(--transition-fast);
 }
-/* El radio se oculta: la tarjeta entera es el control (se marca al hacer clic). */
 .acta-opt input { position: absolute; opacity: 0; width: 0; height: 0; margin: 0; }
 .acta-opt:hover { border-color: var(--brand-blue); background: var(--brand-blue-light); }
 .acta-opt:focus-within { border-color: var(--brand-blue); box-shadow: 0 0 0 3px rgba(6,108,255,0.15); }
@@ -2211,7 +1997,6 @@ h1, h2, h3, h4, h5, h6 {
 .acta-opt__price { color: var(--brand-blue); font-weight: 700; flex: 0 0 auto; }
 @media (max-width: 400px) { .acta-opts { grid-template-columns: 1fr; } }
 
-/* Drawer: otros servicios */
 .cita-drawer { position: fixed; inset: 0; z-index: 120; }
 .cita-drawer[hidden] { display: none; }
 .cita-drawer__overlay { position: absolute; inset: 0; background: rgba(8,12,32,0.55); backdrop-filter: blur(2px); -webkit-backdrop-filter: blur(2px); opacity: 0; transition: opacity 0.22s ease; }
@@ -2256,7 +2041,6 @@ h1, h2, h3, h4, h5, h6 {
   color: rgba(255,255,255,0.65);
 }
 
-/* Nav del wizard */
 .cita-nav {
   display: flex;
   justify-content: space-between;
@@ -2267,7 +2051,6 @@ h1, h2, h3, h4, h5, h6 {
   border-top: 1px solid rgba(255,255,255,0.08);
 }
 
-/* Confirmación */
 .cita-confirm {
   text-align: center;
   padding: var(--space-5) 0 var(--space-3);
@@ -2308,7 +2091,6 @@ h1, h2, h3, h4, h5, h6 {
   margin-bottom: var(--space-7);
 }
 
-/* Resumen de cita */
 .cita-summary {
   background:#FFFFFF;
   border-bottom:1px solid #E5E7EB;
@@ -2344,9 +2126,6 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 
-/* ============================================================
-   11. SECCIÓN FOTOS (UPLOAD)
-   ============================================================ */
 .fotos-layout {
   display: grid;
   grid-template-columns: 1.3fr 1fr;
@@ -2354,7 +2133,6 @@ h1, h2, h3, h4, h5, h6 {
   align-items: start;
 }
 
-/* Zona de drop */
 .dropzone {
   background: var(--surface-card);
   border: 2.5px dashed var(--border-medium);
@@ -2432,7 +2210,6 @@ h1, h2, h3, h4, h5, h6 {
   font-weight: 600;
 }
 
-/* Cuadrícula de miniaturas */
 .thumbs-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
@@ -2496,7 +2273,6 @@ h1, h2, h3, h4, h5, h6 {
   height: 14px;
 }
 
-/* ── Ficha de archivo PDF (no se previsualiza como imagen) ── */
 .thumb-item--pdf {
   display: flex;
   flex-direction: column;
@@ -2530,7 +2306,6 @@ h1, h2, h3, h4, h5, h6 {
   word-break: break-word;
 }
 
-/* ── Imagen comparativa de acabados (brillante vs mate) ── */
 .finish-compare {
   margin: 12px 0 0;
 }
@@ -2548,7 +2323,6 @@ h1, h2, h3, h4, h5, h6 {
   color: var(--text-secondary, #4B5563);
 }
 
-/* Configurador de pedido */
 .photo-config {
   background: var(--surface-card);
   border: 1px solid var(--border-light);
@@ -2584,7 +2358,6 @@ h1, h2, h3, h4, h5, h6 {
   letter-spacing: 0.01em;
 }
 
-/* Chips de selección */
 .chip-row {
   display: flex;
   flex-wrap: wrap;
@@ -2625,7 +2398,6 @@ h1, h2, h3, h4, h5, h6 {
   outline-offset: 2px;
 }
 
-/* Contador de cantidad */
 .qty-control {
   display: flex;
   align-items: center;
@@ -2673,7 +2445,6 @@ h1, h2, h3, h4, h5, h6 {
   color: var(--text-primary);
 }
 
-/* Totales del configurador */
 .cfg-total {
   margin-top: var(--space-5);
   padding-top: var(--space-5);
@@ -2716,9 +2487,6 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 
-/* ============================================================
-   12. SECCIÓN TESTIMONIOS
-   ============================================================ */
 .testimonios-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -2741,7 +2509,6 @@ h1, h2, h3, h4, h5, h6 {
   box-shadow: var(--shadow-md);
 }
 
-/* Estrellas */
 .stars {
   display: flex;
   gap: 3px;
@@ -2810,7 +2577,6 @@ h1, h2, h3, h4, h5, h6 {
   color: var(--text-muted);
 }
 
-/* Badge de Google */
 .google-badge {
   display: inline-flex;
   align-items: center;
@@ -2824,7 +2590,6 @@ h1, h2, h3, h4, h5, h6 {
   border: 1px solid var(--border-light);
 }
 
-/* Rating promedio */
 .rating-summary {
   display: flex;
   align-items: center;
@@ -2861,9 +2626,6 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 
-/* ============================================================
-   13. SECCIÓN FAQ
-   ============================================================ */
 .faq-list {
   max-width: 780px;
   display: flex;
@@ -2961,10 +2723,6 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 
-/* ============================================================
-   14. SECCIÓN VISÍTANOS
-   ============================================================ */
-/* Galería */
 .store-gallery {
   display: grid;
   grid-template-columns: 1.5fr 1fr 1fr;
@@ -3017,7 +2775,6 @@ h1, h2, h3, h4, h5, h6 {
   opacity: 0.4;
 }
 
-/* Contacto grid */
 .contact-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -3066,7 +2823,6 @@ h1, h2, h3, h4, h5, h6 {
   max-width: 380px;
 }
 
-/* Tarjetas de contacto */
 .contact-cards {
   display: flex;
   flex-direction: column;
@@ -3097,7 +2853,6 @@ h1, h2, h3, h4, h5, h6 {
   transition: transform var(--transition-base), box-shadow var(--transition-base);
 }
 
-/* Tarjetas de contacto clickeables (llamar, WhatsApp, correo, mapa). */
 a.info-card { text-decoration: none; color: inherit; cursor: pointer; }
 a.info-card:hover { border-color: var(--brand-blue); }
 
@@ -3135,7 +2890,6 @@ a.info-card:hover { border-color: var(--brand-blue); }
   color: var(--text-secondary);
 }
 
-/* Horarios */
 .horarios {
   background: var(--surface-card);
   border: 1px solid var(--border-light);
@@ -3171,9 +2925,6 @@ a.info-card:hover { border-color: var(--brand-blue); }
 }
 
 
-/* ============================================================
-   15. FOOTER
-   ============================================================ */
 .site-footer {
   background: var(--surface-dark);
   color: var(--text-on-dark);
@@ -3281,11 +3032,7 @@ a.info-card:hover { border-color: var(--brand-blue); }
 }
 
 
-/* ============================================================
-   16. COMPONENTES FLOTANTES
-   ============================================================ */
 
-/* Botón flotante WhatsApp */
 .wa-fab {
   position: fixed;
   bottom: 28px;
@@ -3329,9 +3076,6 @@ a.info-card:hover { border-color: var(--brand-blue); }
   }
 }
 
-/* Botón scroll-to-top — mismo estilo que el de la tienda (#site .totop en
-   tienda.html): flecha azul de marca, elevación con rebote y sombra azul al pasar
-   el mouse. Si tocas uno, toca el otro. */
 .scroll-top {
   position: fixed;
   bottom: 28px;
@@ -3364,11 +3108,6 @@ a.info-card:hover { border-color: var(--brand-blue); }
   transform: translateY(0);
 }
 
-/* El botón sube 3px al pasar el cursor: si el puntero estaba en el borde, se salía de
-   debajo, se perdía el :hover, bajaba, y parpadeaba sin parar. Un colchón invisible no
-   basta (se mueve con el botón y el parpadeo solo se recorre a su orilla): el colchón
-   lleva la MISMA animación AL REVÉS, así la zona sensible se queda clavada en su sitio
-   mientras el botón sube. Mismo arreglo que #site .totop en tienda.html. */
 .scroll-top::after {
   content: "";
   position: absolute;
@@ -3397,7 +3136,6 @@ a.info-card:hover { border-color: var(--brand-blue); }
   height: 20px;
 }
 
-/* Toast notification */
 .toast {
   position: fixed;
   left: 50%;
@@ -3433,9 +3171,6 @@ a.info-card:hover { border-color: var(--brand-blue); }
 }
 
 
-/* ============================================================
-   17. ANIMACIONES & REVEALS
-   ============================================================ */
 .reveal {
   opacity: 0;
   transform: translateY(28px);
@@ -3449,17 +3184,12 @@ a.info-card:hover { border-color: var(--brand-blue); }
   transform: none;
 }
 
-/* El hero está SIEMPRE en el viewport al cargar: no debe ocultarse esperando
-   al JS de reveal (IntersectionObserver en app.js, que va con defer). Mantenerlo
-   visible desde el primer render mejora el LCP/FCP (el título es el elemento LCP)
-   sin perder la animación de las secciones de abajo. */
 .hero .reveal {
   opacity: 1;
   transform: none;
   transition: none;
 }
 
-/* Stagger delays para grids */
 .reveal-stagger > *:nth-child(1)  { transition-delay: 0ms; }
 .reveal-stagger > *:nth-child(2)  { transition-delay: 80ms; }
 .reveal-stagger > *:nth-child(3)  { transition-delay: 160ms; }
@@ -3469,11 +3199,7 @@ a.info-card:hover { border-color: var(--brand-blue); }
 .reveal-stagger > *:nth-child(7)  { transition-delay: 480ms; }
 
 
-/* ============================================================
-   18. ACCESIBILIDAD
-   ============================================================ */
 
-/* Skip link */
 .skip-link {
   position: absolute;
   top: -100px;
@@ -3493,7 +3219,6 @@ a.info-card:hover { border-color: var(--brand-blue); }
   top: 0;
 }
 
-/* Screen reader only */
 .sr-only {
   position: absolute;
   width: 1px;
@@ -3506,7 +3231,6 @@ a.info-card:hover { border-color: var(--brand-blue); }
   border-width: 0;
 }
 
-/* Focus visible mejorado */
 :focus-visible {
   outline: 3px solid var(--brand-cyan);
   outline-offset: 3px;
@@ -3517,7 +3241,6 @@ a.info-card:hover { border-color: var(--brand-blue); }
   outline: none;
 }
 
-/* Reducir movimiento */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;
@@ -3541,7 +3264,6 @@ a.info-card:hover { border-color: var(--brand-blue); }
   }
 }
 
-/* High contrast */
 @media (prefers-contrast: high) {
   .service-card {
     border-width: 2px;
@@ -3553,30 +3275,19 @@ a.info-card:hover { border-color: var(--brand-blue); }
 }
 
 
-/* ============================================================
-   19. RESPONSIVE — MOBILE FIRST
-   ============================================================ */
 
-/* ── SM: 480px ── */
 @media (min-width: 480px) {
   .hero__cta {
     flex-wrap: nowrap;
   }
 }
 
-/* ── MD: 768px ── */
 @media (max-width: 768px) {
   :root {
     --header-height: 68px;
   }
 
-  /* El nav móvil (panel + hamburguesa) ya no vive aquí: pasó a su propio bloque
-     de 1024px, porque en tablet tampoco cabía. Ver "NAV: menú hamburguesa". */
 
-  /* ── Barra superior en celular ──
-     Se oculta el lema largo y se muestran accesos rápidos (izquierda) + redes
-     (derecha), compactos y equilibrados. Diseño limpio y atractivo en pantalla
-     angosta: separador con punto medio entre enlaces y redes en cápsulas. */
   .header-bar {
     padding: 7px 0;
     font-size: 0.75rem;
@@ -3599,7 +3310,6 @@ a.info-card:hover { border-color: var(--brand-blue); }
     opacity: 0.95;
     white-space: nowrap;
   }
-  /* Separador con punto medio entre "¿Quiénes somos?" y "Contacto" */
   .header-bar__links a + a::before {
     content: "·";
     margin: 0 9px;
@@ -3620,32 +3330,22 @@ a.info-card:hover { border-color: var(--brand-blue); }
   }
   .header-bar__social svg { width: 15px; height: 15px; }
 
-  /* Compactar header: logo + botón Cuenta + hamburguesa deben caber en 375px
-     sin que el contenido toque o rebase el borde. */
   .nav { gap: var(--space-3); }
   .logo { font-size: 1.25rem; }
   .nav__actions { gap: var(--space-2); }
 
-  /* Ninguna de las tres zonas puede crecer más que su contenido ni negarse a
-     encogerse: sin min-width:0 un hijo flex nunca baja de su tamaño natural y
-     es lo que terminaba empujando la barra fuera de la pantalla. */
   .nav { flex-wrap: nowrap; min-width: 0; }
   .nav__actions { flex: 0 0 auto; min-width: 0; }
 
-  /* El logo cede ancho antes que los botones (son los que se pueden tocar). */
   .logo { flex: 0 1 auto; min-width: 0; }
   .logo__img { width: auto; max-width: 100%; height: 22px; }
 
-  /* "Cuenta" queda solo con su ícono; el botón sigue midiendo ≥44px de alto. */
   .acct__label { display: none; }
   .acct .btn--sm { padding: 9px 11px; }
-  /* Sesión iniciada: basta el avatar, el nombre se va (ahorra ~70px). */
   .acct__name { display: none; }
 
-  /* Área táctil mínima recomendada (≥44px) en enlaces de texto de las tarjetas. */
   .service-link { min-height: 44px; }
 
-  /* Hero */
   .hero__grid {
     grid-template-columns: 1fr;
     gap: var(--space-10);
@@ -3673,14 +3373,10 @@ a.info-card:hover { border-color: var(--brand-blue); }
     display: none;
   }
 
-  /* Servicios */
   .services-grid {
     grid-template-columns: 1fr;
   }
 
-  /* Citas */
-  /* Especificidad elevada para ganar a la regla de ≤1024px (que aparece
-     después en el archivo) y forzar una sola columna en móvil. */
   .citas-section .cita-layout {
     grid-template-columns: 1fr;
   }
@@ -3705,7 +3401,6 @@ a.info-card:hover { border-color: var(--brand-blue); }
     width: 100%;
   }
 
-  /* Fotos */
   .fotos-layout {
     grid-template-columns: 1fr;
   }
@@ -3714,12 +3409,10 @@ a.info-card:hover { border-color: var(--brand-blue); }
     position: static;
   }
 
-  /* Testimonios */
   .testimonios-grid {
     grid-template-columns: 1fr;
   }
 
-  /* Galería */
   .store-gallery {
     grid-template-columns: 1fr;
     grid-template-rows: auto;
@@ -3735,17 +3428,14 @@ a.info-card:hover { border-color: var(--brand-blue); }
     height: 200px;
   }
 
-  /* Contacto */
   .contact-grid {
     grid-template-columns: 1fr;
   }
 
-  /* Footer */
   .footer-top {
     grid-template-columns: 1fr 1fr;
   }
 
-  /* Flotantes */
   .wa-fab {
     bottom: 20px;
     right: 20px;
@@ -3757,13 +3447,6 @@ a.info-card:hover { border-color: var(--brand-blue); }
   }
 }
 
-/* ── LG: 1024px ── */
-/* ── NAV: menú hamburguesa ──
-   Antes la hamburguesa aparecía solo por debajo de 768px, pero el nav de
-   escritorio (logo + 4 enlaces + Compra rápida + Tienda + Cuenta + WhatsApp)
-   necesita ~1230px para caber. Todo el rango intermedio se salía de la pantalla:
-   ~475px de desborde en una tablet de 800px y ~193px en una de 1045px. El cambio
-   a menú ocurre ahora en 1200px, que es donde el nav completo deja de caber. */
 @media (max-width: 1200px) {
   .nav__links {
     position: fixed;
@@ -3775,8 +3458,6 @@ a.info-card:hover { border-color: var(--brand-blue); }
     -webkit-backdrop-filter: blur(16px);
     flex-direction: column;
     align-items: stretch;
-    /* Sin padding-top: el primer link queda pegado al borde inferior del
-       header, evitando la banda blanca ("vacío") arriba del menú. */
     padding: var(--space-1) var(--space-5) var(--space-6);
     gap: var(--space-1);
     border-bottom: 1px solid var(--border-light);
@@ -3806,8 +3487,6 @@ a.info-card:hover { border-color: var(--brand-blue); }
     display: flex;
   }
 
-  /* Se ocultan tel y WhatsApp del header (ya existe el botón flotante verde).
-     Así la hamburguesa queda despejada y sin amontonarse. */
   .nav__tel,
   .nav__actions .btn--wa {
     display: none;
@@ -3837,23 +3516,19 @@ a.info-card:hover { border-color: var(--brand-blue); }
   }
 }
 
-/* ── XL: 1280px ── */
 @media (min-width: 1280px) {
   .services-grid {
     grid-template-columns: repeat(4, 1fr);
   }
 }
 
-/* ── 2XL: 1600px ── */
 @media (min-width: 1600px) {
   :root {
     --max-width: 1440px;
-    /* Densificar en pantallas grandes: menos padding vertical (evita scroll). */
     --section-pad: clamp(44px, 4.5vw, 72px);
   }
 }
 
-/* ── SMALL MOBILE: max 380px ── */
 @media (max-width: 380px) {
   .quick-grid {
     grid-template-columns: 1fr;
@@ -3870,14 +3545,7 @@ a.info-card:hover { border-color: var(--brand-blue); }
 }
 
 
-/* ============================================================
-   20. MEJORAS RESPONSIVE — Safe-area (iPhone) + Ultrawide / 4K
-   Cubre el rango completo 320px → 2560px+ y dispositivos con notch.
-   Bloque aditivo: no altera ninguna regla previa.
-   ============================================================ */
 
-/* Respeta el notch y la barra de gestos del iPhone (incluye apaisado).
-   Solo añade margen donde el sistema reporta un inset; en el resto no afecta. */
 @supports (padding: max(0px)) {
   .wrap {
     padding-left: max(clamp(16px, 4vw, 40px), env(safe-area-inset-left));
@@ -3894,9 +3562,6 @@ a.info-card:hover { border-color: var(--brand-blue); }
   }
 }
 
-/* Monitores grandes / 4K / TV: ampliamos el contenedor para aprovechar el ancho
-   (más contenido por fila) y DENSIFICAMOS el alto (menos padding) para que quepa
-   más sin scroll. NO agrandamos la base rem (eso hacía que "todo se viera enorme"). */
 @media (min-width: 1920px) {
   :root { --max-width: 1600px; --section-pad: clamp(40px, 3.5vw, 64px); }
 }
@@ -3906,18 +3571,7 @@ a.info-card:hover { border-color: var(--brand-blue); }
 }
 
 
-/* ============================================================
-   21. FONDOS ANIMADOS (Brand gradients)
-   Usa los gradientes oficiales del Brand Book OK Dock
-   (Púrpura-Azul-Cyan · Azul-Cyan · Naranja-Púrpura) SOLO como
-   fondo, tal como exige el manual. Animaciones por GPU
-   (transform/opacity) y background-position lento.
-   Bloque aditivo: no altera reglas previas.
-   ============================================================ */
 
-/* ── Aurora ambiental de toda la página ──
-   Capa fija detrás del contenido. Las secciones transparentes
-   (.section sin fondo) la dejan ver; las opacas la cubren. */
 body::before {
   content: "";
   position: fixed;
@@ -3938,7 +3592,6 @@ body::before {
   100% { transform: translate3d(-2.5%, 2%, 0) rotate(4deg) scale(1.12); }
 }
 
-/* ── Hero: aurora viva (blobs de marca con desplazamiento) ── */
 .hero__bg::before,
 .hero__bg::after {
   content: "";
@@ -3951,7 +3604,6 @@ body::before {
   will-change: transform;
 }
 
-/* Blob púrpura (arriba-izquierda) */
 .hero__bg::before {
   width: 52vw;
   height: 52vw;
@@ -3963,7 +3615,6 @@ body::before {
   animation: blob-drift-a 20s ease-in-out infinite;
 }
 
-/* Blob cyan (abajo-derecha) */
 .hero__bg::after {
   width: 46vw;
   height: 46vw;
@@ -3975,7 +3626,6 @@ body::before {
   animation: blob-drift-b 24s ease-in-out infinite;
 }
 
-/* Acento naranja del gradiente oficial Naranja-Púrpura */
 .hero::after {
   content: "";
   position: absolute;
@@ -4009,7 +3659,6 @@ body::before {
   50%      { transform: translate(-5vw, 6vh) scale(1.2); }
 }
 
-/* ── Secciones oscuras: brillo de marca en movimiento ── */
 .citas-section,
 .site-footer {
   position: relative;
@@ -4034,7 +3683,6 @@ body::before {
   animation: glow-pan 26s ease-in-out infinite alternate;
 }
 
-/* ── Secciones claras alternas (.section--alt): tinte suave ── */
 .section--alt {
   position: relative;
 }
@@ -4061,8 +3709,6 @@ body::before {
   100% { background-position: 28% 18%, 72% 12%, 42% 82%; }
 }
 
-/* ── Respeto a usuarios con movimiento reducido ──
-   Se congela una aurora estática agradable (sin animación). */
 @media (prefers-reduced-motion: reduce) {
   body::before,
   .hero__bg::before,
@@ -4076,11 +3722,6 @@ body::before {
 }
 
 
-/* ============================================================
-   22. BANDA DE MARCA (full-bleed + SWISH)
-   Banda de gradiente oficial Púrpura-Azul-Cyan con la forma
-   complementaria "SWISH" del Brand Book. Gradiente animado.
-   ============================================================ */
 .brand-band {
   position: relative;
   overflow: hidden;
@@ -4130,7 +3771,6 @@ body::before {
   margin-bottom: var(--space-4);
 }
 
-/* Resaltado elegante (Stripe/Linear): solo las palabras clave en gradiente */
 .brand-band__accent {
   color: #066CFF;
 }
@@ -4151,18 +3791,12 @@ body::before {
 }
 
 
-/* ============================================================
-   23. ACCIONES RÁPIDAS (rediseño premium)
-   Card destacada para "Imprime tus fotos" + rail de acciones
-   secundarias que en móvil se convierte en carrusel deslizable.
-   ============================================================ */
 .quick {
   display: flex;
   flex-direction: column;
   gap: var(--space-4);
 }
 
-/* ── Card destacada ── */
 .quick__featured {
   position: relative;
   display: flex;
@@ -4170,7 +3804,7 @@ body::before {
   gap: var(--space-4);
   padding: 18px 20px;
   border-radius: var(--radius-lg);
-  background: var(--grad-blue); /* Azul-Cyan oficial */
+  background: var(--grad-blue);
   color: #fff;
   overflow: hidden;
   isolation: isolate;
@@ -4178,7 +3812,6 @@ body::before {
   transition: transform var(--transition-spring), box-shadow var(--transition-base);
 }
 .quick__featured::after {
-  /* brillo diagonal sutil que se desliza en hover */
   content: "";
   position: absolute;
   inset: 0;
@@ -4256,7 +3889,6 @@ body::before {
   transform: translateX(3px);
 }
 
-/* ── Rail de acciones secundarias ── */
 .quick__rail {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -4294,7 +3926,6 @@ body::before {
 .quick__card b { font-size: 0.8rem; font-weight: 600; line-height: 1.25; }
 .quick__card span { font-size: 0.68rem; color: rgba(255,255,255,0.6); line-height: 1.35; }
 
-/* ── Móvil: carrusel deslizable con scroll-snap ── */
 @media (max-width: 768px) {
   .quick__rail {
     display: flex;
@@ -4322,26 +3953,16 @@ body::before {
 }
 
 
-/* ============================================================
-   24. TEMA UNIFICADO — Gradiente de marca en TODA la página
-   Sin secciones negras ni blancas planas: las antes oscuras pasan a
-   gradiente profundo púrpura-azul; las claras a un lavado tintado.
-   Paleta del Brand Book OK Dock (Púrpura #9C1DFF · Azul #066CFF · Cyan #00C6FF).
-   ============================================================ */
 
-/* Base neutra y calmada (blanco/gris). El color de marca vive en los ACENTOS. */
 body {
   background: #F6F7FB;
 }
 
-/* Bloques de contenido limpios (blanco) → descanso visual y mejor contraste */
 .section { background: #FFFFFF; }
 
-/* ── Secciones antes oscuras → gradiente profundo de marca ── */
 .hero {
   background: #1A37B4;
 }
-/* Overlay del hero: glows de marca y oscurecido más ligero (look vibrante) */
 .hero__bg-overlay {
   background:
     radial-gradient(ellipse 60% 60% at 82% 45%, rgba(0,198,255,0.34) 0%, transparent 62%),
@@ -4357,12 +3978,10 @@ body {
   background: #142A7E;
 }
 
-/* ── Secciones alternas → gris muy suave (descanso visual, bloque diferenciado) ── */
 .section--alt {
   background: #0D0E16;
 }
 
-/* ── Cohesión dentro del wizard de citas (sin cajas negras) ── */
 .citas-section .cita-layout {
   background:#FFFFFF;
   border:1px solid #E5E7EB;
@@ -4383,20 +4002,13 @@ body {
   border-color: rgba(255, 255, 255, 0.16);
 }
 
-/* El subtítulo del encabezado (componente claro) debe ser legible sobre el gradiente */
 .citas-section .section-head .text-lead,
 .citas-section .section-head p {
   color:#6B7280;
 }
 
-/* Las tarjetas blancas (servicios, testimonios, fotos, contacto, FAQ)
-   se mantienen blancas para legibilidad: ahora "flotan" sobre el
-   gradiente, dando el look premium y cohesivo deseado. */
 
 
-/* ============================================================
-   25. RESEÑAS INTERACTIVAS (agregar / editar / eliminar)
-   ============================================================ */
 .reviews-bar {
   display: flex;
   align-items: center;
@@ -4414,10 +4026,8 @@ body {
   font-size: 0.95rem;
 }
 
-/* Estrellas vacías (para ratings < 5) */
 .stars svg.is-empty { fill: #D4DAE8; color: #D4DAE8; }
 
-/* Fila superior de la tarjeta: estrellas + acciones */
 .testimonio-card__top {
   display: flex;
   align-items: center;
@@ -4441,7 +4051,6 @@ body {
 .review-act:focus-visible { outline: 2px solid var(--brand-cyan); outline-offset: 1px; }
 .testimonio-card.is-mine { border-color: var(--brand-blue-light); }
 
-/* Formulario de reseña */
 .review-form {
   background: var(--surface-card);
   border: 1px solid var(--border-light);
@@ -4493,11 +4102,6 @@ body {
 }
 
 
-/* ============================================================
-   26. MÓDULO DE FOTOS UNIFICADO + AJUSTE DE SERVICIOS
-   Toda la experiencia de impresión en UN solo contenedor; menos
-   espacios muertos en las tarjetas de servicio.
-   ============================================================ */
 .photo-studio {
   display: grid;
   grid-template-columns: 1.35fr 1fr;
@@ -4513,7 +4117,6 @@ body {
   flex-direction: column;
   gap: var(--space-5);
 }
-/* La zona de arrastre pasa a ser interna (punteada) y rellena el alto */
 .photo-studio .dropzone {
   flex: 1;
   display: flex;
@@ -4532,7 +4135,6 @@ body {
   border-color: var(--brand-blue);
   transform: none;
 }
-/* Mini-pasos: dan contexto y eliminan el hueco bajo la zona de carga */
 .photo-steps { display: grid; gap: 10px; margin: 0 auto; padding: 0; list-style: none; width: fit-content; max-width: 100%; }
 .photo-steps li { display: flex; align-items: center; gap: 11px; font-size: 0.85rem; color: var(--text-secondary); }
 .photo-steps li span {
@@ -4543,7 +4145,6 @@ body {
   display: grid; place-items: center;
   font-weight: 700; font-size: 0.8rem;
 }
-/* La configuración deja de ser una tarjeta aparte: panel dentro del módulo */
 .photo-studio .photo-config {
   position: static;
   top: auto;
@@ -4561,7 +4162,6 @@ body {
   .photo-studio .dropzone { min-height: 200px; }
 }
 
-/* ── Servicios: todas las tarjetas con la misma altura (uniformes) ── */
 .services-grid { align-items: stretch; }
 .service-card { padding: clamp(20px, 2.4vw, 26px); }
 .service-icon { width: 52px; height: 52px; margin-bottom: var(--space-4); }
@@ -4572,13 +4172,7 @@ body {
 .service-link { margin-top: var(--space-4); }
 
 
-/* ============================================================
-   27. LENGUAJE VISUAL UNIFICADO (estilo "manifiesto")
-   Resaltado de palabra clave en gradiente azul-púrpura dentro de
-   cada título + onda suave de marca como textura de fondo.
-   ============================================================ */
 
-/* Resaltado para secciones CLARAS (texto oscuro) */
 .hl {
   background: var(--grad-purpura-azul-cyan);
   -webkit-background-clip: text;
@@ -4586,7 +4180,6 @@ body {
   color: transparent;
   -webkit-text-fill-color: transparent;
 }
-/* Resaltado para secciones OSCURAS (cyan que contrasta sobre gradiente) */
 .hl--cyan {
   background: var(--grad-purpura-azul-cyan);
   -webkit-background-clip: text;
@@ -4595,7 +4188,6 @@ body {
   -webkit-text-fill-color: transparent;
 }
 
-/* Onda suave (eco del manifiesto) como textura sutil en TODAS las secciones */
 .section { position: relative; }
 .section > .wrap { position: relative; z-index: 1; }
 .section::after,
@@ -4614,18 +4206,13 @@ body {
 .section--alt::after { opacity: 0.055; }
 
 
-/* ============================================================
-   28. HERO EN ESTILO CLARO (manifiesto): poco azul, fondo claro + swish
-   ============================================================ */
 .hero {
   background: #FFFFFF;
 }
-/* Quitar blobs vibrantes (eran para fondo oscuro) */
 .hero__bg::before,
 .hero__bg::after,
 .hero::after { display: none; }
 
-/* Overlay claro: blobs pastel + onda suave */
 .hero__bg-overlay {
   background:
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 360' preserveAspectRatio='none'%3E%3Cpath d='M-40 210 C 320 70 640 330 980 200 S 1480 80 1620 220' fill='none' stroke='%23066CFF' stroke-opacity='0.45' stroke-width='72' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat center 80% / 135% auto,
@@ -4633,7 +4220,6 @@ body {
     radial-gradient(42% 56% at 12% 30%, rgba(6, 108, 255, 0.09), transparent 62%);
 }
 
-/* Texto oscuro */
 .hero__copy { color: var(--text-primary); }
 .hero__eyebrow {
   color: var(--brand-blue);
@@ -4645,7 +4231,6 @@ body {
 .hero__stats { border-top-color: var(--border-light); }
 .hero__stat span { color: var(--text-muted); }
 
-/* Panel → tarjeta blanca */
 .hero__panel {
   background: #fff;
   border: 1px solid var(--border-light);
@@ -4657,7 +4242,6 @@ body {
 .hero__panel-title { color: var(--text-primary); }
 .hero__panel-sub { color: var(--text-muted); }
 
-/* Tarjetas secundarias del acceso rápido → claras */
 .quick__card {
   background: var(--surface-page);
   border-color: var(--border-light);
@@ -4672,9 +4256,7 @@ body {
 .quick__card-icon svg { color: var(--brand-blue); }
 .quick__card b { color: var(--text-primary); }
 .quick__card span { color: var(--text-muted); }
-/* La card destacada conserva su gradiente como único acento fuerte */
 
-/* Aviso de horario → claro */
 .hero__hours {
   background: rgba(22, 163, 74, 0.08);
   border-color: rgba(22, 163, 74, 0.22);
@@ -4682,23 +4264,14 @@ body {
 }
 .hero__hours strong { color: #15803D; }
 
-/* Indicador de scroll → tenue */
 .hero__scroll { color: var(--text-faint); }
 
 
-/* ============================================================
-   29. DINAMISMO — la onda de marca se mueve con el scroll
-   Animaciones ligadas al scroll (CSS scroll-driven, sin JS).
-   Compositor-only (background-position) → fluido y eficiente.
-   Degrada a estático y respeta prefers-reduced-motion.
-   ============================================================ */
 
-/* La onda de Citas (sección oscura) más visible para que luzca al moverse */
 .citas-section::after { opacity: 0.14; }
 
 @media (prefers-reduced-motion: no-preference) {
   @supports (animation-timeline: view()) {
-    /* La onda de cada sección deriva horizontalmente conforme entra/sale del viewport */
     .section::after {
       animation: wave-scroll linear both;
       animation-timeline: view();
@@ -4710,7 +4283,6 @@ body {
       to   { background-position: 84% center; }
     }
 
-    /* El gradiente de los blobs ambientales del hero también deriva al hacer scroll */
     .hero__bg-overlay {
       animation: hero-drift linear both;
       animation-timeline: view();
@@ -4724,9 +4296,6 @@ body {
 }
 
 
-/* ============================================================
-   30. MENÚ DE SESIÓN EN EL HEADER (avatar + dropdown)
-   ============================================================ */
 .acct { position: relative; display: inline-flex; }
 .acct__btn {
   display: inline-flex; align-items: center; gap: 8px;
@@ -4741,19 +4310,9 @@ body {
 .acct__name { font-size: 0.85rem; font-weight: 600; color: var(--text-primary); transition: color var(--transition-fast); }
 .acct__caret { width: 15px; height: 15px; color: var(--text-muted); transition: transform .22s cubic-bezier(.34,1.56,.64,1), color var(--transition-fast); }
 
-/* ── Menú desplegado: el chip se pinta y la flecha gira ──
-   Mismo lenguaje que favoritos/carrito de la tienda: el botón se ve activo mientras
-   SU panel está abierto. Va colgado de aria-expanded, que ya se mantiene al día para
-   los lectores de pantalla: un solo estado, sin una clase paralela que se desincronice.
-   La flecha girando avisa que la lista está abierta (antes se quedaba igual). */
 .acct__btn[aria-expanded="true"] { background: var(--brand-blue); border-color: transparent; }
 .acct__btn[aria-expanded="true"] .acct__name { color: #fff; }
 .acct__btn[aria-expanded="true"] .acct__caret { color: #fff; transform: rotate(180deg); }
-/* Avatar en CIAN de marca (--brand-cyan #00C6FF) con la inicial en azul profundo: sobre
-   el chip azul, su degradado morado-cian se confundía, y el blanco puro "descuadraba"
-   (un hueco demasiado duro). El cian es del mismo degradado de la marca, así que se
-   siente de la casa; resalta sobre el azul del chip sin fundirse, y la inicial en azul
-   profundo se lee nítida. Al cerrar, el avatar vuelve solo a su degradado. */
 .acct__btn[aria-expanded="true"] .acct__avatar { background: var(--brand-cyan); color: #0A2A5E; }
 .acct__menu {
   position: absolute; right: 0; top: calc(100% + 8px);
@@ -4774,16 +4333,10 @@ body {
 #acct-logout { color: var(--color-error) !important; }
 @media (max-width: 768px) { .acct__name { display: none; } }
 
-/* Descongestionar la barra: en pantallas medianas, el teléfono ya está en
-   WhatsApp y el footer → se oculta para dar aire a cuenta + WhatsApp. */
 @media (max-width: 1100px) { .nav__tel { display: none; } }
 .nav__actions { gap: var(--space-2); }
 
 
-/* ============================================================
-   31. VISTA PREVIA DE FOTOS DENTRO DEL RECUADRO (#fotos)
-   Al subir, las miniaturas llenan el dropzone como galería.
-   ============================================================ */
 .dropzone__more { display: none; }
 .dropzone.has-files {
   justify-content: flex-start;
@@ -4799,7 +4352,6 @@ body {
   font-weight: 600;
   color: var(--brand-blue);
 }
-/* La rejilla de miniaturas llena el ancho dentro del recuadro y es responsiva */
 .dropzone .thumbs-grid {
   width: 100%;
   margin-top: 0;
@@ -4810,22 +4362,7 @@ body {
   .dropzone .thumbs-grid { grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); }
 }
 
-/* ============================================================
-   32. OVERRIDES — Cambios visuales (imagen de anotaciones)
-   ============================================================
-   PEGAR AL FINAL DE styles.css
-   ============================================================
 
-   CAMBIOS APLICADOS:
-   1. Nav links    — borde azul siempre visible + hover: bg azul + letras blancas
-   2. Panel title  — "¿Qué necesitas hoy?" más grande (1.25rem)
-   3. Hero lead    — texto gris oscuro (#3d3f55) sobre fondo claro
-   4. Hero bg      — degradado azul-cyan de marca (línea de onda SVG)
-   5. Quick cards  — borde azul al hacer hover
-   6. Hero hours   — horario "Lun–Vie 8–19h · Sáb 9–16h" alineado a la derecha
-   ============================================================ */
-
-/* ── 1. NAV LINKS: texto con subrayado sutil (sin píldora) ── */
 .nav__link {
   color: var(--text-primary);
   background: transparent;
@@ -4847,18 +4384,15 @@ body {
   border-bottom-color: var(--brand-blue);
 }
 
-/* ── 2. PANEL TITLE: más grande ── */
 .hero__panel-title {
   font-size: 1.25rem;
   font-weight: 700;
 }
 
-/* ── 3. HERO LEAD: gris oscuro ── */
 .hero__lead {
   color: #3d3f55 !important;
 }
 
-/* ── 4. HERO BACKGROUND: degradado azul-cyan de marca ── */
 .hero {
   background: #ddeeff !important;
 }
@@ -4872,14 +4406,12 @@ body {
     radial-gradient(35% 45% at 55% 90%, rgba(6,108,255,0.08), transparent 60%) !important;
 }
 
-/* ── 5. QUICK CARDS: borde azul en hover ── */
 .quick__card:hover,
 .quick__card:focus-visible {
   border-color: var(--brand-blue) !important;
   box-shadow: 0 0 0 2px rgba(6,108,255,0.15), var(--shadow-sm) !important;
 }
 
-/* ── 6. HERO HOURS: hora alineada a la derecha ── */
 .hero__hours {
   display: flex !important;
   align-items: center !important;
@@ -4896,7 +4428,6 @@ body {
   font-size: 0.85rem;
 }
 
-/* Mobile: subrayado del nav en el menú vertical (mismo gris que desktop) */
 @media (max-width: 768px) {
   .nav__link {
     border-bottom-color: var(--border-light);
@@ -4905,16 +4436,13 @@ body {
 
 .service-card__img {
   width: 100%;
-  height: 220px;          /* ajusta a lo que quieras */
+  height: 220px;
   object-fit: cover;
   display: block;
-  border-radius: 16px;    /* las 4 esquinas curveadas (la tarjeta ya tiene padding, no se desborda) */
+  border-radius: 16px;
   margin-bottom: 1rem;
 }
 
-/* ── Carga elegante de imágenes (anti "pop"): fundido suave al cargar ──
-   Solo se activa si app.js añadió .img-fade al <html>; sin JS las imágenes
-   se muestran normal (nunca se quedan invisibles). */
 .img-fade .service-card__img,
 .img-fade .store-gallery__item img { opacity: 0; }
 .img-fade .service-card__img { transition: opacity 0.5s ease; }
@@ -4922,7 +4450,6 @@ body {
 .img-fade .service-card__img.is-loaded,
 .img-fade .store-gallery__item img.is-loaded { opacity: 1; }
 
-/* Skeleton con brillo detrás de la foto de la galería mientras carga */
 @keyframes ok-skeleton {
   0%   { background-position: -200% 0; }
   100% { background-position:  200% 0; }
@@ -4933,79 +4460,59 @@ body {
   animation: ok-skeleton 1.4s ease-in-out infinite;
 }
 
-/* Títulos de tarjeta más grandes y legibles (cómodos de leer sin esfuerzo).
-   Esta regla global gana a las anteriores; controla el tamaño en todos los anchos. */
 .service-card h3 {
   font-size: clamp(1.2rem, 1.5vw, 1.4rem);
   line-height: 1.25;
 }
 
 .service-card p {
-  font-size: 13px;  /* antes 13-14px */
+  font-size: 13px;
 }
 
-/* Padding del body un poco menor también ayuda */
 .service-card .card-body {
-  padding: .75rem;  /* antes 1rem */
+  padding: .75rem;
 }
 
-/* ============================================================
-   CARRUSEL — Servicios (una sola línea) y Trámites (agendar)
-   Fila horizontal deslizable con scroll-snap. Sin JS.
-   Va al final para ganar a las reglas de grid responsivas.
-   ============================================================ */
 
-/* ── Servicios: una sola línea deslizable ── */
 .services-grid {
   display: flex;
-  position: relative;              /* offsetParent de las tarjetas = el track (clave para que las flechas avancen bien) */
-  grid-template-columns: none;     /* anula el grid en todos los tamaños */
+  position: relative;
+  grid-template-columns: none;
   grid-auto-rows: auto;
   gap: var(--space-5);
-  /* "safe center": si las tarjetas caben (p. ej. 3 en "Todo para tu oficina") quedan
-     centradas; si desbordan (carrusel de inicio) vuelve a alinear al inicio sin recortar
-     la 1ª tarjeta, así las flechas siguen avanzando bien. */
   justify-content: safe center;
   overflow-x: auto;
   scroll-snap-type: x proximity;
   -webkit-overflow-scrolling: touch;
   scroll-padding-left: 2px;
-  /* Aire vertical para que el "levantar" de la tarjeta en hover (y su sombra) no se
-     recorten: overflow-x también recorta el eje vertical. Sin padding horizontal para
-     que la 1ª tarjeta quede en offsetLeft 0 y las flechas avancen bien. */
   padding: 14px 0 18px;
-  scrollbar-width: none;           /* Firefox: oculta la barra (se navega con flechas) */
-  -ms-overflow-style: none;        /* Edge/IE antiguo */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
 .services-grid > .service-card {
-  flex: 0 0 300px;                 /* ancho fijo por tarjeta */
+  flex: 0 0 300px;
   scroll-snap-align: start;
 }
-/* En carrusel horizontal no se debe depender del reveal por scroll vertical */
 .services-grid > .reveal { opacity: 1; transform: none; }
-/* Barra de desplazamiento oculta: la navegación es con las flechas del carrusel */
 .services-grid::-webkit-scrollbar { display: none; }
 
 @media (max-width: 768px) {
-  .services-grid > .service-card { flex-basis: 80%; } /* una tarjeta + asomo de la siguiente */
+  .services-grid > .service-card { flex-basis: 80%; }
 }
 
-/* ── Trámites (agendar): carrusel ── */
 .tramite-grid {
   display: flex;
-  position: relative;              /* offsetParent de las tarjetas = el track (las flechas avanzan bien) */
+  position: relative;
   grid-template-columns: none;
   grid-auto-rows: auto;
   gap: var(--space-4);
-  justify-content: safe center;    /* centra cuando caben; al inicio cuando desbordan (ver .services-grid) */
+  justify-content: safe center;
   overflow-x: auto;
   scroll-snap-type: x proximity;
   -webkit-overflow-scrolling: touch;
-  /* Aire vertical para el hover; sin padding horizontal para que la 1ª tarjeta
-     quede en offsetLeft 0 y las flechas avancen correctamente. */
   padding: 12px 0 16px;
-  scrollbar-width: none;           /* Firefox: oculta la barra */
-  -ms-overflow-style: none;        /* Edge/IE antiguo */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
 .tramite-grid > .tramite-btn {
   flex: 0 0 230px;
@@ -5017,9 +4524,6 @@ body {
   .tramite-grid > .tramite-btn { flex-basis: 78%; }
 }
 
-/* ── Flechas de navegación de los carruseles (inyectadas por app.js) ──
-   El carrusel reserva "canaletas" laterales (padding) para que las flechas
-   vivan FUERA de las tarjetas y no las tapen. */
 .carousel { position: relative; padding: 0 50px; }
 .carousel__arrow {
   position: absolute;
@@ -5044,53 +4548,40 @@ body {
 .carousel__arrow--prev { left: 5px; }
 .carousel__arrow--next { right: 5px; }
 .carousel__arrow:disabled { opacity: 0; pointer-events: none; }
-/* En móvil se desliza con el dedo: ocultamos las flechas y recuperamos el ancho */
 @media (max-width: 768px) {
   .carousel { padding: 0; }
   .carousel__arrow { display: none !important; }
 }
 
-/* ── Citas: pasos compactos para que los botones queden a la vista (sin scroll interno) ── */
 .tramite-grid > .tramite-btn { padding: 12px 14px; gap: 5px; }
 .tramite-btn__desc,
-.tramite-btn__tags { display: none; }       /* descripción y tags alargaban la tarjeta */
+.tramite-btn__tags { display: none; }
 .tramite-btn__icon { width: 40px; height: 40px; border-radius: 11px; margin-bottom: 2px; }
 .tramite-btn__icon svg { width: 20px; height: 20px; }
 .tramite-btn__title { font-size: 0.95rem; }
 .tramite-btn__meta { font-size: 0.76rem; }
 
-/* Menos aire vertical en el wizard → el botón "Continuar"/nav queda visible sin scrollear */
 .cita-step__title { font-size: 1.15rem; }
 .cita-step__sub   { margin-bottom: var(--space-4); }
 .tramite-grid     { margin-bottom: var(--space-4); }
 .cita-more-row    { margin-top: 10px; }
 .cita-nav         { margin-top: var(--space-5); padding-top: var(--space-4); }
 
-/* Compactar cada paso del wizard (scoped a citas) para que NINGÚN paso obligue
-   a scrollear para alcanzar los botones. */
 .citas-section .cita-panel { padding: clamp(16px, 2.4vw, 24px) clamp(16px, 2.4vw, 28px); }
 .citas-section .field { margin-bottom: var(--space-3); gap: 6px; }
 .citas-section .field-group { gap: var(--space-3); }
 .citas-section .cita-consent { margin-top: 4px; }
-/* Calendario más chico: se limita el ancho para que no se estire a todo el panel */
 .citas-section .okcal { padding: 10px 12px 12px; max-width: 340px; }
 .citas-section .okcal__head { margin-bottom: 8px; }
 .citas-section .okcal__grid { gap: 3px; }
 .citas-section .okcal__day { aspect-ratio: 1 / 0.8; }
-/* En móvil el calendario se ajusta al 100% de su caja (no a un ancho fijo)
-   y su rejilla puede encoger, para que NO se salga de la pantalla. */
 @media (max-width: 768px) {
   .citas-section .okcal { max-width: 100%; min-width: 0; }
   .okcal, .okcal__grid, .okcal__weekdays { min-width: 0; }
 }
-/* Horarios más compactos */
 .citas-section .time-grid { gap: 8px; }
 .citas-section .time-slot { padding: 9px 8px; }
 
-/* Paso "Elige fecha y hora": antes el calendario ocupaba una columna estrecha y
-   dejaba todo el lado derecho vacío. En pantallas anchas colocamos el calendario y
-   los horarios lado a lado para aprovechar el espacio; en pantallas chicas se apilan
-   como antes. Es solo maquetación: no cambia IDs, estructura ni la lógica del wizard. */
 .cita-datetime { display: grid; gap: clamp(16px, 2vw, 28px); }
 .cita-datetime > .field { margin-bottom: 0; }
 @media (min-width: 880px) {
@@ -5098,54 +4589,33 @@ body {
     grid-template-columns: minmax(330px, 390px) minmax(0, 1fr);
     align-items: start;
   }
-  /* En dos columnas el calendario llena su columna (sin el tope de 340px). */
   .citas-section .cita-datetime .okcal { max-width: 100%; }
 }
 
-/* ============================================================
-   MÓVIL — ajustes finos de usabilidad (≤768px)
-   ============================================================ */
 @media (max-width: 768px) {
-  /* iOS: evita el ZOOM automático al enfocar un campo (exige ≥16px).
-     Se repite con los selectores de componente porque `.field input` (15px)
-     y `.order-summary .input-prefix input` (0.95rem, teléfono del pedido)
-     ganan en especificidad al `input` a secas y el zoom volvía. */
   input, select, textarea,
   .field input, .field select, .field textarea,
   .order-summary .input-prefix input { font-size: 16px; }
 
-  /* Áreas táctiles cómodas (mínimo recomendado ~44px). */
   .time-slot { min-height: 44px; }
   .nav__toggle { min-width: 44px; min-height: 44px; }
   .cita-more { min-height: 44px; }
 
-  /* Carruseles: aire lateral para que la tarjeta deslizada quede alineada. */
   .services-grid,
   .tramite-grid { scroll-padding-left: 16px; }
 
-  /* Resúmenes/celdas largas no rompen el ancho. */
   .order-row { gap: 10px; }
   .order-row__meta { word-break: break-word; }
 }
 
-/* El header fijo no debe tapar la sección al saltar con un enlace de menú. El alto sale
-   de --oknav-h (lo mide oknav.js sobre la barra real); 84px queda de respaldo. */
 section[id] { scroll-margin-top: calc(var(--oknav-h, 84px) + 8px); }
 
-/* ============================================================
-   FIX desborde horizontal (carruseles dentro de su caja)
-   Los items de grid/flex traen min-width:auto, así que un carrusel hijo
-   ESTIRA el contenedor en vez de deslizarse dentro y provoca scroll lateral.
-   Permitiéndoles encoger (min-width:0) el carrusel scrollea internamente.
-   ============================================================ */
 .cita-layout,
 .cita-aside,
 .cita-panel { min-width: 0; }
 .services-grid,
 .tramite-grid { min-width: 0; max-width: 100%; }
 
-/* Reseñas propias: centradas (se ven bien con pocas) y coherentes con el bloque
-   de Google. Flex en vez de grid para que 1-2 tarjetas no queden "solas". */
 .testimonios-grid {
   display: flex;
   flex-wrap: wrap;
@@ -5160,7 +4630,6 @@ section[id] { scroll-margin-top: calc(var(--oknav-h, 84px) + 8px); }
   .testimonios-grid > .testimonio-card { flex-basis: 100%; max-width: 100%; }
 }
 
-/* ── Reseñas: distinguir el origen (Google vs propias) ── */
 .review-source {
   margin-left: auto;
   align-self: center;
@@ -5178,29 +4647,12 @@ section[id] { scroll-margin-top: calc(var(--oknav-h, 84px) + 8px); }
 .review-source--google { background: #fff; color: #3c4043; border: 1px solid var(--border-light); }
 .review-source--google:hover { background: #f8f9fa; }
 .review-source--ok { background: var(--brand-blue-light); color: var(--brand-blue); }
-/* Avatar con foto real (Google) en vez de iniciales */
 .testimonio-author__avatar--img { object-fit: cover; background: none; padding: 0; }
 
-/* ── Servicios: descripción más grande ── */
 .service-card p { font-size: 15px; line-height: 1.55; }
 
-/* ============================================================
-   29. LIENZO CONTINUO + DEGRADADO POR SCROLL (Brand Book)
-   Toda la página es UN solo lienzo de azules/gris que se va
-   degradando al bajar. Se eliminan los fondos por sección (efecto
-   "diapositiva") y las ondas/líneas azul-púrpura. Solo paleta oficial.
-   ============================================================ */
-/* ── FONDO ANIMADO TIPO AGUA (tema oscuro) en TODA la página excepto el panel admin ──
-   Degradado completo desplazándose suavemente (sin formas de olas dibujadas). */
 html { background: #0a1f4d; }
-/* IMPORTANTE: el fondo animado va en CAPAS FIJAS (position:fixed), NO con
-   background-attachment:fixed — iOS/Android ignoran ese modo y la animación se
-   veía quieta en celular. Con capas fijas el movimiento se aprecia en TODOS los
-   dispositivos. Las capas van detrás de todo (z-index negativo) y no tapan toques. */
 body:not(.admin) { background: #0a1f4d; }
-/* Capa BASE: degradado navy que se desplaza lentamente. Se mantiene OSCURO en
-   todo su recorrido para que el texto claro sea legible sobre cualquier sección
-   transparente; el color vivo y el movimiento perceptible vienen de los glows. */
 body:not(.admin)::before {
   content: "";
   position: fixed;
@@ -5209,12 +4661,8 @@ body:not(.admin)::before {
   pointer-events: none;
   background: #07153a;
   background-size: 280% 280%;
-  /* !important para que el fondo SIEMPRE se mueva, aun con "reducir movimiento"
-     activado (el reset global *::before lo apagaba). Es más específico que *. */
   animation: oks-water 22s ease-in-out infinite !important;
 }
-/* Capa de GLOWS de color (cyan/azul/púrpura) que derivan sobre el navy: aquí se
-   PERCIBE el movimiento (estilo Linear/Vercel) sin restar legibilidad al texto. */
 body:not(.admin)::after {
   content: "";
   position: fixed;
@@ -5228,23 +4676,14 @@ body:not(.admin)::after {
   background-size: 200% 200%;
   animation: oks-water-blobs 26s ease-in-out infinite !important;
 }
-/* En el panel admin NO aplica el fondo animado ni la aurora. */
 body.admin::before, body.admin::after { display: none !important; }
 @keyframes oks-water { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
 @keyframes oks-water-blobs { 0% { background-position: 0% 0%; } 50% { background-position: 100% 100%; } 100% { background-position: 0% 0%; } }
 
-/* ── LIENZO CONTINUO: ninguna sección tiene fondo opaco propio ──
-   Todo el sitio comparte el MISMO canvas animado oscuro. Las secciones son
-   transparentes y se diferencian por espaciado, tipografía y tarjetas — NO por
-   rectángulos de color (eso causaba el efecto "diapositiva"). Donde una zona
-   necesita más oscuridad para legibilidad (Citas, footer) se usa un velo
-   SEMITRANSPARENTE que se desvanece en los bordes (sin línea dura) y deja ver el
-   canvas (y su animación) a través de él. */
 .hero,
 .section,
 .section--alt { background: transparent !important; }
 
-/* Citas: velo oscuro muy suave que se desvanece arriba y abajo (sin corte). */
 .citas-section {
   background: linear-gradient(180deg,
     transparent 0%,
@@ -5252,7 +4691,6 @@ body.admin::before, body.admin::after { display: none !important; }
     rgba(6, 17, 48, 0.60) 84%,
     transparent 100%) !important;
 }
-/* Footer: velo que entra suave desde transparente (sin línea superior dura). */
 .site-footer {
   background: linear-gradient(180deg,
     transparent 0%,
@@ -5260,19 +4698,16 @@ body.admin::before, body.admin::after { display: none !important; }
     rgba(7, 16, 42, 0.82) 100%) !important;
 }
 
-/* El hero se DISUELVE por abajo hacia el canvas (elimina la línea dura hero→Servicios). */
 .hero__bg {
   -webkit-mask-image: linear-gradient(180deg, #000 68%, transparent 100%);
           mask-image: linear-gradient(180deg, #000 68%, transparent 100%);
 }
 
-/* Fuera las ondas/auroras (las "líneas" azul y púrpura) y los tintes por sección */
 .section::after,
 .section--alt::after,
 .section--alt::before,
 .hero::after { display: none !important; }
 
-/* Brillo de las zonas oscuras (citas/footer): solo azul/púrpura, sin cian */
 .citas-section::before,
 .site-footer::before {
   background:
@@ -5280,26 +4715,17 @@ body.admin::before, body.admin::after { display: none !important; }
     radial-gradient(55% 75% at 88% 28%, rgba(6, 108, 255, 0.20), transparent 60%) !important;
 }
 
-/* ── Texto sobre el lienzo OSCURO → CLARO ──
-   El fondo animado es oscuro, así que todo el texto que va directamente sobre él
-   (encabezados de sección, hero, reseñas) va en blanco. El contenido vive en
-   tarjetas blancas y conserva su texto oscuro. Los resaltados .hl (degradado) se
-   mantienen porque lucen sobre oscuro. */
 .section-head .eyebrow { color: #7fd4ff !important; }
 .section-head .eyebrow::before { background: currentColor !important; }
 .section-head .text-h2 { color: #fff !important; }
 .section-head .text-lead { color: rgba(255,255,255,0.82) !important; }
 .reviews-empty, .reviews-bar, .reviews-bar .rating-summary,
 .rating-summary__label, .rating-summary__count { color: rgba(255,255,255,0.92) !important; }
-/* Hero (sobre la foto/overlay oscuro): texto claro. */
 .hero__eyebrow { color: #fff !important; background: rgba(255,255,255,0.14) !important; border-color: rgba(255,255,255,0.34) !important; }
 .hero__title { color: #fff !important; }
 .hero__lead { color: rgba(255,255,255,0.88) !important; }
 .hero__scroll { color: rgba(255,255,255,0.85) !important; }
 
-/* ── Borde del carrusel pulido ──
-   Las tarjetas se desvanecen suavemente en los extremos en vez de cortarse en seco
-   (se ve mucho mejor junto a las flechas). En móvil se desactiva (se desliza con el dedo). */
 .services-grid,
 .tramite-grid {
   -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 28px, #000 calc(100% - 28px), transparent 100%);
@@ -5310,20 +4736,16 @@ body.admin::before, body.admin::after { display: none !important; }
   .tramite-grid { -webkit-mask-image: none; mask-image: none; }
 }
 
-/* Hero sin el recuadro lateral de accesos rápidos → una sola columna, sin hueco. */
 .hero__grid { grid-template-columns: 1fr !important; }
 
-/* ── Hero con FOTO del local de fondo (degradado + blur), contenido a la IZQUIERDA ── */
 .hero { position: relative; isolation: isolate; overflow: hidden; }
 .hero__bg { position: absolute; inset: 0; z-index: 0; overflow: hidden; }
 .hero__bg-img {
   display: block; position: absolute; inset: 0;
   width: 100%; height: 100%;
-  object-fit: cover; object-position: center 60%;  /* MÓVIL: imagen un poco más abajo (se ve bien) */
-  opacity: 1 !important;  /* IMPORTANTE: anula el opacity:0.28 de la regla vieja (~línea 820) que la dejaba fantasmal */
-  filter: brightness(1.02) contrast(1.05) saturate(1.10);  /* foto casi ORIGINAL (no lavada) */
-  /* Movimiento sutil tipo "Ken Burns": la foto respira (zoom + leve deriva) para
-     que NO se vea estática. Se detiene si el usuario pide menos movimiento. */
+  object-fit: cover; object-position: center 60%;
+  opacity: 1 !important;
+  filter: brightness(1.02) contrast(1.05) saturate(1.10);
   transform-origin: 60% 40%;
   animation: hero-kenburns 32s ease-in-out infinite;
 }
@@ -5332,27 +4754,15 @@ body.admin::before, body.admin::after { display: none !important; }
   50%  { transform: scale(1.13) translate(-1.6%, -1.2%); }
   100% { transform: scale(1.06) translate(0, 0); }
 }
-/* PC (pantalla ancha): la foto sigue a PANTALLA COMPLETA (cover) para que cubra
-   todo el hero y se funda con el fondo; subimos el encuadre para que se vea la
-   fachada/letrero (no solo los estantes de abajo) y se sienta menos "acercada". */
 @media (min-width: 769px) {
   .hero__bg-img { object-position: center 36%; transform-origin: 65% 38%; }
 }
 @media (min-width: 1200px) {
   .hero__bg-img { object-position: center 32%; }
 }
-/* Degradado OSCURO: opaco a la izquierda (texto claro legible) → translúcido a la
-   derecha (se ve la foto), integrado al tema oscuro del sitio. */
-/* Selector con MÁS especificidad (.hero .hero__bg-overlay) para ganar siempre a las
-   reglas duplicadas del tema claro viejo (líneas ~4250/4474) y al display:none de ~4845. */
 .hero .hero__bg-overlay {
   display: block !important;
   position: absolute; inset: 0;
-  /* Degradado en TODA la pantalla: la foto se FUNDE con el azul de marca para
-     que se vea integrada y profesional (no como un bloque/foto pegada).
-     Capa 1 (horizontal): muy oscuro a la izquierda (texto legible) → un velo
-     suave a la derecha (la foto se ve bien, pero nunca "cruda").
-     Capa 2 (vertical): leve viñeta arriba y abajo para fundir bordes. */
   background:
     linear-gradient(95deg,
       rgba(15, 38, 92, 0.96) 0%,
@@ -5368,20 +4778,13 @@ body.admin::before, body.admin::after { display: none !important; }
       rgba(10, 31, 77, 0.24) 88%,
       rgba(10, 31, 77, 0.46) 100%) !important;
 }
-/* Sombra sutil para que el texto blanco siga legible con el degradado más claro. */
 .hero__copy { text-shadow: 0 2px 18px rgba(4, 12, 40, 0.55); }
 
-/* ── Fusión al pie del hero → se funde con la sección de abajo (sin corte brusco) ──
-   La foto se disuelve hacia el azul del fondo animado (#0a1f4d) en el último tramo.
-   display:block !important reactiva el pseudo-elemento que la línea ~4845 apagaba. */
 .hero.hero::after {
   content: "";
   display: block !important;
   position: absolute; left: 0; right: 0; bottom: 0;
   height: 44%;
-  /* La foto del hero se DISUELVE en el blanco de la página (antes se fundía a
-     navy oscuro y luego había un corte duro con las secciones blancas). El
-     blanqueo solo ocurre en el tramo inferior, por debajo del texto y los CTAs. */
   background: linear-gradient(180deg,
     rgba(255, 255, 255, 0.00) 0%,
     rgba(255, 255, 255, 0.00) 38%,
@@ -5391,10 +4794,8 @@ body.admin::before, body.admin::after { display: none !important; }
     #FFFFFF 100%);
   z-index: 1; pointer-events: none;
 }
-/* "Descubre ↓": el pie del hero ahora es claro, así que el indicador va en tinta. */
 .hero__scroll, .hero__scroll svg { color: var(--text-secondary) !important; }
 
-/* ── Chips de confianza bajo los CTAs (llenan el espacio y refuerzan el mensaje) ── */
 .hero__chips {
   list-style: none; margin: var(--space-6) 0 0; padding: 0;
   display: flex; flex-wrap: wrap; gap: 10px;
@@ -5413,18 +4814,14 @@ body.admin::before, body.admin::after { display: none !important; }
   .hero__chips { gap: 8px; }
   .hero__chip { font-size: 0.84rem; padding: 8px 12px; }
 }
-/* Contenido pegado a la izquierda */
 .hero__inner { position: relative; z-index: 1; width: 100%; }
 .hero__grid { justify-items: start !important; justify-content: start !important; }
 .hero__copy { text-align: left !important; max-width: 760px; justify-self: start !important; margin-left: 0 !important; margin-right: auto !important; }
 @media (max-width: 768px) { .hero__copy { justify-self: stretch !important; } }
-/* Recorre el bloque ligeramente a la derecha (solo escritorio; en móvil queda pegado para no desbordar). */
 @media (min-width: 769px) { .hero__copy { margin-left: clamp(24px, 4.5vw, 90px) !important; } }
 
-/* ── Contenido del hero MÁS GRANDE → abarca más espacio ── */
 .hero { min-height: clamp(620px, 88vh, 880px); display: flex; align-items: center; }
 .hero__title { font-size: clamp(2.8rem, 5.6vw, 4.7rem) !important; }
-/* Acento "Tú lo imaginas," más brillante y vibrante (no apagado) */
 .hero__title .accent {
   color: #00A6FF !important;
 }
@@ -5438,7 +4835,6 @@ body.admin::before, body.admin::after { display: none !important; }
 }
 
 @media (max-width: 768px) {
-  /* En móvil la foto va más tenue para que el texto SIEMPRE se lea. */
   .hero__copy { max-width: 100%; }
   .hero__bg-img { object-position: center; }
   .hero__bg-overlay {
@@ -5449,35 +4845,22 @@ body.admin::before, body.admin::after { display: none !important; }
   }
 }
 
-/* ── ANTI-DESBORDAMIENTO del hero (flexbox) en TODAS las pantallas ──
-   .hero es display:flex; su hijo necesita min-width:0 para poder encogerse por debajo
-   del ancho de su contenido (si no, el título grande se sale y se corta en móvil).
-   Además las palabras largas se parten en vez de empujar el ancho. */
 .hero__inner { min-width: 0; max-width: 100%; }
 .hero__copy, .hero__title, .hero__lead { min-width: 0; overflow-wrap: break-word; word-break: break-word; }
 .hero__eyebrow { max-width: 100%; flex-wrap: wrap; }
 .hero__chips { max-width: 100%; }
 
 @media (max-width: 480px) {
-  /* Teléfonos angostos: título y eyebrow un punto más compactos para que nunca se salgan. */
   .hero__title { font-size: clamp(1.95rem, 8.5vw, 2.6rem) !important; letter-spacing: -0.02em; }
   .hero__eyebrow { font-size: 0.78rem !important; }
   .hero__chip { font-size: 0.8rem; }
 }
 
-/* ── Zona con BLUR a la derecha del hero (aquí va la foto de Ok.station) ──
-   Un panel esmerilado (frosted) en la mitad derecha: desenfoca el fondo animado
-   para que, cuando se suba la foto a uploads/hero-okstation.jpg, quede integrada y
-   suave. El borde izquierdo se desvanece para fundirse con el texto. */
-/* La foto va NÍTIDA (estilo "florería"): se desactiva el panel esmerilado cuyo
-   blur difuminaba la mitad derecha. Para volver al efecto frosted, reactívalo. */
 .hero__photo-zone { display: none; }
 @media (max-width: 860px) { .hero__photo-zone { display: none; } }
 
-/* ── FAQ sobre el fondo animado oscuro: tarjetas blancas + texto azul-marino + botón "+" ── */
 #faq .eyebrow { color: #7fd4ff !important; text-transform: uppercase; letter-spacing: 0.12em; }
 #faq .hl { color: #00A6FF !important; }
-/* Respaldo: si el navegador no recorta el degradado al texto, las letras se ven en azul brillante en vez de quedar invisibles */
 @supports not ((-webkit-background-clip: text) or (background-clip: text)) {
   #faq .hl { background: none !important; -webkit-text-fill-color: #2fa8ff !important; color: #2fa8ff !important; }
 }
@@ -5491,11 +4874,6 @@ body.admin::before, body.admin::after { display: none !important; }
 #faq .faq-item.is-open .faq-icon { background: #066CFF !important; }
 #faq .faq-item.is-open .faq-icon svg { color: #fff !important; }
 
-/* ============================================================
-   30. PASO "DATOS DE CADA PERSONA" (requisitos por persona)
-   Tarjetas dentro del wizard de citas (fondo azul profundo): se captura la
-   información de cada asistente y se navega de una persona a la siguiente.
-   ============================================================ */
 .persona-progress {
   font-weight: 700;
   color: #cfe0ff;
@@ -5541,7 +4919,6 @@ body.admin::before, body.admin::after { display: none !important; }
   .persona-pager { flex-direction: column; }
   .persona-pager .btn { width: 100%; }
 }
-/* Cuestionario por trámite dentro de la tarjeta de persona */
 .persona-q { margin-top: 14px; padding-top: 14px; border-top: 1px solid rgba(255,255,255,0.12); }
 .persona-q__intro { color: #cfe0ff; font-size: 0.86rem; margin: 0 0 12px; }
 .persona-q .field { margin-bottom: 12px; }
@@ -5561,7 +4938,6 @@ body.admin::before, body.admin::after { display: none !important; }
 .persona-help--check { margin-left: 26px; }
 .cita-personas { display: grid; gap: 14px; }
 .persona-pager__label { align-self: center; font-weight: 700; color: #cfe0ff; font-size: 0.9rem; }
-/* Documentos integrados DENTRO de la tarjeta de cada persona (CURP, PDFs, etc.) */
 .persona-docs { margin-top: 16px; padding-top: 14px; border-top: 1px solid rgba(255,255,255,0.12); }
 .persona-docs__title {
   display: flex; align-items: center; gap: 8px;
@@ -5571,11 +4947,6 @@ body.admin::before, body.admin::after { display: none !important; }
 .persona-docs__sub { color: rgba(255,255,255,0.62); font-size: 0.8rem; line-height: 1.4; margin: 0 0 12px; }
 .persona-docs .cita-docs__list { margin-top: 0; }
 
-/* ============================================================
-   Expediente de cita — requisitos, documentos y venta cruzada
-   (Fase 1). Hereda el tema oscuro de la sección de citas; no
-   altera ningún estilo existente.
-   ============================================================ */
 .cita-reqs {
   margin-top: 18px;
   padding: 16px 18px;
@@ -5589,33 +4960,22 @@ body.admin::before, body.admin::after { display: none !important; }
 .cita-reqs__head { display: flex; align-items: center; gap: 9px; color: #fff; font-size: 0.95rem; }
 .cita-reqs__head svg { width: 20px; height: 20px; color: var(--brand-cyan); flex: 0 0 auto; }
 .cita-reqs__note { color: rgba(255,255,255,0.7); font-size: 0.84rem; margin: 8px 0 0; }
-/* Lista de requisitos: multicolumna RESPONSIVA. `column-width` decide cuántas
-   columnas caben según el ancho disponible (2 en escritorio, 1 en móvil) sin
-   media queries; los puntos fluyen de arriba hacia abajo por columna (orden
-   natural, a diferencia de un grid fila-por-fila). */
 .cita-reqs__list { list-style: none; margin: 8px 0 0; padding: 0; columns: 220px 2; column-gap: 26px; max-width: 620px; }
 .cita-reqs__list li { position: relative; padding-left: 16px; color: #4B5563; font-size: 0.85rem; line-height: 1.4; break-inside: avoid; -webkit-column-break-inside: avoid; }
 .cita-reqs__list li::before { content: ""; position: absolute; left: 2px; top: 9px; width: 5px; height: 5px; border-radius: 50%; background: var(--brand-cyan); }
-/* Trámites con grupos (visa, SENTRI, pasaporte USA): cada grupo es un bloque
-   indivisible que se acomoda en columnas; título y puntos van juntos y en
-   orden. La lista DENTRO de cada grupo queda a 1 columna. */
 .cita-reqs__groups { columns: 260px 2; column-gap: 26px; margin-top: 4px; max-width: 680px; }
 .cita-reqs__group { break-inside: avoid; -webkit-column-break-inside: avoid; margin: 0 0 12px; }
 .cita-reqs__group .cita-reqs__list { columns: 1; margin-top: 4px; }
 .cita-reqs__gtitle { display: block; color: #cfe0ff; font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 3px; }
 
-/* Avisos de pago al 100% (pedidos y citas). Especificidad + !important para
-   ganarle a los temas de sección que fijan el color del texto. */
 .order-summary .order-note--pay { color: var(--brand-blue) !important; font-weight: 700; margin-bottom: 8px; }
 .cita-pay-note { margin: 4px 0 0; font-size: 0.9rem; font-weight: 700; text-align: center; }
 .citas-section .cita-pay-note { color: var(--brand-blue) !important; }
 
-/* Botones agrupados en la barra del paso (Subir documentos + Continuar) */
 .cita-nav__group { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: flex-end; }
 #cita-docs-toggle svg { width: 18px; height: 18px; }
 #cita-docs-toggle.is-open { background: rgba(255,255,255,0.16); }
 
-/* Sección de documentos */
 .cita-docs {
   margin-top: 16px;
   padding: 16px 18px;
@@ -5651,7 +5011,6 @@ body.admin::before, body.admin::after { display: none !important; }
 .doc-field__status.is-ok { color: #7ee0b8; }
 .doc-field__status.is-error { color: #ff9a9a; }
 
-/* Venta cruzada */
 .cita-upsell { margin-top: 18px; padding-top: 16px; border-top: 1px solid rgba(255,255,255,0.12); }
 .cita-upsell__title { display: block; color: #fff; font-size: 0.9rem; font-weight: 600; margin-bottom: 10px; }
 .cita-upsell__list { display: grid; gap: 8px; }
@@ -5668,17 +5027,7 @@ body.admin::before, body.admin::after { display: none !important; }
 .upsell-add { white-space: nowrap; }
 .upsell-row.is-on .upsell-add { background: var(--brand-blue); border-color: transparent; color: #fff; }
 
-/* ============================================================
-   30. MEJORAS INTERACTIVAS (jun 2026)
-   - Fondo reactivo al cursor (resplandor que sigue el mouse)
-   - Botones con barrido de brillo + elevación más viva
-   - Encuadre de la foto del hero en escritorio (que se vea COMPLETA)
-   Todo aditivo: no reescribe reglas previas; solo realza.
-   ============================================================ */
 
-/* ── Fondo reactivo al cursor ──────────────────────────────
-   app.js inyecta <div id="oks-cursor-glow"> y actualiza su posición.
-   Capa fija detrás del contenido; no captura toques. */
 #oks-cursor-glow {
   position: fixed;
   top: 0;
@@ -5700,12 +5049,8 @@ body.admin::before, body.admin::after { display: none !important; }
   transition: opacity 0.4s ease;
 }
 #oks-cursor-glow.is-on { opacity: 1; }
-/* En el panel admin no aplica (como el resto del fondo animado). */
 body.admin #oks-cursor-glow { display: none !important; }
 
-/* ── Botones: barrido de brillo al pasar el cursor ─────────
-   .btn ya trae position:relative + overflow:hidden, así que el
-   barrido queda recortado dentro del botón. */
 .btn::after {
   content: "";
   position: absolute;
@@ -5720,18 +5065,14 @@ body.admin #oks-cursor-glow { display: none !important; }
   transition: left 0.6s cubic-bezier(0.22, 0.7, 0.2, 1);
 }
 .btn:hover::after { left: 150%; }
-/* El SVG y el texto deben quedar por encima del barrido. */
 .btn > svg { position: relative; z-index: 2; }
-/* Botones claros: el barrido blanco no se ve; usamos uno tenue oscuro. */
 .btn--light::after,
 .btn--light\.active::after {
   background: linear-gradient(100deg, transparent 0%, rgba(12, 20, 50, 0.10) 50%, transparent 100%);
 }
-/* Sin barrido ni movimiento en botones deshabilitados. */
 .btn:disabled::after,
 .btn[aria-disabled="true"]::after { display: none; }
 
-/* Elevación un poco más viva en los primarios/marca (respeta tus sombras). */
 .btn--primary:hover,
 .btn--brand:hover,
 .btn--wa:hover { transform: translateY(-3px) scale(1.02); }
@@ -5742,38 +5083,18 @@ body.admin #oks-cursor-glow { display: none !important; }
   .btn--brand:hover,
   .btn--wa:hover { transform: none; }
 }
-/* (El encuadre de la foto del hero en escritorio se ajusta en su bloque
-   canónico, ~línea 4946: object-fit:contain anclado a la derecha.) */
 .cita-upsell__note { color: rgba(255,255,255,0.55); font-size: 0.76rem; margin: 10px 0 0; }
 
 
-/* ============================================================
-   27. IDEA — TEMA BLANCO UNIFICADO (capa final)
-   Toda la página sobre fondo BLANCO continuo (sin secciones
-   oscuras ni efecto "diapositivas"). Voltea las superficies antes
-   oscuras (hero, citas, fotos, faq, footer) a claro y su texto a
-   oscuro. Hero con la foto del local + fundido a blanco, sin swish.
-   ============================================================ */
 
-/* — Fondo blanco continuo — */
 html, body, #top { background: #FFFFFF !important; }
 .section, .section--alt, .section--dark, .section--dark-2, .citas-section { background: #FFFFFF !important; }
 
-/* — HERO: imagen del servidor + GRADIENTE DE MARCA (sin navy), texto
-   blanco, fundido inferior a blanco — */
 .hero {
-  /* Respaldo neutro si la foto no carga; en producción la foto cubre el hero. */
   background: #14161E !important;
 }
-/* La foto del servidor protagoniza, a opacidad completa (sin lavarla). */
 .hero__bg-img { opacity: 1 !important; }
-/* Velo NEUTRO (gris carbón, no azul) solo a la izquierda para que el texto
-   blanco se lea; se desvanece a la derecha dejando ver la foto. Sin arcoíris
-   ni navy saturado. Selector .hero .hero__bg-overlay para ganar a la regla
-   previa (~4975). */
 .hero .hero__bg-overlay {
-  /* Degradado RADIAL (circular): muy presente a la izquierda (texto legible) y se
-     quita poco a poco hacia la derecha dejando ver la foto. */
   background:
     radial-gradient(125% 130% at 6% 50%,
       rgba(12,14,22,0.86) 0%,
@@ -5782,9 +5103,6 @@ html, body, #top { background: #FFFFFF !important; }
       rgba(12,14,22,0.12) 68%,
       rgba(12,14,22,0.00) 85%) !important;
 }
-/* Fundido del hero hacia el blanco de la página (conecta, no divide).
-   La foto se DISUELVE en el blanco: el blanqueo arranca por DEBAJO del texto
-   y los CTAs, así que no afecta su legibilidad. */
 .hero::after {
   content: "" !important;
   position: absolute !important;
@@ -5805,24 +5123,12 @@ html, body, #top { background: #FFFFFF !important; }
 }
 .hero__inner { position: relative; z-index: 2; }
 
-/* — Bloqueo de scroll del fondo cuando hay un modal o drawer abierto —
-   (antes se podía hacer scroll "infinito" detrás del banner). */
 body:has(.cita-modal:not([hidden])),
 body:has(.cita-drawer:not([hidden])) { overflow: hidden; }
-/* El propio modal/drawer scrollea internamente si es muy alto y no
-   "contagia" el scroll a la página de fondo. */
 .cita-modal { overflow-y: auto; overscroll-behavior: contain; }
 .cita-drawer, .cita-drawer__panel { overscroll-behavior: contain; }
-/* — Apilamiento del modal/drawer del wizard —
-   Estos viven dentro de .citas-section > .wrap, que crea un contexto de apilamiento
-   (z-index:1). Por eso, aunque el modal es fixed con z-index alto, una sección
-   posterior (#fotos) se dibujaba ENCIMA (el título "Súbelas en línea" se colaba).
-   Al abrir el modal/drawer elevamos ese contexto por encima de las secciones que le
-   siguen; el overlay vuelve a cubrir toda la página. Solo afecta con el modal abierto. */
 body:has(.cita-modal:not([hidden])) .citas-section > .wrap,
 body:has(.cita-drawer:not([hidden])) .citas-section > .wrap { z-index: 130; }
-/* Aviso "inicia sesión para continuar": en CITAS (paso 1, app.js) y en PEDIDOS
-   (junto a "Enviar pedido", order.js). Sin sesión el botón queda deshabilitado. */
 .cita-login-note,
 .order-login-note {
   margin: 14px 0 0;
@@ -5835,15 +5141,11 @@ body:has(.cita-drawer:not([hidden])) .citas-section > .wrap { z-index: 130; }
   line-height: 1.5;
 }
 .cita-login-note a, .order-login-note a { color: var(--brand-blue); font-weight: 700; text-decoration: underline; }
-/* En el resumen del pedido va pegado al botón de enviar. */
 .order-login-note { margin-bottom: 10px; }
 .hero__title { color: #FFFFFF !important; }
 .hero__title .accent {
-  /* Color SÓLIDO (sin degradado en el texto): azul de la marca. */
   color: #066CFF !important;
   -webkit-text-fill-color: #066CFF !important;
-  /* Sin cintillo/subrayado bajo "Tú lo imaginas": se retiró la barra de
-     degradado que iba al pie del texto. */
   background: none !important;
   padding-bottom: 0 !important;
   filter: none;
@@ -5857,7 +5159,6 @@ body:has(.cita-drawer:not([hidden])) .citas-section > .wrap { z-index: 130; }
 .hero__eyebrow svg { color: #00C6FF; }
 .hero__scroll { color: rgba(255,255,255,0.85) !important; }
 
-/* — CITAS (wizard): de gradiente oscuro a claro — */
 .citas-section { color: var(--text-primary) !important; }
 .citas-section .text-h2 { color: var(--text-primary) !important; }
 .citas-section .section-head .text-lead,
@@ -5867,24 +5168,17 @@ body:has(.cita-drawer:not([hidden])) .citas-section > .wrap { z-index: 130; }
   border: 1px solid var(--border-light) !important;
   -webkit-backdrop-filter: none !important; backdrop-filter: none !important;
   box-shadow: var(--shadow-md);
-  grid-template-columns: 1fr !important;   /* panel a todo el ancho */
-  padding: 0 !important;                    /* la cabecera de gradiente llega a los bordes */
-  overflow: hidden;                          /* respeta el radio en la cabecera */
+  grid-template-columns: 1fr !important;
+  padding: 0 !important;
+  overflow: hidden;
 }
-/* Quitar el bloque lateral "Tu cita, sin filas…" (como en el prototipo) */
 .citas-section .cita-aside { display: none !important; }
 .citas-section .cita-panel { padding: clamp(20px,3vw,30px) clamp(18px,3vw,32px) clamp(24px,3vw,34px) !important; }
-/* En celulares el padding lateral era muy generoso (18px) sobre el de .wrap (16px):
-   el formulario quedaba angosto. Lo reducimos para aprovechar el ancho de la pantalla. */
 @media (max-width: 480px) {
   .citas-section .cita-panel { padding: 18px 12px 22px !important; }
   #citas .wrap { padding-left: 12px; padding-right: 12px; }
 }
 
-/* Cabecera de gradiente por paso (PASO N DE 6). El número lo pone el JS en
-   data-paso del paso activo: el contador CSS NO servía porque los pasos
-   inactivos están en display:none y no incrementan el contador (marcaba
-   siempre "PASO 1"). */
 .citas-section .cita-step.is-active .cita-step__title {
   background: #066CFF;
   color: #FFFFFF !important;
@@ -5915,9 +5209,6 @@ body:has(.cita-drawer:not([hidden])) .citas-section > .wrap { z-index: 130; }
   border: 1px solid var(--border-medium) !important;
   color: var(--text-primary) !important;
 }
-/* Fecha de nacimiento (persona): las tarjetas van sobre blanco, pero el esquema
-   oscuro base (.field input[type=date]{color-scheme:dark}) pintaba el ícono del
-   calendario en claro → invisible. Con esquema claro el ícono se ve y contrasta. */
 .citas-section .field input[type="date"] {
   color-scheme: light !important;
   cursor: pointer;
@@ -5944,8 +5235,6 @@ body:has(.cita-drawer:not([hidden])) .citas-section > .wrap { z-index: 130; }
 }
 .cita-upsell__note { color: var(--text-muted) !important; }
 
-/* Resto de textos del wizard que estaban en blanco (sobre el antiguo fondo
-   oscuro) → oscuros para que sean legibles sobre blanco. */
 .citas-section .field label,
 .citas-section .contact-chip,
 .citas-section .party-opt,
@@ -5961,7 +5250,6 @@ body:has(.cita-drawer:not([hidden])) .citas-section > .wrap { z-index: 130; }
 .citas-section .party-counter__label,
 .citas-section .okcal__weekdays span,
 .citas-section .field__opt { color: var(--text-secondary) !important; }
-/* Estados seleccionados → acento de marca, legibles */
 .citas-section .party-opt.is-selected,
 .citas-section .tramite-btn[aria-pressed="true"],
 .citas-section .tramite-btn.is-selected {
@@ -5975,7 +5263,6 @@ body:has(.cita-drawer:not([hidden])) .citas-section > .wrap { z-index: 130; }
   border: 1px solid var(--border-medium) !important;
   color: var(--text-primary) !important;
 }
-/* Botones "ghost" (eran blancos para fondo oscuro) → ghost claro */
 .citas-section .btn--ghost-dark {
   background: #FFFFFF !important;
   border: 1px solid var(--border-medium) !important;
@@ -5986,7 +5273,6 @@ body:has(.cita-drawer:not([hidden])) .citas-section > .wrap { z-index: 130; }
   color: var(--brand-blue) !important;
   background: var(--brand-blue-light) !important;
 }
-/* Número del riel de pasos (círculo) — inactivo claro, activo blanco */
 .citas-section .step-item__num {
   background: #FFFFFF !important;
   color: var(--text-secondary) !important;
@@ -5999,15 +5285,9 @@ body:has(.cita-drawer:not([hidden])) .citas-section > .wrap { z-index: 130; }
 }
 .citas-section .time-grid__empty { color: var(--text-muted) !important; }
 
-/* Contenido dinámico del wizard (requisitos, documentos, upsell, extras,
-   contador) que estaba en blanco para el fondo oscuro → texto oscuro legible.
-   Se mantiene blanco SOLO donde hay fondo de marca (check, día seleccionado,
-   botones primarios). */
 .cita-reqs__head { color: var(--text-primary) !important; }
 .cita-reqs__note,
 .cita-reqs__list li { color: var(--text-secondary) !important; }
-/* Los subtítulos de grupo eran azul claro (#cfe0ff, pensado para fondo oscuro):
-   sobre el fondo claro no se leían → azul de marca oscuro y legible. */
 .cita-reqs__gtitle { color: var(--brand-blue-hover) !important; }
 .cita-extra { color: var(--text-secondary) !important; }
 .cita-extra__label { color: var(--text-muted) !important; }
@@ -6022,10 +5302,6 @@ body:has(.cita-drawer:not([hidden])) .citas-section > .wrap { z-index: 130; }
 .upsell-row__q { color: var(--text-secondary) !important; }
 .upsell-row__price { color: var(--brand-blue) !important; }
 .cita-upsell__title { color: var(--text-primary) !important; }
-/* — Paso "Datos de cada persona": las tarjetas de persona y el bloque de documentos
-     se diseñaron para el fondo oscuro original; sobre el blanco actual su texto, bordes
-     y fondos quedaban invisibles → se reasignan a tonos legibles. (El badge y los botones
-     de marca conservan su blanco porque van sobre fondo de color.) — */
 .persona-card {
   background: #fff !important;
   border-color: var(--border-light) !important;
@@ -6055,12 +5331,6 @@ body:has(.cita-drawer:not([hidden])) .citas-section > .wrap { z-index: 130; }
   border-color: var(--brand-blue) !important;
   color: #fff !important;
 }
-/* ── MODO OSCURO del paso "Datos de cada persona" ──
-   Las reglas de arriba fijan blanco/tonos claros con !important porque el paso se
-   rediseñó para fondo claro; en oscuro ese blanco forzado dejaba la tarjeta BLANCA
-   con títulos casi blancos (invisibles) e inputs negros encima, y "Elegir archivo"
-   quedaba azul sobre azul marino. Aquí se devuelve todo a superficies oscuras y
-   textos claros (mismo !important para ganarles). */
 html[data-theme="dark"] .persona-card {
   background: var(--surface-card, #171F31) !important;
   border-color: var(--border-light, #26314A) !important;
@@ -6083,15 +5353,12 @@ html[data-theme="dark"] .cita-extra__chip {
   background: rgba(6, 108, 255, 0.20) !important;
   color: #7cc0ff !important;
 }
-/* Resumen de reseñas (sección testimonios, ahora sobre blanco) */
 .rating-summary__label,
 .rating-summary__count { color: var(--text-secondary) !important; }
 .rating-summary__score { color: var(--text-primary) !important; }
-/* Mensaje "aún no hay reseñas" y lead de Visítanos (sobre blanco) */
 .reviews-empty { color: var(--text-muted) !important; }
 #visitanos .text-lead { color: var(--text-secondary) !important; }
 
-/* Calendario: días y textos legibles sobre blanco */
 .citas-section .okcal__grid,
 .citas-section .okcal__grid button,
 .citas-section .okcal__grid span,
@@ -6100,12 +5367,10 @@ html[data-theme="dark"] .cita-extra__chip {
 .citas-section .okcal__grid button[disabled],
 .citas-section .okcal__grid .is-disabled { color: var(--text-faint) !important; }
 
-/* — FOTOS y FAQ (.section--alt): encabezados a oscuro — */
 .section--alt .text-h2 { color: var(--text-primary) !important; }
 .section--alt .section-head .text-lead,
 .section--alt .section-head p { color: var(--text-secondary) !important; }
 
-/* — FOOTER: claro con texto oscuro — */
 .site-footer {
   background: #F7F9FF !important;
   border-top: 1px solid var(--border-light);
@@ -6121,16 +5386,12 @@ html[data-theme="dark"] .cita-extra__chip {
 .footer-col a:hover,
 .footer-bottom a:hover { color: var(--brand-blue) !important; }
 
-/* — Microinteracción: elevar tarjetas de servicio al pasar el cursor — */
-/* Hover IGUAL al de las tarjetas de citas (más suave): sube 4px, sombra difusa
-   y transición de .2s — en vez del 6px + sombra azul marcada de antes. */
 .service-card { transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease, background .2s ease; }
 .service-card:hover {
   transform: translateY(-4px);
   box-shadow: 0 14px 34px -16px rgba(0,0,0,0.55);
   border-color: var(--brand-blue);
 }
-/* Las destacadas (azul/púrpura) también más suaves (antes subían 6px). */
 .service-card--featured-blue:hover,
 .service-card--featured-purple:hover {
   transform: translateY(-4px);
@@ -6142,12 +5403,7 @@ html[data-theme="dark"] .cita-extra__chip {
 }
 
 
-/* ============================================================
-   28. IDEA — FONDO 100% BLANCO + TÍTULOS + INTERACTIVIDAD
-   ============================================================ */
 
-/* — Quitar TODO el color decorativo de fondo (glows rosa/lavanda, swish)
-   para que la página sea blanca de verdad — */
 body::before, body::after,
 .section::before, .section::after,
 .section--alt::before, .section--alt::after,
@@ -6159,8 +5415,6 @@ body::before, body::after,
   opacity: 0 !important;
 }
 
-/* — Títulos de sección: estaban en blanco (#fff !important global) y no se
-   veían sobre blanco. La parte resaltada (.hl) conserva su degradado. — */
 .section-head .text-h2,
 .section-head--center .text-h2,
 #servicios .text-h2,
@@ -6175,12 +5429,7 @@ body::before, body::after,
   -webkit-text-fill-color: transparent; color: transparent !important;
 }
 
-/* ============================================================
-   INTERACTIVIDAD — hover, microinteracciones y reveal (sin gate de
-   reduced-motion para que SIEMPRE se note la interacción).
-   ============================================================ */
 
-/* Botones: elevar + sombra al pasar el cursor (todos los botones) */
 .btn { transition: transform .18s ease, box-shadow .25s ease, filter .2s ease !important; }
 .btn:hover { transform: translateY(-2px); box-shadow: 0 12px 26px rgba(6,108,255,0.26); }
 .btn:active { transform: translateY(0) scale(.97); }
@@ -6189,8 +5438,6 @@ body::before, body::after,
 }
 .btn--wa:hover { box-shadow: 0 14px 30px rgba(37,211,102,0.42); }
 
-/* Tarjetas de servicio: MISMO hover suave que las de citas/trámites
-   (sube 4px, sombra difusa, .2s) — antes subía 8px con sombra azul fuerte. */
 .service-card { transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease, background .2s ease; }
 .service-card:hover { transform: translateY(-4px); box-shadow: 0 14px 34px -16px rgba(0,0,0,0.55); border-color: var(--brand-blue); }
 .service-card__img { transition: transform .35s ease; }
@@ -6198,43 +5445,31 @@ body::before, body::after,
 .service-card .service-link { transition: gap .2s ease, color .2s ease; }
 .service-card:hover .service-link { gap: 9px; }
 
-/* Tarjetas de trámite (wizard) */
 .tramite-btn { transition: transform .2s ease, border-color .2s ease, box-shadow .2s ease, background .2s ease; }
 .tramite-btn:hover { transform: translateY(-4px); border-color: var(--brand-blue); box-shadow: 0 12px 24px rgba(6,108,255,0.16); }
 
-/* Chips/etiquetas de servicio */
 .service-tags .tag { transition: transform .15s ease, background .2s ease; }
 .service-card:hover .service-tags .tag { transform: translateY(-1px); }
 
-/* Enlaces de navegación y "más info": subrayado/acento al pasar */
 .nav__link { transition: color .18s ease; }
 .nav__link:hover { color: var(--brand-blue); }
 .service-link { transition: color .2s ease, gap .2s ease; }
 .service-link:hover { color: var(--brand-blue-hover); }
 
-/* FAQ: realce al pasar el cursor */
 .faq-item { transition: border-color .2s ease, box-shadow .2s ease, transform .2s ease; }
 .faq-item:hover { border-color: var(--brand-blue); box-shadow: var(--shadow-sm); }
 
-/* Tarjetas de info (Visítanos) y reseñas: levantar */
 .info-card, .testimonio-card { transition: transform .25s ease, box-shadow .25s ease, border-color .25s ease; }
 .info-card:hover, .testimonio-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-md); border-color: var(--brand-blue); }
 
-/* Galería del local: zoom suave de la foto */
 .store-gallery__item img { transition: transform .5s ease; }
 .store-gallery__item:hover img { transform: scale(1.06); }
 
-/* Opciones del wizard (cantidad / extras): realce */
 .party-opt, .extra-card { transition: transform .18s ease, border-color .2s ease, background .2s ease; }
 .party-opt:hover, .extra-card:hover { transform: translateY(-2px); }
 
-/* Flechas de carrusel y botón scroll-top: realce */
 .carousel__arrow, .scroll-top { transition: transform .2s ease, box-shadow .2s ease, color .2s ease, background .2s ease, border-color .2s ease !important; }
-/* El scroll-top no está centrado con translateY, así que solo escala. */
 .scroll-top:hover { transform: scale(1.08); color: var(--brand-blue); }
-/* La flecha del carrusel SÍ vive centrada con translateY(-50%): hay que
-   conservarlo en el hover; si no, "salta" hacia abajo y parece huir del cursor.
-   En vez de moverse, cambia de color (fondo + borde + ícono azul marca). */
 .carousel__arrow:hover {
   transform: translateY(-50%) scale(1.08);
   color: #fff;
@@ -6243,19 +5478,12 @@ body::before, body::after,
   box-shadow: 0 10px 26px rgba(6, 108, 255, 0.42);
 }
 
-/* Reveal al hacer scroll: reforzamos SOLO la transición del estado visible
-   (no tocamos la opacidad inicial para no ocultar contenido nunca). */
 .reveal.is-visible { transition: opacity .6s ease, transform .6s cubic-bezier(.2,.7,.2,1); }
 
-/* Botón "Continuar"/CTA del wizard: pulso sutil para invitar al clic */
 @keyframes okBtnGlow { 0%,100%{ box-shadow:0 8px 22px rgba(6,108,255,.28);} 50%{ box-shadow:0 10px 30px rgba(6,108,255,.5);} }
 .cita-nav .btn--primary:not([disabled]):not([aria-disabled="true"]) { animation: okBtnGlow 2.6s ease-in-out infinite; }
 .cita-nav .btn--primary:hover { animation: none; }
 
-/* — Interacciones SIEMPRE activas, incluso si el sistema operativo pide
-   "reducir movimiento" (regla global ~3259 pone todo en 0.01ms). Reactivamos
-   solo las transiciones de interacción (hover/botones/tarjetas), no los
-   bucles automáticos. El usuario pidió una página muy interactiva. — */
 @media (prefers-reduced-motion: reduce) {
   .btn,
   .service-card, .service-card__img, .service-card .service-link,
@@ -6269,7 +5497,6 @@ body::before, body::after,
 }
 
 
-/* ===== Corrección formularios tema claro ===== */
 
 .citas-section label,
 .citas-section .field label,
@@ -6309,7 +5536,6 @@ body::before, body::after,
     accent-color:#066CFF;
 }
 
-/* Forzar color de todos los textos del calendario */
 .okcal__day,
 .okcal__day *,
 .okcal__day span,
@@ -6322,7 +5548,6 @@ body::before, body::after,
     color:#FFFFFF !important;
 }
 
-/* ===== Corrección resumen de cita ===== */
 
 .cita-summary,
 .cita-summary *,
@@ -6343,15 +5568,7 @@ body::before, body::after,
     color:#111827 !important;
 }
 
-/* ============================================================
-   34. CORRECCIONES DE CONTRASTE — paso a tema claro (2026-06-30)
-   Restos del tema oscuro que quedaban ILEGIBLES sobre el fondo blanco:
-   calendario de citas, prefijo "+52", etiquetas .eyebrow y el tagline.
-   ============================================================ */
 
-/* — Calendario de citas: era una CAJA OSCURA con texto oscuro (invisible).
-     Lo pasamos a tema claro; el texto de mes/días/semana ya estaba forzado
-     a oscuro más arriba, así que basta con aclarar el fondo y los bordes. — */
 .citas-section .okcal {
   background: #FFFFFF !important;
   border-color: #E5E7EB !important;
@@ -6382,15 +5599,12 @@ body::before, body::after,
   color: var(--text-secondary) !important;
 }
 
-/* — Prefijo "+52" del teléfono dentro del wizard (era blanco sobre blanco) — */
 .citas-section .input-prefix__tag {
   background: #EEF3FB !important;
   border-color: #D7E2F2 !important;
   color: #0B1F3A !important;
 }
 
-/* — Etiquetas de sección (.eyebrow): cian claro ilegible → azul de marca (≈4.5:1).
-     Se respeta .eyebrow--white (usado sobre fondos oscuros). — */
 .eyebrow:not(.eyebrow--white),
 .section-head .eyebrow,
 #faq .eyebrow {
@@ -6401,40 +5615,24 @@ body::before, body::after,
   background: var(--brand-blue) !important;
 }
 
-/* — Tagline "You say tech, we listen." sobre bloque claro (era cian, 1.9:1) — */
 .footer-brand-line {
   color: var(--brand-blue) !important;
 }
 
-/* — Chips de trámite (.tramite-tag): texto azul/morado claro (2:1) →
-     pastilla SÓLIDA del color del servicio con texto blanco (≥4.5:1). — */
 .tramite-tag {
   background: var(--taccent, var(--brand-blue)) !important;
   color: #FFFFFF !important;
 }
 
-/* — Red de seguridad: los títulos de paso del wizard siempre oscuros sobre el
-     panel blanco (cubre también el paso de personas, hoy inerte). — */
 .citas-section .cita-step__title {
   color: var(--text-primary) !important;
 }
 
-/* — Chip de contacto SELECCIONADO (fondo azul): su texto debe ir blanco; los
-     overrides de tema claro lo dejaban en gris oscuro sobre azul (2.26:1). — */
 .citas-section .contact-chip:has(input:checked),
 .citas-section .contact-chip:has(input:checked) * {
   color: #FFFFFF !important;
 }
 
-/* ============================================================
-   35. CARRUSEL DE SERVICIOS — quitar la animación "reveal" de las tarjetas
-   Al dar vuelta el carrusel (sobre todo hacia la IZQUIERDA), los títulos
-   "saltaban" y luego se reacomodaban: las tarjetas conservaban la animación de
-   aparición (.reveal = opacity/transform con transición de .6s), y los clones
-   quedaban en estado .reveal:not(.is-visible). Las tarjetas de CITAS no tienen
-   reveal, por eso ahí no pasa. Aquí las dejamos SIEMPRE visibles y estáticas,
-   con SOLO la transición del hover.
-   ============================================================ */
 .services-grid .reveal,
 .services-grid .reveal.is-visible,
 .services-grid .service-card,
@@ -6443,33 +5641,18 @@ body::before, body::after,
   opacity: 1 !important;
   transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease, background .2s ease !important;
 }
-/* transform estático cuando NO se está haciendo hover: así ninguna animación de
-   "reveal" puede desplazar la tarjeta/título; el hover (elevar 4px) sí aplica. */
 .services-grid .service-card:not(:hover) { transform: none !important; }
 .services-grid .service-card__img { transition: transform .35s ease !important; }
 
-/* ============================================================
-   36. CALENDARIO DE CITAS — PUNTO de color de disponibilidad
-   Celda BLANCA con un punto de color bajo el número (4 niveles):
-   verde = alta, ámbar = poca, rojo = sin, morado = inhábil.
-   ============================================================ */
 .okcal-dot { width: 8px; height: 8px; border-radius: 50% !important; background: transparent; transform: none !important; }
-.okcal-dot--full   { background: #22C55E !important; border-radius: 50% !important; transform: none !important; }  /* alta - verde */
-.okcal-dot--mid    { background: #F59E0B !important; border-radius: 50% !important; transform: none !important; }  /* poca - ámbar */
-.okcal-dot--none   { background: #EF4444 !important; border-radius: 50% !important; transform: none !important; }  /* sin - rojo */
-.okcal-dot--closed { background: #8B5CF6 !important; border-radius: 50% !important; transform: none !important; }  /* inhábil - morado */
-/* El nivel 'none' antes dibujaba una "×"; ahora es un punto rojo simple. */
+.okcal-dot--full   { background: #22C55E !important; border-radius: 50% !important; transform: none !important; }
+.okcal-dot--mid    { background: #F59E0B !important; border-radius: 50% !important; transform: none !important; }
+.okcal-dot--none   { background: #EF4444 !important; border-radius: 50% !important; transform: none !important; }
+.okcal-dot--closed { background: #8B5CF6 !important; border-radius: 50% !important; transform: none !important; }
 .okcal-dot--none::before, .okcal-dot--none::after { display: none !important; }
-/* Inhábil / sin disponibilidad: NO atenuar el punto (que se vea el color); solo
-   el número se aclara un poco para indicar que no es reservable. */
 .citas-section .okcal__day:disabled { opacity: 1 !important; cursor: not-allowed; }
 .citas-section .okcal__day:disabled > span { opacity: 0.5; }
 
-/* ============================================================
-   37. "¿QUIÉN ES EL CONTACTO?" — paso de datos de la cita
-   Si el contacto es una de las personas ya registradas: 1 se autollena,
-   varias se eligen con estos chips. Evita re-escribir el nombre.
-   ============================================================ */
 .cita-quien { margin: 0 0 16px; }
 .cita-quien__note {
   margin: 0; font-size: 0.9rem; color: var(--text-secondary);
@@ -6477,14 +5660,12 @@ body::before, body::after,
 }
 .cita-quien__note b { color: var(--text-primary); }
 .cita-quien__label { display: block; margin: 0 0 8px; font-size: 0.9rem; font-weight: 600; color: var(--text-primary); }
-/* Lista desplegable con los nombres de las personas registradas. */
 .cita-quien__select {
   width: 100%; max-width: 380px; padding: 11px 14px; font: inherit; font-size: 0.92rem;
   border: 1.5px solid var(--border-medium); border-radius: 10px; background: #fff; color: var(--text-primary);
   cursor: pointer;
 }
 .cita-quien__select:focus { outline: none; border-color: var(--brand-blue); box-shadow: 0 0 0 3px rgba(6,108,255,0.12); }
-/* Lista visible de personas registradas para elegir el contacto principal. */
 .cita-quien__opts { display: flex; flex-wrap: wrap; gap: 10px; }
 .cita-quien__opt {
   display: flex; flex-direction: column; align-items: flex-start; gap: 2px;
@@ -6499,22 +5680,10 @@ body::before, body::after,
 .cita-quien__opt.is-active { border-color: var(--brand-blue); background: var(--brand-blue); color: #fff; box-shadow: 0 6px 16px rgba(6,108,255,0.25); }
 .cita-quien__opt.is-active span { color: rgba(255,255,255,0.85); }
 .cita-quien__opt--other { border-style: dashed; }
-/* Pregunta Sí/No: ¿el contacto es una de las personas registradas? Reusa el estilo
-   de .cita-quien__opt pero compacto y centrado (solo "Sí"/"No"). */
 .cita-quien__yn { display: flex; gap: 10px; margin: 0 0 4px; }
 .cita-quien__yn-btn { min-width: 88px; flex-direction: row; align-items: center; justify-content: center; text-align: center; }
 
-/* ============================================================
-   35. PRECIO EN TARJETAS DE TRÁMITE + RESUMEN DE CITA AGRUPADO
-   (2026-07-02) — El precio pocas veces era visible antes de
-   confirmar; ahora se muestra en cada tarjeta (paso 1) y el
-   resumen final se agrupa en tarjetas compactas en vez de una
-   lista larga y dispersa. Va al final para ganar a los overrides
-   de contraste de la sección 33/34 (que fuerzan color con
-   !important sobre .cita-summary *).
-   ============================================================ */
 
-/* — Precio dentro de cada tarjeta de trámite (paso 1) — */
 .tramite-btn__price {
   display: inline-flex;
   align-items: baseline;
@@ -6541,10 +5710,6 @@ body::before, body::after,
   .tramite-btn__price { font-size: 0.82rem; padding: 3px 9px; }
 }
 
-/* — Resumen de cita agrupado en tarjetas —
-   Doble selector (.citas-section …) para ganar a la regla de contraste
-   .citas-section .cita-summary (sección 33) que fuerza fondo/borde con
-   !important; así las tarjetas "flotan" sin marco gris alrededor. */
 .cita-summary--grouped,
 .citas-section .cita-summary--grouped {
   background: transparent !important;
@@ -6560,8 +5725,7 @@ body::before, body::after,
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 12px;
-  align-items: start;   /* cada tarjeta a la altura de su contenido: sin
-                           estirar la más corta ni dejar huecos enormes */
+  align-items: start;
 }
 @media (max-width: 620px) {
   .cita-summary--grouped .cita-summary__grid { grid-template-columns: 1fr; }
@@ -6575,7 +5739,6 @@ body::before, body::after,
   padding: 14px 16px;
 }
 
-/* Intro de confirmación más compacta (menos aire antes de las tarjetas). */
 #cita-confirm-intro.cita-confirm { padding: var(--space-3) 0 var(--space-2); }
 #cita-confirm-intro .cita-confirm__check { margin-bottom: var(--space-4); }
 #cita-confirm-intro p { margin-bottom: var(--space-4); }
@@ -6619,7 +5782,6 @@ body::before, body::after,
   color: #9AA3B2 !important;
 }
 
-/* Estimado: desglose a un lado, Total destacado al otro */
 .cita-summary--grouped .cita-summary__est {
   display: flex;
   align-items: stretch;
@@ -6664,16 +5826,6 @@ body::before, body::after,
   .cita-summary--grouped .cita-summary__est { flex-direction: column; }
   .cita-summary--grouped .cita-summary__total { flex-basis: auto; max-width: none; }
 }
-/* ============================================================
-   MODO OSCURO — se activa con html[data-theme="dark"] (theme.js)
-   ------------------------------------------------------------
-   El claro es el DEFAULT: sin atributo no cambia nada. Aquí solo
-   se redefinen los TOKENS del design system (el 90% del sitio los
-   usa) + parches puntuales para superficies con blanco "a mano".
-   La marca (azul/morado/cyan, degradados, footer oscuro) se queda:
-   ya funcionan sobre fondo oscuro.
-   Paleta: azul-noche de la familia del hero (#0a1120), no gris.
-   ============================================================ */
 html[data-theme="dark"] {
   --surface-bg:      #0F1524;
   --surface-page:    #0F1524;
@@ -6684,21 +5836,17 @@ html[data-theme="dark"] {
   --text-faint:      #67708A;
   --border-light:    #26314A;
   --border-medium:   #3A4763;
-  /* Tintes claros de marca (fondos de chips/avisos): versión noche. */
   --brand-blue-light:   #10233E;
   --brand-purple-light: #221436;
   --brand-gray:         #333A4C;
-  /* En oscuro el hover ACLARA (oscurecer un azul sobre negro lo apaga). */
   --brand-blue-hover:   #3E8BFF;
   --brand-purple-hover: #B054FF;
 }
 
-/* ── Parches: superficies con blanco directo (no tokenizadas) ── */
 html[data-theme="dark"] .section { background: var(--surface-card); }
 html[data-theme="dark"] .site-header { background: var(--surface-card); border-bottom: 1px solid var(--border-light); }
-html[data-theme="dark"] .site-header .logo__img { filter: brightness(0) invert(1); } /* logo negro → blanco */
+html[data-theme="dark"] .site-header .logo__img { filter: brightness(0) invert(1); }
 
-/* ── Botón sol/luna (lo inyecta theme.js) ── */
 .theme-toggle {
   display: inline-flex; align-items: center; justify-content: center;
   width: 38px; height: 38px; border-radius: 50%;
@@ -6707,64 +5855,29 @@ html[data-theme="dark"] .site-header .logo__img { filter: brightness(0) invert(1
   transition: background .15s, color .15s, border-color .15s;
 }
 .theme-toggle:hover { color: var(--brand-blue); border-color: var(--brand-blue); }
-/* La capa de "rediseño" (línea ~4261) vuelve a poner body/section en blanco A
-   MANO, pisando los tokens: en oscuro se re-pisa aquí (este bloque va al final
-   de la hoja a propósito, para ganar el cascadeo). */
 html[data-theme="dark"] body { background: var(--surface-page); }
-/* Botón claro sobre fondo oscuro: si se queda blanco, su texto blanco del hero
-   desaparece. Pasa a tarjeta noche con texto claro. */
 html[data-theme="dark"] .btn--light { background: var(--surface-card); color: var(--text-primary); border-color: var(--border-medium); }
 html[data-theme="dark"] .btn--light:hover { background: #1E2840; color: #fff; }
-/* OKi: su modo oscuro vive en oki.css (Oscar lo hizo nativo, commit 4e01fdb).
-   Aquí hubo un aislamiento temporal que lo forzaba a claro; se retiró para no
-   pelearse con esa implementación. */
 
-/* ── Los "fondos blancos continuos" del rediseño (línea ~5695) usan !important,
-   así que en oscuro hay que responder con la misma fuerza. Se listan los MISMOS
-   selectores para que no quede ninguna franja blanca suelta. ── */
-/* OJO con el selector: `html[data-theme="dark"] :is(html, …)` NO alcanza al propio
-   <html> — el descendiente exige que esté DENTRO, y html no puede estar dentro de
-   sí mismo. Así que <html> se quedaba en el #FFFFFF !important de arriba mientras
-   <body> sí se oscurecía. Donde el contenido no llena la pantalla (compra rápida,
-   que tiene su propio scroll interno) el lienzo blanco asomaba por debajo como una
-   franja enorme. Va el elemento por su lado y sus descendientes por el suyo. */
 html[data-theme="dark"],
 html[data-theme="dark"] :is(body, #top) { background: #0F1524 !important; }
 html[data-theme="dark"] :is(.section, .section--alt, .section--dark, .section--dark-2, .citas-section, .okpromo-sec) { background: #131B2C !important; }
-/* FAQ: en oscuro la pregunta y la respuesta usaban un navy fijo (#0b1f3a/#2b3650)
-   que quedaba invisible sobre la tarjeta oscura. Se devuelven a los tokens claros. */
 html[data-theme="dark"] #faq .faq-question { color: var(--text-primary) !important; }
 html[data-theme="dark"] #faq .faq-answer__inner { color: var(--text-secondary) !important; }
 
-/* ── Superficies con blanco a mano que quedaban claras con texto claro
-   (detectadas midiendo contraste en la página, no a ojo). Se agrupan por
-   familia para que futuras tarjetas del mismo tipo hereden el arreglo. ── */
 html[data-theme="dark"] :is(
   .tramite-btn, .cita-layout, .order-drop, .order-prices, .order-summary,
   .card, .service-card, .price-card, .faq-item, .testimonial, .info-card
 ) { background: var(--surface-card) !important; border-color: var(--border-light); color: var(--text-primary); }
 
-/* Campos de formulario: fondo noche y texto claro (si no, texto claro sobre blanco). */
 html[data-theme="dark"] :is(input, select, textarea) {
   background: #101827; color: var(--text-primary); border-color: var(--border-light);
 }
 html[data-theme="dark"] ::placeholder { color: var(--text-faint); }
 
-/* Footer, campos de documento y días del calendario: el rediseño los fijó en
-   #F7F9FF con !important, así que en oscuro quedaban claros con texto claro
-   encima (18 textos ilegibles, medidos en una página de servicio). */
 html[data-theme="dark"] :is(.site-footer, .doc-field) { background: #131B2C !important; }
 html[data-theme="dark"] .citas-section .okcal__day:not(.is-selected):not(.is-empty) { background: #1A2338 !important; color: var(--text-primary); }
 
-/* ══════════════════════════════════════════════════════════════════════════
-   CAPA DE ANIMACIONES COMPARTIDA  ·  jul 2026
-   --------------------------------------------------------------------------
-   Las seis animaciones aprobadas, disponibles en TODO el sitio (styles.css lo
-   cargan las 30 páginas). El comportamiento vive en assets/ok-anim.js.
-
-   Solo se AGREGAN clases nuevas con prefijo .ok- : ninguna regla existente se
-   modifica, así que no puede alterar el layout de ninguna página.
-   ══════════════════════════════════════════════════════════════════════════ */
 
 @keyframes ok-shimmer  { 0% { background-position: -180% 0 } 100% { background-position: 180% 0 } }
 @keyframes ok-pricepop { 0% { transform: scale(1) } 30% { transform: scale(1.14) } 100% { transform: scale(1) } }
@@ -6773,16 +5886,9 @@ html[data-theme="dark"] .citas-section .okcal__day:not(.is-selected):not(.is-emp
                          88%  { transform: translate(-50%, 0);    opacity: 1 }
                          100% { transform: translate(-50%, 26px); opacity: 0 } }
 
-/* ── 1. Levantar al pasar ──────────────────────────────────────────────────
-   Dice "esto se puede tocar" antes de que lo toquen. Utilidad opcional: las
-   tarjetas que ya tienen su propio hover conservan el suyo. */
 .ok-lift { transition: transform var(--transition-base), box-shadow var(--transition-base) }
 .ok-lift:hover { transform: translateY(-4px); box-shadow: var(--shadow-md) }
 
-/* ── 2. Vuela al carrito ───────────────────────────────────────────────────
-   El punto lo crea y lo destruye ok-anim.js; aquí solo su aspecto. */
-/* Es OKi (el cohete de la mascota) quien lleva el producto al carrito. Sin fondo
-   ni borde: se lee como el personaje, no como una pastilla. */
 .ok-fly {
   position: fixed; z-index: 9999; pointer-events: none;
   width: 32px; height: 32px; line-height: 32px; text-align: center;
@@ -6791,12 +5897,8 @@ html[data-theme="dark"] .citas-section .okcal__day:not(.is-selected):not(.is-emp
   will-change: transform, opacity;
 }
 
-/* ── 3. Precio actualizado ─────────────────────────────────────────────────
-   Pulso verde cuando el refresco automático cambia un precio. */
 .ok-pulse { animation: ok-pricepop .6s ease-out; color: var(--color-success) !important }
 
-/* ── 4. Esqueleto de carga ─────────────────────────────────────────────────
-   Anticipa la FORMA del contenido en vez de un spinner que no dice nada. */
 .ok-skel {
   height: 13px; border-radius: var(--radius-full); margin-bottom: 7px;
   background: linear-gradient(90deg, var(--border-light) 25%, var(--surface-bg) 50%, var(--border-light) 75%);
@@ -6807,14 +5909,8 @@ html[data-theme="dark"] .citas-section .okcal__day:not(.is-selected):not(.is-emp
   background: var(--surface-card); border: 1px solid var(--border-light);
   border-radius: var(--radius-md); padding: 13px;
 }
-/* Rejilla de fantasmas: misma forma que la rejilla real del catálogo. */
 .ok-skel-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 14px }
 
-/* ── 5. Aviso breve ────────────────────────────────────────────────────────
-   Sube, se queda ~1.6 s y se va. Nunca bloquea. */
-/* El aviso va SIEMPRE al revés del fondo. No se usa --text-primary como fondo:
-   en modo oscuro ese token se vuelve claro y el aviso quedaba blanco sobre
-   blanco (invisible). Por eso el par va explícito en ambos temas. */
 .ok-toast {
   position: fixed; left: 50%; bottom: 28px; z-index: 9998;
   transform: translate(-50%, 26px); opacity: 0; pointer-events: none;
@@ -6826,11 +5922,7 @@ html[data-theme="dark"] .citas-section .okcal__day:not(.is-selected):not(.is-emp
 .ok-toast.on { animation: ok-toastup 2.6s ease-in-out }
 html[data-theme="dark"] .ok-toast { background: #E9EDF6; color: #12141C }
 
-/* ── 6. Cajón lateral ──────────────────────────────────────────────────────
-   Ya existe en cada página (transform + transition). No se redefine aquí para
-   no pelearse con la que ya funciona. */
 
-/* Nadie debe marearse por una tienda: sin movimiento si el sistema lo pide. */
 @media (prefers-reduced-motion: reduce) {
   .ok-skel { animation: none }
   .ok-pulse { animation: none }
@@ -6838,59 +5930,34 @@ html[data-theme="dark"] .ok-toast { background: #E9EDF6; color: #12141C }
   .ok-lift:hover { transform: none }
 }
 
-/* ── Variables "de la tienda" con respaldo claro (var(--ink,#111), var(--line,#e3e6ee)…):
-   compra rápida, barra de e-commerce y ficha las usan SIN definirlas, así que en
-   oscuro caían al respaldo claro (nombres apagados, bordes claros). Definirlas
-   globalmente en oscuro arregla toda la cadena; #site (tienda.html) tiene las
-   suyas propias y no se ve afectado. ── */
 html[data-theme="dark"] {
   --ink:#E9EDF6; --muted:#8A94AB; --line:#26314A; --card:#171F31; --paper:#0F1524;
 }
 
-/* ── Barra e-commerce (fichas): menús y paneles que traían blanco a mano ── */
 html[data-theme="dark"] :is(.sb-modal, .sb-panel, .sb-wi__t) {
   background: var(--surface-card) !important; color: var(--text-primary);
 }
 
-/* ── Ficha de producto (.pdp__*): tarjetas a noche. La GALERÍA y las miniaturas
-   se quedan claras a propósito: ahí vive la foto del producto. ── */
 html[data-theme="dark"] :is(.pdp__card, .pdp__more, .pdp__oki, .pdp__rel) {
   background: var(--surface-card) !important; color: var(--text-primary); border-color: var(--border-light);
 }
 html[data-theme="dark"] .pdp__qty { background:#101827 !important; color: var(--text-primary); border-color: var(--border-light); }
 
-/* (El color forzado de OKi también se retiró: su oscuro nativo está en oki.css.) */
 
 
-/* ── Modo oscuro, ronda 4: la pastilla de la cuenta ────────────────────────
-   .acct__btn y .acct__menu traían background:#fff a mano mientras su texto usa
-   var(--text-primary): en oscuro el nombre y los enlaces del menú quedaban
-   claros sobre blanco, o sea invisibles. Aparece en TODAS las páginas. */
 html[data-theme="dark"] :is(.acct__btn, .acct__menu) {
   background: var(--surface-card);
   border-color: var(--border-light);
 }
 html[data-theme="dark"] .acct__menu { box-shadow: 0 22px 60px rgba(0,0,0,.55); }
 html[data-theme="dark"] .acct__btn:hover { border-color: var(--border-medium); }
-/* Abierto se pinta de azul de marca: ahí el texto blanco ya contrasta y se deja. */
 
-/* Pastillas de filtro (.chip): las usa TODO el panel (Pedidos, Tienda, Citas) y
-   traían background:#fff con el texto por token, así que en oscuro se leían casi
-   en blanco sobre blanco. La seleccionada se queda azul: ahí ya contrasta. */
 html[data-theme="dark"] .chip {
   background: var(--surface-card);
   border-color: var(--border-light);
   color: var(--text-secondary);
 }
 html[data-theme="dark"] .chip:hover { border-color: var(--brand-blue); color: var(--brand-blue); }
-/* ── CAMPOS DE FORMULARIO EN OSCURO ────────────────────────────────────────
-   BUG REAL, no cosmético: la mayoría de los campos del sitio (citas, pedido,
-   contacto) NUNCA tuvieron una regla de fondo — usaban el blanco por defecto
-   del navegador. En oscuro heredaban nuestro color de texto claro y quedaban
-   #E9EDF6 SOBRE BLANCO: el usuario no veía lo que escribía. Medido: 17 de 21
-   campos en la portada.
-   Se excluyen radio/checkbox/range: son controles nativos que el navegador
-   dibuja solo; a esos se les da accent-color y se romperían con un fondo. */
 html[data-theme="dark"] :is(
   input:not([type="radio"]):not([type="checkbox"]):not([type="range"]):not([type="color"]),
   textarea, select
@@ -6902,22 +5969,14 @@ html[data-theme="dark"] :is(
 }
 html[data-theme="dark"] :is(input, textarea)::placeholder { color: var(--text-muted); opacity: 1; }
 html[data-theme="dark"] select option { background: #101827; color: var(--text-primary); }
-/* Los nativos: que el navegador los dibuje en su variante oscura y con la
-   marca como color de acento (la palomita/el punto). */
 html[data-theme="dark"] :is(input[type="radio"], input[type="checkbox"]) {
   accent-color: var(--brand-blue-hover, #3E8BFF);
   color-scheme: dark;
 }
-/* Foco visible sobre fondo oscuro. */
 html[data-theme="dark"] :is(input, textarea, select):focus-visible {
   outline: 2px solid var(--brand-blue-hover, #3E8BFF); outline-offset: 1px;
 }
 
-/* La sección de citas fuerza sus campos a blanco con !important (línea ~5900,
-   del rediseño claro). En oscuro hay que ganarle con la misma arma; si no, el
-   texto claro queda sobre blanco y no se ve lo que se escribe.
-   Excepción a propósito: el campo de FECHA conserva color-scheme:light porque
-   el calendario nativo de Chrome se dibuja ilegible al mezclar los esquemas. */
 html[data-theme="dark"] :is(
   .citas-section input:not([type="radio"]):not([type="checkbox"]),
   .citas-section select,
@@ -6935,42 +5994,23 @@ html[data-theme="dark"] :is(.citas-section .time-slot, .citas-section .tramite-b
 html[data-theme="dark"] :is(.citas-section .time-slot, .citas-section .tramite-btn):is(.is-selected, .is-active, [aria-pressed="true"]) {
   background: var(--brand-blue-hover, #3E8BFF) !important; color: #fff !important;
 }
-/* Las otras superficies que el rediseño claro fuerza a blanco con !important
-   (inventario multilínea del propio archivo: FAQ, contador de citas, paso activo). */
 html[data-theme="dark"] #faq .faq-item { background: var(--surface-card) !important; border-color: var(--border-light) !important; }
 html[data-theme="dark"] .citas-section .qty-btn {
   background: #101827 !important; border: 1px solid var(--border-light) !important; color: var(--text-primary) !important;
 }
 
-/* El formulario de pago de Mercado Pago (#mp-brick) lo pinta SU SDK con su propio
-   tema (ver pago.html). Se le devuelven los estilos nativos para que no quede a
-   medio pintar: media tarjeta blanca con los campos en oscuro.
-   Va como regla APARTE y no como :not() dentro del selector global: un :not() con
-   selector complejo que un navegador no entienda descartaría TODA la regla y
-   dejaría sin tema oscuro a los inputs de TODO el sitio. */
 html[data-theme="dark"] #mp-brick :is(input, select, textarea) {
   background: revert;
   color: revert;
   border-color: revert;
 }
-/* ── NAVBAR LISO EN OSCURO (decisión de sixseven) ──────────────────────────
-   Fuera degradados en oscuro: color liso, la fila de arriba un poco más clara
-   y la de categorías un poco más oscura. En CLARO se conserva el degradado
-   morado→cyan de marca: solo cambia la noche.
-   Se definen como tokens para que TODAS las barras del sitio (tienda,
-   ficha/compra rápida vía shop-header.css, categoría) usen los mismos valores
-   y no se vuelvan a desincronizar. */
 html[data-theme="dark"] {
-  --nav-top:    #1C2745;   /* fila superior: logo, buscador, acciones */
-  --nav-bottom: #151D34;   /* fila de categorías: un paso más oscura */
+  --nav-top:    #1C2745;
+  --nav-bottom: #151D34;
   --nav-line:   rgba(255,255,255,.10);
 }
-/* La barra de categoria.php (es un azul liso #066CFF en claro). */
 html[data-theme="dark"] .bar { background: var(--nav-top) !important; }
 
-/* El prefijo del teléfono (bandera + "MX +52") se quedaba claro mientras el
-   campo ya era oscuro: la píldora se veía partida en dos (captura del usuario).
-   Va con el mismo fondo y borde que el campo para que lean como UNA pieza. */
 html[data-theme="dark"] .input-prefix__tag {
   background: #101827 !important;
   color: var(--text-primary) !important;
@@ -6991,11 +6031,6 @@ html[data-theme="dark"] .order-summary .input-prefix__cc option {
   color: var(--text-primary);
 }
 
-/* ============================================================
-   DENSIDAD RESPONSIVE POR RESOLUCIÓN
-   No usa zoom ni detección de navegador: ancho y altura del viewport ajustan
-   banners, botones, tarjetas y separación manteniendo el diseño y la legibilidad.
-   ============================================================ */
 @media (min-width: 769px) and (max-width: 1440px), (min-width: 769px) and (max-height: 820px) {
   .hero {
     min-height: clamp(500px, 76svh, 660px);
@@ -7028,9 +6063,6 @@ html[data-theme="dark"] .order-summary .input-prefix__cc option {
 }
 
 @media (min-width: 641px) and (max-width: 768px) {
-  /* Una tableta vertical no necesita conservar el banner de 72–88vh pensado
-     para escritorio: el contenido determina la altura y deja ver la sección
-     siguiente sin perder ninguna acción. */
   .hero {
     min-height: auto !important;
     padding-top: 40px; padding-bottom: 44px;
@@ -7043,8 +6075,6 @@ html[data-theme="dark"] .order-summary .input-prefix__cc option {
 }
 
 @media (max-width: 640px) {
-  /* La altura la gobierna el contenido, no el banner de escritorio. Esto
-     también neutraliza los min-height inline de las páginas de servicio. */
   .hero {
     min-height: auto !important;
     padding-top: clamp(22px, 5svh, 34px);
@@ -7059,7 +6089,6 @@ html[data-theme="dark"] .order-summary .input-prefix__cc option {
     font-size: clamp(.92rem, 3.8vw, .98rem) !important;
     line-height: 1.48; margin-bottom: 18px;
   }
-  /* Dos acciones caben lado a lado y evitan un banner innecesariamente alto. */
   .hero__cta {
     flex-direction: row; flex-wrap: nowrap;
     gap: 8px; margin-bottom: 14px;
@@ -7069,7 +6098,6 @@ html[data-theme="dark"] .order-summary .input-prefix__cc option {
     padding-left: 9px; padding-right: 9px;
     white-space: normal; text-align: center; line-height: 1.2;
   }
-  /* Los chips dejan de crear dos o tres filas: se recorren horizontalmente. */
   .hero__chips {
     flex-wrap: nowrap; gap: 7px; margin-top: 12px;
     overflow-x: auto; overscroll-behavior-x: contain;
@@ -7081,7 +6109,6 @@ html[data-theme="dark"] .order-summary .input-prefix__cc option {
     flex: 0 0 auto; scroll-snap-align: start;
     padding: 7px 10px; font-size: .77rem;
   }
-  /* En móvil se conserva un área táctil segura aunque el aspecto sea compacto. */
   .btn { min-height: 44px; padding: 11px 18px; font-size: .875rem; }
   .btn--lg,.btn--xl { min-height: 46px; padding: 12px 20px; font-size: .92rem; }
   .section { padding: clamp(34px, 7svh, 44px) 0; }
@@ -7091,8 +6118,6 @@ html[data-theme="dark"] .order-summary .input-prefix__cc option {
   .dropzone { padding: 24px 16px; }
 }
 
-/* En teléfonos de poca altura se privilegia que el usuario vea el inicio del
-   siguiente bloque: es la señal visual de que la página continúa. */
 @media (max-width: 640px) and (max-height: 680px) {
   .hero { padding-top: 16px; padding-bottom: 22px; }
   .hero__eyebrow { margin-bottom: 8px; }

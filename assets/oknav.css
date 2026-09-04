@@ -1,51 +1,14 @@
-/* ─────────────────────────────────────────────────────────────────────────
-   Ok.station — NAVBAR UNIFICADO (oknav)
-   ---------------------------------------------------------------------
-   Reemplaza a los TRES encabezados que conviven hoy:
-     · .site-header + .header-bar → portada y 19 landings
-     · .shopbar                   → ficha de producto y compra rápida
-     · .topbar/.popbar-row        → catálogo (tienda.html)
-
-   TRES FILAS, como el encabezado del sitio:
-     0) cinturillo → ¿Quiénes somos? · Contacto · lema · redes
-     1) logo · buscador · ubicación · cuenta · deseados · carrito
-     2) Categorías · Ofertas ┃ servicios ········· WhatsApp
-
-   SIN NINGÚN DEGRADADO. Donde el original usaba uno se puso su color plano:
-     · Cinturillo (--grad-purple)  → azul de marca plano.
-     · Barra principal             → blanca, como .site-header (que ya es #fff).
-     · Fila de navegación          → --surface-bg.
-     · WhatsApp                    → #25D366 plano.
-     · Avatar                      → azul de marca plano.
-
-   Lo demás sale de los tokens de styles.css (--brand-*, --surface-*, --text-*,
-   --border-*, --radius-*), así que se ve igual que el resto del sitio y el
-   modo oscuro llega solo. Los botones copian el chip .acct__btn del header
-   blanco: píldora, borde de 1px y sombra suave.
-   Los valores tras la coma son el respaldo por si falta styles.css.
-   ───────────────────────────────────────────────────────────────────── */
 
 .oknav {
   position: sticky; top: 0; z-index: 200;
   background: var(--surface-card, #FFFFFF);
   border-bottom: 1px solid var(--border-light, #E4E7F0);
-  /* Sombra FINA: apenas despega la barra del contenido al hacer scroll, sin cajón. */
   box-shadow: 0 1px 3px rgba(12, 20, 50, .06);
   font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-  /* Sticky inteligente: la barra se desliza al bajar y vuelve al subir (oknav.js
-     pone/quita .oknav--oculta). Solo cambia el transform, así que no repinta. */
   transition: transform .28s ease;
 }
-/* Escondida (bajando): sube su propio alto y desaparece. Al subir se le quita
-   la clase y vuelve sola con la transición. */
 .oknav--oculta { transform: translateY(-100%); }
-/* Con un menú desplegado (buscador, categorías, cajón) nunca se esconde, aunque
-   el usuario siga desplazándose: la lógica de oknav.js ya lo evita, y esto es el
-   cinturón por si algún estilo intentara ocultarla en ese momento. */
 .oknav:focus-within.oknav--oculta { transform: none; }
-/* Cada fila pinta su propio fondo sólido. En navegadores móviles la barra sticky puede
-   promoverse a otra capa al hacer scroll; depender solo del fondo del padre hacía que
-   esa capa se viera transparente durante algunos cuadros. */
 .oknav__row--main { background: var(--surface-card, #FFFFFF); }
 
 .oknav__wrap {
@@ -53,9 +16,6 @@
   display: flex; align-items: center; gap: 10px;
 }
 
-/* ── CINTURILLO ───────────────────────────────────────────────────────────
-   Mismas medidas que .header-bar (8px de alto interior, .8125rem, peso 500),
-   pero en azul plano en vez del degradado morado. */
 .oknav__belt {
   background: var(--brand-blue, #066CFF);
   color: rgba(255,255,255,0.95);
@@ -75,15 +35,10 @@
 }
 .oknav__beltsocial a:hover { background: rgba(255,255,255,0.30); }
 
-/* ── FILA 1 ─────────────────────────────────────────────────────────────
-   Alto de fila = altura del control más alto (el buscador, 45px) + aire arriba y
-   abajo. Con 60px quedaban 7.5px por lado y la barra se leía apretada; con 68px
-   son 11.5px. Solo cambia el respiro vertical: ni el diseño ni la distribución
-   horizontal se tocan. */
 .oknav__row--main > .oknav__wrap { min-height: 68px; }
 
 .oknav__burger {
-  display: none;                  /* solo en pantallas chicas */
+  display: none;
   flex: 0 0 auto; width: 40px; height: 40px;
   border: 0; background: none; cursor: pointer;
   border-radius: var(--radius-full, 99px); position: relative;
@@ -101,8 +56,6 @@
 .oknav__burger[aria-expanded="true"] span:nth-child(2) { opacity: 0; }
 .oknav__burger[aria-expanded="true"] span:nth-child(3) { transform: translateY(-5px) rotate(-45deg); }
 
-/* La barra es blanca, así que el logo va en sus colores normales. Solo se
-   invierte en modo oscuro (ver el bloque del final). */
 .oknav__logo { flex: 0 0 auto; display: flex; align-items: center; text-decoration: none; }
 .oknav__logo img { height: 26px; width: auto; max-width: 100%; display: block; }
 .oknav__brandmark {
@@ -113,8 +66,6 @@
 .oknav__brandmark strong { color: var(--brand-blue, #066CFF); font-weight: 850; }
 .oknav__brandmark span { font-weight: 650; }
 
-/* Buscador: la lupa dentro a la izquierda y se envía con Enter (sin botón:
-   serían dos lupas en el mismo campo). */
 .oknav__search { flex: 1 1 240px; min-width: 0; position: relative; display: flex; align-items: center; }
 .oknav__search > svg {
   position: absolute; left: 13px; top: 50%; transform: translateY(-50%);
@@ -137,7 +88,6 @@
 }
 .oknav__search input::-webkit-search-cancel-button { -webkit-appearance: none; }
 
-/* Autocompletado */
 .oknav__ac {
   position: absolute; left: 0; right: 0; top: calc(100% + 8px);
   background: var(--surface-card, #fff);
@@ -166,10 +116,6 @@
 .oknav__acprice { flex: 0 0 auto; font-size: .86rem; font-weight: 700; color: var(--brand-blue, #066CFF); }
 .oknav__acempty { padding: 14px; font-size: .86rem; color: var(--text-muted, #717890); text-align: center; }
 
-/* ── Acciones ─────────────────────────────────────────────────────────────
-   Mismo chip que .acct__btn del header blanco: píldora, borde de 1px y sombra
-   suave. La JERARQUÍA es la que dejaron anotada en tienda.html: Cuenta
-   discreta, Favoritos solo ícono, y el carrito el ÚNICO sólido. */
 .oknav__actions { flex: 0 0 auto; display: flex; align-items: center; gap: var(--space-2, 8px); margin-left: auto; }
 
 .oknav__loc, .oknav__acct, .oknav__ico, .oknav__cart {
@@ -186,12 +132,9 @@
 }
 .oknav__acct svg, .oknav__loc svg { width: 17px; height: 17px; flex: none; color: var(--brand-blue, #066CFF); }
 
-/* Favoritos: solo ícono. */
 .oknav__ico { width: 40px; height: 40px; padding: 0; justify-content: center; gap: 0; }
 .oknav__ico svg { width: 19px; height: 19px; flex: none; color: var(--brand-blue, #066CFF); }
 
-/* Ubicación: dos renglones (rótulo chico arriba, valor abajo). Importa de
-   verdad porque cambia el IVA y el costo de envío. */
 .oknav__loc { padding: 5px 12px; max-width: 200px; }
 .oknav__loctxt { display: flex; flex-direction: column; line-height: 1.15; min-width: 0; }
 .oknav__loctxt small { font-size: .66rem; color: var(--text-muted, #717890); font-weight: 500; }
@@ -199,13 +142,10 @@
 
 .oknav__lbl { font-size: .85rem; font-weight: 600; }
 
-/* Carrito: el único SÓLIDO, azul de marca plano. Es a donde debe ir el ojo. */
 .oknav__cart { background: var(--brand-blue, #066CFF); border-color: var(--brand-blue, #066CFF); color: #fff; }
 .oknav__cart svg { width: 18px; height: 18px; flex: none; color: #fff; }
 .oknav__cart:hover { background: var(--brand-blue-hover, #0558CC); border-color: var(--brand-blue-hover, #0558CC); }
 
-/* Globito: FLOTA en la esquina superior derecha, no en línea (si va en línea
-   empuja el contenido y estira el botón). El anillo lo despega del borde. */
 .oknav__ct {
   position: absolute; top: -6px; right: -4px;
   min-width: 20px; height: 20px; padding: 0 5px; border-radius: var(--radius-full, 99px);
@@ -216,9 +156,6 @@
 }
 .oknav__ct[hidden] { display: none; }
 
-/* Avatar con sesión: azul de marca PLANO (el original usaba el degradado).
-   El contenedor tiene que ser flex: siendo un <span> normal, el avatar (que es
-   display:grid) forzaba salto de línea y la píldora crecía a 66px de alto. */
 .oknav__acctbox { display: flex; align-items: center; gap: 8px; min-width: 0; }
 .oknav__avatar {
   width: 30px; height: 30px; border-radius: 50%; flex: none;
@@ -234,13 +171,10 @@
   outline: 3px solid var(--brand-cyan, #00C6FF); outline-offset: 2px;
 }
 
-/* ── FILA 2 ───────────────────────────────────────────────────────────── */
 .oknav__row--nav {
   background: var(--surface-bg, #F2F4F8);
   border-top: 1px solid var(--border-light, #E4E7F0);
 }
-/* Misma idea que la fila 1: sus píldoras miden 38px y con 44px de fila les
-   quedaban 4.5px por lado —la fila que peor se veía—; con 54px son 8px. */
 .oknav__row--nav > .oknav__wrap { min-height: 54px; gap: var(--space-2, 8px); }
 .oknav__mobile-stores { display: none; }
 
@@ -258,19 +192,15 @@
 .oknav__cats svg { transition: transform .18s; }
 .oknav__cats[aria-expanded="true"] svg { transform: rotate(180deg); }
 
-/* Ofertas: naranja de marca, PLANO. */
 .oknav__ofertas { background: var(--brand-orange, #FF7C19); border-color: var(--brand-orange, #FF7C19); color: #fff; }
 .oknav__ofertas:hover { filter: brightness(1.06); }
 
-/* Frontera entre lo que es TIENDA y lo que es SITIO. */
 .oknav__sep { width: 1px; height: 20px; background: var(--border-light, #E4E7F0); margin: 0 6px; flex: 0 0 auto; }
 
-/* Los servicios van sin cápsula: son navegación del sitio, no filtros. */
 .oknav__links { display: flex; align-items: center; gap: 2px; min-width: 0; }
 .oknav__links a { background: none; border-color: transparent; color: var(--text-secondary, #4A5068); font-weight: 500; }
 .oknav__links a:hover { background: var(--brand-blue-light, #EAF1FF); color: var(--brand-blue, #066CFF); }
 
-/* WhatsApp: verde PLANO (el original llevaba degradado). */
 .oknav__wa {
   margin-left: auto; flex: none;
   display: inline-flex; align-items: center; justify-content: center; gap: 7px;
@@ -281,7 +211,6 @@
 }
 .oknav__wa:hover { background: #1FBA57; }
 
-/* Desplegable de categorías */
 .oknav__catsmenu {
   position: absolute; left: 0; right: 0; top: 100%;
   background: var(--surface-card, #fff);
@@ -303,7 +232,6 @@
 .oknav__catlink:hover { background: var(--surface-bg, #F2F4F8); color: var(--brand-blue, #066CFF); }
 .oknav__catn { font-size: .74rem; font-weight: 600; color: var(--text-muted, #717890); }
 
-/* ── Cajón (☰) ────────────────────────────────────────────────────────── */
 .oknav__scrim { position: fixed; inset: 0; background: rgba(8,14,32,.5); z-index: 190; opacity: 0; transition: opacity .2s; }
 .oknav__scrim.is-open { opacity: 1; }
 .oknav__scrim[hidden] { display: none; }
@@ -343,11 +271,7 @@
   display: grid; place-items: center; color: var(--text-primary, #12141C); padding: 0;
 }
 
-/* ── Responsive ───────────────────────────────────────────────────────────
-   El plan por fila, decidido ANTES de construir (esta barra ya se desbordó
-   dos veces por no hacerlo): a 375px la anterior apenas cabía en 359px. */
 
-/* El lema es lo primero que sobra del cinturillo. */
 @media (max-width: 1180px) {
   .oknav__belttag { display: none; }
   .oknav__belt > .oknav__wrap { justify-content: space-between; }
@@ -355,22 +279,15 @@
   .oknav__loctxt b { max-width: 100px; }
 }
 
-/* Los servicios se van al cajón y la hamburguesa aparece en el MISMO punto:
-   si algo se mudó al cajón, el cajón tiene que poder abrirse. */
 @media (max-width: 1000px) {
   .oknav__links, .oknav__sep { display: none; }
   .oknav__burger { display: block; }
 
-  /* La fila 1 pasa a REJILLA con zonas nombradas. Con flex-wrap el resultado
-     dependía de cuánto medía cada pieza: a 375px salían 2 renglones, a 430px
-     TRES y a 820px las acciones se iban solas. Con la rejilla siempre son 2. */
   .oknav__row--main > .oknav__wrap {
     display: grid;
     grid-template-columns: auto minmax(0, 1fr) auto;
     grid-template-areas: "burger logo actions" "search search search";
     align-items: center; row-gap: var(--space-2, 8px);
-    /* Mismo respiro que en escritorio: aquí la fila 1 son DOS renglones (logo/acciones
-       y buscador), así que el aire va en el padding en vez del min-height. */
     padding-top: var(--space-3, 12px); padding-bottom: var(--space-3, 12px);
   }
   .oknav__burger  { grid-area: burger; }
@@ -388,14 +305,10 @@
     backdrop-filter: none;
   }
   .oknav__row--main { background: var(--surface-card, #FFFFFF); }
-  /* El cinturillo se va entero: sus enlaces y redes ya están en el cajón, y
-     aquí solo haría más alta una barra que además es pegajosa. */
   .oknav__belt { display: none; }
-  /* El botón de tema se va al cajón: con él, hamburguesa + logo + acciones
-     sumaban 377px contra 336 disponibles a 360px de pantalla. */
   .oknav__actions .theme-toggle { display: none; }
-  .oknav__loc, .oknav__acct { display: none; }   /* viven en el cajón */
-  .oknav__wa { display: none; }                  /* ya hay botón flotante */
+  .oknav__loc, .oknav__acct { display: none; }
+  .oknav__wa { display: none; }
   .oknav__logo img { height: 22px; }
   .oknav__brandmark { font-size: 1.28rem; }
   .oknav__logo { min-height: 44px; }
@@ -426,9 +339,6 @@
   .oknav__drawer, .oknav__ac { overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
 }
 
-/* En teléfonos la búsqueda parte como una lupa: así la primera fila conserva
-   logo, carrito y navegación sin ocupar otro renglón completo. Al enfocarla se
-   abre debajo del logo, dentro del propio header, tal como espera el usuario. */
 @media (max-width: 480px), (max-width: 760px) and (max-height: 480px) {
   .oknav__row--main > .oknav__wrap {
     grid-template-columns: auto minmax(0, 1fr) 44px auto;
@@ -452,9 +362,6 @@
     cursor: pointer;
   }
   .oknav__search input::placeholder { color: transparent; }
-  /* Abierta = enfocada O con la clase .is-open que pone oknav.js al tocar la lupa.
-     La clase es la que manda: el foco del campo diminuto no siempre prendía al
-     tocarlo, y sin foco la barra no se abría (era el "error del buscador"). */
   .oknav__row--main > .oknav__wrap:has(.oknav__search:focus-within),
   .oknav__row--main > .oknav__wrap:has(.oknav__search.is-open) {
     grid-template-areas:
@@ -488,8 +395,6 @@
   .oknav__cats, .oknav__ofertas { min-height: 38px; padding-top: 6px; padding-bottom: 6px; }
 }
 
-/* Teléfono angosto: el total en texto del carrito es lo primero que sobra
-   (el globito ya dice cuántas piezas llevas) y el logo cede ancho. */
 @media (max-width: 430px) {
   .oknav__cart span:not(.oknav__ct) { display: none; }
   .oknav__cart { padding: 8px 12px; }
@@ -498,33 +403,22 @@
   .oknav__wrap { gap: var(--space-2, 8px); padding: 0 var(--space-3, 12px); }
 }
 
-/* ── Modo oscuro ─────────────────────────────────────────────────────────
-   Casi todo llega solo: styles.css redefine --surface-*, --text-* y
-   --border-* en html[data-theme="dark"], y esta barra se construyó sobre esos
-   tokens. Aquí solo va lo que no es un token. */
 html[data-theme="dark"] .oknav__logo img,
 html[data-theme="dark"] .oknav__dhead img { filter: brightness(0) invert(1); }
 html[data-theme="dark"] .oknav__brandmark { color: var(--text-primary, #E9EDF6); }
 html[data-theme="dark"] .oknav__acth { background: #E9EEF7; border-color: transparent; }
 html[data-theme="dark"] .oknav__scrim { background: rgba(0,0,0,.62); }
-/* El cinturillo baja de intensidad en oscuro: el azul pleno deslumbra. */
 html[data-theme="dark"] .oknav__belt { background: #0A3578; }
 
 @media (prefers-reduced-motion: reduce) {
   .oknav__drawer, .oknav__scrim, .oknav__burger span, .oknav__cats svg { transition: none !important; }
 }
 
-/* Accesos directos a la tienda / compra rápida en la fila de servicios.
-   Píldoras PLANAS (sin degradado). Especificidad .oknav__links a.oknav__gostore
-   para ganarle al enlace de texto base. */
 .oknav__links a.oknav__gostore { background: var(--brand-blue, #066CFF); border-color: var(--brand-blue, #066CFF); color: #fff; font-weight: 600; }
 .oknav__links a.oknav__gostore:hover { background: var(--brand-blue-hover, #0558CC); color: #fff; }
 .oknav__links a.oknav__gostore--rapida { background: var(--brand-purple, #9C1DFF); border-color: var(--brand-purple, #9C1DFF); }
 .oknav__links a.oknav__gostore--rapida:hover { background: var(--brand-purple-hover, #7B16CC); }
 
-/* Densidad automática para laptops y viewports bajos. La altura publicada en
-   --oknav-h sigue midiéndose en oknav.js, así que paneles y contenido se recolocan
-   solos debajo de la barra compactada. */
 @media (min-width: 1001px) and (max-width: 1440px), (min-width: 1001px) and (max-height: 820px) {
   .oknav__belt > .oknav__wrap { min-height: 30px; }
   .oknav__row--main > .oknav__wrap { min-height: 60px; }

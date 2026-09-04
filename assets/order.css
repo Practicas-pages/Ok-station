@@ -1,7 +1,3 @@
-/* ============================================================
-   Ok.station — Configurador de pedidos (Fase 2)
-   Reutiliza tokens de styles.css; campos en tema claro.
-   ============================================================ */
 .order-page { min-height: 100vh; display: flex; flex-direction: column; background: #F6F7FB; }
 .order-main { flex: 1; }
 .order-wrap { max-width: 1180px; margin: 0 auto; padding: clamp(20px,4vw,40px) clamp(16px,4vw,32px); }
@@ -11,7 +7,6 @@
 
 .order-grid { display: grid; grid-template-columns: 1.6fr 1fr; gap: var(--space-5); align-items: start; }
 
-/* Zona de carga */
 .order-drop {
   border: 2px dashed var(--border-medium);
   border-radius: var(--radius-lg);
@@ -27,7 +22,6 @@
 .order-drop h3 { font-size: 1.05rem; color: var(--text-primary); }
 .order-drop p { font-size: 0.85rem; color: var(--text-muted); margin-top: 4px; }
 
-/* Precios de referencia (antes de subir archivos) */
 .order-prices { background: #fff; border: 1px solid var(--border-light); border-radius: var(--radius-md); box-shadow: var(--shadow-xs); padding: 16px 18px; margin-top: var(--space-4); }
 .order-prices__title { font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em; color: var(--text-muted); margin-bottom: 10px; }
 .order-prices__list { list-style: none; margin: 0; padding: 0; }
@@ -36,7 +30,6 @@
 .order-prices__list b { color: var(--text-primary); font-variant-numeric: tabular-nums; }
 .order-prices__note { font-size: 0.72rem; color: var(--text-muted); margin-top: 10px; }
 
-/* Lista de archivos */
 .order-files { display: flex; flex-direction: column; gap: var(--space-4); margin-top: var(--space-5); }
 .file-card { background: #fff; border: 1px solid var(--border-light); border-radius: var(--radius-md); box-shadow: var(--shadow-xs); overflow: hidden; }
 .file-card__top { display: flex; align-items: center; gap: var(--space-3); padding: 14px 16px; border-bottom: 1px solid var(--border-light); }
@@ -64,7 +57,6 @@
 .qty button { width: 32px; height: 32px; border: 1.5px solid var(--border-light); background: #fff; border-radius: var(--radius-sm); font-size: 1.1rem; cursor: pointer; color: var(--text-primary); }
 .qty span { min-width: 30px; text-align: center; font-weight: 700; }
 
-/* Resumen */
 .order-summary { background: #fff; border: 1px solid var(--border-light); border-radius: var(--radius-lg); box-shadow: var(--shadow-sm); padding: clamp(20px,2.5vw,26px); position: sticky; top: 20px; }
 .order-summary h3 { font-size: 1.05rem; font-weight: 700; color: var(--text-primary); margin-bottom: var(--space-4); }
 .order-summary__line { display: flex; justify-content: space-between; font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 8px; }
@@ -74,7 +66,6 @@
 .order-summary textarea { width: 100%; margin-top: var(--space-3); border: 1.5px solid var(--border-light); border-radius: var(--radius-sm); padding: 10px 12px; font-family: inherit; font-size: 0.85rem; resize: vertical; min-height: 70px; }
 .order-summary textarea:focus { outline: none; border-color: var(--brand-blue); }
 .order-note { font-size: 0.72rem; color: var(--text-muted); margin: 10px 0 var(--space-3); }
-/* Aviso cuando el total es menor al mínimo de pago en línea ($5 MXN). */
 .order-note--warn {
   color: #b4232f;
   font-weight: 600;
@@ -88,7 +79,6 @@
 .order-alert--error { background: rgba(220,38,38,0.08); color: #B91C1C; border: 1px solid rgba(220,38,38,0.2); }
 .order-alert--ok { background: rgba(22,163,74,0.08); color: #15803D; border: 1px solid rgba(22,163,74,0.2); }
 
-/* Confirmación */
 .order-done { background: #fff; border: 1px solid var(--border-light); border-radius: var(--radius-lg); box-shadow: var(--shadow-md); padding: clamp(28px,4vw,44px); text-align: center; max-width: 540px; margin: 0 auto; }
 .order-done__check { width: 72px; height: 72px; border-radius: 50%; background: var(--grad-blue); display: grid; place-items: center; margin: 0 auto var(--space-5); }
 .order-done__check svg { width: 36px; height: 36px; color: #fff; }
@@ -96,7 +86,6 @@
 .order-done .code { font-size: 1.1rem; font-weight: 700; color: var(--brand-blue); margin: 8px 0 var(--space-5); }
 .order-done__actions { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-top: var(--space-5); }
 
-/* Historial (en perfil) */
 .orders-list { display: flex; flex-direction: column; gap: 10px; }
 .order-row { display: flex; align-items: center; gap: var(--space-4); padding: 14px 16px; border: 1px solid var(--border-light); border-radius: var(--radius-md); background: #fff; flex-wrap: wrap; }
 .order-row__code { font-weight: 700; color: var(--text-primary); }
@@ -109,8 +98,6 @@
   .file-cfg { grid-template-columns: 1fr 1fr; }
 }
 @media (max-width: 480px) { .file-cfg { grid-template-columns: 1fr; } }
-/* Móvil: iOS hace ZOOM al enfocar campos <16px, y los controles del
-   configurador quedaban por debajo del área táctil recomendada (~44px). */
 @media (max-width: 768px) {
   .file-cfg select, .order-summary textarea { font-size: 16px; }
   .file-cfg select { min-height: 44px; }
@@ -118,24 +105,21 @@
   .qty button { width: 44px; height: 44px; }
 }
 
-/* Badges de estado (historial) */
 .ostatus { display: inline-flex; align-items: center; gap: 5px; font-size: 0.72rem; font-weight: 600; padding: 3px 10px; border-radius: var(--radius-full); white-space: nowrap; }
 .ostatus::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
 .ostatus--recibido { background: #EEF2FF; color: #4338CA; }
 .ostatus--en_revision { background: #FEF3C7; color: #B45309; }
 .ostatus--en_produccion { background: #E0F2FE; color: #0369A1; }
-.ostatus--en_preparacion { background: #E0F2FE; color: #0369A1; } /* tienda */
+.ostatus--en_preparacion { background: #E0F2FE; color: #0369A1; }
 .ostatus--listo { background: #DCFCE7; color: #15803D; }
 .ostatus--entregado { background: #ECFDF5; color: #047857; }
 .ostatus--cancelado { background: #FEE2E2; color: #B91C1C; }
-/* Estados de citas */
 .ostatus--pendiente  { background: #FEF3C7; color: #B45309; }
 .ostatus--confirmada { background: #E0F2FE; color: #0369A1; }
 .ostatus--completada { background: #DCFCE7; color: #15803D; }
 .ostatus--cancelada  { background: #FEE2E2; color: #B91C1C; }
 .ostatus--no_show    { background: #F3F4F6; color: #6B7280; }
 
-/* ── Pago en línea (bloque dentro del detalle del pedido) ── */
 .order-pay { flex-basis: 100%; margin-top: 12px; padding: 14px 16px; border: 1px solid var(--border-light); border-radius: var(--radius-md); background: #fbfcfe; }
 .order-pay--paid { background: #f3fbf6; border-color: #cdeede; }
 .order-pay__head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 10px; }
@@ -147,21 +131,13 @@
 .order-pay__done { font-weight: 600; font-size: 0.85rem; color: #15803D; }
 .order-pay .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
 
-/* ============================================================
-   ANTI-DESBORDAMIENTO en móvil (configurador embebido en #fotos)
-   Los contenedores flex/grid necesitan min-width:0 para encogerse;
-   el input de teléfono no traía flex y empujaba el ancho → scroll lateral.
-   ============================================================ */
 .order-embed, #order-builder, .order-grid, .order-grid > *, .order-summary { min-width: 0; max-width: 100%; }
 .input-prefix { min-width: 0; max-width: 100%; }
 .input-prefix input { flex: 1 1 auto; min-width: 0; width: 100%; }
-/* Filas de precios: si la etiqueta es larga, que el precio baje en vez de desbordar. */
 .order-prices__list li { flex-wrap: wrap; }
 .order-prices, .order-files { max-width: 100%; overflow: hidden; }
-/* Nombres de archivo largos no rompen la tarjeta. */
 .file-card, .file-cfg { max-width: 100%; min-width: 0; }
 
-/* Chip de estado de pago */
 .opay { display: inline-flex; align-items: center; gap: 5px; font-size: 0.72rem; font-weight: 600; padding: 3px 10px; border-radius: var(--radius-full); white-space: nowrap; }
 .opay::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
 .opay--pendiente   { background: #F1F5F9; color: #475569; }
@@ -170,7 +146,6 @@
 .opay--error       { background: #FEE2E2; color: #B91C1C; }
 .opay--reembolsado { background: #EDE9FE; color: #6D28D9; }
 
-/* ── Detalle por archivo dentro del "Resumen del pedido" ── */
 .order-summary__detail { display: flex; flex-direction: column; gap: 8px; margin: 0 0 10px; }
 .order-summary__item { border-bottom: 1px dashed var(--border-light); padding-bottom: 8px; }
 .order-summary__item:last-child { border-bottom: none; padding-bottom: 0; }
@@ -179,16 +154,13 @@
 .order-summary__item-top b { white-space: nowrap; font-variant-numeric: tabular-nums; }
 .order-summary__item-sub { font-size: 0.76rem; color: var(--text-muted); margin-top: 2px; }
 
-/* ── Lista de precios de referencia CON TRAMOS (etiqueta arriba, precios por tramo abajo) ── */
 .order-prices__list--tiers li { flex-direction: column; align-items: stretch; gap: 3px; }
 .order-prices__list--tiers li span { font-weight: 600; color: var(--text-primary); }
 .order-prices__list--tiers li b { font-weight: 600; font-size: 0.82rem; color: var(--text-secondary); white-space: normal; font-variant-numeric: tabular-nums; }
 
-/* ── Panel compacto + botón que abre el modal de precios ── */
 .order-prices__ref { display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap; }
 .order-prices__hint { display: block; font-size: 0.8rem; color: var(--text-muted, #6B7280); margin-top: 3px; }
 
-/* ── Modal de precios de referencia ── */
 .oprices-modal { position: fixed; inset: 0; z-index: 1000; display: flex; align-items: center; justify-content: center; padding: 18px; }
 .oprices-modal__overlay { position: absolute; inset: 0; background: rgba(8,12,32,0.55); -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px); }
 .oprices-modal__panel { position: relative; z-index: 1; background: #fff; border-radius: var(--radius-lg, 18px); box-shadow: 0 30px 80px rgba(4,12,40,0.35); width: 100%; max-width: 520px; max-height: 86vh; display: flex; flex-direction: column; overflow: hidden; }
@@ -200,7 +172,6 @@
 .oprices-modal__body .order-prices__list { margin: 0; }
 
 
-/* ══ MODO OSCURO — html[data-theme="dark"] ══════════════════════════════════ */
 html[data-theme="dark"] :is(.file-card, .order-row, .order-done, .oprices-modal__panel) {
   background: var(--surface-card);
   border-color: var(--border-light);
@@ -211,13 +182,11 @@ html[data-theme="dark"] .file-card__top { border-bottom-color: var(--border-ligh
 html[data-theme="dark"] :is(.file-card__remove, .seg button) {
   background: var(--surface-page); border-color: var(--border-medium); color: var(--text-primary);
 }
-/* Pago: el verde de "pagado" se oscurece para no deslumbrar. */
 html[data-theme="dark"] .order-pay { background: var(--surface-page); border-color: var(--border-light); }
 html[data-theme="dark"] .order-pay--paid { background: #12241C; border-color: #1F4634; }
 html[data-theme="dark"] .order-pay__done { color: #4ADE80; }
 html[data-theme="dark"] .order-alert--error { background: rgba(220,38,38,.14); border-color: #7A2233; color: #FCA5A5; }
 
-/* Ronda 2 del barrido: superficies que seguían con blanco fijo. */
 html[data-theme="dark"] :is(.order-drop, .order-prices, .order-summary) {
   background: var(--surface-card);
   border-color: var(--border-light);

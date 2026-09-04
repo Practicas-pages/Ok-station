@@ -215,6 +215,27 @@ ErrorDocument 500 /500.html
     Deny from all
 </FilesMatch>
 
+# --------------------------------------------------------------
+# 9b. DOCUMENTACIÓN INTERNA Y CERTIFICADOS (no deben ser públicos)
+#     Planes, auditorías, LEEME, notas .txt de estructura y .pem/.crt/.key.
+#     Se sirven en la raíz y filtran lógica e infraestructura interna.
+#     robots.txt se permite explícitamente (lo necesitan los buscadores).
+# --------------------------------------------------------------
+<FilesMatch "^(?!robots\.txt$).*\.(md|markdown|txt|pem|crt|key)$">
+    Order Allow,Deny
+    Deny from all
+    Satisfy All
+</FilesMatch>
+
+# Panel de administración: que no lo indexen los buscadores.
+# (No se niega el acceso para no dejar fuera al propio admin; para
+#  cerrarlo del todo, ver la nota sobre HTTP Basic Auth / IP.)
+<IfModule mod_headers.c>
+    <FilesMatch "^admin\.html$">
+        Header set X-Robots-Tag "noindex, nofollow, noarchive"
+    </FilesMatch>
+</IfModule>
+
 # Bloquear archivos ocultos (excepto .well-known para SSL)
 RewriteRule "(^|/)\." - [F]
 RewriteRule "^\.well-known/" - [L]

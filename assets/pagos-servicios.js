@@ -1,15 +1,6 @@
-/* ============================================================
-   Ok.station — Apartado "Pago de servicios".
-   Abre un modal (sobre la misma página, NO una pestaña nueva) con el catálogo
-   de servicios que se pagan en mostrador, agrupados y con buscador.
-   Autocontenido: inyecta su propio CSS y su markup. Solo necesita un disparador
-   con el atributo [data-open-pagos] en la página (p. ej. el "Más información"
-   de la tarjeta de Pago de servicios).
-   ============================================================ */
 (function () {
   "use strict";
 
-  /* Catálogo agrupado. Editar aquí para agregar/quitar servicios. */
   var GROUPS = [
     { t: "Agua y drenaje", items: [
       "Agua CDMX (SACMEX)", "Agua Celaya (JUMAPA)", "Agua Colima (CIAPACOV)", "Agua Irapuato (JAPAMI)",
@@ -46,7 +37,6 @@
     encodeURIComponent("Hola, quiero pagar un servicio en Ok.station. ¿Pueden ayudarme?");
 
   function esc(s) { return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
-  /* Búsqueda sin acentos ni mayúsculas: "queretaro" encuentra "Querétaro". */
   function norm(s) { return String(s).toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, ""); }
 
   var CSS =
@@ -139,7 +129,6 @@
     render("");
   }
 
-  /* Delegación: cualquier elemento con [data-open-pagos] abre el apartado. */
   document.addEventListener("click", function (e) {
     var t = e.target.closest ? e.target.closest("[data-open-pagos]") : null;
     if (t) open(e);

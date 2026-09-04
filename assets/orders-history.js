@@ -1,7 +1,3 @@
-/* ============================================================
-   Ok.station — Historial de pedidos (perfil): listar, repetir, cancelar
-   y PAGO EN LÍNEA (iniciar checkout y reflejar el estado del pago).
-   ============================================================ */
 (function () {
   "use strict";
   var API = "/backend/api";
@@ -21,7 +17,6 @@
 
   var pollTimer = null;
 
-  /* Bloque "Pago en línea" dentro del detalle de cada pedido. */
   function payBlock(o) {
     var pay = o.payment_status || "pendiente";
     var canceled = o.status === "cancelado";
@@ -35,7 +30,7 @@
       (pay === "pagado" && date ? '<div class="order-pay__row order-pay__muted"><span>Fecha de pago</span><span>' + esc(date) + '</span></div>' : '');
 
     var needsQuote = (+o.needs_quote === 1) || (String(o.needs_quote) === "1");
-    var awaitingQuote = needsQuote && !o.quoted_at;   // por cotizar y aún sin precio fijado
+    var awaitingQuote = needsQuote && !o.quoted_at;
 
     var action = "";
     if (pay === "pagado") {
@@ -64,7 +59,6 @@
       .then(function (r) { return r.json(); })
       .then(function (res) {
         var list = (res && res.orders) || [];
-        // El pago en línea solo se muestra si el backend lo tiene habilitado (migración aplicada).
         var paymentsEnabled = !res || res.payments_enabled !== false;
         if (!list.length) { host.innerHTML = '<p style="color:var(--text-muted)">Aún no tienes pedidos. ¡Haz el primero!</p>'; return; }
         host.innerHTML = list.map(function (o) {
@@ -82,13 +76,11 @@
           '</div>';
         }).join("");
         wire();
-        // Si algún pedido quedó "procesando" (volviste del checkout), refresca el estado.
         if (paymentsEnabled && list.some(function (o) { return o.payment_status === "procesando"; })) schedulePoll();
       })
       .catch(function () { host.innerHTML = '<p style="color:var(--color-error)">No se pudo cargar el historial.</p>'; });
   }
 
-  /* Tras volver del checkout, el webhook puede tardar unos segundos: reintenta. */
   function schedulePoll() {
     var tries = 0;
     if (pollTimer) clearInterval(pollTimer);
@@ -106,8 +98,6 @@
     }, 4000);
   }
 
-  /* Lleva a la página de cobro unificada (pago.html), que decide el método
-     (tarjeta en el sitio / Mercado Pago / sandbox) según la configuración. */
   function startPayment(id, btn) {
     if (btn) { btn.disabled = true; btn.textContent = "Abriendo…"; }
     window.location.href = "pago.html?order=" + encodeURIComponent(id);

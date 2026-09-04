@@ -1,22 +1,12 @@
 <!DOCTYPE html>
-<!--
-  ============================================================
-  Ok.station — Página de servicio: Fotos para pasaporte y trámites
-  Landing SEO local. Mismo design system que index/home
-  (styles.css + app.js, BEM). El "home" enlaza a index.html
-  (URL canónica raíz que no cambia tras el lanzamiento).
-  ============================================================
--->
 <html lang="es-MX">
 <head>
   <meta charset="UTF-8">
 
-  <!-- Modo mantenimiento: bloquea el acceso directo sin credenciales válidas -->
   <script src="assets/site-guard.js?v=20260728n"></script>
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 
-  <!-- ===================== SEO BÁSICO ===================== -->
   <title>Fotos para Pasaporte y Trámites en Tijuana | Ok.station</title>
   <meta name="description" content="Fotos para pasaporte, visa, infantil, credencial y ovaladas para certificados y títulos en Otay, Tijuana. Al momento y con especificaciones oficiales.">
   <meta name="author" content="Ok.station — OK Dock">
@@ -28,7 +18,6 @@
   <meta name="ICBM" content="32.5360, -116.9690">
   <link rel="canonical" href="https://okstation.mx/fotos-para-pasaporte-tijuana">
 
-  <!-- ===================== OPEN GRAPH ===================== -->
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="Ok.station">
   <meta property="og:locale" content="es_MX">
@@ -38,17 +27,14 @@
   <meta property="og:image" content="https://okstation.mx/assets/img/hero-okstation.webp">
   <meta property="og:image:alt" content="Estudio fotográfico de Ok.station para fotos de trámites en Tijuana">
 
-  <!-- ===================== TWITTER CARDS ===================== -->
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Fotos para Pasaporte y Trámites en Tijuana | Ok.station">
   <meta name="twitter:description" content="Fotos para pasaporte, visa, infantil, credencial y ovaladas para certificados, al momento. Otay, Tijuana.">
   <meta name="twitter:image" content="https://okstation.mx/assets/img/hero-okstation.webp">
   <meta name="twitter:image:alt" content="Estudio fotográfico de Ok.station para fotos de trámites en Tijuana">
 
-  <!-- ===================== FAVICONS ===================== -->
   <link rel="icon" href="/assets/img/OKD-Isotipo-Azul-96.png?v=20260710" type="image/png" sizes="96x96">
 
-  <!-- ===================== TIPOGRAFÍA (Poppins) ===================== -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet"
@@ -58,14 +44,10 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
   </noscript>
 
-  <!-- ===================== HOJA DE ESTILOS ===================== -->
-  <!-- Tema (claro/oscuro): antes de la hoja para pintar ya con el tema elegido -->
   <script src="assets/theme.js?v=20260721a"></script>
   <link rel="stylesheet" href="styles.css?v=20260728d">
-  <!-- Mascota/chatbot OKi -->
   <link rel="stylesheet" href="assets/oki.css?v=20260728a">
 
-  <!-- Estilos mínimos específicos de esta página (breadcrumb + grid de tipos) -->
   <style>
     .breadcrumb { padding: 14px 0 0; }
     .breadcrumb ol { list-style: none; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin: 0; padding: 0; font-size: 0.8125rem; color: var(--text-muted, #6B7280); }
@@ -76,14 +58,12 @@
     .breadcrumb [aria-current="page"] { color: var(--brand-blue, #066CFF); font-weight: 600; }
     .svc-meta { font-size: 0.8125rem; color: var(--brand-blue, #066CFF); font-weight: 600; }
 
-    /* Breadcrumb dentro del hero oscuro → texto claro */
     .breadcrumb--hero { padding: 0 0 14px; }
     .breadcrumb--hero ol { color: rgba(255,255,255,0.78); }
     .breadcrumb--hero a { color: rgba(255,255,255,0.78); }
     .breadcrumb--hero a:hover { color: #fff; }
     .breadcrumb--hero [aria-current="page"] { color: #fff; }
 
-    /* Tarjeta de precios de referencia */
     .price-card { max-width: 620px; margin: 0 auto; background: #fff; border: 1px solid var(--border-light, #e6eaf2); border-radius: var(--radius-lg, 18px); box-shadow: 0 18px 50px rgba(4,12,40,0.16); padding: 26px clamp(20px,4vw,34px); }
     .price-card ul { list-style: none; margin: 0; padding: 0; }
     .price-card li { display: flex; justify-content: space-between; gap: 16px; align-items: baseline; padding: 13px 0; border-bottom: 1px dashed var(--border-light, #e6eaf2); }
@@ -93,7 +73,6 @@
     .price-note { margin: 14px 0 0; font-size: 0.82rem; color: var(--text-muted, #6B7280); }
   </style>
 
-  <!-- ===================== DATOS ESTRUCTURADOS (JSON-LD) ===================== -->
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
@@ -171,27 +150,10 @@
 
 <body id="top">
 
-<!-- Enlace para saltar al contenido (accesibilidad / teclado) -->
 <a class="skip-link" href="#main">Saltar al contenido principal</a>
 
-<!-- ============================ BARRA SUPERIOR ============================ -->
-<!-- ─────────────────────────────────────────────────────────────────────────
-     Ok.station — NAVBAR UNIFICADO · marcado canónico
-     Esta es la COPIA MAESTRA. Va pegada tal cual en cada página (no se inyecta
-     por JavaScript a propósito: los enlaces de navegación deben venir en el HTML
-     para que Google los siga, que es justo por lo que la ficha se arma en el
-     servidor).
-     Necesita:  <link rel="stylesheet" href="/assets/oknav.css?v=20260728r">
-                <script src="/assets/oknav.js?v=20260724a" defer></script>
-     Todos los <svg> llevan width/height propios: sin tamaño intrínseco un icono
-     se pinta gigante mientras el CSS va en camino (ya pasó con el del correo).
-     ───────────────────────────────────────────────────────────────────────── -->
 <header class="oknav" id="oknav">
 
-  <!-- ══ CINTURILLO · lo mismo que traía .header-bar del sitio ═══════════════
-       Enlaces a la izquierda, lema al centro y redes a la derecha. En celular
-       se oculta entero: sus enlaces ya están en el cajón ☰ y aquí solo haría
-       más alta una barra que ya es pegajosa. -->
   <div class="oknav__belt">
     <div class="oknav__wrap">
       <nav class="oknav__beltlinks" aria-label="Enlaces rápidos">
@@ -213,7 +175,6 @@
     </div>
   </div>
 
-  <!-- ══ FILA 1 · logo · buscador · ubicación · cuenta · deseados · carrito ══ -->
   <div class="oknav__row oknav__row--main">
     <div class="oknav__wrap">
 
@@ -231,9 +192,6 @@
              stroke-width="2.2" stroke-linecap="round" aria-hidden="true">
           <circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/>
         </svg>
-        <!-- Sin botón de buscar: se envía con Enter, igual que el buscador del
-             resto del sitio (.shopbar__search). Con botón quedaban DOS lupas
-             en el mismo campo. -->
         <input id="oknavQ" type="search" autocomplete="off" role="combobox"
                aria-expanded="false" aria-autocomplete="list" aria-controls="oknavAc"
                aria-label="Buscar productos (escribe y pulsa Enter)"
@@ -286,7 +244,6 @@
     </div>
   </div>
 
-  <!-- ══ FILA 2 · tienda ┃ servicios ······ WhatsApp ══════════════════════ -->
   <div class="oknav__row oknav__row--nav">
     <div class="oknav__wrap">
       <nav class="oknav__mobile-stores" aria-label="Accesos de compra">
@@ -350,13 +307,9 @@
     </div>
   </div>
 
-  <!-- Desplegable de categorías (lo llena oknav.js con las de la BD) -->
   <div class="oknav__catsmenu" id="oknavCatsMenu" hidden></div>
 </header>
 
-<!-- ══ Cajón ☰ (celular y tablet) ═══════════════════════════════════════════
-     Aquí viven las cosas que NO merecen una fila propia en el encabezado:
-     los servicios, "¿Quiénes somos?/Contacto" y las redes sociales. -->
 <div class="oknav__scrim" id="oknavScrim" hidden></div>
 <aside class="oknav__drawer" id="oknavDrawer" aria-label="Menú" hidden>
   <div class="oknav__dhead">
@@ -383,8 +336,6 @@
 
   <p class="oknav__dtitle">Ok.station</p>
   <div class="oknav__dlist">
-    <!-- En celular el botón de tema no cabe en la barra (se iba a un tercer
-         renglón), así que vive aquí. Lo mueve OKTheme, el mismo de theme.js. -->
     <button type="button" id="oknavTema">Modo oscuro <span id="oknavTemaEstado"></span></button>
     <a href="/quienes-somos.html">¿Quiénes somos?</a>
     <a href="/contactanos.html">Contacto</a>
@@ -408,7 +359,6 @@
 
 <main id="main">
 
-  <!-- HERO premium (estética actual): imagen de fondo + degradado + título con acento -->
   <section class="hero" aria-labelledby="svc-title" style="min-height:clamp(520px,72vh,760px)">
     <div class="hero__bg" aria-hidden="true">
       <img class="hero__bg-img" src="assets/img/s_fotos para tramites.webp" alt="" loading="eager" decoding="async" onerror="this.style.display='none'">
@@ -444,7 +394,6 @@
     </div>
   </section>
 
-  <!-- ============================ TIPOS DE FOTO ============================ -->
   <section class="section section--alt" aria-labelledby="tipos-title">
     <div class="wrap">
       <div class="section-head section-head--center reveal">
@@ -493,7 +442,6 @@
     </div>
   </section>
 
-  <!-- ============================ CÓMO FUNCIONA ============================ -->
   <section class="section" aria-labelledby="pasos-title">
     <div class="wrap">
       <div class="section-head section-head--center reveal">
@@ -508,7 +456,6 @@
     </div>
   </section>
 
-  <!-- ============================ POR QUÉ NOSOTROS ============================ -->
   <section class="section section--alt" aria-labelledby="porque-title">
     <div class="wrap">
       <div class="section-head section-head--center reveal">
@@ -532,7 +479,6 @@
     </div>
   </section>
 
-  <!-- ============================ PRECIOS DE REFERENCIA ============================ -->
   <section class="section" aria-labelledby="precios-title">
     <div class="wrap">
       <div class="section-head section-head--center reveal"><span class="eyebrow">Precios de referencia</span><h2 class="text-h2" id="precios-title">Listas para tu trámite</h2></div>
@@ -550,7 +496,6 @@
     </div>
   </section>
 
-  <!-- ============================ FAQ ============================ -->
   <section class="section section--alt" id="faq" aria-labelledby="faq-title">
     <div class="wrap">
       <div class="section-head section-head--center reveal">
@@ -597,7 +542,6 @@
     </div>
   </section>
 
-  <!-- ============================ CTA + UBICACIÓN ============================ -->
   <section class="section" id="contacto" aria-labelledby="cta-title">
     <div class="wrap">
       <div class="contact-grid reveal">
@@ -620,7 +564,6 @@
         </div>
       </div>
 
-      <!-- Enlaces internos a servicios relacionados (SEO + navegación) -->
       <p class="text-lead reveal" style="text-align:center;margin-top:32px">
         ¿Buscas algo más? También te ayudamos con
         <a href="citas-tramites-tijuana.html" class="svc-meta">citas de pasaporte, visa y SENTRI</a> y
@@ -631,7 +574,6 @@
 
 </main>
 
-<!-- ============================ FOOTER ============================ -->
 <footer class="site-footer">
   <div class="wrap">
     <div class="footer-top">
@@ -677,15 +619,12 @@
   </div>
 </footer>
 
-<!-- ============================ FLOTANTES ============================ -->
 <button type="button" class="scroll-top" aria-label="Volver arriba">
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>
 </button>
 
-<!-- ============================ SCRIPTS ============================ -->
 <script src="app.js?v=20260630e" defer></script>
 <script src="assets/session-nav.js?v=20260630c" defer></script>
-<!-- Mascota/chatbot OKi (astronauta) -->
 <script src="assets/catalogo.js?v=20260714a" defer></script>
 <script src="assets/oki.js?v=20260728a" defer></script>
   <script src="/assets/oknav.js?v=20260724a" defer></script>

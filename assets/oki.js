@@ -1,15 +1,8 @@
-/* ══════════════════════════════════════════════════════════════════
-   OKi — astronauta asistente de Ok.station.
-   Inyecta la mascota + panel de chat y lo conecta al cerebro:
-   POST /backend/api/oki/chat.php  (Claude, en el servidor).
-   Carga diferida (defer) para no afectar el LCP/TBT. Arranca CERRADO.
-   ══════════════════════════════════════════════════════════════════ */
 (function () {
   "use strict";
   var API = "/backend/api/oki/chat.php";
   var WA  = "https://wa.me/526647194117";
 
-  // Historial de la conversación que se manda al backend.
   var history = [];
   var busy = false, greeted = false, thrustT = null, bubbleT = null;
 
@@ -44,10 +37,6 @@
     '<clipPath id="okiVisorClip"><ellipse cx="40" cy="31" rx="15.5" ry="14.5"/></clipPath>' +
     '</defs></svg>';
 
-  /* Iconos SVG del CROMO del panel (cabecera, secciones, botones): sustituyen a los
-     emojis para que se vean igual en cualquier equipo. Los emojis dentro de las
-     FRASES de OKi (y de los chips de sugerencia, que son mensajes) son su voz y
-     se quedan como texto. */
   var OKI_ROCKET='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="M12 15l-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/></svg>';
   var OKI_CART='<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px" aria-hidden="true"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>';
   var OKI_HEART='<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" style="vertical-align:-2px" aria-hidden="true"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>';
@@ -62,7 +51,6 @@
     "¿Qué hay en oferta?"
   ];
 
-  // En la tienda (e-commerce) OKi ofrece atajos propios del carrito/deseados.
   var QUICKS_STORE = [
     "🛒 ¿Qué llevo en el carrito?",
     "✨ No sé qué necesito",
@@ -70,7 +58,6 @@
     "💳 ¿Cómo pago?"
   ];
 
-  // ── Modo tienda: OKi lee/actúa sobre window.OKtienda si existe (contrato de la tienda) ──
   function storeReady() { return !!(window.OKtienda && typeof window.OKtienda.carrito === "function"); }
   function okiNorm(s) {
     return String(s || "").toLowerCase()
@@ -80,12 +67,8 @@
   }
   function okiMxn(n) { return "$" + (Number(n) || 0).toLocaleString("es-MX", { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
 
-  // ── Catálogo compartido + "lista de compras" en CUALQUIER página ──
-  // Dentro de la tienda OKi usa window.OKtienda (carrito EN VIVO). Fuera de la tienda
-  // usa un adaptador respaldado por assets/catalogo.js (window.OK_PRODUCTS) + el carrito
-  // guardado en localStorage. Así OKi muestra tu lista de compras en todo el sitio.
   function okiCatalog() { return (window.OK_PRODUCTS && window.OK_PRODUCTS.length) ? window.OK_PRODUCTS : []; }
-  function okiHasStore() { return storeReady() || okiCatalog().length > 0 || okiHasSaved(); } // ¿hay lista de compras que mostrar?
+  function okiHasStore() { return storeReady() || okiCatalog().length > 0 || okiHasSaved(); }
   function okiCatById(id) { id = +id; var a = okiCatalog().filter(function (p) { return p.id === id; }); return a[0] || null; }
   function okiRememberProducts(items) {
     var cur = (window.OK_PRODUCTS || []).slice(), byId = {};
@@ -110,12 +93,8 @@
   function okiLsWishSave(a) { try { localStorage.setItem("okstation_wishlist", JSON.stringify(a)); } catch (e) {} }
   function okiGoTienda() { location.href = "tienda.html"; }
 
-  /* ¿El cliente ya tiene algo guardado (carrito o deseados) en ESTE navegador?
-     Permite mostrar su lista aunque el catálogo aún no haya cargado: fuera de la
-     tienda, window.OK_PRODUCTS lo llena catalogo.js de forma ASÍNCRONA. */
   function okiHasSaved() { var c = okiLsCart(); for (var k in c) { if ((+c[k]) > 0) return true; } return okiLsWish().length > 0; }
 
-  /* Del formato del API (shop/products.php) al de OKi. Igual que catalogo.js::mapear. */
   function okiMapDb(p) {
     return { id: +p.id, name: p.name || "", price: +p.price || 0,
       old: (p.old != null && +p.old > +p.price) ? +p.old : null,
@@ -123,9 +102,6 @@
       sub: p.subcategory || "", brand: p.brand || "", sku: p.sku || "", image: p.image || null };
   }
 
-  /* Resuelve el carrito/deseados guardados contra el catálogo REAL (BD) por si
-     catalogo.js aún no llegó (o no está en esta página). Fusiona en window.OK_PRODUCTS
-     —la misma fuente que lee okiCatById— sin pisar lo que ya haya. */
   var okiHydrating = false;
   function okiHydrateSaved(done) {
     var have = {}; okiCatalog().forEach(function (p) { have[+p.id] = 1; });
@@ -148,7 +124,6 @@
       .catch(function () { okiHydrating = false; if (done) done(false); });
   }
 
-  // Adaptador de localStorage (fuera de la tienda): mismo "contrato" que window.OKtienda.
   var okiShim = null;
   function okiMakeShim() {
     function cartArr() {
@@ -177,24 +152,22 @@
       cambiar: function (id, d) { var s = okiLsCart(); s[id] = (s[id] || 0) + d; if (s[id] <= 0) delete s[id]; okiLsCartSave(s); changed(); },
       quitar: function (id) { var s = okiLsCart(); delete s[id]; okiLsCartSave(s); changed(); },
       toggleDeseado: function (id) { id = +id; var w = okiLsWish(), i = w.indexOf(id); if (i >= 0) w.splice(i, 1); else w.push(id); okiLsWishSave(w); changed(); },
-      verProducto: function () { okiGoTienda(); },   // fuera de la tienda no hay vista previa → lleva a la tienda
+      verProducto: function () { okiGoTienda(); },
       abrirCarrito: function () { okiGoTienda(); },
       abrirDeseados: function () { okiGoTienda(); },
       entrarTienda: function () { okiGoTienda(); }
     };
   }
-  // Devuelve el "contrato": la tienda en vivo si existe; si no, el adaptador de localStorage.
   function okiStore() {
     if (storeReady()) return window.OKtienda;
     if (!okiShim) okiShim = okiMakeShim();
     return okiShim;
   }
 
-  // Estado que OKi vigila del carrito (para mostrar lo que se agrega y recomendar).
-  var okiSnap = {};       // {id: qty} del carrito, para detectar lo recién agregado
-  var okiLastRec = null;  // último producto recomendado (para "sí, agrégalo")
-  var okiSelfAdd = false; // OKi mismo agregó (para no duplicar el aviso)
-  var okiReopenAfterPreview = false; // volver a la lista al cerrar una vista previa abierta desde ella
+  var okiSnap = {};
+  var okiLastRec = null;
+  var okiSelfAdd = false;
+  var okiReopenAfterPreview = false;
 
   function okiProducts() { var S = okiStore(); try { return S ? (S.productos() || []) : []; } catch (e) { return []; } }
   function okiCart()     { var S = okiStore(); try { return S ? (S.carrito() || []) : []; } catch (e) { return []; } }
@@ -203,7 +176,6 @@
   function okiTotal()    { var S = okiStore(); try { return S ? (S.total() || 0) : 0; } catch (e) { return 0; } }
   function okiFindProd(id) { var a = okiProducts().filter(function (p) { return p.id == id; }); return a[0] || null; }
 
-  // Lista de recomendados que NO estén en el carrito (prioriza ofertas y la categoría que ya lleva).
   function okiRecommendList(n) {
     var prods = okiProducts(), cart = okiCartMap();
     if (!prods.length) return [];
@@ -219,29 +191,18 @@
   function okiRecommend() { var r = okiRecommendList(1)[0] || null; okiLastRec = r; return r; }
   function okiInWish(id) { var S = okiStore(), w = []; try { w = S ? (S.deseados() || []) : []; } catch (e) {} return w.some(function (d) { return d.id == id; }); }
 
-  // ── Vista LISTA en la tienda: carrito (con cantidades) + recomendaciones + deseados ──
-  /* Miniatura: la foto REAL del producto (viene en el contrato de la tienda). Si no
-     hay foto, su emoji sobre el gradiente de la categoría. */
   function okiOlvThumb(p) {
     var f = okiFindProd(p.id) || {}, img = p.image || f.image;
     if (img) return '<span class="olv-th olv-th--img" data-oki-open="' + p.id + '" title="Ver producto"><img src="' + encodeURI(img) + '" alt="" loading="lazy"></span>';
     return '<span class="olv-th" data-oki-open="' + p.id + '" title="Ver producto" style="background:' + (f.grad || p.grad || 'var(--blue)') + ';cursor:pointer">' + (f.emoji || p.emoji || '📦') + '</span>';
   }
   function okiOlvItem(it) {
-    /* AGOTADO en la lista. Las recomendaciones ya filtran lo que no hay, pero un
-       producto que se guardó en el carrito y DESPUÉS se acabó seguía viéndose igual
-       que cualquier otro: el cliente se enteraba hasta el checkout, que es el peor
-       momento para descubrirlo. El stock sale del catálogo hidratado o del propio
-       renglón, el que exista. OJO: stock == null significa "no lo sabemos" (catálogo
-       de demostración), y eso NO es agotado — en la duda no se marca nada. */
     var f  = okiFindProd(it.id) || {};
     var st = (it.stock != null) ? +it.stock : (f.stock != null ? +f.stock : null);
     var agotado = (st != null && st <= 0);
     return '<div class="olv-it' + (agotado ? ' olv-it--out' : '') + '">' + okiOlvThumb(it) +
       '<div class="olv-nm" data-oki-open="' + it.id + '" style="cursor:pointer"><b>' + esc(it.name) + '</b><small>' +
         okiMxn(it.price) + ' c/u' + (agotado ? ' · <b class="olv-out">agotado</b>' : '') + '</small></div>' +
-      /* Sumar más de algo que no hay no tiene sentido; restar y quitar sí, que es
-         justo lo que la persona va a querer hacer. */
       '<span class="olv-q"><button data-oki-dec="' + it.id + '" aria-label="Quitar uno">−</button><span>' + it.qty + '</span>' +
         '<button data-oki-inc="' + it.id + '"' + (agotado ? ' disabled aria-disabled="true" title="Agotado"' : '') + ' aria-label="Agregar uno">+</button></span>' +
       '<button class="olv-x" data-oki-rm="' + it.id + '" aria-label="Quitar del carrito">✕</button></div>';
@@ -262,9 +223,6 @@
       foot.innerHTML = '<div class="olv-tot"><span>Total</span><b>' + okiMxn(okiTotal()) + '</b></div>' +
         '<button class="olv-pay" data-oki-pay="1">' + (off ? 'Ir a la tienda a pagar →' : 'Ir a pagar →') + '</button>';
     } else {
-      /* Fuera de la tienda con carrito/deseados guardados pero aún sin resolver:
-         distinguir "cargando" (el catálogo viene en camino) de "no se pudo" (ya llegó
-         y aun así no están: descatalogados o API caída). */
       var savedPend = off && okiHasSaved();
       cartBox.innerHTML = !off
         ? '<div class="olv-empty">Aún no eliges productos ' + OKI_CART + '<br>Toca <b>＋</b> en el catálogo y aquí te los muestro.</div>'
@@ -280,11 +238,10 @@
     if (recs.length) { recSec.hidden = false; recBox.innerHTML = recs.map(okiOlvRec).join(""); } else { recSec.hidden = true; recBox.innerHTML = ""; }
     var wish = []; try { var Sw = okiStore(); wish = Sw ? (Sw.deseados() || []) : []; } catch (e) {}
     var wSec = document.getElementById("oki-olv-wish-sec"), wBox = document.getElementById("oki-olv-wish");
-    wSec.hidden = false; // la sección de deseos siempre se muestra (con estado vacío)
+    wSec.hidden = false;
     wBox.innerHTML = wish.length ? wish.map(okiOlvRec).join("")
       : '<div class="olv-empty" style="padding:8px 0 4px">Toca el <span style="color:#e11d48">' + OKI_HEART + '</span> en un producto para guardarlo aquí.</div>';
   }
-  // Abrir la lista de OKi enfocando la sección de DESEADOS (lo usa el botón ❤ de la tienda).
   function okiShowDeseados() {
     if (!okiHasStore() || !panel) return;
     panel.setAttribute("data-view", "list");
@@ -298,13 +255,7 @@
   }
   function okiListActive() { return panel && panel.getAttribute("data-view") === "list" && okiHasStore(); }
 
-  // Busca un producto por nombre (para "agrega el mouse").
-  /* Quita el plural ("folders" -> "folder", "cajas" -> "caja"). Como después se
-     busca por substring, con recortar la terminación basta. */
   function okiStem(w) { return w.replace(/(es|s)$/, ""); }
-  /* Busca el producto que el cliente nombró. Gana el que empate MÁS palabras, y se
-     busca también en marca/categoría/subcategoría ("toner", "3M", "papel bond"),
-     no solo en el nombre. */
   function okiMatchProd(q) {
     q = okiNorm(q); if (!q) return null;
     var prods = okiProducts(); if (!prods.length) return null;
@@ -321,11 +272,7 @@
     return bestScore ? best : null;
   }
 
-  /* Categorías REALES de la tienda (las de la BD, vía el contrato). Fuera de la tienda
-     no hay, y esas preguntas las contesta el cerebro del servidor. */
   function okiCats() { var S = okiStore(); try { return (S && S.categorias) ? (S.categorias() || []) : []; } catch (e) { return []; } }
-  /* ¿A qué categoría se refiere el mensaje? Gana la coincidencia MÁS LARGA, para que
-     "papel fotográfico" no se quede en "Papel". Busca también en subcategorías. */
   function okiMatchCat(text, cats) {
     var n = okiNorm(text), best = null, bestLen = 0;
     if (/\btodo\b|\btodos\b|\btodas\b|\bcatalogo\b/.test(n)) return { id: "all", name: "Todos" };
@@ -339,7 +286,6 @@
     });
     if (best) return best;
     if (/\boferta/.test(n)) { var of = cats.filter(function (c) { return c.ofertas; })[0]; if (of) return { id: of.id, name: of.name, count: of.count }; }
-    // Por palabra suelta y sin plural: "calculadoras" → "Calculadoras".
     var words = n.split(" ").map(okiStem).filter(function (x) { return x.length >= 4; });
     cats.forEach(function (c) {
       var cn = okiNorm(c.name);
@@ -348,11 +294,9 @@
     return best;
   }
 
-  // Cantidades en palabra ("dos cajas") además de dígitos ("2 cajas").
   var OKI_NUM = { un: 1, una: 1, uno: 1, par: 2, dos: 2, tres: 3, cuatro: 4, cinco: 5, seis: 6,
                   siete: 7, ocho: 8, nueve: 9, diez: 10, once: 11, doce: 12, docena: 12 };
   var OKI_FILLER = /^(?:de |del |la |el |los |las |unos |unas |cajas? de |paquetes? de |piezas? de |unidades? de |rollos? de )+/;
-  /* "6 folders" -> {p, qty:6}. Devuelve null si no reconoce ningún producto. */
   function okiParseOne(s) {
     s = String(s || "").replace(OKI_FILLER, "").trim();
     if (!s) return null;
@@ -363,9 +307,6 @@
     var p = okiMatchProd(s);
     return p ? { p: p, qty: Math.max(1, Math.min(99, qty)) } : null;
   }
-  /* Elige una coincidencia disponible del catálogo completo. En una petición genérica
-     ("un cuaderno", "un tóner") prioriza relevancia, oferta y producto con foto; el
-     precio más bajo desempata. Nunca escoge un agotado si hay una opción disponible. */
   function okiPickProduct(list, raw, qty) {
     var q = okiNorm(raw), words = q.split(" ").map(okiStem).filter(function (w) { return w.length >= 2; });
     var ranked = (list || []).filter(function (p) { return p && (p.stock == null || +p.stock > 0); }).map(function (p) {
@@ -391,9 +332,6 @@
     var exact = okiNorm(chosen.name) === q || okiNorm(chosen.sku || "") === q;
     return { p: chosen, qty: qty, generic: !exact && ranked.length > 1 };
   }
-  /* Traduce necesidades cotidianas a términos que sí existen en el catálogo. La persona
-     no tiene por qué saber que "algo para que no se pierdan los recibos" se busca como
-     carpeta o archivador. Solo se usa para BUSCAR; OKi siempre dice qué producto eligió. */
   function okiEverydaySearch(raw) {
     var t = okiNorm(raw);
     if (/(guardar|ordenar|organizar|archivar|no se (?:me )?pierdan).*(papel|document|recibo|factura)/.test(t)) return "carpeta";
@@ -406,14 +344,10 @@
     return raw;
   }
 
-  /* Busca SIEMPRE en el catálogo completo cuando el contrato lo permite. Así una
-     palabra genérica no se resuelve contra los primeros productos que casualmente
-     estaban cargados en pantalla. Devuelve {p,qty,generic} o null. */
   function okiResolveOne(s) {
     var S = okiStore();
     var localHit = okiParseOne(s);
     if (!S || typeof S.buscar !== "function") return Promise.resolve(localHit);
-    // Reaprovecha el troceo de cantidad: separa el número del nombre.
     var raw = String(s || "").replace(OKI_FILLER, "").trim(), qty = 1, m = raw.match(/^(\d{1,3})\s+(.+)$/);
     if (m) { qty = +m[1]; raw = m[2]; }
     else { var w = raw.match(/^([a-zñ]+)\s+(.+)$/); if (w && OKI_NUM[w[1]]) { qty = OKI_NUM[w[1]]; raw = w[2]; } }
@@ -425,8 +359,6 @@
     var hecho = function (list) { return okiPickProduct(list, raw, q); };
     return Promise.resolve(S.buscar(busqueda, 12)).then(function (list) {
       if (list && list.length) return hecho(list);
-      /* El catálogo del servidor busca por texto TAL CUAL: "calculadoras" no encuentra
-         "Calculadora Canon" (el nombre va en singular). Se reintenta sin plural. */
       var sing = okiNorm(busqueda).split(" ").map(okiStem).join(" ").trim();
       if (!sing || sing === okiNorm(raw)) return localHit;
       return Promise.resolve(S.buscar(sing, 12)).then(function (retry) {
@@ -434,19 +366,15 @@
       });
     }).catch(function () { return localHit; });
   }
-  /* Pedido completo: "agrégame 6 folders y 2 tóner" -> [{p,qty:6},{p,qty:2}].
-     Ojo: hay nombres que TRAEN "y" ("Papel HP hogar y oficina"), así que si al
-     partir por "y"/"," no sale más de un producto, se toma la frase completa. */
   function okiParseAdd(rest) {
     rest = String(rest || "").trim();
     var chunks = rest.split(/\s*(?:,|\+|\by\b|\be\b|\btambien\b|\bademas\b)\s*/).filter(Boolean);
     var multi = chunks.length > 1;
     return Promise.all((multi ? chunks : [rest]).map(okiResolveOne)).then(function (parts) {
       parts = parts.filter(Boolean);
-      // Si al partir por "y"/"," no salieron 2+ productos, el texto era UN solo nombre.
       if (multi && parts.length < 2) return okiResolveOne(rest).then(function (w) { return w ? [w] : []; });
       var out = [], seen = {};
-      parts.forEach(function (it) {                     // "2 folders y 3 folders" = 5
+      parts.forEach(function (it) {
         if (seen[it.p.id]) { seen[it.p.id].qty = Math.min(99, seen[it.p.id].qty + it.qty); return; }
         seen[it.p.id] = it; out.push(it);
       });
@@ -461,44 +389,30 @@
     b.textContent = n; b.style.display = n ? "" : "none";
   }
 
-  // ── Posición del astronauta: apartarse del carrito, "peek" (asomar) o normal ──
-  // Peek = tras un rato sin usar OKi (panel cerrado), se esconde AHÍ MISMO recostándose
-  // en la pared derecha y solo asoma su cabecita; al tocarlo o pasar el mouse, regresa.
-  // Así no estorba banners/botones y sigue a la mano en su esquina.
   var okiPeeked = false, okiPeekTimer = null, OKI_PEEK_MS = 12000;
-  /* ¿Hay algún panel/cajón abierto que OKi taparía (o que taparía a OKi)? Se aparta cuando:
-     - Tienda: carrito (#app.cart-open) o filtros (#app.filt-open).
-     - Ficha: carrito (.sb-panel.show de shop-header.js).
-     - Compra rápida: SOLO el carrito lateral derecho (#tdCartDrawer), que sí tapa a OKi.
-     Antes se apartaba también por el panel de FILTROS (#tdFilts) —que va en el flujo, arriba,
-     y nunca tapa a OKi— y por FAVORITOS/UBICACIÓN (#tdWishDrawer/#tdLocDrawer), que comparten
-     la clase base .td-drawer pero son MODALES CENTRADOS con velo: OKi se deslizaba 430px a la
-     izquierda flotando sobre el velo. Por eso "se movía y se buggeaba". */
   function okiShouldDodge() {
     var a = document.getElementById("app");
     if (a && (a.classList.contains("cart-open") || a.classList.contains("filt-open"))) return true;
-    if (document.querySelector(".sb-panel.show")) return true;   // carrito de la ficha
-    var cart = document.getElementById("tdCartDrawer");          // SOLO el carrito lateral de compra rápida
+    if (document.querySelector(".sb-panel.show")) return true;
+    var cart = document.getElementById("tdCartDrawer");
     if (cart && cart.classList.contains("open")) return true;
     return false;
   }
   function okiUpdatePosition() {
     if (!dock) return;
     var mobile = window.innerWidth <= 640;
-    if (okiShouldDodge()) {                       // carrito/filtro abierto → apartarse
+    if (okiShouldDodge()) {
       dock.classList.remove("oki-peek");
       dock.style.transform = mobile ? "translate3d(0,140px,0)" : "translate3d(-430px,0,0)";
       dock.style.opacity = mobile ? "0" : ""; dock.style.pointerEvents = mobile ? "none" : "";
-    } else {                                     // normal o peek (según inactividad)
+    } else {
       var peek = okiPeeked && !(panel && panel.classList.contains("on"));
-      dock.classList.toggle("oki-peek", peek);   // (oculta el globo antes de medir)
+      dock.classList.toggle("oki-peek", peek);
       if (peek) {
-        // Se esconde AHÍ MISMO, recostándose en la PARED DERECHA (donde ya está);
-        // solo asoma su cabecita. No viaja a la izquierda.
-        var w = mobile ? 62 : 76;               // ancho del astronauta (.oki)
-        var gap = mobile ? 16 : 26;             // .oki-dock { right }
-        var visible = mobile ? 48 : 50;         // cuánto asoma (casi todo; solo se recuesta un poco)
-        var tx = gap + (w - visible);           // empuja a la derecha, fuera de la pantalla
+        var w = mobile ? 62 : 76;
+        var gap = mobile ? 16 : 26;
+        var visible = mobile ? 48 : 50;
+        var tx = gap + (w - visible);
         dock.style.transform = "translate3d(" + tx + "px,0,0)";
         dock.style.opacity = "1";
         dock.style.pointerEvents = "";
@@ -517,7 +431,6 @@
     if (was && dock) { dock.classList.add("oki-waking"); setTimeout(function () { dock.classList.remove("oki-waking"); }, 720); }
   }
 
-  // Globo del astronauta con lo recién agregado + una recomendación.
   function okiBubbleAdd(prod) {
     var bb = document.getElementById("oki-bubble");
     if (!bb) return;
@@ -530,10 +443,6 @@
     bubbleT = setTimeout(function () { bb.classList.remove("on"); }, 6500);
   }
 
-  // Cada cambio del carrito: actualiza el badge y, si algo se agregó, lo muestra.
-  /* No abrir la lista sola cuando el usuario llegó a la tienda para PAGAR o para poner su
-     UBICACIÓN: taparía el pago (coOv) o la libreta (locOv). Se detecta por el hash (fiable
-     desde la carga) o por el overlay ya visible. La lista igual se prepara en silencio. */
   function okiSuppressAutoOpen() {
     var h = (location.hash || "");
     if (h === "#checkout" || h === "#ubicacion") return true;
@@ -546,18 +455,16 @@
     var now = okiCartMap(), addedId = null, nowN = 0, oldN = 0;
     for (var id in now) { nowN += now[id]; if (now[id] > (okiSnap[id] || 0)) addedId = +id; }
     for (var id2 in okiSnap) oldN += okiSnap[id2];
-    var grew = nowN > oldN;   // el carrito creció (aunque sea re-agregar un ítem ya presente)
+    var grew = nowN > oldN;
     okiSnap = now;
     okiUpdateBadge();
-    if (okiListActive()) renderStoreList();            // la lista de OKi se actualiza sola
-    if (!grew) return;                                  // no aumentó → no es "agregado"
-    if (okiSelfAdd) { okiSelfAdd = false; return; }     // OKi ya lo confirmó él mismo
+    if (okiListActive()) renderStoreList();
+    if (!grew) return;
+    if (okiSelfAdd) { okiSelfAdd = false; return; }
     var p = okiFindProd(addedId) || okiFindProd(Object.keys(now)[Object.keys(now).length - 1]);
     if (!p) return;
     var abierto = panel && panel.classList.contains("on");
     if (!abierto) {
-      // Al AGREGAR, la lista se abre sola y se queda abierta (hasta cerrar/vista previa/salir).
-      // Salvo que se esté pagando o eligiendo ubicación (no taparlos).
       panel.setAttribute("data-view", "list");
       renderStoreList();
       if (!okiSuppressAutoOpen()) open();
@@ -567,12 +474,8 @@
       if (rec) msg += "\n💡 Te recomiendo: " + rec.name + " (" + okiMxn(rec.price) + "). Dime \"agrégalo\" y lo pongo.";
       addMsg(msg, "bot");
     }
-    // panel abierto en vista lista: ya se ve el cambio en la lista.
   }
 
-  /* Si OKi propuso explícitamente un paquete y preguntó si debía agregarlo, una respuesta
-     "sí" convierte los artículos cotidianos mencionados en búsquedas reales. Así el chat
-     no afirma que armó un kit sin haber modificado de verdad el carrito. */
   function okiSuggestedBundle() {
     var prev = "";
     for (var i = history.length - 1; i >= 0; i--) {
@@ -589,14 +492,11 @@
     return terms.filter(function (x) { return x[1].test(prev); }).map(function (x) { return x[0]; }).slice(0, 6);
   }
 
-  /* El estado EN VIVO del carrito/deseados solo lo conoce la tienda (no el servidor),
-     así que estas preguntas y acciones se resuelven aquí mismo. Devuelve texto o null. */
   function storeLocalReply(text) {
     var S = okiStore();
-    if (!S) return null;   // sin catálogo (no debería pasar: catalogo.js carga en todo el sitio)
+    if (!S) return null;
     var t = okiNorm(text);
 
-    // Carrito: qué llevo / cuánto voy / mi total…
     if (/\bcarrito\b|\bcarro\b|que llevo|que tengo|mi compra|cuanto llevo|cuanto va|cuanto voy|mi total|que voy a pagar/.test(t)) {
       var c = okiCart();
       if (!c.length) return "Tu carrito está vacío 🛒 Agrega productos y te digo el total al instante. ¿Quieres que te lleve al catálogo?";
@@ -607,29 +507,22 @@
       return "Esto llevas en tu carrito 🛒\n" + lines.join("\n") + "\nTotal: " + okiMxn(total) + extra + fin + " Recoge en OK.station o pide envío a domicilio; pagas en línea.";
     }
 
-    // Deseados / favoritos
     if (/deseado|favorito|lista de deseos|wishlist/.test(t)) {
       var w = [];
       try { w = S.deseados() || []; } catch (e) {}
-      setTimeout(okiShowDeseados, 300); // los muestra en la lista, enfocando la sección
+      setTimeout(okiShowDeseados, 300);
       if (!w.length) return "Aún no tienes deseados ❤ Toca el corazón en cualquier producto para guardarlo y comprarlo cuando quieras.";
       var wl = w.map(function (p) { return "• " + p.name + " — " + okiMxn(p.price); });
       return "Tus deseados ❤\n" + wl.join("\n") + "\nTe los muestro en tu lista 👇";
     }
 
-    // Recomendación / consejo
     if (/recomienda|recomiendas|recomendacion|sugiere|sugerencia|que compro|que me llevo|que mas llevo|aconseja|un consejo/.test(t)) {
-      /* Si piden algo ESPECÍFICO ("recomiéndame un tóner", "sugiéreme algo para mi
-         impresora"), eso lo contesta mejor la IA del servidor (sabe compatibilidades
-         y qué es cada cosa); la regla local solo atiende el "¿qué me recomiendas?"
-         GENÉRICO del carrito. Se recorta el verbo y las muletillas: si sobra un
-         sustantivo que NO empata con el catálogo local, se deja pasar al servidor. */
       var resto = t
         .replace(/\b(me|que|puedes|podrias|oki)\b/g, " ")
         .replace(/recomienda(s|me|rias)?|recomendacion(es)?|sugiere(me)?|sugerencia(s)?|aconseja(me|s)?|un consejo|que compro|que me llevo|que mas llevo/g, " ")
         .replace(/\b(algo|para|comprar|llevar|llevarme|de|del|la|el|los|las|un|una|unos|unas|mi|mis|tu|hoy|ahora|porfa|por favor|mejor|bueno|buena)\b/g, " ")
         .replace(/\s+/g, " ").trim();
-      if (resto.length >= 3 && !okiMatchProd(resto)) return null;   // → servidor (Gemini)
+      if (resto.length >= 3 && !okiMatchProd(resto)) return null;
       var r = okiRecommend();
       if (!okiCart().length) {
         return "Claro, yo te guío desde cero 😊 ¿Lo necesitas para escuela, organizar documentos, escribir o dibujar, o para una impresora?";
@@ -638,17 +531,12 @@
       return "Te recomiendo " + (r.emoji ? r.emoji + " " : "") + r.name + " — " + okiMxn(r.price) + (r.old ? " (¡en oferta! 🔥)" : "") + "\nDime \"agrégalo\" y lo pongo en tu carrito. 🛒";
     }
 
-    /* ── Categorías de la tienda ── (VA ANTES DE AGREGAR, a propósito)
-       "pon la categoría de calculadoras" NO es "ponme una calculadora": como el verbo
-       "pon" también dispara el agregar, antes esa frase te METÍA el producto al
-       carrito en vez de abrir la categoría. */
     var pideCat  = /\bcategoria|\bcategorias\b|\bseccion\b|\bfiltro\b/.test(t);
     var esAgregar = /\b(?:agrega|anade|pon(?:me|le|nos|lo|la)?|mete|suma|dame|quiero|llevo|necesito)\b/.test(t);
     var pideOfertas = /\boferta/.test(t) && !esAgregar;
     if (pideCat || pideOfertas) {
       var cats = okiCats();
-      if (!cats.length) return null;              // fuera de la tienda lo cuenta el cerebro
-      // "¿qué categorías hay?" → listarlas
+      if (!cats.length) return null;
       if (/\b(que|cuales|cuantas|dime|hay|tienen|tienes|muestrame las|ver las)\b[^]*\b(categoria|seccion)/.test(t) || /^categorias\b/.test(t)) {
         return "Estas son las categorías de la tienda 🛒\n" +
           cats.map(function (c) { return "• " + c.name + (c.count ? " (" + c.count + ")" : ""); }).join("\n") +
@@ -664,14 +552,11 @@
       if (pideCat) return "¿Cuál categoría te abro? Tengo: " + cats.map(function (c) { return c.name; }).join(", ") + ".";
     }
 
-    /* Agregar al carrito: uno o VARIOS productos, con cantidad.
-       "agrégame 2 notas adhesivas", "quiero 6 folders y 3 tóner", "sí, agrégalo". */
     var mAdd = t.match(/\b(?:agrega(?:me|le|nos|lo|la|los|las)?|agregar|anade(?:me|le)?|anadir|pon(?:me|le|nos|lo|la)?|poner|mete(?:me|le)?|meter|suma(?:me|le)?|dame|regalame|quiero|llevo|llevame|necesito|echame|vendeme|comprar?)\s+(.+)/);
     var confirmaTexto = /^(si|sip|simon|dale|va|vale|agregalo|ponlo|ese|esa|obvio|claro|ok|okey|de una)\b/.test(t);
     var paqueteSugerido = confirmaTexto && !okiLastRec ? okiSuggestedBundle() : [];
     var confirma = confirmaTexto && (!!okiLastRec || paqueteSugerido.length > 0);
     if (mAdd || confirma) {
-      // Promesa: puede tener que buscar el producto en el catálogo del servidor.
       var resolver = mAdd && mAdd[1] ? okiParseAdd(mAdd[1])
         : (paqueteSugerido.length
             ? Promise.all(paqueteSugerido.map(okiResolveOne)).then(function(xs){ return xs.filter(Boolean); })
@@ -679,7 +564,6 @@
       return resolver.then(function (items) {
         if (!items.length && confirma && okiLastRec) items = [{ p: okiLastRec, qty: 1 }];
         if (!items.length) {
-          // "quiero saber el precio" no es un pedido: que lo conteste el cerebro.
           if (!/^(?:agrega|anade|pon|mete|suma|dame)/.test(t)) return null;
           return "¿Cuál producto agrego? Dime el nombre y la cantidad (por ejemplo \"agrega 3 folders\") y lo busco 🙂";
         }
@@ -687,7 +571,7 @@
         items.forEach(function (it) {
           var st = it.p.stock;
           if (st != null && st <= 0) { agotados.push(it.p.name); return; }
-          var q = (st != null) ? Math.min(it.qty, st) : it.qty;   // nunca más de lo que hay
+          var q = (st != null) ? Math.min(it.qty, st) : it.qty;
           okiSelfAdd = true;
           try {
             S.agregar(it.p.id, q);
@@ -714,7 +598,6 @@
       });
     }
 
-    // Quitar del carrito ("quita el mouse")
     var mDel = t.match(/(?:quita|quitar|elimina|borra|saca|remueve)\s+(.+)/);
     if (mDel && mDel[1]) {
       var del = okiMatchProd(mDel[1]);
@@ -722,20 +605,17 @@
       return "No encontré ese producto en tu carrito 🤔. Dime \"¿qué llevo?\" y te muestro la lista.";
     }
 
-    return null; // el resto lo contesta el cerebro del servidor (precios, envíos, cómo pago…)
+    return null;
   }
 
   function el(html) { var d = document.createElement("div"); d.innerHTML = html; return d.firstElementChild; }
   function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
   function linkify(s) {
     var html = esc(s);
-    // Enlaces Markdown [texto](url) → <a> real (evita que el auto-enlazador los rompa).
     html = html.replace(/\[([^\]]+)\]\(((?:https?:\/\/|\/)[^\s)]+)\)/g, function (_m, txt, url) {
       return '<a href="' + url + '" target="_blank" rel="noopener">' + txt + '</a>';
     });
-    // Negritas **texto** y *texto* → <strong> (Gemini a veces las usa).
     html = html.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>').replace(/(^|\s)\*([^*\s][^*]*?)\*(?=\s|$|[.,;:!?])/g, '$1<em>$2</em>');
-    // URLs sueltas restantes → <a> (excluye ] ) para NO tragarse Markdown).
     html = html.replace(/(^|[\s(])(https?:\/\/[^\s)\]<]+)/g, function (_m, pre, url) {
       return pre + '<a href="' + url + '" target="_blank" rel="noopener">' + url + '</a>';
     });
@@ -744,10 +624,6 @@
 
   var dock, panel, chat, input;
 
-  /* El botón del encabezado alterna lista ⇄ chat, así que debe mostrar el ICONO
-     DEL DESTINO, no el de donde ya estás: en el chat ofrece el carrito (tu lista)
-     y estando en la lista ofrece el globo (chatear). Antes siempre decía 🛒, así
-     que desde la lista parecía llevar otra vez a la lista. */
   function okiSyncTab() {
     var b = document.getElementById("oki-tab");
     if (!b || !panel) return;
@@ -759,7 +635,7 @@
   }
   function showList() {
     panel.setAttribute("data-view", "list");
-    renderStoreList();   // la estructura siempre existe; renderStoreList maneja vacío/cargando
+    renderStoreList();
     okiSyncTab();
   }
   function showChat() { panel.setAttribute("data-view", "chat"); okiSyncTab(); }
@@ -767,7 +643,6 @@
   function build() {
     if (document.getElementById("oki-dock")) return;
 
-    // CSS (por si el <link> no está en el <head>).
     if (!document.querySelector('link[href*="oki.css"]')) {
       var l = document.createElement("link");
       l.rel = "stylesheet"; l.href = "assets/oki.css?v=20260728a";
@@ -786,42 +661,31 @@
     );
     document.body.appendChild(dock);
 
-    // En la tienda: saludo contextual, seguimiento del carrito y apartarse al abrirlo.
     if (storeReady()) {
       var bb0 = document.getElementById("oki-bubble");
       if (bb0) bb0.innerHTML = '¿Buscas algo en la <b>tienda</b>? 🛒<br>Yo te llevo el carrito y te doy recomendaciones.';
-      okiSnap = okiCartMap();          // punto de partida para detectar lo que se agrega
+      okiSnap = okiCartMap();
       okiUpdateBadge();
       window.addEventListener("oktienda:carrito", okiOnCartChange);
       window.addEventListener("oktienda:deseados", function () { okiUpdateBadge(); if (okiListActive()) renderStoreList(); });
-      // OKi se aparta a la izquierda cuando el carrito está abierto y REGRESA al
-      // cerrarse. Se observa la clase real .cart-open de #app (no solo eventos), para
-      // que NUNCA se quede colgado aunque el carrito se cierre por checkout/Escape/scrim.
       var okiAppEl = document.getElementById("app");
       function okiApplyDodge() {
         if (okiShouldDodge() && panel && panel.classList.contains("on")) close();
         okiUpdatePosition();
       }
-      /* Se observa la clase REAL de los paneles (no solo eventos), para que OKi nunca se
-         quede colgado aunque el panel se cierre por checkout/Escape/scrim. En la ficha el
-         carrito (.sb-panel) se crea al vuelo, así que shop-header.js emite carrito-abierto/
-         cerrado; en la compra rápida se observan sus cajones y filtro. */
       if (window.MutationObserver) {
         var obs = new MutationObserver(okiApplyDodge), OPT = { attributes: true, attributeFilter: ["class"] };
-        if (okiAppEl) obs.observe(okiAppEl, OPT);                                   // tienda (#app: cart-open/filt-open)
+        if (okiAppEl) obs.observe(okiAppEl, OPT);
         ["tdFilts", "tdCartDrawer", "tdWishDrawer", "tdLocDrawer"].forEach(function (id) {
-          var el = document.getElementById(id); if (el) obs.observe(el, OPT);       // compra rápida
+          var el = document.getElementById(id); if (el) obs.observe(el, OPT);
         });
       }
       window.addEventListener("oktienda:carrito-abierto", okiApplyDodge);
       window.addEventListener("oktienda:carrito-cerrado", okiApplyDodge);
-      // Al ENTRAR al catálogo: OKi prepara la lista. Si ya tienes productos guardados,
-      // te la abre; si está vacía, solo ofrece ayuda con un globo (sin abrirse sola).
       window.addEventListener("oktienda:en-tienda", function () {
         if (!panel) return;
         panel.setAttribute("data-view", "list");
         renderStoreList();
-        // Si llegamos para PAGAR o poner UBICACIÓN, no abrir la lista sola (taparía el pago/libreta).
         if (okiSuppressAutoOpen()) return;
         if (okiCartCount() > 0) {
           open();
@@ -835,11 +699,8 @@
           }
         }
       });
-      // La lista se cierra al SALIR del e-commerce o al abrir la VISTA PREVIA de un producto.
       window.addEventListener("oktienda:en-landing", function () { close(); });
       window.addEventListener("oktienda:vista-previa", function () { close(); });
-      // Si la vista previa se abrió DESDE la lista de OKi, al cerrarla se vuelve a la lista.
-      // Se difiere para que el mismo clic (que burbujea al document) no la vuelva a cerrar.
       window.addEventListener("oktienda:vista-previa-cerrada", function () {
         if (!okiReopenAfterPreview) return;
         okiReopenAfterPreview = false;
@@ -847,9 +708,7 @@
           if (storeReady() && panel) { panel.setAttribute("data-view", "list"); renderStoreList(); open(); }
         }, 60);
       });
-      // El botón ❤ de la tienda abre la lista de OKi enfocando los deseados.
       window.addEventListener("oktienda:ver-deseados", okiShowDeseados);
-      // Al agregar al carrito desde el banner de deseados: OKi muestra tu lista.
       window.addEventListener("oktienda:ver-lista", function () {
         if (!panel) return;
         panel.setAttribute("data-view", "list");
@@ -866,7 +725,6 @@
       '<button class="oki-tab" id="oki-tab" type="button" aria-label="Tu lista de compras" title="Tu lista de compras">' + OKI_CART + '</button>' +
       '<button class="cls" type="button" aria-label="Cerrar">×</button>' +
       '</div>' +
-      // Vista CHAT
       '<div class="oki-view oki-view--chat">' +
       '<div class="oki-chat" id="oki-chat"></div>' +
       '<div class="oki-quick" id="oki-quick"></div>' +
@@ -874,13 +732,6 @@
       '<input id="oki-text" placeholder="Escríbele a OKi…" aria-label="Mensaje para OKi">' +
       '<button type="submit" aria-label="Enviar">' + OKI_SEND + '</button>' +
       '</form></div>' +
-      // Vista LISTA = tu lista de compras (carrito + recomendaciones + deseados).
-      // Es la MISMA lista funcional en todo el sitio (dentro y fuera de la tienda).
-      /* Se arma SIEMPRE la estructura de la lista, aunque el catálogo aún no haya llegado:
-         fuera de la tienda, catalogo.js llena window.OK_PRODUCTS async y dispara
-         'ok-catalogo-listo'. Si aquí se armara el fallback "No pude cargar", el panel se
-         quedaría clavado en él sin re-renderizar cuando el catálogo sí llega. Los estados
-         vacío / cargando / error los resuelve renderStoreList(). */
       ('<div class="oki-view oki-view--list oki-view--store">' +
           '<div class="olv-sec">' + OKI_CART + ' Tu lista de compras</div>' +
           '<div class="olv-cart" id="oki-olv-cart"></div>' +
@@ -904,10 +755,6 @@
       var b = document.createElement("button");
       b.type = "button"; b.textContent = q;
       b.addEventListener("click", function () {
-        /* Se recorta SOLO el prefijo decorativo (el emoji de los atajos de la
-           tienda). Los atajos sin emoji van completos: este recorte a ciegas
-           convertía "No sé qué necesito" en "sé qué necesito" en las 23 páginas
-           que no son la tienda, y el cliente veía su mensaje mutilado. */
         var esEmoji = !/^[0-9A-Za-zÁÉÍÓÚÜÑáéíóúüñ¿¡]/.test(q.charAt(0));
         send(esEmoji ? q.replace(/^[^\s]+\s/, "") : q);
       });
@@ -918,12 +765,6 @@
     listChip.addEventListener("click", showList);
     quick.appendChild(listChip);
 
-    /* El astronauta representa el CHAT, no un toggle ciego del panel:
-       · si estaba replegado (peek), despierta y abre en el MISMO clic;
-       · si la lista está visible, cambia a chat sin cerrar el panel;
-       · solo cierra cuando el chat ya estaba abierto.
-       Antes el primer clic podía limitarse a despertar a OKi o cerrar la lista, y
-       obligaba a pulsarlo una segunda vez para ver el chat. */
     document.getElementById("oki-btn").addEventListener("click", function () {
       if (okiPeeked) okiWake();
       if (panel.classList.contains("on") && panel.getAttribute("data-view") === "chat") {
@@ -933,10 +774,9 @@
       showChat();
       if (!panel.classList.contains("on")) open();
     });
-    // Al pasar el mouse por encima, regresa (por si estorbaba) y reinicia el conteo.
     dock.addEventListener("mouseenter", function () { if (okiPeeked) okiWake(); else okiResetPeekTimer(); });
     window.addEventListener("resize", function () { if (okiPeeked || okiShouldDodge()) okiUpdatePosition(); }, { passive: true });
-    okiResetPeekTimer(); // arranca el conteo de inactividad (12s → se esconde en su esquina derecha)
+    okiResetPeekTimer();
     panel.querySelector(".cls").addEventListener("click", close);
     panel.querySelector("#oki-form").addEventListener("submit", function (e) {
       e.preventDefault();
@@ -944,20 +784,12 @@
       if (v) send(v);
     });
 
-    // Botón 📝 del encabezado: alterna lista ⇄ chat.
     document.getElementById("oki-tab").addEventListener("click", function () {
       panel.getAttribute("data-view") === "list" ? showChat() : showList();
     });
 
-    // ── Tu lista de compras: acciones sobre el carrito/deseados vía el contrato ──
-    // Dentro de la tienda actúa sobre el carrito EN VIVO; fuera, sobre el guardado
-    // (localStorage) para que al entrar a la tienda ya lo tengas armado.
-    // La estructura .oki-view--store SIEMPRE existe, así que el manejador se engancha
-    // aunque el catálogo aún no haya cargado (fuera de la tienda llega async).
     {
       panel.querySelector(".oki-view--store").addEventListener("click", function (e) {
-        // El clic está DENTRO del panel: no debe llegar al "clic-fuera" del document
-        // (al re-renderizar la lista el botón se desconecta y closest() fallaría → cerraría).
         e.stopPropagation();
         var S = okiStore(), x;
         if (!S) return;
@@ -971,16 +803,12 @@
         else if (e.target.closest("#oki-olv-store")) { try { S.entrarTienda(); } catch (er) { okiGoTienda(); } }
         else if (e.target.closest("#oki-olv-chat")) { showChat(); }
       });
-      if (storeReady()) panel.setAttribute("data-view", "list"); // en la tienda la LISTA predomina; fuera predomina el CHAT
-      okiSyncTab();   // el icono del encabezado debe nacer acorde a la vista inicial
+      if (storeReady()) panel.setAttribute("data-view", "list");
+      okiSyncTab();
       renderStoreList();
-      okiUpdateBadge();  // el globito del carrito refleja lo guardado en cualquier página
+      okiUpdateBadge();
     }
 
-    // Fuera de la tienda, window.OK_PRODUCTS lo llena catalogo.js de forma ASÍNCRONA y
-    // avisa con 'ok-catalogo-listo'. OKi también resuelve por su cuenta el carrito/deseados
-    // guardados (por si catalogo.js no está en esta página). Al llegar los datos se refresca
-    // el globito del carrito y la lista si está abierta.
     function okiOnCatalogReady() {
       okiUpdateBadge();
       if (panel && panel.getAttribute("data-view") === "list") renderStoreList();
@@ -988,20 +816,13 @@
     window.addEventListener("ok-catalogo-listo", okiOnCatalogReady);
     if (!storeReady()) okiHydrateSaved(function () { okiOnCatalogReady(); });
 
-    // Cerrar al hacer clic fuera del panel. En la tienda TAMBIÉN cierra la lista,
-    // EXCEPTO al agregar/marcar deseado (para que la lista refleje el cambio) o al
-    // tocar el botón ❤ (que justamente la abre en los deseados).
     document.addEventListener("click", function (e) {
       if (!panel.classList.contains("on")) return;
       if (e.target.closest("#oki-panel") || e.target.closest("#oki-dock")) return;
-      /* #tdGo (Enviar al carrito, compra rápida): su emit puede abrir esta lista DURANTE
-         el mismo clic (hidratación síncrona); sin la excepción, este handler la cerraba
-         al instante y el CTA parecía muerto. */
       if (storeReady() && e.target.closest("[data-add],[data-wish],[data-madd],#wishBtn,#tdGo")) return;
       close();
     });
 
-    // Vuela un poquito al hacer scroll (efecto de propulsión).
     window.addEventListener("scroll", function () {
       var b = document.getElementById("oki-btn");
       if (!b) return;
@@ -1010,7 +831,6 @@
       thrustT = setTimeout(function () { b.classList.remove("thrust"); }, 900);
     }, { passive: true });
 
-    // Globo de saludo: aparece a los 3.5s, se esconde a los ~11s.
     bubbleT = setTimeout(function () {
       var bb = document.getElementById("oki-bubble");
       if (bb && !panel.classList.contains("on")) {
@@ -1023,7 +843,7 @@
   function open() {
     document.getElementById("oki-bubble").classList.remove("on");
     clearTimeout(bubbleT);
-    okiPeeked = false; okiUpdatePosition(); okiResetPeekTimer(); // usar OKi = despertar
+    okiPeeked = false; okiUpdatePosition(); okiResetPeekTimer();
     panel.classList.add("on");
     panel.setAttribute("aria-hidden", "false");
     if (!greeted) {
@@ -1031,7 +851,6 @@
       addMsg(storeReady()
         ? "¡Hola! Soy OKi 🚀 Respondo tus preguntas y también soy especialista en papelería, oficina y escolares. Puedo recomendarte productos y ayudarte con tu carrito, pago o entrega. ¿Qué necesitas?"
         : "¡Hola! Soy OKi 🚀 Puedo responder tus preguntas y ayudarte con todo el sitio. ¿Qué quieres saber?", "bot");
-      // Si ya llevas productos, OKi te muestra tu lista al abrir.
       if (storeReady() && okiCartCount() > 0) {
         var reply = storeLocalReply("que llevo en el carrito");
         if (reply) addMsg(reply, "bot");
@@ -1067,11 +886,7 @@
     addMsg(text, "me");
     history.push({ role: "user", content: text });
 
-    // Modo tienda: el estado en vivo del carrito/deseados se responde aquí
-    // (el cerebro del servidor no conoce lo que TÚ llevas).
     var local = storeLocalReply(text);
-    // Agregar al carrito puede tardar un instante (busca el producto en el catálogo
-    // del servidor si no está en pantalla) → viene como promesa.
     if (local && typeof local.then === "function") {
       busy = true; typing(true);
       local.then(function (msg) {
@@ -1091,14 +906,10 @@
     setTimeout(function () { input.focus(); }, 60);
   }
 
-  // El cerebro del servidor: asistente general con especialidad en la tienda.
   function askBrain(text) {
     busy = true;
     typing(true);
 
-    /* Tiempo límite: sin esto, un servidor colgado dejaba a OKi "escribiendo…"
-       para siempre y el chat quedaba mudo hasta recargar la página. 25 s cubre
-       la respuesta más lenta de la IA con margen. */
     var ctrl = ("AbortController" in window) ? new AbortController() : null;
     var timer = ctrl && setTimeout(function () { ctrl.abort(); }, 25000);
 
@@ -1115,7 +926,6 @@
           "No pude procesarlo en este momento. Intenta formular tu pregunta de otra manera.";
         addMsg(reply, "bot");
         history.push({ role: "assistant", content: reply });
-        // Navegación directa: OKi lleva al usuario a la sección pedida.
         if (data && data.go) {
           setTimeout(function () { window.location.href = data.go; }, 950);
         }
@@ -1127,32 +937,19 @@
       .then(function () { if (timer) clearTimeout(timer); busy = false; input.focus(); });
   }
 
-  /* ── API pública mínima: window.OKi ──
-     Para que otras páginas puedan invocar a OKi sin conocer sus tripas. Hoy la usa la
-     ficha de producto (assets/producto.js) para preguntarle sobre el producto que estás
-     viendo. Se expone SOLO lo necesario; el resto sigue encerrado en este módulo. */
-  /* Abrir en el SIGUIENTE tick, no ya mismo. Casi siempre esto se llama desde un clic
-     (un botón de la página), y ese clic sigue burbujeando hasta el `document`, donde
-     OKi cierra "al hacer clic fuera": el panel se cerraba solo en el mismo clic que lo
-     abría. Al diferir, el clic termina primero y el panel se queda abierto. */
   function okiAbrirDiferido(luego) {
     setTimeout(function () {
       open();
-      // Un respiro para que el panel termine de abrir antes de escribir en él.
       if (luego) setTimeout(luego, 260);
     }, 0);
   }
   window.OKi = {
     abrir: function () { okiAbrirDiferido(); },
     cerrar: function () { close(); },
-    /** Abre el panel y manda la pregunta como si la hubieras escrito tú. */
     preguntar: function (texto) {
       texto = String(texto == null ? "" : texto).trim();
       okiAbrirDiferido(texto ? function () { send(texto); } : null);
     },
-    /** Abre el panel y OKi DICE algo, sin preguntarle nada al cerebro. Sirve para
-     *  invitar a preguntar (lo usa el botón de la ficha de producto): la pregunta la
-     *  pone la persona, no nosotros. */
     decir: function (texto) {
       texto = String(texto == null ? "" : texto).trim();
       okiAbrirDiferido(texto ? function () { okiSay(texto); } : null);

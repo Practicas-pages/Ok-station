@@ -255,7 +255,6 @@ $ldCrumbs = [
 ];
 ?>
 <!DOCTYPE html>
-<!-- Ok.station — Ficha de producto. Se arma en el servidor por SEO (ver comentario arriba). -->
 <html lang="es-MX">
 <head>
   <meta charset="UTF-8">
@@ -307,7 +306,6 @@ $ldCrumbs = [
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" media="print" onload="this.media='all'">
   <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"></noscript>
-  <!-- Tema (claro/oscuro): antes de la hoja para pintar ya con el tema elegido -->
   <script src="/assets/theme.js?v=20260721a"></script>
   <link rel="stylesheet" href="/styles.css?v=20260728d">
   <link rel="stylesheet" href="/assets/shop-header.css?v=20260728m">
@@ -323,26 +321,8 @@ $ldCrumbs = [
 <body id="top">
 <a class="skip-link" href="#main">Saltar al contenido principal</a>
 
-<!-- Barra del e-commerce: la MISMA de la tienda (ver assets/shop-header.css/js). En la
-     ficha las acciones son de NAVEGACIÓN — el buscador sugiere y enlaza a fichas, el
-     carrito/favoritos leen el mismo localStorage y las categorías llevan a la tienda. -->
-<!-- ─────────────────────────────────────────────────────────────────────────
-     Ok.station — NAVBAR UNIFICADO · marcado canónico
-     Esta es la COPIA MAESTRA. Va pegada tal cual en cada página (no se inyecta
-     por JavaScript a propósito: los enlaces de navegación deben venir en el HTML
-     para que Google los siga, que es justo por lo que la ficha se arma en el
-     servidor).
-     Necesita:  <link rel="stylesheet" href="/assets/oknav.css?v=20260728r">
-                <script src="/assets/oknav.js?v=20260724a" defer></script>
-     Todos los <svg> llevan width/height propios: sin tamaño intrínseco un icono
-     se pinta gigante mientras el CSS va en camino (ya pasó con el del correo).
-     ───────────────────────────────────────────────────────────────────────── -->
 <header class="oknav" id="oknav">
 
-  <!-- ══ CINTURILLO · lo mismo que traía .header-bar del sitio ═══════════════
-       Enlaces a la izquierda, lema al centro y redes a la derecha. En celular
-       se oculta entero: sus enlaces ya están en el cajón ☰ y aquí solo haría
-       más alta una barra que ya es pegajosa. -->
   <div class="oknav__belt">
     <div class="oknav__wrap">
       <nav class="oknav__beltlinks" aria-label="Enlaces rápidos">
@@ -364,7 +344,6 @@ $ldCrumbs = [
     </div>
   </div>
 
-  <!-- ══ FILA 1 · logo · buscador · ubicación · cuenta · deseados · carrito ══ -->
   <div class="oknav__row oknav__row--main">
     <div class="oknav__wrap">
 
@@ -382,9 +361,6 @@ $ldCrumbs = [
              stroke-width="2.2" stroke-linecap="round" aria-hidden="true">
           <circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/>
         </svg>
-        <!-- Sin botón de buscar: se envía con Enter, igual que el buscador del
-             resto del sitio (.shopbar__search). Con botón quedaban DOS lupas
-             en el mismo campo. -->
         <input id="oknavQ" type="search" autocomplete="off" role="combobox"
                aria-expanded="false" aria-autocomplete="list" aria-controls="oknavAc"
                aria-label="Buscar productos (escribe y pulsa Enter)"
@@ -437,7 +413,6 @@ $ldCrumbs = [
     </div>
   </div>
 
-  <!-- ══ FILA 2 · tienda ┃ servicios ······ WhatsApp ══════════════════════ -->
   <div class="oknav__row oknav__row--nav">
     <div class="oknav__wrap">
       <nav class="oknav__mobile-stores" aria-label="Accesos de compra">
@@ -501,13 +476,9 @@ $ldCrumbs = [
     </div>
   </div>
 
-  <!-- Desplegable de categorías (lo llena oknav.js con las de la BD) -->
   <div class="oknav__catsmenu" id="oknavCatsMenu" hidden></div>
 </header>
 
-<!-- ══ Cajón ☰ (celular y tablet) ═══════════════════════════════════════════
-     Aquí viven las cosas que NO merecen una fila propia en el encabezado:
-     los servicios, "¿Quiénes somos?/Contacto" y las redes sociales. -->
 <div class="oknav__scrim" id="oknavScrim" hidden></div>
 <aside class="oknav__drawer" id="oknavDrawer" aria-label="Menú" hidden>
   <div class="oknav__dhead">
@@ -534,8 +505,6 @@ $ldCrumbs = [
 
   <p class="oknav__dtitle">Ok.station</p>
   <div class="oknav__dlist">
-    <!-- En celular el botón de tema no cabe en la barra (se iba a un tercer
-         renglón), así que vive aquí. Lo mueve OKTheme, el mismo de theme.js. -->
     <button type="button" id="oknavTema">Modo oscuro <span id="oknavTemaEstado"></span></button>
     <a href="/quienes-somos.html">¿Quiénes somos?</a>
     <a href="/contactanos.html">Contacto</a>
@@ -575,14 +544,9 @@ $ldCrumbs = [
     </nav>
 
     <div class="pdp__grid">
-      <!-- ── Galería ── -->
       <section class="pdp__gallery" aria-label="Imágenes del producto">
         <?php if ($off > 0): ?><span class="pdp__off">−<?= $off ?>%</span><?php endif; ?>
         <?php if ($images): ?>
-          <!-- El zoom se activa solo si el puntero es un mouse: con el dedo estorba.
-               pdpLens = recuadro que marca QUÉ se está viendo; pdpZoom = panel al lado
-               con esa zona ampliada. Los pinta el JS al entrar el cursor y los quita al
-               salir, así que arrancan ocultos y sin ocupar lugar. -->
           <div class="pdp__stage" id="pdpStage">
             <img id="pdpMain" src="<?= e($images[0]) ?>" alt="<?= e($name) ?>" width="600" height="600" fetchpriority="high" decoding="async">
             <div class="pdp__lens" id="pdpLens" hidden aria-hidden="true"></div>
@@ -600,12 +564,10 @@ $ldCrumbs = [
           </div>
           <?php endif; ?>
         <?php else: ?>
-          <!-- Sin foto: wordmark Ok.station sobre fondo transparente (no un 📦 genérico). -->
           <div class="pdp__stage pdp__stage--empty"><img class="ph-logo" src="/assets/img/placeholder-producto.svg" alt="Producto sin imagen" width="280" height="280" loading="lazy"></div>
         <?php endif; ?>
       </section>
 
-      <!-- ── Buy box ── -->
       <section class="pdp__buy" aria-label="Comprar">
         <div class="pdp__meta">
           <?php if ($brand !== ''): ?><a class="pdp__brand" href="/tienda#store" data-ir-brand="<?= e($brand) ?>" title="Ver todo lo de <?= e($brand) ?> en la tienda"><?= e($brand) ?></a><?php endif; ?>
@@ -643,8 +605,6 @@ $ldCrumbs = [
           </button>
         </div>
         <?php else: ?>
-          <!-- Agotado: el SISTEMA avisa por correo cuando el sync de Exel le devuelva
-               existencia (stock_alerts + exel-sync). Ya no depende de WhatsApp manual. -->
           <button type="button" class="pdp__add pdp__add--wa" id="pdpAlert" data-id="<?= (int) $row['id'] ?>"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-3px;margin-right:5px"><path d="M18 8a6 6 0 00-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>Avísame por correo cuando llegue</button>
           <div id="pdpAlertBox" hidden style="margin-top:10px;padding:14px;border:1.5px solid #e3e6ee;border-radius:14px;background:#fff">
             <p style="margin:0 0 8px;font-size:.86rem;font-weight:700">¿A qué correo te avisamos?</p>
@@ -706,7 +666,6 @@ $ldCrumbs = [
           <p class="pdp__pay-note">Tus datos viajan cifrados: la tarjeta la cobra Mercado Pago, nosotros no la guardamos.</p>
         </section>
 
-        <!-- Innovación: la ficha del producto ya está aquí; OKi puede responder sobre ELLA. -->
         <button type="button" class="pdp__oki" id="pdpOki">
           <span class="pdp__oki-ico" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="M12 15l-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/></svg></span>
           <span><b>¿Dudas de este producto?</b><small>Pregúntale a OKi: para qué sirve, con qué es compatible…</small></span>
@@ -714,7 +673,6 @@ $ldCrumbs = [
       </section>
     </div>
 
-    <!-- ── Descripción y ficha ── -->
     <div class="pdp__info">
       <?php if ($desc !== ''): ?>
       <section class="pdp__card" id="descripcion">
@@ -753,11 +711,6 @@ $ldCrumbs = [
       <?php endif; ?>
     </div>
 
-    <!-- ── Dos carruseles, uno tras otro y con el MISMO diseño ──
-         1) Productos similares (misma categoría).
-         2) También te puede interesar (complementarios / cross-selling).
-         Se recorren con un solo bloque de marcado para que sean idénticos en estilo,
-         animación y responsive; cada uno solo se pinta si trae productos. -->
     <?php
     $pdpCarruseles = [];
     if ($similar)       $pdpCarruseles[] = ['Productos similares', $similar];
@@ -788,8 +741,6 @@ $ldCrumbs = [
 
 <div class="pdp__toast" id="pdpToast" role="status" aria-live="polite"></div>
 
-<!-- Barra de compra pegada abajo en móvil: en la ficha, el botón de comprar no puede
-     quedarse arriba y perderse al hacer scroll. -->
 <?php if ($stock > 0): ?>
 <div class="pdp__bar" id="pdpBar">
   <div class="pdp__bar-price"><b><?= mxn($price) ?></b><?php if ($old): ?><s><?= mxn($old) ?></s><?php endif; ?></div>
@@ -824,8 +775,6 @@ $ldCrumbs = [
               'stock' => $r['stock'], 'image' => $r['image'], 'brand' => $r['brand'], 'url' => $r['url']];
   }, $related), JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
 </script>
-<!-- shop-cart.js va ANTES de oki.js: define window.OKtienda (el puente del carrito con
-     datos REALES) para que OKi muestre la MISMA lista que el e-commerce, no el respaldo. -->
 <script src="/assets/shop-cart.js?v=20260717c" defer></script>
 <script src="/assets/shop-header.js?v=20260727a" defer></script>
 <script src="/assets/producto.js?v=20260727a" defer></script>

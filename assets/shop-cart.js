@@ -1,27 +1,12 @@
-/* ─────────────────────────────────────────────────────────────────────────
-   Ok.station — Puente del carrito para páginas del e-commerce que NO son la tienda
-   -----------------------------------------------------------------------------
-   Define window.OKtienda (el MISMO "contrato" que usa la tienda) respaldado por el
-   localStorage compartido + datos REALES del catálogo. Así OKi (y cualquiera que lea
-   el carrito) muestra EXACTAMENTE lo mismo que en la tienda, en vez de resolver los
-   ids contra el catálogo de respaldo de catalogo.js (18 productos con otros ids), que
-   era justo lo que hacía que "el carrito del astronauta se viera diferente".
-
-   La tienda define su propio OKtienda completo (con panel, grid, etc.); si ya existe,
-   este puente no se mete.
-   ───────────────────────────────────────────────────────────────────────── */
 (function () {
   "use strict";
-  if (window.OKtienda) return;   // en la tienda manda su propia implementación
+  if (window.OKtienda) return;
 
   var CART = "okstation_cart", WISH = "okstation_wishlist";
   function rd(k, d) { try { var v = JSON.parse(localStorage.getItem(k) || "null"); return v == null ? d : v; } catch (e) { return d; } }
   function wr(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
   function emit(t) { try { window.dispatchEvent(new CustomEvent("oktienda:" + t)); } catch (e) {} }
 
-  /* Caché de productos REALES por id. Se siembra con el producto de esta ficha y sus
-     relacionados (ya vienen en el HTML); lo que falte —items del carrito o deseados que
-     vengan de otra página— se pide al API por ids en una sola llamada. */
   var CACHE = {};
   function seed(p) {
     if (!p || p.id == null) return;
@@ -41,9 +26,6 @@
     rd(WISH, []).forEach(function (i) { ids[+i] = 1; });
     return Object.keys(ids).map(Number).filter(function (id) { return !CACHE[id]; });
   }
-  /* products.php topa `per_page` en 60 (shop/products.php). Pedir más NO trae más:
-     simplemente no vuelven, y la poda de abajo los borraría del carrito creyendo
-     que ya no existen. Por eso se pide en tandas de 60. */
   var MAX_POR_TANDA = 60;
 
   function hydrate(done) {
@@ -69,11 +51,6 @@
         .catch(function () { todoOk = false; })
         .then(function () {
           if (--pendientes > 0) return;
-          /* Poda de fantasmas: si el API RESPONDIÓ ok y un id que pedimos NO volvió, ese
-             producto ya no está activo (lo dio de baja el sync de Exel) o no existe. Se
-             saca del carrito/deseados para que el contador no lo cuente eternamente ni se
-             re-pida en cada cambio. Solo se poda si TODAS las tandas respondieron OK: un
-             fallo de red (o una tanda incompleta) no debe borrar items válidos. */
           if (todoOk) {
             var c = rd(CART, {}), w = rd(WISH, []), changed = false;
             need.forEach(function (id) {
@@ -101,7 +78,6 @@
     carrito: cartArr,
     deseados: function () { return rd(WISH, []).map(prod).filter(Boolean).map(function (p) { return { id: p.id, name: p.name, price: p.price, stock: p.stock, emoji: p.emoji, image: p.image, grad: p.grad }; }); },
     total: function () { var t = 0; cartArr().forEach(function (it) { t += it.price * it.qty; }); return t; },
-    /* Busca en TODO el catálogo (deja los resultados en caché para resolverlos luego). */
     buscar: function (q, limit) {
       return fetch("/backend/api/shop/products.php?per_page=" + (limit || 8) + "&page=1&q=" + encodeURIComponent(q))
         .then(function (r) { return r.json(); })
@@ -115,9 +91,9 @@
       id = +id; var n = Math.max(1, parseInt(qty, 10) || 1), c = rd(CART, {}), p = prod(id), cap = p ? p.stock : 99;
       c[id] = Math.min(cap, (+c[id] || 0) + n); wr(CART, c);
       var w = rd(WISH, []), wi = w.indexOf(id), graduo = wi >= 0;
-      if (graduo) { w.splice(wi, 1); wr(WISH, w); }   // se gradúa a carrito y sale de favoritos
+      if (graduo) { w.splice(wi, 1); wr(WISH, w); }
       refresh();
-      if (graduo) emit("deseados");                   // avisa que la lista de favoritos cambió
+      if (graduo) emit("deseados");
     },
     cambiar: function (id, d) {
       id = +id; var c = rd(CART, {}); c[id] = (+c[id] || 0) + (+d || 0);
@@ -126,19 +102,13 @@
     },
     quitar: function (id) { id = +id; var c = rd(CART, {}); delete c[id]; wr(CART, c); refresh(); },
     toggleDeseado: function (id) { id = +id; var w = rd(WISH, []), i = w.indexOf(id); if (i >= 0) w.splice(i, 1); else w.push(id); wr(WISH, w); refresh(); emit("deseados"); },
-    /* Fuera de la tienda no hay vista previa ni panel: se navega a la página real. */
     verProducto: function (id) { var p = prod(id); window.location.href = p && p.url ? p.url : ("/producto/" + id); },
-    // #cart: la tienda abre el carrito al llegar (igual que "Finalizar compra" del panel).
-    // Antes iba a #store y OKi aterrizaba en el grid con el carrito cerrado.
     abrirCarrito: function () { window.location.href = "/tienda#cart"; },
     abrirDeseados: function () { window.location.href = "/tienda#store"; },
     entrarTienda: function () { window.location.href = "/tienda#store"; },
     entrega: "recoger_en_tienda"
   };
 
-  /* Primer llenado: resuelve los ids que ya traía el carrito/deseados de otras páginas y
-     avisa a OKi para que pinte su lista con los datos reales. */
   refresh();
-  // Si el carrito cambia en otra pestaña, mantenerse al día.
   window.addEventListener("storage", function (e) { if (e.key === CART || e.key === WISH) refresh(); });
 })();

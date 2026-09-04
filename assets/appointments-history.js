@@ -1,7 +1,3 @@
-/* ============================================================
-   Ok.station — Historial de citas (perfil). Misma experiencia visual
-   que "Mis pedidos": lista las citas del usuario autenticado.
-   ============================================================ */
 (function () {
   "use strict";
   var API = "/backend/api";
@@ -11,8 +7,6 @@
   if (!host || !token()) return;
 
   var pollTimer = null;
-  /* Tras volver del checkout, el webhook puede tardar unos segundos en confirmar
-     el anticipo: reintenta hasta que ninguna cita quede "procesando". */
   function schedulePoll() {
     var tries = 0;
     if (pollTimer) clearInterval(pollTimer);
@@ -48,16 +42,12 @@
     zacatecas: "Zacatecas"
   };
   function esc(s) { var d = document.createElement("div"); d.textContent = s == null ? "" : s; return d.innerHTML; }
-  /* Datos por persona (requisitos): JSON guardado en la cita, o []. */
   function parseGuests(v) {
     if (!v) return [];
     if (Array.isArray(v)) return v;
     try { var p = JSON.parse(v); return Array.isArray(p) ? p : []; } catch (e) { return []; }
   }
 
-  /* Lleva a la página de cobro unificada (pago.html), que decide el método
-     (tarjeta en el sitio / Mercado Pago / sandbox) y recalcula el monto en el
-     servidor; el navegador nunca lo altera. */
   function startPayment(apptId, btn) {
     if (!apptId) return;
     if (btn) { btn.disabled = true; btn.textContent = "Abriendo…"; }
@@ -81,11 +71,8 @@
           if (a.tramite === "pasaporte" && a.passport_subtype) svc += " (" + esc(SUBTYPE[a.passport_subtype] || a.passport_subtype) + ")";
           if (a.tramite === "acta" && a.acta_state) svc += " (" + esc(ACTA_STATE_NAMES[a.acta_state] || a.acta_state) + ")";
           var ppl = (parseInt(a.party_size, 10) || 1) > 1 ? " · " + parseInt(a.party_size, 10) + " personas" : "";
-          /* Anticipo: cobrable solo si el trámite tiene precio fijo (amount_total) y la
-             cita no está cancelada/no asistió. Estado de pago según payment_status. */
           var amount = (a.amount_total != null && +a.amount_total > 0) ? +a.amount_total : 0;
           var closed = (a.status === "cancelada" || a.status === "no_show");
-          /* Visa/pasaporte: el anticipo es REQUISITO para confirmar la cita. */
           var requiresPay = (window.OK_APPT_REQUIRE_PAY || ["visa", "pasaporte"]).indexOf(a.tramite) >= 0;
           var unpaid = (a.payment_status !== "pagado");
           var payHtml = "";
@@ -98,11 +85,8 @@
               payHtml = '<button type="button" class="btn btn--primary btn--sm cita-pay" data-i="' + i + '">' + esc(lbl) + '</button>';
             }
           }
-          /* Aviso cuando falta el anticipo obligatorio (visa/pasaporte sin pagar). */
           var warn = (requiresPay && amount > 0 && !closed && unpaid)
             ? ' · <span style="color:#B45309;font-weight:600">Falta pago para confirmar</span>' : '';
-          /* Trámite que se cotiza (apostille/médica): mientras el trabajador no fije
-             el anticipo, avisamos que llegará por correo (no mostramos botón de pago). */
           var awaitingQuote = (amount <= 0) && !closed &&
             ((+a.needs_quote === 1) || (String(a.needs_quote) === "1")) && !a.quoted_at;
           var quoteNote = awaitingQuote
@@ -129,7 +113,6 @@
             if (a) startPayment(a.id, btn);
           });
         });
-        // Si alguna cita quedó "procesando" (volviste del checkout), refresca el estado.
         if (list.some(function (a) { return a.payment_status === "procesando"; })) schedulePoll();
       })
       .catch(function () { host.innerHTML = '<p style="color:var(--color-error)">No se pudo cargar el historial de citas.</p>'; });

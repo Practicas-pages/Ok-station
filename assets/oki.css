@@ -1,15 +1,3 @@
-/* ══════════════════════════════════════════════════════════════════
-   MASCOTA OKi — astronauta asistente (chatbot). Autocontenido.
-   Lo carga assets/oki.js (diferido). z-index 110/112: por debajo de los
-   modales de citas (que usan 120) para no taparlos. Puente de variables
-   para no depender de tokens que no existen en styles.css.
-
-   NOTA ANIMACIONES: styles.css tiene un reset global bajo
-   prefers-reduced-motion (línea ~3380: *{animation-duration:.01ms!important})
-   que congela TODO. La PC del dueño tiene "reducir movimiento" ON. Igual que
-   el fondo animado del sitio, las animaciones de OKi llevan !important para
-   GANARLE a ese reset y verse siempre. (Decisión explícita del dueño.)
-   ══════════════════════════════════════════════════════════════════ */
 .oki-dock, .oki-panel{
   --blue:var(--brand-blue,#066CFF); --blue-h:var(--brand-blue-hover,#0558CC); --blue-l:var(--brand-blue-light,#EAF1FF);
   --purple:var(--brand-purple,#9C1DFF); --grad-blue:var(--grad-azul-cyan,#066CFF);
@@ -19,27 +7,16 @@
   --sh-blue:0 14px 40px rgba(6,108,255,.30),0 4px 16px rgba(6,108,255,.18);
 }
 .oki-dock{position:fixed;right:26px;bottom:26px;z-index:110;transform:translate3d(0,0,0);transition:transform .45s cubic-bezier(.34,.1,.2,1),opacity .3s ease}
-/* Al abrir el carrito, OKi se desplaza a la IZQUIERDA (desktop) o se oculta abajo (móvil).
-   El movimiento se aplica por estilo INLINE desde oki.js (más fiable que alternar clase). */
-/* "Peek": tras 30s sin usar OKi, se esconde y solo asoma; al tocarlo o pasar el mouse, regresa. */
 .oki-dock.oki-peek{cursor:pointer}
 .oki-dock.oki-peek .oki-bubble{display:none !important}
-/* Rebote al aparecer desde el "peek". */
 .oki-dock.oki-waking .oki__craft{animation:okiWakePop .72s cubic-bezier(.2,1.5,.4,1) !important}
 @keyframes okiWakePop{0%{transform:scale(.72) translateY(6px) rotate(-7deg)}55%{transform:scale(1.12) rotate(5deg)}100%{transform:scale(1) rotate(0)}}
-/* Escondido: un guiño/aleteo de atención cada tanto para que se note que sigue ahí. */
 .oki-dock.oki-peek .oki__astro{animation:okiPeekWiggle 3.4s ease-in-out infinite !important}
 @keyframes okiPeekWiggle{0%,74%,100%{transform:translateX(0) rotate(0)}82%{transform:translateX(-4px) rotate(-8deg)}90%{transform:translateX(0) rotate(6deg)}}
-/* En reposo, saluda con el brazo derecho de vez en cuando. */
 .oki:not(.thrust):not(:hover) .oki-armR{animation:okiWave 7.5s ease-in-out infinite !important}
 @keyframes okiWave{0%,86%,100%{transform:rotate(0)}90%{transform:rotate(-24deg)}94%{transform:rotate(6deg)}98%{transform:rotate(-15deg)}}
-/* Al pasar el mouse, una ligera inclinación curiosa. */
 .oki:hover .oki__astro{transform:rotate(3deg) translateY(-2px)}
-/* Badge con el número de artículos del carrito, sobre el astronauta (modo tienda). */
 .oki-cart-badge{position:absolute;top:2px;right:2px;min-width:21px;height:21px;padding:0 5px;border-radius:var(--r-full);background:#e11d48;color:#fff;font-size:.72rem;font-weight:800;display:flex;align-items:center;justify-content:center;box-shadow:0 3px 8px rgba(225,29,72,.45);border:2px solid #fff;z-index:6;animation:okiBadgePop .3s cubic-bezier(.2,1.4,.4,1) !important;pointer-events:none}
-/* Escondido (peek): el astronauta se recuesta en la pared derecha y su mitad derecha
-   queda FUERA de la pantalla — con el contador ahí, no se veía cuántos productos
-   llevas. Escondido va a la izquierda; asomado, a la derecha de siempre. */
 .oki-dock.oki-peek .oki-cart-badge{right:auto;left:2px}
 @keyframes okiBadgePop{from{transform:scale(.3);opacity:0}to{transform:scale(1);opacity:1}}
 .oki{position:relative;display:block;width:76px;height:88px;border:0;background:transparent;cursor:pointer;overflow:visible}
@@ -99,8 +76,6 @@
 .oki-typing i{width:6px;height:6px;border-radius:50%;background:var(--muted);animation:okiBlink 1s infinite !important}
 .oki-typing i:nth-child(2){animation-delay:.2s} .oki-typing i:nth-child(3){animation-delay:.4s}
 @keyframes okiBlink{0%,60%,100%{opacity:.3}30%{opacity:1}}
-/* Sugerencias: se arrastran de lado. La barra de scroll nativa se oculta (se veía
-   como una franja gris encimada) y el difuminado del extremo avisa que hay más. */
 .oki-quick{display:flex;gap:7px;overflow-x:auto;padding:9px 12px;border-top:1px solid var(--line);scrollbar-width:none;-ms-overflow-style:none;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain;-webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 22px),transparent 100%);mask-image:linear-gradient(90deg,#000 calc(100% - 22px),transparent 100%)}
 .oki-quick::-webkit-scrollbar{display:none}
 .oki-quick button{white-space:nowrap;border:1.5px solid var(--line2);background:#fff;border-radius:var(--r-full);padding:6px 12px;font-size:.74rem;font-weight:700;color:var(--ink2);cursor:pointer}
@@ -110,8 +85,6 @@
 .oki-input button{border:0;background:var(--blue);color:#fff;min-width:40px;height:40px;border-radius:50%;font-size:1rem;box-shadow:var(--sh-blue);cursor:pointer}
 @media (max-width:560px){
   .oki-dock{right:7px;bottom:10px} .oki{width:50px;height:60px}
-  /* En compra rápida el botón de envío vive pegado al borde inferior. OKi
-     sube para no tapar esa acción principal en teléfonos angostos. */
   body:has(.td-wrap) .oki-dock{bottom:68px}
   .oki-bubble{display:none}
   .oki-panel{
@@ -128,7 +101,6 @@
   .olv-x,.olv-wsh,.olv-add{min-width:36px;min-height:36px}
 }
 
-/* ── Mi lista (armar pedido/papelería → WhatsApp) ── */
 .oki-panel__t{flex:1;min-width:0}
 .oki-tab{background:rgba(255,255,255,.22);border:0;color:#fff;width:28px;height:28px;border-radius:50%;font-size:.9rem;cursor:pointer}
 .oki-view--list{display:none}
@@ -152,13 +124,11 @@
 .oki-list-send:disabled{opacity:.5;cursor:default;box-shadow:none}
 .oki-list-soon{margin-left:auto;color:var(--muted);font-size:.72rem;font-weight:600;align-self:center;text-align:right}
 
-/* ── Lista de la tienda dentro de OKi: carrito (con cantidades) + recomendaciones + deseados ── */
 .oki-view--store{max-height:60vh;overflow-y:auto;background:var(--soft);padding-bottom:6px}
 .olv-sec{font-size:.65rem;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);font-weight:800;padding:12px 16px 4px}
 .olv-cart{padding:0 12px}
 .olv-it{display:grid;grid-template-columns:34px 1fr auto auto;gap:9px;align-items:center;background:#fff;border:1px solid var(--line);border-radius:12px;padding:7px 9px;margin-bottom:7px}
 .olv-th{width:34px;height:34px;border-radius:8px;display:grid;place-items:center;color:#fff;font-size:1.05rem;flex:0 0 auto;overflow:hidden}
-/* Con foto real del producto: fondo blanco y la imagen completa (sin recortar). */
 .olv-th--img{background:#fff;border:1px solid var(--line);padding:2px;cursor:pointer}
 .olv-th--img img{width:100%;height:100%;object-fit:contain;display:block}
 .olv-nm{min-width:0}
@@ -169,17 +139,9 @@
 .olv-q span{font-size:.76rem;font-weight:700;min-width:12px;text-align:center}
 .olv-x{border:0;background:none;color:var(--muted);font-size:.85rem;cursor:pointer}
 .olv-x:hover{color:#e11d48}
-/* Renglón AGOTADO: se atenúa la foto y el nombre para que se distinga de un
-   vistazo, pero el precio y la ✕ se dejan legibles — la persona necesita ver de
-   qué se trata para decidir si lo quita. No se oculta el renglón: desaparecer
-   algo del carrito sin avisar es peor que mostrarlo marcado. */
 .olv-it--out .olv-th{opacity:.55}
 .olv-it--out .olv-nm > b{opacity:.55}
 .olv-q button[disabled]{opacity:.35;cursor:not-allowed}
-/* El "agotado" va con la especificidad subida a propósito. Es un <b> dentro de
-   .olv-nm, así que la regla de más abajo `:is(.olv-it .olv-nm b, …){color:#E9EDF6}`
-   del bloque oscuro le ganaba y lo pintaba de blanco como cualquier nombre. Al
-   nombrar la clase en el selector queda por encima en ambos temas. */
 .olv-it .olv-nm b.olv-out{color:#D92D20;font-weight:800;opacity:1}
 html[data-theme="dark"] .olv-it .olv-nm b.olv-out{color:#FF6B5E}
 .olv-empty{color:var(--muted);font-size:.8rem;text-align:center;padding:16px 12px;line-height:1.5}
@@ -195,79 +157,46 @@ html[data-theme="dark"] .olv-it .olv-nm b.olv-out{color:#FF6B5E}
 .olv-add{border:0;background:var(--blue-l);color:var(--blue);width:28px;height:28px;border-radius:8px;font-weight:800;font-size:1rem;cursor:pointer}
 .olv-chat{margin:8px 12px 12px;border:1.5px solid var(--line2);background:#fff;border-radius:10px;padding:9px;font-weight:700;color:var(--ink2);cursor:pointer}
 .olv-chat:hover{border-color:var(--blue);color:var(--blue)}
-/* CTA "Entrar a la tienda" (solo fuera del e-commerce) */
 .olv-store{margin:10px 12px 4px;width:calc(100% - 24px);background:var(--grad-blue);color:#fff;border:0;border-radius:10px;padding:11px;font-weight:800;box-shadow:var(--sh-blue);cursor:pointer;font-size:.9rem}
 .olv-store:hover{filter:brightness(1.05)}
-/* Resaltado breve al enfocar la sección de deseados (botón ❤). */
 .olv-flash > .olv-rec, .olv-flash > .olv-empty{animation:olvFlash 1.3s ease !important}
 @keyframes olvFlash{0%,100%{box-shadow:0 0 0 0 rgba(156,29,255,0)}25%{box-shadow:0 0 0 3px rgba(156,29,255,.35)}}
 
 
-/* ══════════════════════════════════════════════════════════════════
-   MODO OSCURO — se activa con html[data-theme="dark"] (assets/theme.js)
-   ------------------------------------------------------------------
-   OKi aparece en TODAS las páginas, así que sin esto el panel quedaba
-   como una caja BLANCA brillante sobre la página oscura.
-
-   Dos pasos: (1) redefinir los tokens LOCALES que declara .oki-dock/
-   .oki-panel arriba —de ahí sale el 70%—, y (2) parchar las superficies
-   que traen el blanco escrito a mano.
-   La MARCA no se toca: el encabezado con degradado, el azul y el badge
-   ya funcionan sobre oscuro.
-   ══════════════════════════════════════════════════════════════════ */
-/* (1) Tokens locales en versión noche — misma familia azul-noche que el sitio. */
 html[data-theme="dark"] :is(.oki-dock, .oki-panel){
   --soft:#1B2338; --ink:#E9EDF6; --ink2:#B6BFD3; --muted:#8A94AB;
   --line:#26314A; --line2:#3A4763;
   --sh-md:0 12px 32px rgba(0,0,0,.5),0 4px 12px rgba(0,0,0,.35);
 }
 
-/* (2) Superficies con el blanco escrito a mano. */
 html[data-theme="dark"] .oki-panel{ background:#171F31; border-color:#26314A;
   box-shadow:0 26px 64px rgba(0,0,0,.62) }
 html[data-theme="dark"] .oki-bubble{ background:#171F31; border-color:#26314A; color:#E9EDF6 }
-/* La colita de la burbuja es un triángulo pintado con border-color: va al tono del panel. */
 html[data-theme="dark"] .oki-bubble::after{ border-top-color:#171F31 }
 
-/* Mensajes del chat: el del BOT es la superficie; el MÍO se queda azul de marca. */
 html[data-theme="dark"] .oki-msg.bot{ background:#1B2338; border-color:#26314A; color:#E9EDF6 }
 
-/* Botones y chips que eran blancos → superficie elevada. */
 html[data-theme="dark"] :is(.oki-quick button, .oki-list-clear, .olv-chat, .olv-store){
   background:#1B2338; border-color:#3A4763; color:#B6BFD3 }
 html[data-theme="dark"] :is(.oki-quick button:hover, .oki-list-clear:hover, .olv-chat:hover, .olv-store:hover){
   background:#232D46 }
 
-/* Renglones de "tu lista de compras", recomendaciones y deseados. */
 html[data-theme="dark"] :is(.olv-it, .olv-rec){ background:#1B2338; border-color:#26314A }
 html[data-theme="dark"] :is(.olv-it .olv-nm b, .olv-rec .olv-nm b){ color:#E9EDF6 }
-/* La miniatura CON FOTO conserva fondo claro a propósito: las fotos de producto
-   vienen recortadas sobre blanco y sobre oscuro se ven con un halo feo. */
 html[data-theme="dark"] .olv-th--img{ background:#F2F4F8; border-color:#3A4763 }
 
-/* Estados vacíos y textos secundarios de la lista. */
 html[data-theme="dark"] .olv-empty{ color:#8A94AB }
 
-/* Caja de escritura del chat (el input no declara fondo propio). */
 html[data-theme="dark"] .oki-input input{ background:#1B2338; color:#E9EDF6; border-color:#3A4763 }
 html[data-theme="dark"] .oki-input input::placeholder{ color:#67708A }
 
-/* Selector de cantidad del renglón: el +/- era azul sobre azul muy claro. */
 html[data-theme="dark"] .olv-q button{ background:#10233E; color:#5FA8FF }
 html[data-theme="dark"] .olv-q span{ color:#E9EDF6 }
 
-/* El contador del carrito lleva un aro blanco pensado para recortarse contra
-   página CLARA; sobre el azul-noche brillaba y parecía despegado. */
 html[data-theme="dark"] .oki-cart-badge{ border-color:#171F31 }
 
-/* Corazón de "deseados" apagado: su gris claro brillaba MÁS que el activo, y
-   parecía que todo estaba marcado como deseado. */
 html[data-theme="dark"] .olv-wsh{ color:#5A6480 }
 
-/* La etiqueta "oferta" y la X de quitar: naranja y rojo legibles sobre noche. */
 html[data-theme="dark"] .olv-rec small .o{ color:#FB923C }
 html[data-theme="dark"] .olv-x:hover{ color:#F87171 }
 
-/* El SVG del astronauta NO se toca: su traje blanco es la mascota, y sobre el
-   fondo noche se ve mejor. Tampoco .olv-th--img (arriba): las fotos de producto
-   vienen recortadas sobre blanco. */

@@ -1,37 +1,13 @@
 <!DOCTYPE html>
-<!--
-  ============================================================
-  Ok.station — Página principal
-  Marca: Ok.station (una marca de OK Dock) · Tijuana, B.C.
-  Alineado al design system v2.0 (styles.css + app.js)
-  Convención de clases: BEM (.bloque__elemento--modificador)
-  ============================================================
-  NOTAS DE INTEGRACIÓN WORDPRESS + ELEMENTOR (ver guía al final):
-  - El marcado de <body> se pega en un widget "HTML" de Elementor
-    (sección a ancho completo, sin contenedor) o      
-    
-    
-    
-    
-    
-    en una plantilla.
-  - styles.css y app.js se encolan desde el child theme (functions.php).
-  - Los bloques marcados "EDITAR" requieren tus datos reales.
-  ============================================================
--->
 <html lang="es-MX">
 
 <head>
   <meta charset="UTF-8">
 
-  <!-- Puerta de mantenimiento. La portada era la ÚNICA página del sitio que no lo
-       cargaba, y es justo donde viven el banner de compra y los botones de Tienda y
-       Compra rápida: sin esto seguían a la vista aunque la tienda esté cerrada. -->
   <script src="assets/site-guard.js?v=20260728n"></script>
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 
-  <!-- ===================== SEO BÁSICO ===================== -->
   <title>Ok.station Otay — Copias, Impresión y Trámites, Tijuana</title>
   <meta name="google-site-verification" content="uis2T8GTomeaSjoapDq4vGg4Sl6CQRIkcQEBQqo36Lg" />
   <meta name="description" content="Copias, impresiones, fotos para trámites, enmicado, engargolado y citas para pasaporte, visa y SENTRI en Centro Comercial Otay, Tijuana. ¡Escríbenos hoy!">
@@ -45,7 +21,6 @@
   <meta name="ICBM" content="32.5360, -116.9690">
   <link rel="canonical" href="https://okstation.mx/">
 
-  <!-- ===================== OPEN GRAPH ===================== -->
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="Ok.station">
   <meta property="og:locale" content="es_MX">
@@ -53,27 +28,20 @@
   <meta property="og:description"
     content="Copias, impresiones, fotografías y trámites — todo en un solo lugar. Centro Comercial Otay, Tijuana. Precio justo y atención personal.">
   <meta property="og:url" content="https://okstation.mx/">
-  <!-- Temporal: foto de la fachada (ya existe en el servidor). Reemplazar por una og-image.jpg dedicada de 1200×630 px cuando esté lista (y reañadir og:image:width/height). -->
   <meta property="og:image" content="https://okstation.mx/assets/img/hero-okstation.webp">
   <meta property="og:image:alt" content="Fachada de Ok.station en Centro Comercial Otay, Tijuana">
 
-  <!-- ===================== TWITTER CARDS ===================== -->
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Ok.station Otay — Copias, Impresión y Trámites, Tijuana">
   <meta name="twitter:description" content="Copias, impresiones, fotografías y trámites en Centro Comercial Otay, Tijuana. Precio justo y atención personal.">
   <meta name="twitter:image" content="https://okstation.mx/assets/img/hero-okstation.webp">
   <meta name="twitter:image:alt" content="Ok.station — copias, impresiones y trámites en Tijuana">
 
-  <!-- ===================== FAVICONS (EDITAR rutas) ===================== -->
   <link rel="icon" href="/assets/img/OKD-Isotipo-Azul-96.png?v=20260710" type="image/png" sizes="96x96">
 
-  <!-- Preload de la imagen del hero (elemento LCP): el navegador la baja cuanto
-       antes para reducir el Largest Contentful Paint, sobre todo en móvil.
-       IMPORTANTE: si cambias la foto del hero, actualiza también este href. -->
   <link rel="preload" as="image" href="assets/img/provisional.webp"
     imagesrcset="assets/img/provisional-800.webp 828w, assets/img/provisional.webp 1600w" imagesizes="100vw" fetchpriority="high">
 
-  <!-- ===================== TIPOGRAFÍA (Poppins) ===================== -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
@@ -83,16 +51,11 @@
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
   </noscript>
 
-  <!-- ===================== HOJA DE ESTILOS ===================== -->
-  <!-- Tema (claro/oscuro): antes de la hoja para pintar ya con el tema elegido -->
   <script src="assets/theme.js?v=20260721a"></script>
   <link rel="stylesheet" href="styles.css?v=20260728d">
-  <!-- Mascota/chatbot OKi -->
   <link rel="stylesheet" href="assets/oki.css?v=20260728a">
-  <!-- Estilos del configurador de pedido embebido en #fotos -->
   <link rel="stylesheet" href="assets/order.css?v=20260707d">
 
-  <!-- ===================== DATOS ESTRUCTURADOS (JSON-LD) ===================== -->
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
@@ -233,27 +196,10 @@
 
 <body id="top">
 
-  <!-- Enlace para saltar al contenido (accesibilidad / teclado) -->
   <a class="skip-link" href="#main">Saltar al contenido principal</a>
 
-  <!-- ============================ BARRA SUPERIOR ============================ -->
-  <!-- ─────────────────────────────────────────────────────────────────────────
-     Ok.station — NAVBAR UNIFICADO · marcado canónico
-     Esta es la COPIA MAESTRA. Va pegada tal cual en cada página (no se inyecta
-     por JavaScript a propósito: los enlaces de navegación deben venir en el HTML
-     para que Google los siga, que es justo por lo que la ficha se arma en el
-     servidor).
-     Necesita:  <link rel="stylesheet" href="/assets/oknav.css?v=20260728r">
-                <script src="/assets/oknav.js?v=20260724a" defer></script>
-     Todos los <svg> llevan width/height propios: sin tamaño intrínseco un icono
-     se pinta gigante mientras el CSS va en camino (ya pasó con el del correo).
-     ───────────────────────────────────────────────────────────────────────── -->
 <header class="oknav" id="oknav">
 
-  <!-- ══ CINTURILLO · lo mismo que traía .header-bar del sitio ═══════════════
-       Enlaces a la izquierda, lema al centro y redes a la derecha. En celular
-       se oculta entero: sus enlaces ya están en el cajón ☰ y aquí solo haría
-       más alta una barra que ya es pegajosa. -->
   <div class="oknav__belt">
     <div class="oknav__wrap">
       <nav class="oknav__beltlinks" aria-label="Enlaces rápidos">
@@ -275,7 +221,6 @@
     </div>
   </div>
 
-  <!-- ══ FILA 1 · logo · buscador · ubicación · cuenta · deseados · carrito ══ -->
   <div class="oknav__row oknav__row--main">
     <div class="oknav__wrap">
 
@@ -293,9 +238,6 @@
              stroke-width="2.2" stroke-linecap="round" aria-hidden="true">
           <circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/>
         </svg>
-        <!-- Sin botón de buscar: se envía con Enter, igual que el buscador del
-             resto del sitio (.shopbar__search). Con botón quedaban DOS lupas
-             en el mismo campo. -->
         <input id="oknavQ" type="search" autocomplete="off" role="combobox"
                aria-expanded="false" aria-autocomplete="list" aria-controls="oknavAc"
                aria-label="Buscar productos (escribe y pulsa Enter)"
@@ -348,7 +290,6 @@
     </div>
   </div>
 
-  <!-- ══ FILA 2 · tienda ┃ servicios ······ WhatsApp ══════════════════════ -->
   <div class="oknav__row oknav__row--nav">
     <div class="oknav__wrap">
       <nav class="oknav__mobile-stores" aria-label="Accesos de compra">
@@ -412,13 +353,9 @@
     </div>
   </div>
 
-  <!-- Desplegable de categorías (lo llena oknav.js con las de la BD) -->
   <div class="oknav__catsmenu" id="oknavCatsMenu" hidden></div>
 </header>
 
-<!-- ══ Cajón ☰ (celular y tablet) ═══════════════════════════════════════════
-     Aquí viven las cosas que NO merecen una fila propia en el encabezado:
-     los servicios, "¿Quiénes somos?/Contacto" y las redes sociales. -->
 <div class="oknav__scrim" id="oknavScrim" hidden></div>
 <aside class="oknav__drawer" id="oknavDrawer" aria-label="Menú" hidden>
   <div class="oknav__dhead">
@@ -445,8 +382,6 @@
 
   <p class="oknav__dtitle">Ok.station</p>
   <div class="oknav__dlist">
-    <!-- En celular el botón de tema no cabe en la barra (se iba a un tercer
-         renglón), así que vive aquí. Lo mueve OKTheme, el mismo de theme.js. -->
     <button type="button" id="oknavTema">Modo oscuro <span id="oknavTemaEstado"></span></button>
     <a href="/quienes-somos.html">¿Quiénes somos?</a>
     <a href="/contactanos.html">Contacto</a>
@@ -470,11 +405,8 @@
 
   <main id="main">
 
-    <!-- ============================ HERO ============================ -->
     <section class="hero" aria-labelledby="hero-title">
       <div class="hero__bg" aria-hidden="true">
-        <!-- Foto de Ok.station de fondo (en assets/img/hero-okstation.webp).
-             Si no existe, se oculta sola y el hero se ve con el degradado oscuro. -->
         <img class="hero__bg-img" src="assets/img/provisional.webp"
           srcset="assets/img/provisional-800.webp 828w, assets/img/provisional.webp 1600w" sizes="100vw"
           alt="" loading="eager" fetchpriority="high" decoding="async"
@@ -535,7 +467,6 @@
       </a>
     </section>
 
-    <!-- ============================ SERVICIOS ============================ -->
     <section class="section" id="servicios" aria-labelledby="servicios-title">
       <div class="wrap">
         <div class="section-head section-head--center reveal">
@@ -544,7 +475,6 @@
         </div>
 
         <div class="services-grid reveal-stagger">
-          <!-- Copias -->
           <article class="service-card reveal">
           <img src="assets/img/s_copias fotostaticas.webp" alt="Copias fotostáticas a color y blanco y negro en Ok.station Tijuana" width="800" height="450" loading="lazy" decoding="async" class="service-card__img">
             <h3>Copias e impresión de documentos</h3>
@@ -553,7 +483,6 @@
             <a href="copias-e-impresiones-tijuana.html" class="service-link">Ver más <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></a>
           </article>
 
-        <!-- Impresión de fotos -->
         <article class="service-card reveal">
           <img src="assets/img/s_impresion de fotografias.webp" alt="Impresión de fotografías en Ok.station Tijuana" width="800" height="450" loading="lazy" decoding="async" class="service-card__img">
           <h3>Impresión de fotografías</h3>
@@ -562,7 +491,6 @@
           <a href="impresion-de-fotografias-tijuana.html" class="service-link">Ver más <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></a>
         </article>
 
-        <!-- Citas -->
         <article class="service-card reveal">
           <img src="assets/img/s_citas para tramites.webp" alt="Citas para trámites en Ok.station Tijuana" width="800" height="450" loading="lazy" decoding="async" class="service-card__img">
           <h3>Citas para trámites</h3>
@@ -571,7 +499,6 @@
           <a href="citas-tramites-tijuana.html" class="service-link">Ver más <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></a>
         </article>
 
-        <!-- Fotos para trámites -->
         <article class="service-card reveal">
           <img src="assets/img/s_fotos para tramites.webp" alt="Fotos para trámites en Ok.station Tijuana" width="800" height="450" loading="lazy" decoding="async" class="service-card__img">
           <h3>Fotos para trámites</h3>
@@ -580,7 +507,6 @@
           <a href="fotos-para-pasaporte-tijuana.html" class="service-link">Ver más <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></a>
         </article>
 
-        <!-- Enmicado -->
         <article class="service-card reveal">
           <img
       src="assets/img/s_enmicado.webp"
@@ -597,7 +523,6 @@
           <a href="enmicado-y-engargolado-tijuana.html" class="service-link">Ver más <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></a>
         </article>
 
-        <!-- Engargolado -->
         <article class="service-card reveal">
           <img
       src="assets/img/s_engargolado.webp"
@@ -614,7 +539,6 @@
           <a href="enmicado-y-engargolado-tijuana.html" class="service-link">Ver más <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></a>
         </article>
 
-        <!-- Papelería -->
         <article class="service-card reveal">
           <img
       src="assets/img/papeleria. oficina.webp"
@@ -631,21 +555,8 @@
           <a href="papeleria-para-oficinas-tijuana.html" class="service-link">Ver más <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></a>
         </article>
 
-        <!-- ============================================================
-             NUEVAS TARJETAS — Documentación y Servicios
-             Mismo componente (.service-card) que las de arriba: diseño, carrusel,
-             tamaños, bordes, chips (.tag) y CTA (.service-link) idénticos.
 
-             IMÁGENES (pendientes): cada tarjeta usa el placeholder
-             assets/img/placeholder-servicio.svg y un atributo data-img-slot.
-             Para poner la imagen real, basta reemplazar el atributo src del <img>
-             por el enlace deseado (no se descargan imágenes automáticamente).
-             Ej.:  src="https://.../mi-imagen.webp"   ó   src="assets/img/doc_ine.webp"
-             ============================================================ -->
 
-        <!-- ───── Documentación ───── -->
-
-        <!-- INE -->
         <article class="service-card reveal">
           <img src="assets/img/ine.webp" alt="Trámite de INE / credencial para votar en Ok.station Tijuana" width="800" height="450" loading="lazy" decoding="async" class="service-card__img" data-img-slot="doc-ine">
           <h3>INE</h3>
@@ -654,7 +565,6 @@
           <a href="tramites-y-documentos-oficiales-tijuana.html" class="service-link">Ver más <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></a>
         </article>
 
-        <!-- CURP -->
         <article class="service-card reveal">
           <img src="assets/img/curp.webp" alt="Impresión de CURP certificada en Ok.station Tijuana" width="800" height="450" loading="lazy" decoding="async" class="service-card__img" data-img-slot="doc-curp">
           <h3>CURP</h3>
@@ -663,7 +573,6 @@
           <a href="tramites-y-documentos-oficiales-tijuana.html" class="service-link">Ver más <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></a>
         </article>
 
-        <!-- RFC -->
         <article class="service-card reveal">
           <img src="assets/img/rfc.webp" alt="Constancia de situación fiscal RFC en Ok.station Tijuana" width="800" height="450" loading="lazy" decoding="async" class="service-card__img" data-img-slot="doc-rfc">
           <h3>RFC</h3>
@@ -673,7 +582,6 @@
         </article>
 
 
-        <!-- Semanas cotizadas IMSS -->
         <article class="service-card reveal">
           <img src="assets/img/imss.webp" alt="Reporte de semanas cotizadas IMSS en Ok.station Tijuana" width="800" height="450" loading="lazy" decoding="async" class="service-card__img" data-img-slot="doc-semanas-imss">
           <h3>Semanas cotizadas IMSS</h3>
@@ -682,7 +590,6 @@
           <a href="tramites-y-documentos-oficiales-tijuana.html" class="service-link">Ver más <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></a>
         </article>
 
-        <!-- Número de Seguro Social (NSS) -->
         <article class="service-card reveal">
           <img src="assets/img/numero ss.webp" alt="Número de Seguro Social NSS en Ok.station Tijuana" width="800" height="450" loading="lazy" decoding="async" class="service-card__img" data-img-slot="doc-nss">
           <h3>Número de Seguro Social (NSS)</h3>
@@ -691,7 +598,6 @@
           <a href="tramites-y-documentos-oficiales-tijuana.html" class="service-link">Ver más <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></a>
         </article>
 
-        <!-- Certificados escolares -->
         <article class="service-card reveal">
           <img src="assets/img/cert. esc.webp" alt="Impresión de certificados escolares en Ok.station Tijuana" width="800" height="450" loading="lazy" decoding="async" class="service-card__img" data-img-slot="doc-certificados-escolares">
           <h3>Certificados escolares</h3>
@@ -700,7 +606,6 @@
           <a href="tramites-y-documentos-oficiales-tijuana.html" class="service-link">Ver más <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></a>
         </article>
 
-        <!-- Actas de nacimiento -->
         <article class="service-card reveal">
           <img src="assets/img/acta nacimiento.webp" alt="Impresión de actas de nacimiento certificadas en Ok.station Tijuana" width="800" height="450" loading="lazy" decoding="async" class="service-card__img" data-img-slot="doc-acta-nacimiento">
           <h3>Actas de nacimiento</h3>
@@ -709,9 +614,7 @@
           <a href="tramites-y-documentos-oficiales-tijuana.html" class="service-link">Ver más <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></a>
         </article>
 
-        <!-- ───── Servicios ───── -->
 
-        <!-- Recargas telefónicas -->
         <article class="service-card reveal">
           <img src="assets/img/recargas telefonicas.webp" alt="Recargas telefónicas de tiempo aire en Ok.station Tijuana" width="800" height="450" loading="lazy" decoding="async" class="service-card__img" data-img-slot="serv-recargas">
           <h3>Recargas telefónicas</h3>
@@ -720,7 +623,6 @@
           <a href="https://wa.me/526647194117?text=Hola,%20quiero%20informaci%C3%B3n%20sobre%20recargas%20telef%C3%B3nicas" class="service-link" target="_blank" rel="noopener">Más información <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></a>
         </article>
 
-        <!-- Impresión en PVC -->
         <article class="service-card reveal">
           <img src="assets/img/PVC-impresion.webp" alt="Impresión en tarjetas PVC en Ok.station Tijuana" width="800" height="450" loading="lazy" decoding="async" class="service-card__img" data-img-slot="serv-pvc">
           <h3>Impresión en PVC</h3>
@@ -729,7 +631,6 @@
           <a href="impresion-tarjetas-pvc-tijuana.html" class="service-link">Ver más <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></a>
         </article>
 
-        <!-- Escaneado -->
         <article class="service-card reveal">
           <img src="assets/img/escaneaado.webp" alt="Escaneado y digitalización de documentos en Ok.station Tijuana" width="800" height="450" loading="lazy" decoding="async" class="service-card__img" data-img-slot="serv-escaneado">
           <h3>Escaneado</h3>
@@ -737,7 +638,6 @@
           <div class="service-tags"><span class="tag">PDF</span><span class="tag">Alta resolución</span><span class="tag">Documentos</span></div>
           <a href="escaneado-y-digitalizacion-tijuana.html" class="service-link">Ver más <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></a>
         </article>
-        <!-- Impresión de planos -->
         <article class="service-card reveal">
           <img src="assets/img/plano.webp" alt="Impresión de planos arquitectónicos en gran formato en Ok.station Tijuana" width="800" height="450" loading="lazy" decoding="async" class="service-card__img" data-img-slot="serv-planos">
           <h3>Impresión de planos</h3>
@@ -745,7 +645,6 @@
           <div class="service-tags"><span class="tag">Arquitectónicos</span><span class="tag">Gran formato</span><span class="tag">Plotter</span></div>
           <a href="impresion-gran-formato-planos-tijuana.html" class="service-link">Ver más <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></a>
         </article>
-        <!-- Pago de servicios -->
         <article class="service-card reveal">
            <img src="assets/img/servicios.webp" alt="Pago de servicios en Ok.station Tijuana" width="800" height="450" loading="lazy" decoding="async" class="service-card__img" data-img-slot="serv-pago-servicios">
   
@@ -767,7 +666,6 @@
             </svg>
           </a>
         </article>
-        <!-- Recorte de hoja en guillotina -->
         <article class="service-card reveal">
           <img src="assets/img/guillotina.webp" alt="Recorte de hoja en guillotina profesional en Ok.station Tijuana" width="800" height="450" loading="lazy" decoding="async" class="service-card__img" data-img-slot="serv-guillotina">
           <h3>Recorte en guillotina</h3>
@@ -779,7 +677,6 @@
     </div>
   </section>
         
-    <!-- ============================ CITAS (WIZARD) ============================ -->
   <section class="section section--alt citas-section" id="citas" aria-labelledby="citas-title">
     <div class="wrap">
       <div class="section-head section-head--center reveal">
@@ -802,7 +699,6 @@
         </aside>
 
         <div class="cita-panel">
-          <!-- Paso 1: trámite -->
           <div class="cita-step is-active" aria-hidden="false">
             <h4 class="cita-step__title">¿Qué trámite necesitas?</h4>
             <p class="cita-step__sub">Selecciona el servicio para el que quieres tu cita.</p>
@@ -873,8 +769,6 @@
               </button>
             </div>
             <div id="cita-requisitos" class="cita-reqs" hidden aria-live="polite"></div>
-            <!-- Aviso al pie del paso 1: sin sesión se pueden ver los requisitos, pero
-                 Continuar queda bloqueado; app.js muestra este aviso al elegir trámite. -->
             <div class="cita-login-note" id="cita-login-note" role="alert" hidden>
               Para continuar y agendar tu cita necesitas <a href="cuenta.html" id="cita-login-link">iniciar sesión o crear una cuenta</a>. Sin cuenta puedes consultar los requisitos de cada trámite.
             </div>
@@ -886,7 +780,6 @@
             </div>
           </div>
 
-          <!-- Paso 2: cantidad de personas -->
           <div class="cita-step" aria-hidden="true">
             <h4 class="cita-step__title">¿Cuántas personas?</h4>
             <p class="cita-step__sub">Cada persona toma ~45 min; con esto reservamos el tiempo correcto. Mínimo 1.</p>
@@ -911,7 +804,6 @@
             </div>
           </div>
 
-          <!-- Paso 3: información de cada persona (cuestionario + documentos por persona) -->
           <div class="cita-step" aria-hidden="true">
             <h4 class="cita-step__title">Información de cada persona</h4>
             <p class="cita-step__sub">Captura los datos y documentos de cada persona (CURP, identificación, etc.) para que lleguemos con todo listo el día de tu cita. Completa los campos obligatorios de cada persona para poder continuar.</p>
@@ -929,7 +821,6 @@
             </div>
           </div>
 
-          <!-- Paso 3: fecha y hora -->
           <div class="cita-step" aria-hidden="true">
             <h4 class="cita-step__title">Elige fecha y hora</h4>
             <p class="cita-step__sub">Disponibilidad sujeta a confirmación. Te avisamos por WhatsApp.</p>
@@ -957,7 +848,7 @@
               <label id="horario-label">Horario preferido</label>
               <div class="time-grid" role="group" aria-labelledby="horario-label"></div>
             </div>
-            </div><!-- /.cita-datetime -->
+            </div>
             <div class="cita-nav">
               <button type="button" class="btn btn--ghost-dark" data-cita-back>Atrás</button>
               <button type="button" class="btn btn--primary" id="cita-next-1" data-cita-next disabled aria-disabled="true">Continuar
@@ -966,11 +857,9 @@
             </div>
           </div>
 
-          <!-- Paso 4: datos -->
           <div class="cita-step cita-step--datos" aria-hidden="true">
             <h4 class="cita-step__title">Tus datos de contacto</h4>
             <p class="cita-step__sub">Para confirmarte la cita y resolver cualquier duda.</p>
-            <!-- Contacto = una de las personas registradas: 1 se autollena, varias se eligen (lo llena app.js). -->
             <div id="cita-quien-host" class="cita-quien" hidden></div>
             <div class="field-group">
               <div class="field">
@@ -988,8 +877,6 @@
               <label for="cita-tel">Teléfono / WhatsApp <span aria-hidden="true" style="color:#ff7c8a">*</span></label>
               <div class="input-prefix">
                 <span class="input-prefix__tag"><svg class="input-prefix__wa" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M.057 24l1.687-6.163a11.867 11.867 0 01-1.587-5.945C.16 5.335 5.495 0 12.05 0a11.82 11.82 0 018.413 3.488 11.82 11.82 0 013.48 8.414c-.003 6.557-5.338 11.892-11.893 11.892a11.9 11.9 0 01-5.688-1.448L.057 24z"/></svg> +52</span>
-                <!-- data-prefill-phone: si hay sesión, phone-cc.js lo llena con el teléfono
-                     registrado (editable; solo si está vacío) para no pedirlo otra vez. -->
                 <input type="tel" id="cita-tel" name="cita-tel" autocomplete="tel" inputmode="tel" placeholder="664 000 0000" required aria-required="true" data-prefill-phone>
               </div>
               <span class="field-error" id="cita-tel-error" role="alert" hidden></span>
@@ -1037,7 +924,6 @@
             </div>
           </div>
 
-          <!-- Paso 5: confirmación -->
           <div class="cita-step" aria-hidden="true">
             <div class="cita-confirm" id="cita-confirm-intro">
               <div class="cita-confirm__check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg></div>
@@ -1054,7 +940,6 @@
             </div>
           </div>
 
-          <!-- Modal: tipo de pasaporte (caso especial) -->
           <div class="cita-modal" id="cita-subtype-modal" role="dialog" aria-modal="true" aria-labelledby="cita-subtype-title" hidden>
             <div class="cita-modal__overlay" data-subtype-close></div>
             <div class="cita-modal__box" role="document">
@@ -1091,7 +976,6 @@
             </div>
           </div>
 
-          <!-- Modal: estado del Acta de Nacimiento (el precio depende del estado) -->
           <div class="cita-modal" id="cita-acta-modal" role="dialog" aria-modal="true" aria-labelledby="cita-acta-title" hidden>
             <div class="cita-modal__overlay" data-acta-close></div>
             <div class="cita-modal__box" role="document">
@@ -1099,7 +983,6 @@
               <h4 class="cita-modal__title" id="cita-acta-title">Acta de Nacimiento</h4>
               <p class="cita-modal__sub">Elige el estado donde se registró el acta. El precio depende del estado.</p>
               <div class="acta-opts" id="cita-acta-states" role="radiogroup" aria-label="Estado de registro">
-                <!-- app.js genera una tarjeta por estado con su precio vigente -->
               </div>
               <button type="button" class="btn btn--primary btn--block" id="cita-acta-confirm" disabled aria-disabled="true">Confirmar</button>
             </div>
@@ -1110,7 +993,6 @@
     </div>
   </section>
 
-  <!-- ============================ FOTOS (UPLOAD) ============================ -->
   <section class="section section--alt" id="fotos" aria-labelledby="fotos-title">
     <div class="wrap">
       <div class="section-head section-head--center reveal">
@@ -1118,8 +1000,6 @@
         <h2 class="text-h2" id="fotos-title">Súbelas en línea, <span class="hl">nosotros las imprimimos</span></h2>
       </div>
 
-      <!-- Configurador de pedido EMBEBIDO (mismo flujo que la plataforma).
-           Subir archivos y enviar el pedido requiere iniciar sesión; el resto se puede explorar libre. -->
       <div class="order-embed reveal">
         <div id="order-builder">
           <div class="order-grid">
@@ -1145,7 +1025,6 @@
               <label for="order-phone" class="order-note">Tu teléfono / WhatsApp <span aria-hidden="true" style="color:#ff7c8a">*</span></label>
               <div class="input-prefix">
                 <span class="input-prefix__tag"><svg class="input-prefix__wa" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M.057 24l1.687-6.163a11.867 11.867 0 01-1.587-5.945C.16 5.335 5.495 0 12.05 0a11.82 11.82 0 018.413 3.488 11.82 11.82 0 013.48 8.414c-.003 6.557-5.338 11.892-11.893 11.892a11.9 11.9 0 01-5.688-1.448L.057 24z"/></svg> +52</span>
-                <!-- data-prefill-phone: mismo prellenado del teléfono registrado (phone-cc.js). -->
                 <input type="tel" id="order-phone" inputmode="tel" autocomplete="tel" placeholder="664 000 0000" required data-prefill-phone>
               </div>
               <span class="field-error" id="order-phone-error" role="alert" hidden></span>
@@ -1154,8 +1033,6 @@
               <p class="order-note order-note--pay">Los pedidos se pagan al <b>100%</b> al confirmar.</p>
               <p class="order-note">El monto mínimo para pagar en línea es de <b>$5 MXN</b>.</p>
               <p class="order-note order-note--warn" id="order-min-warn" hidden>Tu total es menor al mínimo de <b>$5 MXN</b> para pago en línea. Agrega más copias o páginas para continuar.</p>
-              <!-- Aviso junto a "Enviar pedido": sin sesión se pueden subir archivos y ver
-                   precios, pero enviar queda bloqueado; order.js muestra este aviso. -->
               <div class="order-login-note" id="order-login-note" role="alert" hidden>
                 Para enviar tu pedido necesitas <a href="cuenta.html" id="order-login-link">iniciar sesión o crear una cuenta</a>. Sin cuenta puedes subir tus archivos y consultar los precios.
               </div>
@@ -1180,11 +1057,8 @@
     </div>
   </section>
 
-    <!-- ============= CTA: NUEVA TIENDA EN LÍNEA (banner animado del simulador) ============= -->
     <style>
       .okpromo-sec{padding-block:clamp(28px,5vw,54px)}
-      /* Gradiente de marca que fluye (como el simulador). !important para ganarle al reset de reduce-motion. */
-      /* SIN degradado (acuerdo jul 2026): azul plano de la marca, sin animación de fondo. */
       .okpromo{position:relative;border-radius:32px;overflow:hidden;background:#066CFF;color:#fff;display:grid;grid-template-columns:1.12fr .88fr;min-height:236px;box-shadow:0 26px 60px rgba(6,108,255,.32);text-decoration:none}
       @keyframes okpromoFlow{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
       .okpromo__glow{position:absolute;width:420px;height:420px;border-radius:50%;background:radial-gradient(circle,rgba(0,166,255,.4),transparent 65%);top:-140px;right:-60px;pointer-events:none}
@@ -1232,28 +1106,20 @@
             <div class="okpromo__badges"><span>Recoge el mismo día</span><span>Pago con Mercado Pago</span><span>Factura disponible</span></div>
           </div>
           <div class="okpromo__art" aria-hidden="true">
-            <!-- Iconos SVG (libreta, clip, pluma, tijeras): antes eran emojis y cada
-                 sistema los dibujaba distinto; así se ven igual en todos lados. -->
             <span class="okpromo__float f1"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></span><span class="okpromo__float f2"><svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg></span><span class="okpromo__float f3"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/><path d="M2 2l7.586 7.586"/><circle cx="11" cy="11" r="2"/></svg></span><span class="okpromo__float f4"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><line x1="20" y1="4" x2="8.12" y2="15.88"/><line x1="14.47" y1="14.48" x2="20" y2="20"/><line x1="8.12" y1="8.12" x2="12" y2="12"/></svg></span>
           </div>
         </a>
       </div>
     </section>
 
-    <!-- ============================ TESTIMONIOS ============================ -->
-    <!-- Reseñas dinámicas (CRUD ligado al login). Las 3 tarjetas estáticas
-       son fallback sin-JS / contenido para buscadores; reviews.js las reemplaza. -->
     <section class="section" id="testimonios" aria-labelledby="testimonios-title">
       <div class="wrap">
-        <!-- Reseñas propias: OCULTAS por ahora (se reactivarán a futuro).
-             Por ahora solo se muestran las reseñas verificadas de Google (abajo). -->
         <div hidden aria-hidden="true">
         <div class="section-head section-head--center reveal">
           <span class="eyebrow eyebrow--cyan">Reseñas</span>
           <h2 class="text-h2" id="testimonios-title">Lo que dicen <span class="hl">nuestros clientes</span></h2>
         </div>
 
-        <!-- Resumen + acción de reseñas (los gestiona reviews.js) -->
         <div class="reviews-bar reveal">
           <div class="rating-summary" id="reviews-summary" hidden></div>
           <div id="reviews-action"></div>
@@ -1356,15 +1222,11 @@
           </article>
         </div>
         </div>
-        <!-- fin reseñas propias ocultas -->
 
-        <!-- ====== RESEÑAS EN GOOGLE (widget oficial de Featurable) ====== -->
         <div class="reveal" style="text-align: center">
           <span class="eyebrow eyebrow--cyan">Reseñas verificadas en Google</span>
         </div>
         <div id="featurable-30bf3581-fa31-45bf-b825-63cf9e6bb10e" data-featurable-async style="display:block; margin-top: var(--space-5)"></div>
-        <!-- Widget de reseñas (Featurable, terceros): se carga cuando la seccion entra
-             en viewport, para no bloquear el hilo principal en la carga inicial (baja TBT). -->
         <script>
           (function () {
             var el = document.getElementById("featurable-30bf3581-fa31-45bf-b825-63cf9e6bb10e");
@@ -1387,7 +1249,6 @@
       </div>
     </section>
 
-    <!-- ============================ FAQ ============================ -->
     <section class="section section--alt" id="faq" aria-labelledby="faq-title">
       <div class="wrap">
         <div class="section-head section-head--center reveal">
@@ -1476,28 +1337,6 @@
       </div>
     </section>
 
-    <!-- ============================ VISÍTANOS ============================ -->
-    <!-- ============================================================
-     Ok.station — Sección "Estamos en Centro Comercial Otay"
-     ============================================================
-     INSTRUCCIONES DE INTEGRACIÓN:
-     Reemplaza el bloque completo <section ... id="visitanos">
-     hasta su </section> en index.html con este snippet.
-
-     IMÁGENES — copia los archivos WebP a:
-       assets/img/DSC02087.webp              (interior fachada Ok.station)
-       assets/img/DSC02096.webp              (consumibles — estante HP)
-       assets/img/AdobeStock_193108210.webp  (fotografías impresas)
-       assets/img/AdobeStock_2020029065.webp (papelería / trámites)
-       assets/img/AdobeStock_618706344.webp  (equipo de impresión)
-
-     DIMENSIONES REALES:
-       DSC02087.webp              4912 × 2760 px
-       DSC02096.webp              4912 × 2760 px
-       AdobeStock_193108210.webp  5764 × 3843 px
-       AdobeStock_2020029065.webp 2944 × 1648 px
-       AdobeStock_618706344.webp  5760 × 3840 px
-     ============================================================ -->
 
     <section class="section" id="visitanos" aria-labelledby="visitanos-title">
       <div class="wrap">
@@ -1507,8 +1346,6 @@
           <p class="text-lead">Atención personal, precio justo y siempre con una sonrisa. Te esperamos.</p>
         </div>
 
-        <!-- Fotos reales del local en assets/img/ (.webp). Si una foto no existe
-           aún, app.js quita el <img> y queda el placeholder con su etiqueta. -->
         <div class="store-gallery reveal">
           <div class="store-gallery__item store-gallery__item--main">
             <img src="assets/img/fachada. izq.webp" alt="Fachada de Ok.station en Centro Comercial Otay, Tijuana"
@@ -1611,7 +1448,6 @@
     </section>
 
   </main>
-<!-- ============================ FOOTER ============================ -->
 <footer class="site-footer" id="contacto">
   <div class="wrap">
     <div class="footer-top">
@@ -1663,7 +1499,6 @@
   </div>
 </footer>
 
-  <!-- ============================ FLOTANTES ============================ -->
   <button type="button" class="scroll-top" aria-label="Volver arriba">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"
       stroke-linejoin="round" aria-hidden="true">
@@ -1672,16 +1507,11 @@
     </svg>
   </button>
 
-<!-- ============================ SCRIPTS ============================ -->
 <script src="assets/cita-expediente.js?v=20260707c" defer></script>
 <script src="assets/phone-cc.js?v=20260702a" defer></script>
 <script src="app.js?v=20260708d" defer></script>
 <script src="assets/reviews.js?v=20260625" defer></script>
 <script src="assets/session-nav.js?v=20260630c" defer></script>
-<!-- Configurador de pedido embebido (#fotos): librerías de ticket PDF + QR y lógica -->
-<!-- jsPDF + QRCode: se cargan en tiempo IDLE (no en la carga crítica) para reducir el
-     Total Blocking Time. Solo se usan al generar un PDF (ticket/pedido), mucho despues,
-     asi que estan listos de sobra cuando el usuario los necesita. -->
 <script>
   (function () {
     function loadPdfLibs() {
@@ -1696,10 +1526,8 @@
   })();
 </script>
 <script src="assets/order.js?v=20260708a" defer></script>
-<!-- Comprobante PDF de cita (compartido con perfil y admin) -->
 <script src="assets/cita-ticket.js?v=20260707d" defer></script>
 <script src="assets/pagos-servicios.js?v=20260626" defer></script>
-<!-- Mascota/chatbot OKi (astronauta) -->
 <script src="assets/catalogo.js?v=20260714a" defer></script>
 <script src="assets/ok-anim.js?v=20260727a" defer></script>
 <script src="assets/oki.js?v=20260728a" defer></script>

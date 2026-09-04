@@ -2,7 +2,6 @@
 <html lang="es-MX">
 <head>
 <meta charset="utf-8">
-<!-- Puerta de mantenimiento: primero que nada, para redirigir antes de pintar. -->
 <script src="/assets/site-guard.js?v=20260728n"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Compra rápida | Ok.station</title>
@@ -10,45 +9,20 @@
 <meta name="robots" content="noindex, follow">
 <link rel="icon" href="favicon.ico">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
-<!-- Tema (claro/oscuro): antes de la hoja para pintar ya con el tema elegido -->
 <script src="assets/theme.js?v=20260721a"></script>
 <link rel="stylesheet" href="styles.css">
 <link rel="stylesheet" href="assets/shop-header.css?v=20260728m">
 <link rel="stylesheet" href="assets/oki.css?v=20260728a">
 <style>
-/* ══════════════════════════════════════════════════════════════════
-   Tienda dinámica (compra rápida) — vista de tabla + pre-carrito.
-   Pensada para pedidos grandes: buscar, agregar y pagar sin navegar.
-   Reusa las variables de marca de styles.css (no inventa colores).
-   ══════════════════════════════════════════════════════════════════ */
 .td-wrap{max-width:1240px;margin:0 auto;padding:18px 16px 60px}
 
-/* La navbar sin buscador: el spacer ocupa el hueco central (logo izq, acciones der). */
 .shopbar__spacer{flex:1 1 auto}
-/* ══ CINTILLA — el mismo tratamiento que la fila 2 de la tienda (.shopbar__cats) ══
-   La tienda cuelga bajo la navbar una franja a todo lo ancho con el degradado de
-   marca cubierto por un velo oscuro, y encima botones tipo píldora. Compra rápida
-   tenía sus controles sueltos sobre el fondo de la página y por eso se veía como
-   otra sección del sitio. Aquí se reusan EL DISEÑO Y LOS COLORES, no los botones:
-   sus categorías siguen filtrando dentro de la página, no navegando a la tienda.
-   Las variables --sb-grad y --sb-col vienen de assets/shop-header.css, así que si
-   la marca cambia de degradado, cintilla y navbar se mueven juntas. */
-/* Cintilla de la compra rápida: azul de marca PLANO (antes el degradado arcoíris de la
-   tienda). Encaja con la navbar de arriba, que también es plana, y quita el degradado
-   más grande de la página. */
-/* Fila superior (móvil/tablet): Volver + Categorías + Filtros, sin cinta de color.
-   En escritorio se esconde entera: Volver vive en el sidebar y los botones sobran. */
 .td-topbar{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:12px}
 .td-topbar .td-back{margin-bottom:0}
-/* "Volver al inicio" del sidebar (solo escritorio). */
 .side-back{display:none;align-items:center;gap:7px;color:var(--muted,#667085);text-decoration:none;
   font-size:.85rem;font-weight:700;padding:8px 11px;margin-bottom:6px;border-radius:10px}
 .side-back:hover{color:var(--brand-blue,#066CFF);background:var(--soft,#f2f5fb)}
 html[data-theme="dark"] .side-back:hover{background:rgba(255,255,255,.08)}
-/* ── Botones categorías + filtros (móvil) ──
-   El buscador salió de aquí: ahora es el de la navbar (#oknavQ), que filtra esta
-   tabla en vivo. Los dos botones van a la DERECHA de la fila superior (junto a
-   "Volver al inicio", que va a la izquierda). */
 .td-top{display:flex;gap:10px;align-items:center;justify-content:flex-end;
   flex:1 1 auto;min-width:0;flex-wrap:wrap}
 .td-catbtn{
@@ -60,7 +34,6 @@ html[data-theme="dark"] .side-back:hover{background:rgba(255,255,255,.08)}
 .td-catbtn .chev{transition:transform .18s}
 .td-catbtn.on .chev{transform:rotate(180deg)}
 
-/* Panel de categorías */
 .td-cats{
   display:none;background:#fff;border:1px solid var(--line,#e3e6ee);border-radius:16px;
   padding:12px;margin-bottom:14px;box-shadow:0 8px 24px rgba(16,24,40,.08)}
@@ -73,11 +46,9 @@ html[data-theme="dark"] .side-back:hover{background:rgba(255,255,255,.08)}
 .td-chip:hover{border-color:var(--brand-blue,#066CFF);color:var(--brand-blue,#066CFF)}
 .td-chip.on{background:var(--brand-blue,#066CFF);border-color:transparent;color:#fff}
 .td-chip .n{opacity:.65;font-weight:500;margin-left:5px;font-size:.78rem}
-/* Botón de Filtros: secundario (contorno), para no competir con Categorías. */
 .td-filtbtn{background:#fff !important;color:var(--ink,#111) !important;border:1.5px solid var(--line,#e3e6ee) !important;box-shadow:0 1px 2px rgba(16,24,40,.04) !important}
 .td-filtbtn:hover{border-color:var(--brand-blue,#066CFF) !important}
 .td-filtbtn .fct{background:var(--brand-blue,#066CFF);color:#fff;border-radius:999px;min-width:20px;height:20px;display:grid;place-items:center;font-size:.72rem;font-weight:800;padding:0 5px}
-/* Panel de filtros (reusa .td-cats como contenedor). */
 .td-fgroup{padding:4px 2px 12px;border-bottom:1px solid var(--line,#eef1f6)}
 .td-fgroup:last-child{border-bottom:0;padding-bottom:2px}
 .td-fgroup h4{margin:0 0 8px;font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.04em;color:var(--muted,#667085)}
@@ -89,63 +60,39 @@ html[data-theme="dark"] .side-back:hover{background:rgba(255,255,255,.08)}
 .td-fsearch,.td-fbsearch{display:block;width:min(340px,100%);margin:0 0 8px;padding:8px 12px;border:1.5px solid var(--line,#e3e6ee);border-radius:10px;font:inherit;font-size:.85rem}
 .td-fsearch:focus,.td-fbsearch:focus{outline:none;border-color:var(--brand-blue,#066CFF)}
 .td-fmore,.td-fbmore{display:inline-block;margin:2px 0 0;padding:6px 10px;border:0;background:none;color:var(--brand-blue,#066CFF);font:inherit;font-size:.83rem;font-weight:700;cursor:pointer}
-/* ── Paneles de carrito / favoritos (cajón derecho, en la página) ── */
-/* La navbar (oknav, sticky, z:200) siempre queda por ENCIMA de estos paneles:
-   todos arrancan DEBAJO de ella con --oknav-h, la altura real que mide y
-   publica oknav.js en cada cambio de tamaño. El 150px es solo el respaldo
-   por si el JS no corrió. */
 :root{--oknav-h:150px}
 .td-scrim{position:fixed;top:var(--oknav-h);right:0;bottom:0;left:0;background:rgba(16,24,40,.42);z-index:70}
 .td-drawer{position:fixed;top:var(--oknav-h);right:0;height:auto;bottom:0;width:min(380px,92vw);background:#fff;z-index:71;
   transform:translateX(100%);transition:transform .28s cubic-bezier(.4,0,.2,1);display:flex;flex-direction:column;
   box-shadow:-14px 0 44px rgba(16,24,40,.22)}
 .td-drawer.open{transform:translateX(0)}
-/* Favoritos y Dirección: MODAL CENTRADO (como la tienda normal), no cajón lateral.
-   Solo cambia el posicionamiento; su estructura (encabezado + cuerpo) y su JS no cambian.
-   El carrito se queda como cajón (lleva el checkout, mejor a lo alto). */
 #tdWishDrawer,#tdLocDrawer,#tdPrevDrawer{
-  /* Centrados en el ESPACIO QUE QUEDA bajo la navbar (50% + mitad de la barra),
-     no en la pantalla completa: centrados al viewport, la mitad de arriba
-     quedaba escondida tras las cejillas. */
   top:calc(50% + var(--oknav-h)/2);left:50%;right:auto;bottom:auto;height:auto;max-height:calc(100vh - var(--oknav-h) - 24px);width:min(460px,92vw);
   border-radius:22px;overflow:hidden;box-shadow:0 26px 74px rgba(16,24,40,.28);
   transform:translate(-50%,-50%) scale(.96);opacity:0;visibility:hidden;
   transition:transform .2s cubic-bezier(.34,1.56,.64,1),opacity .18s,visibility .2s}
 #tdWishDrawer.open,#tdLocDrawer.open,#tdPrevDrawer.open{transform:translate(-50%,-50%) scale(1);opacity:1;visibility:visible}
-/* ── Vista previa de producto — MISMA que la de la tienda ──
-   El contenedor NO es una tarjeta: es una fila centrada de hasta 3 tarjetas
-   independientes con separación (igual que #prodOv de tienda.html). Por eso se le
-   quita el fondo/sombra/recorte que hereda de .td-drawer. */
 #tdPrevDrawer{
   width:auto;max-width:96vw;height:auto;max-height:none;
   background:none;box-shadow:none;border-radius:0;overflow:visible;
-  /* flex-direction:row es OBLIGATORIO: .td-drawer impone `column` y sin resetearlo
-     las tres tarjetas se apilan una debajo de otra en vez de quedar en fila. */
   display:flex;flex-direction:row;align-items:center;justify-content:center;gap:14px}
 .tdpv-card{position:relative;flex:0 0 min(560px,94vw);width:min(560px,94vw);max-height:calc(100vh - var(--oknav-h) - 24px);overflow:auto;
   background:#fff;border-radius:22px;box-shadow:0 26px 74px rgba(16,24,40,.28)}
 .tdpv-x{position:absolute;top:14px;right:14px;z-index:5;width:34px;height:34px;padding:0;border:0;border-radius:50%;
   background:rgba(255,255,255,.94);box-shadow:0 2px 10px rgba(16,24,40,.16);font-size:1.15rem;line-height:1;cursor:pointer}
-/* Con panel(es) lateral(es) abiertos, las 3 tarjetas comparten ALTURA para que sus
-   bordes queden alineados — misma regla que #prodOv.pv-3col de la tienda. */
 @media(min-width:1241px){
   #tdPrevDrawer.pv3>.tdpv-side,#tdPrevDrawer.pv3>.tdpv-card{height:min(calc(100vh - var(--oknav-h) - 28px),820px);max-height:min(calc(100vh - var(--oknav-h) - 28px),820px)}
 }
-/* El atributo hidden pierde contra cualquier display del CSS de autor: sin estas
-   reglas, los paneles/botones "ocultos" se veían igual (y aplastaban el modal). */
 .tdpv-side[hidden],.tdpv-desc[hidden],.tdpv-full[hidden],.td-fmore[hidden],.td-fbmore[hidden]{display:none !important}
-/* Paneles laterales: tarjetas propias, con su encabezado pegajoso. */
 .tdpv-side{flex:0 0 308px;width:308px;max-height:calc(100vh - var(--oknav-h) - 24px);overflow:auto;display:flex;flex-direction:column;min-width:0;
   background:#fff;border-radius:22px;box-shadow:0 26px 74px rgba(16,24,40,.28)}
 .tdpv-sideh{position:sticky;top:0;z-index:2;background:#fff;display:flex;align-items:center;justify-content:space-between;gap:10px;
   padding:18px 20px 14px;border-bottom:1px solid var(--line,#e3e6ee);font-size:1.06rem;font-weight:800}
 .tdpv-sideb{padding:18px 20px 22px;font-size:.93rem;color:#33404f;line-height:1.72}
 .tdpv-sideb>p{margin:0 0 16px}
-/* Preguntas frecuentes en CAJAS, igual que .mfaq de la tienda. */
 .tdpv-sideb .mfaq{background:#F4F6FD;border:1px solid var(--line,#e3e6ee);border-radius:12px;padding:10px 13px;margin:0 0 9px}
 .tdpv-sideb .mfaq b{display:block;font-size:.84rem;color:var(--ink,#111);margin-bottom:2px}
 .tdpv-sideb .mfaq span{font-size:.82rem;color:#4A5068;line-height:1.4}
-/* En pantallas chicas las 3 tarjetas se apilan y el conjunto scrollea, igual que la tienda. */
 @media(max-width:900px){
   #tdPrevDrawer{flex-direction:column;max-height:calc(100vh - var(--oknav-h) - 14px);overflow-y:auto;gap:12px}
   .tdpv-side{flex:0 0 auto;width:min(520px,94vw);max-height:none}
@@ -193,8 +140,6 @@ html[data-theme="dark"] .side-back:hover{background:rgba(255,255,255,.08)}
   background:#066CFF;color:#fff;font:inherit;font-size:.86rem;font-weight:800;cursor:pointer}
 .td-wishall:hover{background:#0558CC}
 .td-wishall:disabled{opacity:.55;cursor:default}
-/* Favoritos replica el modal aprobado de tienda.html: introducción dentro de la
-   tarjeta, filas cerradas, acción azul y corazón para retirar el producto. */
 #tdWishDrawer{background:var(--surface-card,#fff)}
 #tdWishDrawer .td-dh{display:block;position:relative;padding:24px 26px 0;border-bottom:0}
 #tdWishDrawer .td-dh>b{display:flex;align-items:center;gap:7px;font-size:1.22rem;line-height:1.2}
@@ -228,8 +173,6 @@ html[data-theme="dark"] .side-back:hover{background:rgba(255,255,255,.08)}
 .td-dtot .v{font-size:1.15rem}
 .td-dgo{display:block;width:100%;padding:13px;border:0;border-radius:12px;background:var(--brand-blue,#066CFF);color:#fff;font:inherit;font-weight:800;font-size:.95rem;cursor:pointer;text-align:center;text-decoration:none}
 .td-dnote{text-align:center;font-size:.76rem;color:var(--muted,#667085);margin-top:8px}
-/* El carrito siempre ocupa TODA la altura disponible bajo la navbar. Vacío o lleno
-   conserva el mismo tamaño; cuando hay muchos artículos solo su cuerpo hace scroll. */
 #tdCartDrawer{bottom:0;height:auto;max-height:none}
 #tdCartDrawer .td-dh{flex:none;min-height:56px;box-sizing:border-box;padding:11px 16px;background:#066CFF;color:#fff;border-bottom:0}
 #tdCartDrawer .td-dx{border:1px solid rgba(255,255,255,.4);background:rgba(255,255,255,.16);color:#fff}
@@ -240,7 +183,6 @@ html[data-theme="dark"] .side-back:hover{background:rgba(255,255,255,.08)}
 #tdCartDrawer .td-di{grid-template-columns:46px minmax(0,1fr) auto;padding:9px;border:1px solid var(--line,#e3e6ee);border-radius:11px;background:var(--surface-card,#fff)}
 #tdCartDrawer .td-di .nm{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 #tdCartDrawer .td-dgo{background:#FFE200;color:#12141C;box-shadow:0 2px 6px rgba(255,226,0,.30)}
-/* Checkout dentro del panel de carrito */
 .co-ship{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
 .co-ship button{padding:10px 8px;border:1.5px solid var(--line,#e3e6ee);background:#fff;border-radius:10px;font:inherit;font-size:.82rem;font-weight:700;cursor:pointer;color:var(--ink,#111)}
 .co-ship button.on{border-color:var(--brand-blue,#066CFF);background:var(--brand-blue-light,#EAF1FF);color:var(--brand-blue,#066CFF)}
@@ -248,7 +190,6 @@ html[data-theme="dark"] .side-back:hover{background:rgba(255,255,255,.08)}
 .co-phone{width:100%;height:44px;border:1.5px solid var(--line,#e3e6ee);border-radius:10px;padding:0 14px;font:inherit;font-size:.95rem;background:#fff;color:var(--ink,#111)}
 .co-phone:focus{outline:none;border-color:var(--brand-blue,#066CFF);box-shadow:0 0 0 3px rgba(6,108,255,.14)}
 .co-msg{color:#c0342c;font-size:.82rem;text-align:center;margin-top:8px;min-height:1em}
-/* ── Ubicación de entrega: botón de la navbar + libreta en el cajón ── */
 .tb-loc{flex:none;display:flex;align-items:center;gap:6px;padding:6px 10px;border:1.5px solid transparent;border-radius:12px;background:none;color:#fff;cursor:pointer;text-align:left;max-width:190px;transition:border-color .15s,background .15s}
 .tb-loc:hover{background:rgba(255,255,255,.16);border-color:rgba(255,255,255,.5)}
 .tb-loc:focus-visible{outline:3px solid #fff;outline-offset:2px}
@@ -257,7 +198,6 @@ html[data-theme="dark"] .side-back:hover{background:rgba(255,255,255,.08)}
 .tb-loc small{font-size:.68rem;color:rgba(255,255,255,.75);font-weight:600}
 .tb-loc b{font-size:.82rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 @media(max-width:640px){ .tb-loc__txt{display:none} .tb-loc{padding:9px 10px} }
-/* Libreta (lista de direcciones) */
 .loc-err{margin:0 0 12px;padding:10px 12px;border-radius:10px;background:#fdeaea;color:#8a1c1c;font-size:.85rem}
 .addrs{display:flex;flex-direction:column;gap:9px}
 .addr{display:flex;flex-direction:column;gap:2px;width:100%;text-align:left;padding:12px 14px;border:1.5px solid var(--line,#e3e6ee);border-radius:12px;background:#fff;cursor:pointer;font:inherit;color:var(--ink,#111);transition:border-color .15s,box-shadow .15s}
@@ -271,13 +211,10 @@ html[data-theme="dark"] .side-back:hover{background:rgba(255,255,255,.08)}
 .addr b{font-size:.9rem;font-weight:700}
 .addr span{font-size:.82rem;color:var(--muted,#667085)}
 .addr__note{font-style:italic}
-/* .addr .addr__tag (no solo .addr__tag): si no, la regla .addr span de arriba —más
-   específica— le gana y el texto sale gris en vez de blanco. */
 .addr .addr__tag{display:inline-block;margin-left:6px;padding:1px 7px;border-radius:99px;background:var(--brand-blue,#066CFF);color:#fff;font-size:.64rem;font-weight:800;vertical-align:middle}
 .addr--new{flex-direction:row;align-items:center;gap:9px;border-style:dashed;justify-content:center;color:var(--brand-blue,#066CFF)}
 .addr--new b{color:var(--brand-blue,#066CFF)}
 .addr__plus{font-size:1.2rem;font-weight:700;line-height:1}
-/* Formulario de alta */
 .af-field{margin-bottom:11px}
 .af-field label{display:block;font-size:.78rem;font-weight:700;margin-bottom:4px}
 .af-field input,.af-field select{width:100%;font:inherit;padding:9px 12px;border:1.5px solid var(--line,#e3e6ee);border-radius:9px;background:#fff;color:var(--ink,#111)}
@@ -295,15 +232,8 @@ html[data-theme="dark"] .side-back:hover{background:rgba(255,255,255,.08)}
 .afback{display:block;width:100%;margin-top:10px;padding:9px;border:0;background:none;color:var(--brand-blue,#066CFF);font:inherit;font-size:.85rem;font-weight:600;cursor:pointer}
 @media(max-width:480px){ .afrow{grid-template-columns:1fr} }
 
-/* ── Layout: productos + pre-carrito ── */
 .td-grid{display:grid;grid-template-columns:1fr 330px;gap:18px;align-items:start}
 
-/* ═══ Columna lateral de categorías + filtros — la MISMA de la tienda ═══
-   En escritorio (≥981px) los botones "Categorías" y "Filtros" del listón se van y su
-   contenido vive en esta columna sticky a la izquierda, idéntica a la de tienda.html
-   (mismas clases side-*). El botón "Categorías" de la NAVBAR la muestra y la esconde
-   (html.cats-closed), igual que en la tienda. En móvil la columna se neutraliza
-   (display:contents) y los desplegables de siempre siguen mandando. */
 .store-side{display:contents}
 .side-cats,.side-h{display:none}
 .side-cat,.side-sub{display:flex;align-items:center;gap:9px;width:100%;text-align:left;border:0;background:none;cursor:pointer;font:inherit;padding:9px 11px;border-radius:10px;color:var(--ink,#111);font-weight:600;font-size:.9rem;line-height:1.2}
@@ -327,16 +257,12 @@ html[data-theme="dark"] .side-cat.on{background:rgba(6,108,255,.20);color:#7cc0f
   .side-cats{display:block}
   .side-back{display:flex}
   .side-h{display:block;font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.05em;color:var(--muted,#667085);margin:2px 0 8px 4px}
-  /* Los botones del listón y el panel de chips ya no hacen falta: viven en el sidebar. */
   .td-top,#tdCats{display:none}
-  /* El panel de filtros (el MISMO nodo #tdFilts, que se muda al sidebar en el
-     arranque) pasa de desplegable a bloque SIEMPRE visible, con su encabezado. */
   .store-side .td-cats{display:block;background:transparent;border:0;border-radius:0;box-shadow:none;padding:0;margin:0;border-top:0}
   html[data-theme="dark"] .store-side .td-cats{background:transparent;border-color:var(--border-light,#26314A)}
   .store-side .td-cats::before{content:"Filtros";display:block;padding:12px 0 4px;font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.05em;color:var(--muted,#667085)}
   .store-side .td-fgroup{padding:14px 0 12px;border-bottom:1px solid var(--line,#e3e6ee)}
   .store-side .td-fgroup:last-child{border-bottom:0}
-  /* Opciones como RENGLONES (idéntico a .fopt de la tienda), no píldoras. */
   .store-side .td-fopt{display:flex;align-items:center;gap:9px;padding:7px 2px;margin:0;border:0;border-radius:8px;font-size:.9rem;font-weight:500;background:transparent}
   .store-side .td-fopt:hover{background:var(--soft,#f2f5fb)}
   html[data-theme="dark"] .store-side .td-fopt{background:transparent}
@@ -344,17 +270,11 @@ html[data-theme="dark"] .side-cat.on{background:rgba(6,108,255,.20);color:#7cc0f
   .store-side .td-fsearch,.store-side .td-fbsearch{width:100%;box-sizing:border-box}
 }
 
-/* ═══ AJUSTE A LA PANTALLA (escritorio): la compra rápida CABE COMPLETA en el
-   viewport, sin scroll de página (pedido del dueño: la página se adapta a la
-   resolución del dispositivo). Solo scrollean POR DENTRO la columna de
-   categorías/filtros, la tabla de productos y el pre-carrito. --oknav-h es la
-   altura real de la navbar (medida por oknav.js), así el cálculo cuadra en
-   cualquier resolución. En móvil se conserva el scroll normal de página. ═══ */
 @media(min-width:981px){
   html,body{height:100%;overflow:hidden}
   .td-wrap{height:calc(100dvh - var(--oknav-h,158px));box-sizing:border-box;
     display:flex;flex-direction:column;overflow:hidden;padding-top:14px;padding-bottom:14px}
-  .td-topbar{display:none}   /* Volver vive en el sidebar; Categorías/Filtros, también */
+  .td-topbar{display:none}
   .td-grid{flex:1 1 auto;min-height:0;grid-template-rows:minmax(0,1fr)}
   .store-side{position:static;top:auto;max-height:100%;height:100%;overflow-y:auto}
   .td-panel{height:100%;min-height:0;display:flex;flex-direction:column}
@@ -362,38 +282,22 @@ html[data-theme="dark"] .side-cat.on{background:rgba(6,108,255,.20);color:#7cc0f
   .td-cart{position:static;top:auto;height:100%;min-height:0;overflow-y:auto}
 }
 
-/* ── Panel de productos ── */
 .td-panel{background:#fff;border:1px solid var(--line,#e3e6ee);border-radius:18px;overflow:hidden;
   box-shadow:0 2px 10px rgba(16,24,40,.05)}
-/* La franja del encabezado: el título a la izquierda y la salida al catálogo completo
-   a la derecha. El <h2> ya no es el contenedor (el botón se salía de su nombre
-   accesible), pero conserva exactamente el mismo aspecto. */
 .td-panelh{
   padding:14px 18px;color:#fff;
   background:var(--brand-blue,#066CFF);display:flex;justify-content:space-between;align-items:center;gap:10px;
-  /* En pantallas estrechas el botón baja a su propio renglón en vez de aplastar al
-     título: los dos textos son largos y juntos no caben. */
   flex-wrap:wrap}
 .td-panelh h2{margin:0;padding:0;font-size:1rem;font-weight:800;color:inherit;background:none;min-width:0}
 .td-panel h2 .count{font-size:.78rem;font-weight:600;opacity:.9}
-/* "Ver todos los productos": solo aparece con una búsqueda o categoría activa. Un clic
-   deja el catálogo completo sin tener que borrar a mano lo escrito en el buscador. */
-/* Blanco SÓLIDO con el texto en azul de marca: la cabecera es un degradado que pasa
-   por el cian claro, y ahí un botón translúcido con texto blanco se quedaba en 1.8:1
-   de contraste (hace falta 4.5:1). Así se lee igual sobre cualquier tramo. */
 .td-clearq{flex:none;border:1.5px solid #fff;background:#fff;
   color:var(--brand-blue,#066CFF);font:inherit;font-size:.78rem;font-weight:700;padding:6px 13px;border-radius:10px;
   cursor:pointer;white-space:nowrap;transition:background .15s,color .15s}
 .td-clearq:hover{background:var(--brand-blue,#066CFF);color:#fff;border-color:#fff}
-/* Anillo oscuro: el blanco sobre el degradado claro no se distinguía del propio botón. */
 .td-clearq:focus-visible{outline:3px solid #0a1a3a;outline-offset:2px}
 .td-clearq[hidden]{display:none}
 
-/* Encabezado de la tabla */
-/* Columnas: imagen · descripción · precio · botón · corazón.
-   El precio cedió ancho al botón, que ahora es de ancho completo. */
 .td-head,.td-row{display:grid;grid-template-columns:64px minmax(0,1fr) 96px 108px 40px;gap:12px;align-items:center}
-/* Favoritos: corazón por fila, vinculado a los deseados compartidos. */
 .td-wish{width:34px;height:34px;padding:0;display:grid;place-items:center;border:1px solid var(--line,#e3e6ee);
   background:#fff;border-radius:50%;cursor:pointer;color:var(--muted,#667085);fill:none;stroke:currentColor;
   transition:color .15s,border-color .15s,transform .12s}
@@ -405,22 +309,15 @@ html[data-theme="dark"] .side-cat.on{background:rgba(6,108,255,.20);color:#7cc0f
   color:var(--muted,#667085);border-bottom:1px solid var(--line,#e3e6ee);background:#fafbfd;
   position:sticky;top:0;z-index:2}
 .td-head .r{text-align:right}
-.td-head .c{text-align:center}   /* "Agregar" centrado sobre el botón de ancho completo */
+.td-head .c{text-align:center}
 
-/* Zona con scroll infinito */
 .td-scroll{max-height:min(62vh,640px);overflow-y:auto;overscroll-behavior:contain}
-/* En escritorio el panel ya tiene la altura exacta disponible. Esta regla debe ir
-   después del límite general para que la lista llene el panel y no deje un hueco. */
 @media(min-width:981px){.td-panel .td-scroll{flex:1 1 auto;min-height:0;max-height:none;height:auto}}
 .td-row{padding:10px 18px;border-bottom:1px solid #f1f3f8;transition:background .12s}
 .td-row:hover{background:var(--brand-blue-light,#EAF1FF)}
 .td-row:last-child{border-bottom:0}
-/* Arrastrar al pre-carrito: la fila se agarra y el navegador muestra una ficha
-   compacta; nunca una copia translúcida del renglón completo. */
 .td-row[draggable="true"]{cursor:grab}
 .td-row.dragging{opacity:.72;cursor:grabbing}
-/* El destino abraza SOLO el cuadro útil del pre-carrito, no toda la columna
-   vacía. Empieza azul y cambia lentamente al morado de marca al acercarse. */
 body.td-product-drag .td-cartbox{
   position:relative;outline:3px dashed #066CFF;outline-offset:6px;
   box-shadow:0 0 0 7px rgba(6,108,255,.14);
@@ -442,7 +339,6 @@ body.td-product-drag .td-cart.td-drop-over .td-cartbox::after{
   font-size:.78rem;font-weight:700;line-height:1.25;pointer-events:none}
 .td-drag-ghost__img{width:42px;height:42px;flex:none;border-radius:8px;background:#fff center/contain no-repeat;
   border:1px solid #E1E7F0}
-/* Bote de basura del pre-carrito: oculto salvo cuando arrastras un producto del pre-carrito. */
 .td-trash{display:none;align-items:center;justify-content:center;gap:8px;margin-top:10px;padding:14px;
   border:2px dashed rgba(225,29,72,.5);border-radius:14px;color:#e11d48;font-weight:600;font-size:.85rem;
   background:rgba(225,29,72,.06);transition:background .15s,border-color .15s,transform .15s}
@@ -453,18 +349,13 @@ body.td-predrag .td-trash{display:flex}
 .td-img{width:64px;height:64px;border-radius:10px;background-color:#fff;background-position:50% 50%;
   background-size:contain;background-repeat:no-repeat;background-origin:content-box;
   box-sizing:border-box;padding:4px;border:1px solid var(--line,#e3e6ee);flex:none}
-/* Producto SIN foto: wordmark Ok.station (fondo transparente) en lugar de la caja vacía. */
 .td-noimg{background-image:url('assets/img/placeholder-producto.svg');background-size:82% auto}
 .td-name{font-weight:600;font-size:.9rem;color:var(--ink,#111);line-height:1.35;
   display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
-  overflow-wrap:anywhere}   /* nombres largos sin espacios no ensanchan la fila */
+  overflow-wrap:anywhere}
 .td-meta{font-size:.75rem;color:var(--muted,#667085);margin-top:3px}
 .td-price{text-align:right;font-weight:800;font-size:.95rem;color:var(--ink,#111);white-space:nowrap}
 .td-price .old{display:block;font-size:.72rem;font-weight:500;color:var(--muted,#667085);text-decoration:line-through}
-/* Ancho COMPLETO de su columna: así todos los botones quedan del mismo tamaño y
-   alineados fila con fila (antes el ancho dependía del texto). Píldora + sombra
-   discreta, acorde al resto de la interfaz; el degradado se reserva a las acciones
-   principales (Categorías, Enviar al carrito) para no saturar la tabla. */
 .td-add{
   width:100%;height:38px;border-radius:10px;border:0;cursor:pointer;
   background:#FFE200;color:#12141C;
@@ -475,17 +366,12 @@ body.td-predrag .td-trash{display:flex}
 .td-add:hover{background:#FFE200;filter:brightness(1.05);transform:translateY(-1px);box-shadow:0 6px 14px rgba(255,226,0,.38)}
 .td-add:active{transform:translateY(0) scale(.97);box-shadow:0 2px 6px rgba(255,226,0,.28)}
 
-/* ── Botones del e-commerce: PRESIÓN y ANILLO DE FOCO (jul 2026) ──
-   Mismo criterio que la tienda: la presión confirma el toque, y el anillo solo
-   aparece navegando con TECLADO (:focus-visible), no al hacer clic con el mouse. */
 :is(.tdpv-add,.td-dgo,.td-go,.td-fmore,.td-fbmore):active:not(:disabled){transform:translateY(0) scale(.97)}
 :is(.td-add,.tdpv-add,.td-dgo,.td-go,.td-wish,.td-cat,.td-fopt):focus-visible{
   outline:3px solid var(--brand-blue,#066CFF); outline-offset:3px}
 .tdpv-add{transition:background .16s ease,transform .14s ease,box-shadow .2s ease}
 .tdpv-add:hover:not(:disabled){background:var(--brand-blue-hover,#0558CC);transform:translateY(-2px)}
 
-/* PAGAR: azul de marca PLANO con una sombra fina (antes un degradado que se desplazaba
-   al pasar el cursor). En la compra rápida se buscan menos degradados. */
 .td-dgo{
   box-shadow:0 2px 6px rgba(6,108,255,.22);
   transition:background .15s ease, transform .15s ease, box-shadow .2s ease}
@@ -493,22 +379,15 @@ body.td-predrag .td-trash{display:flex}
 .td-dgo:disabled{opacity:.65; box-shadow:none}
 .td-add:focus-visible{outline:3px solid rgba(6,108,255,.4);outline-offset:2px}
 .td-add[disabled]{cursor:default}
-/* Confirmación de "agregado": el botón late, confirma y vuelve SOLO a "+ Agregar".
-   Van DESPUÉS de [disabled] a propósito: misma especificidad, gana el último. */
 .td-add.done{background:var(--brand-purple,#9C1DFF);animation:tdPop .42s cubic-bezier(.34,1.56,.64,1)}
 .td-add.max{background:var(--brand-orange,#FF7C19)}
-/* AGOTADO en rojo: es la única señal de la tabla que significa "no se puede", y el
-   rojo es lo que la gente ya lee como tal. No lleva sombra ni hover porque no es un
-   botón que invite a apretarse — es el estado del producto, no una acción. */
 .td-add.out{background:#D92D20;box-shadow:none;cursor:not-allowed}
 .td-add.out:hover{background:#D92D20;transform:none;box-shadow:none}
 @keyframes tdPop{0%{transform:scale(1)}40%{transform:scale(1.14)}100%{transform:scale(1)}}
 .td-add .ck{display:inline-block;animation:tdCk .34s cubic-bezier(.34,1.56,.64,1) .04s both}
 @keyframes tdCk{from{transform:scale(0) rotate(-30deg);opacity:0}to{transform:scale(1) rotate(0);opacity:1}}
-/* Destello del ítem recién agregado, para ver dónde cayó */
 .td-ci.flash{animation:tdFlash .8s ease}
 @keyframes tdFlash{0%{background:rgba(255,255,255,.5)}100%{background:rgba(255,255,255,.14)}}
-/* Respeta a quien pide menos movimiento (mareos, vestibular) */
 @media(prefers-reduced-motion:reduce){
   .td-add.done,.td-add .ck,.td-ci.flash{animation:none}
 }
@@ -516,10 +395,7 @@ body.td-predrag .td-trash{display:flex}
 .td-state{padding:26px 18px;text-align:center;color:var(--muted,#667085);font-size:.9rem}
 .td-sentinel{height:1px}
 
-/* ── Pre-carrito ── */
-/* El pre-carrito pega DEBAJO de la navbar, no del borde de la ventana. */
 .td-cart{position:sticky;top:calc(var(--oknav-h) + 16px)}
-/* Pre-carrito: azul de marca PLANO (antes el degradado morado-azul). Sombra fina. */
 .td-cartbox{background:var(--brand-blue,#066CFF);border-radius:18px;padding:16px;color:#fff;
   box-shadow:0 2px 10px rgba(6,108,255,.16)}
 .td-cartbox h3{margin:0 0 12px;font-size:.95rem;font-weight:800;text-align:center}
@@ -543,7 +419,6 @@ body.td-predrag .td-trash{display:flex}
 .td-total .val{font-size:1.4rem;font-weight:800;letter-spacing:-.02em}
 .td-total .iva{font-size:.68rem;opacity:.8;margin-top:2px}
 
-/* Entrega */
 .td-ship{display:flex;gap:6px;margin-top:12px}
 .td-ship button{flex:1;border:1px solid rgba(255,255,255,.4);background:transparent;color:#fff;
   border-radius:9px;padding:7px 6px;font:inherit;font-size:.75rem;font-weight:700;cursor:pointer;transition:all .14s}
@@ -559,17 +434,12 @@ body.td-predrag .td-trash{display:flex}
 .td-msg{font-size:.76rem;text-align:center;margin-top:8px;min-height:1em;color:#b42318;font-weight:600}
 .td-msg.ok{color:#067647}
 
-/* Volver (la cintilla azul ya no existe: el enlace vive en la fila superior en
-   móvil y en el sidebar en escritorio). */
 .td-back{display:inline-flex;align-items:center;gap:6px;color:var(--muted,#667085);text-decoration:none;
   font-size:.85rem;font-weight:600;margin-bottom:12px}
 .td-back:hover{color:var(--brand-blue,#066CFF)}
 
 @media(max-width:980px){
   .td-grid{grid-template-columns:1fr}
-  /* En celular el orden correcto es: PRODUCTOS arriba, pre-carrito abajo (primero
-     eliges, luego revisas). Se fija con order explícito para que no dependa del
-     orden del HTML (que ya se ha reacomodado varias veces). */
   .td-grid > section{order:1}
   .td-grid > .td-cart{order:2}
   .td-cart{position:static}
@@ -579,15 +449,10 @@ body.td-predrag .td-trash{display:flex}
   .td-img{width:52px;height:52px}
   .td-scroll{max-height:none}
 }
-/* Móvil: Categorías y Filtros se reparten el ancho en su propia fila. */
 @media(max-width:560px){
-  /* Sin buscador aquí (vive en la navbar), los dos botones se estiran a mitades: es
-     lo que antes ocupaba la fila de abajo, y así siguen siendo cómodos de tocar. */
   .td-top{flex:1 0 100%}
   .td-top > .td-catbtn{flex:1 1 0;min-width:0}
   .td-catbtn{height:46px;padding:0 12px;font-size:.86rem;justify-content:center}
-  /* La 5ª columna del corazón no cabe: vuelve a 4 columnas y el corazón se monta
-     SOBRE la imagen (como en las tarjetas de la tienda). Así nada se desborda. */
   .td-head,.td-row{grid-template-columns:52px minmax(0,1fr) 80px 92px}
   .td-head > div:last-child{display:none}
   .td-row{position:relative}
@@ -604,20 +469,8 @@ body.td-predrag .td-trash{display:flex}
   .td-go{height:48px}
 }
 
-/* ══ COMPRA RÁPIDA EN CELULAR: DOS MITADES SIEMPRE VISIBLES ══
-   Productos y pre-carrito comparten el espacio que queda bajo la navbar. Cada
-   panel scrollea por dentro; la página no salta ni obliga a buscar el carrito
-   varios metros más abajo. En táctil se usa + Agregar (arrastrar queda como
-   mejora de escritorio, donde el navegador sí ofrece un drag fiable). */
 @media(max-width:640px){
   html,body{height:100%;overflow:hidden}
-  /* En la compra rápida la navbar se queda SOLO con logo + buscador + carrito.
-     La fila de Tienda/Tienda rápida/Categorías/Ofertas sobra aquí: la tienda ya
-     trae sus propios Filtros y Categorías, y el cajón ☰ guarda el resto de la
-     navegación. En un layout de pantalla fija esa fila robaba ~100px al listado.
-     Al esconderla, oknav.js vuelve a medir --oknav-h (tiene un ResizeObserver) y
-     .td-wrap crece solo para llenar el hueco. Solo afecta a esta página: la regla
-     vive en su <style>, no en oknav.css. */
   .oknav__row--nav, .oknav__catsmenu{display:none}
   .td-wrap{
     position:relative;height:calc(100dvh - var(--oknav-h,0px));min-height:0;
@@ -690,20 +543,12 @@ body.td-predrag .td-trash{display:flex}
   .td-go{height:38px}
 }
 
-/* ══ MODO OSCURO (html[data-theme="dark"], lo pone theme.js) ══
-   Los tokens del design system ya vienen volteados desde styles.css; aquí solo
-   los paneles y controles que traían blanco a mano. Las fotos (.td-img) y la
-   franja de degradado se quedan igual: funcionan en los dos temas. */
-html[data-theme="dark"] body{background:#0F1524; color:#E9EDF6}   /* la hoja propia pisaba el token */
+html[data-theme="dark"] body{background:#0F1524; color:#E9EDF6}
 html[data-theme="dark"] :is(.td-panel,.td-drawer,.td-ci,.td-di,.td-ship,.td-filtbtn){background:var(--surface-card,#171F31); color:var(--text-primary,#E9EDF6)}
 html[data-theme="dark"] :is(.co-phone,.co-ship button){background:#101827; color:var(--text-primary,#E9EDF6); border-color:var(--border-light,#26314A)}
 html[data-theme="dark"] .td-head{background:var(--surface-card,#171F31); color:var(--text-muted,#8A94AB)}
 html[data-theme="dark"] .td-row{border-color:var(--border-light,#26314A)}
 .td-panel.is-offers .td-price{color:#FF7C19}
-/* ── Paneles que traían blanco a mano (detectados en capturas reales):
-   categorías/filtros (.td-cats hace de contenedor de ambos), chips, el botón de
-   Filtros (usa !important, se responde igual), y la VISTA PREVIA (.tdpv-*).
-   La imagen y las miniaturas de la vista previa se quedan claras: ahí va la foto. ── */
 html[data-theme="dark"] .td-cats{background:var(--surface-card,#171F31); border-color:var(--border-light,#26314A)}
 html[data-theme="dark"] .td-chip:not(.on){background:#101827; color:var(--text-primary,#E9EDF6); border-color:var(--border-light,#26314A)}
 html[data-theme="dark"] :is(.td-fopt,.td-fsearch,.td-fbsearch){background:#101827; color:var(--text-primary,#E9EDF6); border-color:var(--border-light,#26314A)}
@@ -711,23 +556,14 @@ html[data-theme="dark"] .td-filtbtn{background:var(--surface-card,#171F31) !impo
 html[data-theme="dark"] :is(.tdpv-card,.tdpv-save,.tdpv-sideh){background:var(--surface-card,#171F31); color:var(--text-primary,#E9EDF6)}
 html[data-theme="dark"] .tdpv-specs{border-color:var(--border-light,#26314A)}
 
-/* ── Ronda 3: lo que quedaba ilegible ──────────────────────────────────────
-   1) --ink y --muted NUNCA se declaran en esta hoja: sus 11 y 25 usos caían
-      siempre al fallback CLARO (#111), así que en oscuro el nombre y el precio
-      de cada producto quedaban texto oscuro sobre fila oscura. Definirlas aquí
-      arregla los 36 usos de una sola vez. */
 html[data-theme="dark"] body{ --ink:#E9EDF6; --muted:#8A94AB; --line:#26314A }
 
-/* 2) Los paneles laterales de la vista previa (los agregué con #fff a mano). */
 html[data-theme="dark"] .tdpv-side{ background:var(--surface-card,#171F31); box-shadow:0 26px 74px rgba(0,0,0,.6) }
 html[data-theme="dark"] .tdpv-sideb{ color:var(--text-secondary,#B6BFD3) }
 html[data-theme="dark"] .tdpv-sideh{ border-bottom-color:var(--border-light,#26314A) }
-/* Las cajas de preguntas frecuentes eran un gris casi blanco. */
 html[data-theme="dark"] .tdpv-sideb .mfaq{ background:#101827; border-color:var(--border-light,#26314A) }
 html[data-theme="dark"] .tdpv-sideb .mfaq b{ color:var(--text-primary,#E9EDF6) }
 html[data-theme="dark"] .tdpv-sideb .mfaq span{ color:var(--text-secondary,#B6BFD3) }
-/* Botones secundarios: fondo y borde visibles sobre las tarjetas oscuras. Las fotos
-   y sus miniaturas permanecen blancas para no alterar el producto. */
 html[data-theme="dark"] :is(.tdpv-x,.td-dx,.td-di .qty button){
   background:#101827 !important; color:#E9EDF6 !important; border:1px solid #3A4968 !important
 }
@@ -738,32 +574,14 @@ html[data-theme="dark"] #tdWishDrawer .td-wremove{
   background:#101827;color:#E11D48;border-color:var(--border-light,#26314A)
 }
 
-/* 3) El botón de enviar al carrito cuando está deshabilitado se veía gris claro. */
 html[data-theme="dark"] .td-go:disabled{ background:#232D46; color:#67708A }
 
-/* La MINIATURA del producto conserva su fondo claro a propósito: las fotos
-   vienen recortadas sobre blanco y sobre oscuro salen con un halo. */
 </style>
 <link rel="stylesheet" href="/assets/oknav.css?v=20260728r">
 </head>
 <body>
-<!-- ─────────────────────────────────────────────────────────────────────────
-     Ok.station — NAVBAR UNIFICADO · marcado canónico
-     Esta es la COPIA MAESTRA. Va pegada tal cual en cada página (no se inyecta
-     por JavaScript a propósito: los enlaces de navegación deben venir en el HTML
-     para que Google los siga, que es justo por lo que la ficha se arma en el
-     servidor).
-     Necesita:  <link rel="stylesheet" href="/assets/oknav.css?v=20260728r">
-                <script src="/assets/oknav.js?v=20260724a" defer></script>
-     Todos los <svg> llevan width/height propios: sin tamaño intrínseco un icono
-     se pinta gigante mientras el CSS va en camino (ya pasó con el del correo).
-     ───────────────────────────────────────────────────────────────────────── -->
 <header class="oknav" id="oknav">
 
-  <!-- ══ CINTURILLO · lo mismo que traía .header-bar del sitio ═══════════════
-       Enlaces a la izquierda, lema al centro y redes a la derecha. En celular
-       se oculta entero: sus enlaces ya están en el cajón ☰ y aquí solo haría
-       más alta una barra que ya es pegajosa. -->
   <div class="oknav__belt">
     <div class="oknav__wrap">
       <nav class="oknav__beltlinks" aria-label="Enlaces rápidos">
@@ -785,7 +603,6 @@ html[data-theme="dark"] .td-go:disabled{ background:#232D46; color:#67708A }
     </div>
   </div>
 
-  <!-- ══ FILA 1 · logo · buscador · ubicación · cuenta · deseados · carrito ══ -->
   <div class="oknav__row oknav__row--main">
     <div class="oknav__wrap">
 
@@ -803,9 +620,6 @@ html[data-theme="dark"] .td-go:disabled{ background:#232D46; color:#67708A }
              stroke-width="2.2" stroke-linecap="round" aria-hidden="true">
           <circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/>
         </svg>
-        <!-- Sin botón de buscar: se envía con Enter, igual que el buscador del
-             resto del sitio (.shopbar__search). Con botón quedaban DOS lupas
-             en el mismo campo. -->
         <input id="oknavQ" type="search" autocomplete="off" role="combobox"
                aria-expanded="false" aria-autocomplete="list" aria-controls="oknavAc"
                aria-label="Buscar productos (escribe y pulsa Enter)"
@@ -858,7 +672,6 @@ html[data-theme="dark"] .td-go:disabled{ background:#232D46; color:#67708A }
     </div>
   </div>
 
-  <!-- ══ FILA 2 · tienda ┃ servicios ······ WhatsApp ══════════════════════ -->
   <div class="oknav__row oknav__row--nav">
     <div class="oknav__wrap">
       <nav class="oknav__mobile-stores" aria-label="Accesos de compra">
@@ -922,13 +735,9 @@ html[data-theme="dark"] .td-go:disabled{ background:#232D46; color:#67708A }
     </div>
   </div>
 
-  <!-- Desplegable de categorías (lo llena oknav.js con las de la BD) -->
   <div class="oknav__catsmenu" id="oknavCatsMenu" hidden></div>
 </header>
 
-<!-- ══ Cajón ☰ (celular y tablet) ═══════════════════════════════════════════
-     Aquí viven las cosas que NO merecen una fila propia en el encabezado:
-     los servicios, "¿Quiénes somos?/Contacto" y las redes sociales. -->
 <div class="oknav__scrim" id="oknavScrim" hidden></div>
 <aside class="oknav__drawer" id="oknavDrawer" aria-label="Menú" hidden>
   <div class="oknav__dhead">
@@ -955,8 +764,6 @@ html[data-theme="dark"] .td-go:disabled{ background:#232D46; color:#67708A }
 
   <p class="oknav__dtitle">Ok.station</p>
   <div class="oknav__dlist">
-    <!-- En celular el botón de tema no cabe en la barra (se iba a un tercer
-         renglón), así que vive aquí. Lo mueve OKTheme, el mismo de theme.js. -->
     <button type="button" id="oknavTema">Modo oscuro <span id="oknavTemaEstado"></span></button>
     <a href="/quienes-somos.html">¿Quiénes somos?</a>
     <a href="/contactanos.html">Contacto</a>
@@ -976,39 +783,22 @@ html[data-theme="dark"] .td-go:disabled{ background:#232D46; color:#67708A }
     </a>
   </div>
 </aside>
-<!-- Barra del e-commerce: la MISMA de la tienda/ficha (assets/shop-header.css/js).
-     Aquí es de NAVEGACIÓN: buscador que enlaza a fichas, carrito/favoritos del mismo
-     localStorage y categorías que llevan a la tienda con el filtro puesto. -->
 <header class="shopbar" style="display:none">
-  <!-- session-nav.js necesita #acct para arrancar; oculto, solo hospeda el menú de sesión.
-       El chip visible es .tb-cuenta. Nada de class="acct" (su display le gana a [hidden]). -->
   <div id="acct" style="display:none">
     <a href="cuenta.html" id="acct-login" aria-label="Iniciar sesión">Cuenta</a>
   </div>
   <div class="shopbar__top">
     <a class="shopbar__logo" href="index.html" aria-label="Ok.station — Ir al inicio"><span class="logo__ok">OK</span><span class="logo__dot">.</span><span class="logo__station">station</span></a>
-    <!-- Barra vieja, oculta: el encabezado real es oknav. Su buscador filtra la TABLA
-         de esta página (ver OKtienda.buscarEnVivo en el script de abajo). -->
     <div class="shopbar__spacer" aria-hidden="true"></div>
     <div class="shopbar__actions">
-      <!-- Ubicación de entrega: abre la libreta de direcciones EN LA PÁGINA (mismas
-           direcciones que la tienda, tabla user_addresses). Muestra la predeterminada. -->
       <button class="tb-loc" id="tdLocBtn" aria-label="Ubicación de entrega"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg><span class="tb-loc__txt"><small id="locTop">Entrega en</small><b id="locMain">Elige tu ubicación</b></span></button>
       <a class="tb-cuenta" href="cuenta.html?next=tienda.html%23store" aria-label="Cuenta"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span class="tb-name">Cuenta</span></a>
       <a class="tb-wa" href="https://wa.me/526647194117?text=Hola,%20quiero%20solicitar%20informaci%C3%B3n" target="_blank" rel="noopener" aria-label="WhatsApp" title="WhatsApp"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M.057 24l1.687-6.163a11.867 11.867 0 01-1.587-5.945C.16 5.335 5.495 0 12.05 0a11.82 11.82 0 018.413 3.488 11.82 11.82 0 013.48 8.414c-.003 6.557-5.338 11.892-11.893 11.892a11.9 11.9 0 01-5.688-1.448L.057 24zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884a9.86 9.86 0 001.51 5.26l-.999 3.648 3.978-1.040zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.017-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.247-.694.247-1.29.173-1.414z"/></svg></a>
-      <!-- Favoritos y Carrito: abren un panel EN LA PÁGINA (no navegan a la tienda).
-           El href a la tienda queda como respaldo si el JS no cargó. -->
       <a class="tb-fav" id="tdFavBtn" href="tienda.html#store" aria-label="Ver favoritos" title="Favoritos"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.8 4.6a5.5 5.5 0 00-7.8 0L12 5.6l-1-1a5.5 5.5 0 00-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 000-7.8z"/></svg><span class="ct" id="sbWishCount" style="display:none">0</span></a>
       <a class="tb-cart" id="tdCartNavBtn" href="tienda.html#store" aria-label="Ver carrito"><span class="ct" id="sbCartCount">0</span><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.7 13.4a2 2 0 002 1.6h9.7a2 2 0 002-1.6L23 6H6"/></svg><span id="sbCartTotal">$0.00</span></a>
     </div>
   </div>
-  <!-- Sin carril de categorías en la navbar: filtrar por categoría se hace DENTRO de la
-       compra rápida (botón "Categorías" de la página). El carril navegaba a la tienda
-       normal, que sacaba al usuario de aquí. "Volver al inicio" queda en el cuerpo. -->
 </header>
-<!-- La CINTILLA azul se eliminó (pedido del dueño): robaba una franja de alto a la
-     página. "Volver al inicio" vive ahora en el sidebar (escritorio) y en esta
-     fila ligera (móvil), que también carga los botones Categorías/Filtros. -->
 <main class="td-wrap">
   <div class="td-topbar">
     <a class="td-back" href="index.html">
@@ -1016,9 +806,6 @@ html[data-theme="dark"] .td-go:disabled{ background:#232D46; color:#67708A }
       Volver al inicio
     </a>
 
-    <!-- Categorías + filtros. El BUSCADOR es el de la navbar (#oknavQ): tener aquí otro
-         campo dejaba dos buscadores casi idénticos uno encima del otro. Ese único
-         campo filtra esta tabla mientras escribes (ver OKtienda.buscarEnVivo, abajo). -->
     <div class="td-top">
       <button class="td-catbtn td-filtbtn" id="tdFiltBtn" type="button" aria-expanded="false">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="6" x2="20" y2="6"/><line x1="7" y1="12" x2="17" y2="12"/><line x1="10" y1="18" x2="14" y2="18"/></svg>
@@ -1035,10 +822,6 @@ html[data-theme="dark"] .td-go:disabled{ background:#232D46; color:#67708A }
   <div class="td-cats" id="tdFilts"></div>
 
   <div class="td-grid">
-    <!-- Columna lateral IDÉNTICA a la de la tienda (categorías + filtros). El panel de
-         filtros #tdFilts se muda aquí en el arranque (mismo nodo, mismos listeners),
-         igual que la tienda muda su fdraw al sidebar. En móvil no se ve: mandan los
-         desplegables del listón. -->
     <aside class="store-side" id="tdSide">
       <a class="side-back" href="index.html">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>
@@ -1046,19 +829,11 @@ html[data-theme="dark"] .td-go:disabled{ background:#232D46; color:#67708A }
       </a>
       <nav class="side-cats" id="tdSideCats" aria-label="Categorías de la tienda"></nav>
     </aside>
-    <!-- Productos -->
     <section class="td-panel">
-      <!-- El botón va FUERA del <h2>: dentro, su texto pasaba a formar parte del nombre
-           del encabezado y quien navega por encabezados oía "Productos 60 productos Ver
-           todos los productos". role=status en el conteo porque al filtrar con el
-           buscador de la navbar no hay cambio de página que anunciar. -->
       <div class="td-panelh">
         <h2><span id="tdPanelTitle">Productos</span> <span class="count" id="tdCount" role="status" aria-live="polite"></span></h2>
         <button type="button" class="td-clearq" id="tdClearQ" hidden>Ver todos los productos</button>
       </div>
-      <!-- El encabezado va DENTRO del contenedor con scroll (y pegado arriba): si queda
-           fuera, la barra de scroll lo deja ~15px más ancho que las filas y las columnas
-           PRECIO/AGREGAR se desalinean. Aquí comparte el ancho exacto en cualquier SO. -->
       <div class="td-scroll" id="tdScroll">
         <div class="td-head">
           <div>Imagen</div><div>Descripción</div><div class="r">Precio</div><div class="c">Agregar</div><div aria-hidden="true"></div>
@@ -1069,7 +844,6 @@ html[data-theme="dark"] .td-go:disabled{ background:#232D46; color:#67708A }
       </div>
     </section>
 
-    <!-- Pre-carrito -->
     <aside class="td-cart">
       <div class="td-cartbox">
         <h3>Pre-carrito</h3>
@@ -1081,7 +855,6 @@ html[data-theme="dark"] .td-go:disabled{ background:#232D46; color:#67708A }
         </div>
       </div>
       <button class="td-go" id="tdGo" disabled>Enviar al carrito</button>
-      <!-- Bote de basura: aparece al arrastrar un producto DEL pre-carrito; soltarlo aquí lo descarta. -->
       <div class="td-trash" id="tdTrash" aria-hidden="true">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>
         <span>Suelta aquí para descartar</span>
@@ -1091,8 +864,6 @@ html[data-theme="dark"] .td-go:disabled{ background:#232D46; color:#67708A }
   </div>
 </main>
 
-<!-- Carrito y Favoritos: paneles EN LA PÁGINA, vinculados al mismo localStorage que la
-     tienda (vía window.OKtienda de shop-cart.js). Ver aquí, sin salir de la compra rápida. -->
 <div class="td-scrim" id="tdScrim" hidden></div>
 <aside class="td-drawer" id="tdCartDrawer" aria-label="Tu carrito" aria-hidden="true">
   <div class="td-dh"><b>Tu carrito</b><button type="button" class="td-dx" data-dclose aria-label="Cerrar">×</button></div>
@@ -1112,9 +883,6 @@ html[data-theme="dark"] .td-go:disabled{ background:#232D46; color:#67708A }
   <div class="td-dbody" id="tdLocBody"></div>
 </aside>
 
-<!-- Vista previa de producto: la MISMA información que la vista previa de la tienda
-     (foto, precio, stock, descripción y ficha técnica de product.php), al tocar
-     cualquier renglón de la tabla. -->
 <aside class="td-drawer" id="tdPrevDrawer" aria-label="Vista previa del producto" aria-hidden="true">
   <div class="tdpv-side" id="tdpvDescP" hidden>
     <div class="tdpv-sideh"><b>Descripción</b><button type="button" class="td-dx" data-pvside="tdpvDescP" aria-label="Cerrar descripción">×</button></div>
@@ -1133,25 +901,19 @@ html[data-theme="dark"] .td-go:disabled{ background:#232D46; color:#67708A }
 <script>
 (function(){
   "use strict";
-  /* ═══ Estado ═══ */
-  var PER = 24;                 // productos por página (scroll infinito)
+  var PER = 24;
   var page = 1, pages = 1, loading = false, done = false, loadToken = 0;
   var q = "", cat = "", soloOfertas = false;
-  /* Estado del panel de filtros. fSort="name" es el orden por defecto del API (no se
-     manda mientras esté así). fBrands: marcas elegidas. */
   var fBrands = [], fSort = "name", fBrandsLoaded = false, fBrandList = [];
-  /* La categoría visible es una subcategoría real de la BD. Solo puede haber una activa. */
   var fSubcats = [], fSubcatsLoaded = false, fSubcatList = [];
-  var pre = {};                 // pre-carrito local: { id: {p, qty} }
-  /* Checkout DENTRO del panel de carrito: perfil + libreta de direcciones + envío. */
+  var pre = {};
   var me = null, coAddr = null, coShip = "retiro";
-  var locAddrs = [];            // libreta completa (para el selector de ubicación)
-  var MX_STATES = [];           // estados de MX; el API los manda (esto es respaldo por si falla)
-  var SHIP_COST = 99;           // igual que ShopCatalog::SHIP_COST
+  var locAddrs = [];
+  var MX_STATES = [];
+  var SHIP_COST = 99;
   function token(){ try{ return localStorage.getItem("okstation.token") || ""; }catch(e){ return ""; } }
   function auth(){ var t = token(); return t ? { "Authorization": "Bearer " + t } : {}; }
   function shopUser(){ try{ return JSON.parse(localStorage.getItem("okstation.user")||"null"); }catch(e){ return null; } }
-  /* Deja solo 10 dígitos (móvil MX). Quita la lada +52 si viene (12 dígitos). */
   function soloTel(v){ var d = String(v||"").replace(/\D/g,""); if (d.length===12 && d.slice(0,2)==="52") d=d.slice(2); return d.slice(0,10); }
   function loadMe(){
     if (!token()) return;
@@ -1165,7 +927,7 @@ html[data-theme="dark"] .td-go:disabled{ background:#232D46; color:#67708A }
           coAddr = locAddrs.filter(function(a){ return a.is_default; })[0] || locAddrs[0] || null;
         }
         renderLoc();
-        if ($("tdCartDrawer").classList.contains("open")) renderCart();   // refresca si ya estaba abierto
+        if ($("tdCartDrawer").classList.contains("open")) renderCart();
       }).catch(function(){});
   }
 
@@ -1173,25 +935,15 @@ html[data-theme="dark"] .td-go:disabled{ background:#232D46; color:#67708A }
   var mxn = function(n){ return "$" + (Math.round(n*100)/100).toLocaleString("es-MX",{minimumFractionDigits:2,maximumFractionDigits:2}); };
   var esc = function(s){ var d=document.createElement("div"); d.textContent = s==null?"":String(s); return d.innerHTML; };
 
-  /* ═══ Carga de productos (paginada) ═══ */
   function load(reset){
-    /* Una búsqueda/filtro NUEVO (reset) nunca se descarta: antes, si había una carga en
-       vuelo, el `if (loading) return` se comía el reset y las filas viejas se quedaban
-       (y el scroll seguía APILANDO encima los resultados de la búsqueda nueva). Las
-       cargas de "más" (reset=false) sí respetan el candado. */
     if (reset){ page=1; done=false; $("tdRows").innerHTML=""; }
     else if (loading || done) return;
     tdSyncClearQ();
     $("tdPanelTitle").textContent = soloOfertas ? "Ofertas del día" : "Productos";
     var panel=$("tdPanelTitle").closest(".td-panel");
     if(panel) panel.classList.toggle("is-offers",soloOfertas);
-    var myToken = ++loadToken;   // invalida las respuestas que aún vengan en camino
+    var myToken = ++loadToken;
     loading = true;
-    /* Esqueleto en la PRIMERA página: anticipa la forma de la tabla en vez de un
-       texto suelto. En "cargar más" basta el aviso (ya hay filas en pantalla). */
-    /* OJO: la condición es `reset`, NO `page===1`. El scroll infinito devuelve
-       page a 1 al dar la vuelta al catálogo (ver más abajo), y con page===1 el
-       esqueleto BORRABA las filas reales que el cliente venía viendo. */
     if (reset && window.OKanim && !OKanim.reduced){
       var sk="";
       for (var s=0;s<8;s++) sk += '<div class="td-row td-skel" aria-hidden="true">'+
@@ -1215,29 +967,20 @@ html[data-theme="dark"] .td-go:disabled{ background:#232D46; color:#67708A }
           + (fBrands.length ? "&brand="+encodeURIComponent(fBrands.join(",")) : "")
           + (fSort !== "name" ? "&sort="+encodeURIComponent(fSort) : "");
 
-    /* Quita las filas fantasma y devuelve el aviso a la vista. Se llama SIEMPRE al
-       volver la respuesta: si no, el esqueleto se quedaría encima de las filas
-       reales (addRow AÑADE) y los mensajes de error quedarían ocultos. */
     function quitarSkel(){
       var r = $("tdRows");
       if (r && r.querySelector(".td-skel")) r.innerHTML = "";
       $("tdState").style.display = "";
     }
     fetch(u).then(function(r){ return r.json(); }).then(function(j){
-      if (myToken !== loadToken) return;   // llegó tarde: ya hay una búsqueda más nueva
+      if (myToken !== loadToken) return;
       quitarSkel();
       loading = false;
       if (!j || !j.ok){ $("tdState").textContent = "No se pudo cargar el catálogo."; return; }
       pages = j.pages || 1;
-      /* #tdCount es región viva: se escribe SOLO si el número cambia (si no, el lector
-         repetiría "N productos" en cada página del scroll infinito) y nunca se deja
-         vacío, porque vaciar una región viva no anuncia nada — justo cuando más falta
-         hace, que es cuando la búsqueda no encontró ni un producto. */
       var totalTxt = (j.total || 0) + ((j.total === 1) ? " producto" : " productos");
       if ($("tdCount").textContent !== totalTxt) $("tdCount").textContent = totalTxt;
       if (!j.items.length && page===1){
-        /* Sin resultados es donde más falta hace la salida: el botón del encabezado
-           puede haber quedado fuera de pantalla al hacer scroll. */
         if (q || cat || soloOfertas){
           $("tdState").innerHTML = '<p style="margin:0 0 12px">No encontramos nada con ese filtro.</p>'+
             '<button type="button" class="td-catbtn" id="tdClearQ2" style="height:42px">Ver todos los productos</button>';
@@ -1249,24 +992,18 @@ html[data-theme="dark"] .td-go:disabled{ background:#232D46; color:#67708A }
       }
       j.items.forEach(addRow);
       page++;
-      /* Scroll infinito de VERDAD: al llegar al final, vuelve a empezar y repite los
-         productos una y otra vez (como el "Todos" del e-commerce). Solo se corta en un
-         tope de tarjetas para no crecer el DOM sin límite. */
       if (page > pages) { if ($("tdRows").children.length >= 600) done = true; else page = 1; }
       $("tdState").style.display = "none";
-      /* El observador solo avisa cuando el centinela ENTRA. Si ya estaba a la vista
-         (lista vacía al inicio, o una página que no llena el panel), no vuelve a
-         avisar y el scroll se queda mudo. Por eso re-comprobamos al terminar. */
       setTimeout(maybeMore, 0);
     }).catch(function(){
       if (myToken !== loadToken) return;
-      quitarSkel();          // sin esto el esqueleto se quedaría girando para siempre
+      quitarSkel();
       loading = false;
       $("tdState").textContent = "Error de conexión. Reintenta.";
     });
   }
 
-  var byId = {};                // índice para resolver el producto al SOLTAR (drop trae solo el id)
+  var byId = {};
   var activeDragGhost = null;
   function clearDragGhost(){
     if(activeDragGhost && activeDragGhost.parentNode) activeDragGhost.parentNode.removeChild(activeDragGhost);
@@ -1283,18 +1020,12 @@ html[data-theme="dark"] .td-go:disabled{ background:#232D46; color:#67708A }
     return ghost;
   }
 
-  /* ── Favoritos por fila, vinculados a los deseados COMPARTIDOS (okstation_wishlist) ──
-     Se leen los ids del localStorage (no de OKtienda.deseados(), que solo devuelve los
-     que ya tiene hidratados en su caché y dejaría corazones apagados por error). */
   var HEART = '<svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.8 4.6a5.5 5.5 0 00-7.8 0L12 5.6l-1-1a5.5 5.5 0 00-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 000-7.8z"/></svg>';
-  /* Iconos SVG en línea que sustituyen a los emojis (📍🔥❤): color heredado y el
-     mismo dibujo que usa la tienda, para que se vean igual en cualquier equipo. */
   var ICO_PIN='<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>';
   var ICO_FIRE='<svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" style="vertical-align:-1px"><path d="M13.5.67s.74 2.65.74 4.8c0 2.06-1.35 3.73-3.41 3.73-2.07 0-3.63-1.67-3.63-3.73l.03-.36C5.21 7.51 4 10.62 4 14c0 4.42 3.58 8 8 8s8-3.58 8-8C20 8.61 17.41 3.8 13.5.67z"/></svg>';
   var ICO_HEART='<svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" style="vertical-align:-1px"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>';
   function wishIds(){ try{ var w = JSON.parse(localStorage.getItem("okstation_wishlist")||"[]"); return Array.isArray(w)?w.map(Number):[]; }catch(e){ return []; } }
   function isWished(id){ return wishIds().indexOf(+id) >= 0; }
-  /* Repinta TODOS los corazones de la tabla (tras togglear o si cambian desde el panel). */
   function paintWishes(){
     var ids = wishIds();
     [].slice.call(document.querySelectorAll("#tdRows [data-wish]")).forEach(function(b){
@@ -1309,7 +1040,7 @@ html[data-theme="dark"] .td-go:disabled{ background:#232D46; color:#67708A }
     byId[p.id] = p;
     var row = document.createElement("div");
     row.className = "td-row";
-    row.draggable = true;                       // arrastrable al pre-carrito
+    row.draggable = true;
     row.dataset.pid = p.id;
     var img = p.image ? '<div class="td-img" style="background-image:url('+encodeURI(p.image)+')"></div>' : '<div class="td-img td-noimg"></div>';
     var old = p.old ? '<span class="old">'+mxn(p.old)+'</span>' : '';
@@ -1317,8 +1048,6 @@ html[data-theme="dark"] .td-go:disabled{ background:#232D46; color:#67708A }
       img +
       '<div><div class="td-name">'+esc(p.name)+'</div><div class="td-meta">'+esc(p.brand||"")+(p.stock<=0?' · <b>agotado</b>':(p.stock<=5?' · <b>solo '+p.stock+'</b>':''))+'</div></div>' +
       '<div class="td-price">'+old+mxn(p.price)+'</div>' +
-      /* Sin existencias el botón nace AGOTADO y deshabilitado, no "+ Agregar": no
-         tiene caso ofrecer algo que no se puede vender y luego negarlo al clic. */
       '<div style="text-align:right">' +
         (p.stock<=0
           ? '<button class="td-add out" data-add="'+p.id+'" disabled aria-disabled="true">Agotado</button>'
@@ -1326,14 +1055,10 @@ html[data-theme="dark"] .td-go:disabled{ background:#232D46; color:#67708A }
       '</div>' +
       '<button class="td-wish'+(isWished(p.id)?' on':'')+'" data-wish="'+p.id+'" aria-pressed="'+(isWished(p.id)?'true':'false')+'" aria-label="Guardar en favoritos" title="'+(isWished(p.id)?'Quitar de favoritos':'Guardar en favoritos')+'">'+HEART+'</button>';
     row.querySelector("[data-add]").addEventListener("click", function(){ addToPre(p); });
-    /* Tocar el RENGLÓN (imagen/nombre/precio) abre la vista previa — la misma
-       información que en la tienda. Los botones (+ Agregar, ♥) siguen siendo suyos. */
     row.addEventListener("click", function(e){
       if (e.target.closest("[data-add],[data-wish]")) return;
       openPreview(p);
     });
-    /* Favoritos: usa OKtienda.toggleDeseado (emite 'deseados', así el contador de la
-       navbar y el panel se enteran). Si aún no cargó, cae a localStorage directo. */
     row.querySelector("[data-wish]").addEventListener("click", function(e){
       e.stopPropagation();
       var o = OK();
@@ -1345,8 +1070,6 @@ html[data-theme="dark"] .td-go:disabled{ background:#232D46; color:#67708A }
       }
       paintWishes();
     });
-    /* Arrastrar-y-soltar: alternativa al botón (que sigue siendo el camino principal
-       y el único en táctil, donde el drag HTML5 no aplica). */
     row.addEventListener("dragstart", function(e){
       e.dataTransfer.setData("text/plain", String(p.id));
       e.dataTransfer.effectAllowed = "copy";
@@ -1365,27 +1088,20 @@ html[data-theme="dark"] .td-go:disabled{ background:#232D46; color:#67708A }
     $("tdRows").appendChild(row);
   }
 
-  /* ═══ Pre-carrito ═══ */
-  var ADD_MS = 950;   // dura la confirmación antes de volver a "+ Agregar"
+  var ADD_MS = 950;
 
   function addToPre(p){
     var b = document.querySelector('[data-add="'+p.id+'"]');
-    if (b && b.disabled) return;                               // está confirmando → ignora el clic
+    if (b && b.disabled) return;
     var cur = pre[p.id] ? pre[p.id].qty : 0;
-    /* Dos motivos distintos para no poder agregar, y el usuario merece saber cuál:
-       AGOTADO es "no hay nada" (rojo, se acabó) y MÁXIMO es "ya te llevas todas las
-       que quedan" (naranja, no es un error tuyo). Antes ambos decían "Máximo", así
-       que un producto en cero se veía como si el problema fuera tu carrito. */
     if (p.stock <= 0){ btnTemp(b, "out", "Agotado"); return; }
-    if (cur >= p.stock){ btnTemp(b, "max", "Máximo"); return; } // ya no hay más piezas
+    if (cur >= p.stock){ btnTemp(b, "max", "Máximo"); return; }
     if (!pre[p.id]) pre[p.id] = { p:p, qty:0 };
     pre[p.id].qty++;
     renderPre(p.id);
     btnTemp(b, "done", '<span class="ck">✓</span> Agregado');
   }
 
-  /* Pone el botón en un estado temporal (bloqueado mientras dura la animación) y
-     lo regresa solo a "+ Agregar". Así no se puede agregar de más por doble clic. */
   function btnTemp(b, cls, html){
     if (!b) return;
     b.disabled = true;
@@ -1408,10 +1124,8 @@ html[data-theme="dark"] .td-go:disabled{ background:#232D46; color:#67708A }
   function totals(){
     var sub = 0, n = 0;
     for (var id in pre){ sub += pre[id].p.price * pre[id].qty; n += pre[id].qty; }
-    /* Solo SUBTOTAL: el envío y el IVA por geo se calculan en el checkout de la tienda. */
     return { sub:sub, total:sub, n:n };
   }
-  /* flashId (opcional): id del producto recién agregado → destella para ubicarlo. */
   function renderPre(flashId){
     var box = $("tdCItems"), keys = Object.keys(pre);
     if (!keys.length){
@@ -1438,34 +1152,18 @@ html[data-theme="dark"] .td-go:disabled{ background:#232D46; color:#67708A }
     $("tdGo").textContent = t.n ? ("Enviar al carrito ("+t.n+")") : "Enviar al carrito";
   }
 
-  /* La entrega (recoger/envío), el IVA por geo, el teléfono y la dirección se piden en
-     el CHECKOUT de la tienda, no aquí: la compra rápida solo llena el carrito. */
 
-  /* ═══ Enviar al carrito → abrir el panel para PAGAR aquí mismo ═══ */
-  /* Fusiona el pre-carrito en el carrito compartido y abre el panel del carrito, donde
-     está el checkout completo (envío, teléfono, pago). Todo sin salir de la compra rápida. */
   $("tdGo").addEventListener("click", function(){
     var t = totals();
     if (!t.n) return;
     var ids = Object.keys(pre);
     enviarAlCarrito();
-    pre = {}; renderPre();                 // el pre-carrito ya pasó al carrito real
-    /* enviarAlCarrito escribió localStorage directo; OKtienda no se enteró (su listener
-       'storage' solo dispara entre pestañas). Un cambiar(id,0) lo obliga a re-hidratar
-       el carrito desde el API y emitir 'carrito' → el panel se pinta completo. */
+    pre = {}; renderPre();
     var o = OK(); if (o && ids.length) o.cambiar(+ids[0], 0);
     renderCart();
-    /* La lista del ASTRONAUTA va primero (decisión 21-jul): OKi detecta que el carrito
-       creció y abre su lista solo; desde su "Ir a pagar →" se abre este panel del
-       carrito. Antes se abrían LOS DOS a la vez y quedaban encimados. Si OKi no cargó
-       (bloqueado/error), se abre el carrito directo como antes para no dejar el flujo
-       sin salida. */
     if (!document.getElementById("oki-dock")) openDrawer($("tdCartDrawer"));
   });
 
-  /* Fusiona el pre-carrito en el carrito COMPARTIDO, SUMANDO a lo que ya hubiera y sin
-     pasarse del stock. NO sobrescribe: si el cliente ya tenía cosas en el carrito de la
-     tienda, se conservan. */
   function enviarAlCarrito(){
     try{
       var c = JSON.parse(localStorage.getItem("okstation_cart") || "{}") || {};
@@ -1477,14 +1175,12 @@ html[data-theme="dark"] .td-go:disabled{ background:#232D46; color:#67708A }
     }catch(e){}
   }
 
-  /* ═══ Categorías ═══ */
   $("tdCatBtn").addEventListener("click", function(){
     $("tdFilts").classList.remove("open"); $("tdFiltBtn").classList.remove("on"); $("tdFiltBtn").setAttribute("aria-expanded","false");
     var open = $("tdCats").classList.toggle("open");
     $("tdCatBtn").classList.toggle("on", open);
     $("tdCatBtn").setAttribute("aria-expanded", open ? "true" : "false");
   });
-  /* Todo el catálogo se navega por subcategorías reales, igual que tienda.html. */
   function esCategoriaGeneral(nombre){
     var n = String(nombre || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "")
       .trim().toLowerCase();
@@ -1501,10 +1197,6 @@ html[data-theme="dark"] .td-go:disabled{ background:#232D46; color:#67708A }
     row.innerHTML = all + tdCatList.map(function(c){
       return '<button class="td-chip" data-cat="'+esc(c.name)+'">'+esc(c.name)+'<span class="n">'+c.count+'</span></button>';
     }).join("");
-    /* Los chips llegan por red; si esta carga viene de una vuelta atrás, la categoría
-       ya está en `cat` y hay que marcar SU chip (no "Todos"). Si esa categoría ya no
-       existe —Exel las renombra—, se vuelve a "Todos" y se recarga: si no, quedaría la
-       tabla vacía y ningún chip marcado, sin explicación. */
     var elegida = fSubcats[0] || "";
     if (elegida && !tdCatList.some(function(c){ return c.name === elegida; })){
       fSubcats = []; guardaEstado(); load(true);
@@ -1514,9 +1206,6 @@ html[data-theme="dark"] .td-go:disabled{ background:#232D46; color:#67708A }
       b.addEventListener("click", function(){ eligeCategoria(b.dataset.cat); });
     });
   }).catch(function(){});
-  /* Elegir categoría: lo usan los chips de la página y también "Categorías" de la
-     navbar (vía OKtienda.verCategoria), para que ese botón filtre AQUÍ en vez de
-     llevarse al usuario a la tienda normal. */
   function eligeCategoria(nombre){
     if (String(nombre || "").toLowerCase() === "ofertas"){ eligeOfertas(); return; }
     soloOfertas = false;
@@ -1529,11 +1218,8 @@ html[data-theme="dark"] .td-go:disabled{ background:#232D46; color:#67708A }
     filtCount();
     tdBrandQuery = ""; tdBrandMore = false;
     guardaEstado(); load(true);
-    /* El sidebar (siempre a la vista en escritorio) se repinta y recarga sus listas. */
     sideCatsRender(); filtRender(); asegurarDatosFiltros();
   }
-  /* Ofertas es una vista del MISMO catálogo rápido, no un enlace a tienda.html.
-     Limpia filtros que podrían ocultar las promociones y consulta al API con ofertas=1. */
   function eligeOfertas(){
     soloOfertas = true; cat = ""; q = "";
     pintaBusqueda("");
@@ -1546,10 +1232,6 @@ html[data-theme="dark"] .td-go:disabled{ background:#232D46; color:#67708A }
     guardaEstado(); load(true);
   }
 
-  /* ═══ Columna lateral (la MISMA de la tienda) ═══
-     Categorías en vertical con conteo; las subcategorías salen SOLO bajo la categoría
-     activa (patrón Amazon, igual que tienda.html). El panel de filtros no se duplica:
-     el nodo #tdFilts entero se muda aquí y conserva sus listeners. */
   var tdCatList = [];
   var TD_BOLT = '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M13 2L4 14h6l-1 8 9-12h-6l1-8z"/></svg>';
   function sideCatsRender(){
@@ -1562,8 +1244,6 @@ html[data-theme="dark"] .td-go:disabled{ background:#232D46; color:#67708A }
     }).join("");
     sc.innerHTML = html;
   }
-  /* Marcas y tipos del panel: en escritorio el panel está SIEMPRE a la vista, así que
-     se cargan al entrar y al cambiar de categoría (no solo al abrir el desplegable). */
   function asegurarDatosFiltros(){
     var qs = cat ? "?category="+encodeURIComponent(cat) : "";
     if (!fBrandsLoaded){
@@ -1586,15 +1266,9 @@ html[data-theme="dark"] .td-go:disabled{ background:#232D46; color:#67708A }
     var c = e.target.closest("[data-side-cat]");
     if (c){ eligeCategoria(c.getAttribute("data-side-cat") || ""); return; }
   });
-  /* El panel de filtros entero se muda al sidebar (mismo nodo → mismos listeners).
-     En móvil .store-side es display:contents y #tdFilts vuelve a ser el desplegable. */
   (function(){ var side = $("tdSide"), f = $("tdFilts"); if (side && f) side.appendChild(f); })();
-  /* Primer pintado del panel: tras restaurar el estado guardado (por eso el timeout). */
   setTimeout(function(){ filtRender(); asegurarDatosFiltros(); sideCatsRender(); }, 0);
 
-  /* ═══ Filtros (marca + orden), dentro de la compra rápida ═══
-     Filtra en el SERVIDOR (ver load): el catálogo se pagina, así que filtrar en el
-     navegador solo miraría la página cargada. Aplica al instante, como las categorías. */
   var TD_SORTS = [["name","Nombre (A-Z)"],["price_asc","Precio: menor a mayor"],["price_desc","Precio: mayor a menor"],["newest","Más nuevos"]];
   function filtCount(){
     var n = fBrands.length + (fSort !== "name" ? 1 : 0);
@@ -1602,8 +1276,6 @@ html[data-theme="dark"] .td-go:disabled{ background:#232D46; color:#67708A }
     $("tdFiltBtn").classList.toggle("on", $("tdFilts").classList.contains("open"));
   }
   function filtRender(){
-    /* tdFilts se repinta completo; se rescata antes la lista real de categorías para
-       que innerHTML no destruya el nodo ni sus listeners. */
     var sideCats=$("tdSideCats"), side=$("tdSide"), filts=$("tdFilts");
     if(sideCats&&side&&sideCats.parentNode!==side) side.insertBefore(sideCats,filts||null);
     var orden = TD_SORTS.map(function(s){
@@ -1616,7 +1288,6 @@ html[data-theme="dark"] .td-go:disabled{ background:#232D46; color:#67708A }
             }).join("")
           : '<span class="n" style="color:var(--muted)">No hay marcas en esta categoría.</span>')
       : '<span class="n" style="color:var(--muted)">Cargando marcas…</span>';
-    /* Con muchas marcas: buscador + top 15 + "Ver todas". */
     if (fBrandsLoaded && fBrandList.length > 15){
       marcas = '<input type="search" class="td-fbsearch" placeholder="Buscar marca… (HP, BIC, Crayola)" aria-label="Buscar marca">' +
                marcas + '<button type="button" class="td-fbmore"></button>';
@@ -1625,14 +1296,11 @@ html[data-theme="dark"] .td-go:disabled{ background:#232D46; color:#67708A }
       '<div class="td-fgroup"><h4>Ordenar por</h4>'+orden+'</div>'+
       '<div class="td-fgroup td-fgroup--brands"><h4>Marca</h4>'+marcas+'</div>'+
       '<div class="td-fgroup td-fgroup--categories"><h4>Categorías</h4><div class="td-fcat-host"></div></div>';
-    /* El nodo real de categorías queda después de orden y marcas. Al moverlo conserva
-       listeners y selección; en móvil continúa mandando el carril independiente. */
     var catHost=$("tdFilts").querySelector(".td-fcat-host");
     if(catHost&&sideCats) catHost.appendChild(sideCats);
     tdApplyBrandView();
   }
   function tdNorm(s){ return String(s||"").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/\s+/g," ").trim(); }
-  /* Las marcas largas usan buscador + top 15. */
   var tdBrandQuery = "", tdBrandMore = false;
   function tdApplyBrandView(){
     var box = $("tdFilts").querySelector(".td-fgroup--brands"); if (!box) return;
@@ -1660,14 +1328,12 @@ html[data-theme="dark"] .td-go:disabled{ background:#232D46; color:#67708A }
     asegurarDatosFiltros();
   }
   $("tdFiltBtn").addEventListener("click", filtOpen);
-  /* Buscador y "ver todas" de marcas (delegados: el panel se repinta al llegar datos). */
   $("tdFilts").addEventListener("input", function(e){
     if (e.target.classList.contains("td-fbsearch")){ tdBrandQuery = e.target.value; tdApplyBrandView(); }
   });
   $("tdFilts").addEventListener("click", function(e){
     if (e.target.closest(".td-fbmore")){ tdBrandMore = !tdBrandMore; tdApplyBrandView(); }
   });
-  /* Aplica al instante: cambiar orden o marca recarga la tabla. */
   $("tdFilts").addEventListener("change", function(e){
     if (e.target.name === "tdsort") fSort = e.target.value;
     else if (e.target.classList.contains("tdbrand")){
@@ -1676,27 +1342,8 @@ html[data-theme="dark"] .td-go:disabled{ background:#232D46; color:#67708A }
     filtCount(); guardaEstado(); load(true);
   });
 
-  /* ═══ Buscador ═══
-     La compra rápida YA NO tiene buscador propio: usa el ÚNICO de la navbar (#oknavQ).
-     Antes convivían dos campos casi idénticos, uno debajo del otro.
-
-     El contrato con assets/oknav.js son tres métodos que se publican en el puente
-     window.OKtienda (el mismo sitio donde esta página ya redirige el carrito, los
-     favoritos y la ubicación para que abran EN LA PÁGINA):
-
-       buscarEnVivo(t)   → filtra la tabla mientras se escribe. Publicarlo también le
-                           dice a la navbar que NO abra su desplegable de sugerencias:
-                           serían dos búsquedas a la vez y el menú taparía la tabla
-                           (es la misma razón por la que se apagó el desplegable propio).
-       buscarEnTienda(t) → Enter. Busca AQUÍ; sin esto la navbar se llevaba al usuario
-                           a la tienda normal, que es justo lo que no debe pasar.
-       limpiarBusqueda() → "Ver todos los productos" y Enter con el campo vacío.
-
-     La búsqueda de la tabla no cambia: mismo endpoint y mismos sinónimos del servidor. */
   var tmr = null;
   function navQ(){ return document.getElementById("oknavQ"); }
-  /* Deja el campo de la navbar mostrando lo que la tabla tiene aplicado (sin disparar
-     su listener). Si oknav.js aún no arrancó, se escribe el input directamente. */
   function pintaBusqueda(texto){
     if (window.OKNav && typeof window.OKNav.setBusqueda === "function") { window.OKNav.setBusqueda(texto); return; }
     var i = navQ(); if (i) i.value = texto == null ? "" : String(texto);
@@ -1704,38 +1351,27 @@ html[data-theme="dark"] .td-go:disabled{ background:#232D46; color:#67708A }
   function buscaTabla(texto){
     var t = String(texto == null ? "" : texto).trim();
     clearTimeout(tmr);
-    /* Nunca se repite la búsqueda que ya está en pantalla: recargar la tabla entera
-       para acabar mostrando lo mismo hace parpadear la lista y pierde el scroll. */
     if (t === q) return;
     q = t; guardaEstado(); load(true);
   }
 
-  /* ═══ "Ver todos los productos" ═══
-     Sale en cuanto algo está acotando la tabla (búsqueda, categoría, marca, tipo u
-     orden) y con un clic devuelve el catálogo completo. El texto del buscador se
-     limpia: dejarlo escrito hace creer que el filtro sigue puesto. */
   function tdSyncClearQ(){
     var b = $("tdClearQ"); if (!b) return;
     var sobra = !(q || cat || soloOfertas || fBrands.length || fSubcats.length || fSort !== "name");
-    /* Si el botón se esconde teniendo el foco, el foco cae al <body> y quien navega con
-       teclado se queda sin punto de partida: se devuelve al buscador, que es de donde
-       vino y desde donde puede seguir. */
     if (sobra && !b.hidden && document.activeElement === b) { var i = navQ(); if (i) i.focus(); }
     b.hidden = sobra;
   }
   function tdClearQuery(){
     clearTimeout(tmr);
-    pintaBusqueda("");                 // el campo de la navbar es el buscador de esta página
+    pintaBusqueda("");
     q = ""; cat = ""; soloOfertas = false;
     fBrands = []; fSubcats = []; fSort = "name";
-    /* Las listas de marca/tipo se acotan a la categoría: al volver a "Todos" hay que
-       recargarlas (si no, quedarían las de la categoría anterior). */
     fBrandsLoaded = false;
     tdBrandQuery = ""; tdBrandMore = false;
     var row = $("tdCatsRow");
     if (row) row.querySelectorAll("[data-cat]").forEach(function(x){ x.classList.toggle("on", x.dataset.cat === ""); });
     filtCount();
-    filtRender();          // desmarca lo elegido a la vista (el sidebar siempre está visible)
+    filtRender();
     sideCatsRender();
     asegurarDatosFiltros();
     guardaEstado();
@@ -1743,19 +1379,9 @@ html[data-theme="dark"] .td-go:disabled{ background:#232D46; color:#67708A }
   }
   $("tdClearQ").addEventListener("click", tdClearQuery);
 
-  /* ═══ Estado de la compra rápida entre idas y venidas ═══
-     Esta página NO abre la ficha del producto (el detalle sale en un panel aquí mismo),
-     así que el "atrás" del navegador casi siempre la restaura sola. Pero si el usuario
-     salió por otra puerta (Cuenta, un enlace del menú, WhatsApp…) y vuelve con atrás,
-     el navegador puede rehacer la página desde cero y perder lo que estaba viendo.
-     Se guarda en sessionStorage (vive lo que vive la pestaña) y SOLO se restaura si
-     esta carga es una vuelta atrás: entrar de nuevo por el menú abre el catálogo
-     completo, que es lo que se espera de una entrada normal. */
   var TD_ESTADO = "okstation_td_estado";
   function guardaEstado(){
     var s = { q:q, cat:cat, soloOfertas:soloOfertas, fBrands:fBrands, fSubcats:fSubcats, fSort:fSort };
-    /* Igual que en la tienda normal: en la entrada del historial (para que un "atrás"
-       de varios pasos recupere lo de AQUELLA visita) y en sessionStorage de respaldo. */
     try{ history.replaceState({ okRapida:s }, ""); }catch(e){}
     try{ sessionStorage.setItem(TD_ESTADO, JSON.stringify(s)); }catch(e){}
   }
@@ -1763,10 +1389,9 @@ html[data-theme="dark"] .td-go:disabled{ background:#232D46; color:#67708A }
     try{
       var n = performance.getEntriesByType && performance.getEntriesByType("navigation")[0];
       if (n && n.type) return n.type === "back_forward";
-      return performance.navigation && performance.navigation.type === 2;   // navegadores viejos
+      return performance.navigation && performance.navigation.type === 2;
     }catch(e){ return false; }
   }
-  /* Devuelve true si dejó estado puesto (para que el arranque no pise la restauración). */
   function restauraEstado(){
     if (!esVueltaAtras()) { try{ sessionStorage.removeItem(TD_ESTADO); }catch(e){} return false; }
     var s = null;
@@ -1784,44 +1409,28 @@ html[data-theme="dark"] .td-go:disabled{ background:#232D46; color:#67708A }
     return true;
   }
 
-  /* ═══ Scroll infinito ═══
-     ¿El centinela del fondo está a la vista (o casi)? → carga la siguiente página. */
   function maybeMore(){
     if (loading || done) return;
     var seR = $("tdSentinel").getBoundingClientRect();
-    /* Fondo REALMENTE visible = el menor entre el borde de la caja interna (escritorio,
-       max-height 62vh) y el alto de la ventana (móvil/≤980px, donde la caja crece y quien
-       hace scroll es la PÁGINA). Sin esto, en móvil scR.bottom queda muy abajo y cargaba
-       TODO de golpe en vez de poco a poco. */
     var visibleBottom = Math.min($("tdScroll").getBoundingClientRect().bottom, window.innerHeight);
     if (seR.top <= visibleBottom + 240) load(false);
   }
-  /* Listener de scroll en vez de IntersectionObserver (el observador con `root` no
-     resultó fiable). Se limita con setTimeout y NO con requestAnimationFrame: el rAF
-     se congela en pestañas ocultas y el scroll se quedaría mudo al volver.
-     Se escucha en el contenedor interno Y en la ventana (móvil scrollea la ventana). */
   var tick = false;
   function onScroll(){ if (tick) return; tick = true; setTimeout(function(){ tick = false; maybeMore(); }, 120); }
-  $("tdScroll").addEventListener("scroll", onScroll, { passive: true });  // caja interna (escritorio)
-  window.addEventListener("scroll", onScroll, { passive: true });          // la PÁGINA (móvil/≤980px)
+  $("tdScroll").addEventListener("scroll", onScroll, { passive: true });
+  window.addEventListener("scroll", onScroll, { passive: true });
   window.addEventListener("resize", maybeMore);
 
-  /* ═══ Arrastrar productos al pre-carrito ═══
-     El botón "+ Agregar" sigue siendo el camino principal (y el único en táctil).
-     El drop reusa addToPre(), así que respeta el tope de stock y la animación. */
   (function(){
     var zone = document.querySelector(".td-cart");
     if (!zone) return;
     function allow(e){
-      // Si arrastras DESDE el pre-carrito (para descartar), no resaltar la zona como
-      // "soltar para agregar" (eso ponía el banner claro y el texto blanco desaparecía).
       if (document.body.classList.contains("td-predrag")) return;
       e.preventDefault(); e.dataTransfer.dropEffect = "copy"; zone.classList.add("td-drop-over");
     }
     zone.addEventListener("dragenter", allow);
     zone.addEventListener("dragover", allow);
     zone.addEventListener("dragleave", function(e){
-      /* Solo apaga el resalte al salir de la zona de verdad (no al pasar sobre un hijo). */
       if (!zone.contains(e.relatedTarget)) zone.classList.remove("td-drop-over");
     });
     zone.addEventListener("drop", function(e){
@@ -1829,15 +1438,12 @@ html[data-theme="dark"] .td-go:disabled{ background:#232D46; color:#67708A }
       zone.classList.remove("td-drop-over");
       document.body.classList.remove("td-product-drag");
       var id = e.dataTransfer.getData("text/plain");
-      if (id.indexOf("pre:") === 0) return;   // eso viene del pre-carrito (descartar), no re-agregar
+      if (id.indexOf("pre:") === 0) return;
       var p = byId[id];
       if (p) addToPre(p);
     });
   })();
 
-  /* ═══ Arrastrar DEL pre-carrito al bote → descartar ═══
-     Complementa (no reemplaza) al botón − del pre-carrito. El dato se marca con "pre:" para
-     distinguirlo de arrastrar un producto de la tabla (que agrega). */
   (function(){
     var items = $("tdCItems"), trash = $("tdTrash");
     if (!items || !trash) return;
@@ -1846,14 +1452,12 @@ html[data-theme="dark"] .td-go:disabled{ background:#232D46; color:#67708A }
       e.dataTransfer.setData("text/plain", "pre:" + row.dataset.id);
       e.dataTransfer.effectAllowed = "move";
       row.classList.add("dragging");
-      document.body.classList.add("td-predrag");   // muestra el bote
+      document.body.classList.add("td-predrag");
     });
     items.addEventListener("dragend", function(e){
       var row = e.target.closest(".td-ci"); if (row) row.classList.remove("dragging");
       document.body.classList.remove("td-predrag");
       trash.classList.remove("over");
-      // Por si el resalte quedó puesto (el drop en el bote corta la propagación y el
-      // "drop" de .td-cart no alcanza a quitarlo): asegurar que no se quede el banner claro.
       var z = document.querySelector(".td-drop-over"); if (z) z.classList.remove("td-drop-over");
     });
     function over(e){ e.preventDefault(); e.stopPropagation(); e.dataTransfer.dropEffect = "move"; trash.classList.add("over"); }
@@ -1864,15 +1468,9 @@ html[data-theme="dark"] .td-go:disabled{ background:#232D46; color:#67708A }
       e.preventDefault(); e.stopPropagation(); trash.classList.remove("over");
       var d = e.dataTransfer.getData("text/plain") || "";
       if (d.indexOf("pre:") === 0){ var id = d.slice(4); if (pre[id]){ delete pre[id]; renderPre(); } }
-      /* renderPre() destruye la fila que se venia arrastrando, asi que su "dragend" ya no
-         llega al listener de arriba y la marca td-predrag se quedaba PEGADA. Con ella puesta,
-         allow() sale sin preventDefault() y el navegador deja de disparar "drop": despues de
-         borrar una vez, ya no se podia arrastrar nada al carrito hasta recargar. */
       document.body.classList.remove("td-predrag");
       trash.classList.remove("over");
     });
-    /* Red de seguridad: si un arrastre termina por cualquier otra via (soltar fuera, Escape,
-       o con el elemento ya destruido), la marca no se queda pegada. */
     document.addEventListener("dragend", function(){
       document.body.classList.remove("td-predrag");
       document.body.classList.remove("td-product-drag");
@@ -1881,12 +1479,7 @@ html[data-theme="dark"] .td-go:disabled{ background:#232D46; color:#67708A }
     });
   })();
 
-  /* ═══ Carrito y Favoritos: paneles EN LA PÁGINA ═══
-     Leen y mutan el MISMO localStorage que la tienda, vía window.OKtienda (shop-cart.js).
-     Los contadores de la navbar ya los mantiene shop-header.js. Aquí solo pintamos el
-     detalle y actuamos (cambiar cantidad, quitar, agregar a carrito). Para PAGAR se va al
-     carrito de la tienda (ahí vive el checkout: sesión, dirección, IVA y pasarela). */
-  function OK(){ return window.OKtienda || null; }   // shop-cart.js lo define (carga con defer)
+  function OK(){ return window.OKtienda || null; }
   function anyDrawerOpen(){ return $("tdCartDrawer").classList.contains("open") || $("tdWishDrawer").classList.contains("open") || $("tdLocDrawer").classList.contains("open") || $("tdPrevDrawer").classList.contains("open"); }
   function closeDrawers(){
     ["tdCartDrawer","tdWishDrawer","tdLocDrawer","tdPrevDrawer"].forEach(function(id){
@@ -1897,17 +1490,12 @@ html[data-theme="dark"] .td-go:disabled{ background:#232D46; color:#67708A }
     document.body.classList.remove("td-cart-open");
   }
 
-  /* ═══ Vista previa de producto (la misma información que la de la tienda) ═══
-     Se abre al tocar el renglón. Pinta al instante con lo que ya hay en la fila y
-     luego ENRIQUECE con product.php: galería, descripción, ficha técnica y —clave—
-     el precio/stock/descuento FRESCOS de la BD (verificación al abrir). */
   function slugify(s){ return String(s||"").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"").slice(0,80)||"producto"; }
   function pvStock(stock){
     var low=stock<=5;
     return '<div class="tdpv-stock" style="color:'+(stock<=0?"#c2410c":(low?"#c2410c":"#0E9F6E"))+'">'+
       (stock<=0?"Agotado por ahora":(low?ICO_FIRE+" ¡Últimas "+stock+"!":stock+" disponibles")+" · Recoge en Otay o a domicilio")+'</div>';
   }
-  /* El modal crece a 3 columnas cuando hay un panel lateral abierto (como la tienda). */
   function pv3Sync(){ $("tdPrevDrawer").classList.toggle("pv3", !$("tdpvDescP").hidden || !$("tdpvSpecsP").hidden); }
   $("tdPrevDrawer").addEventListener("click", function(e){
     var t=e.target.closest("[data-tdpv]");
@@ -1916,9 +1504,6 @@ html[data-theme="dark"] .td-go:disabled{ background:#232D46; color:#67708A }
     if(c){ $(c.dataset.pvside).hidden=true; pv3Sync(); }
   });
 
-  /* Abrir la vista previa sabiendo SOLO el id (lo que manda OKi). Si el producto ya
-     está en la tabla se usa tal cual; si no, se pide al catálogo. Nunca navega: en la
-     compra rápida el detalle se ve aquí mismo. */
   function abrePreviewPorId(id){
     var p = byId[+id];
     if (p) { openPreview(p); return; }
@@ -1930,7 +1515,7 @@ html[data-theme="dark"] .td-go:disabled{ background:#232D46; color:#67708A }
       }).catch(function(){});
   }
 
-  var pvSeq=0;   // token anti-carrera: si abren A y luego B rápido, la respuesta tardía de A se descarta
+  var pvSeq=0;
   function openPreview(p){
     var myPv=++pvSeq;
     var body=$("tdPrevBody");
@@ -1947,17 +1532,15 @@ html[data-theme="dark"] .td-go:disabled{ background:#232D46; color:#67708A }
       '<button type="button" class="tdpv-full" id="tdpvSpecsBtn" data-tdpv="specs" hidden>Ver ficha técnica completa →</button>'+
       '<button class="tdpv-add" id="tdpvAdd"'+(p.stock<=0?' disabled':'')+'>'+(p.stock<=0?'Agotado':'Agregar al carrito · '+mxn(p.price))+'</button>';
     $("tdpvAdd").addEventListener("click",function(){ if(p.stock>0){ addToPre(p); closeDrawers(); } });
-    /* Paneles laterales (descripción/ficha) cerrados en cada apertura, como en la tienda. */
     $("tdpvDescP").hidden=true; $("tdpvSpecsP").hidden=true; pv3Sync();
     openDrawer($("tdPrevDrawer"));
 
     fetch("/backend/api/shop/product.php?id="+encodeURIComponent(p.id))
       .then(function(r){return r.json();})
       .then(function(j){
-        if(myPv!==pvSeq) return;                 // ya se abrió otra vista previa
+        if(myPv!==pvSeq) return;
         if(!j||!j.ok||!j.product) return;
         var d=j.product;
-        /* Galería (la primera imagen grande + miniaturas). */
         if(d.images&&d.images.length){
           var im=$("tdpvImg"); if(im) im.style.backgroundImage='url('+encodeURI(d.images[0])+')';
           if(d.images.length>1){
@@ -1973,7 +1556,6 @@ html[data-theme="dark"] .td-go:disabled{ background:#232D46; color:#67708A }
         if(d.description){
           var full=String(d.description).replace(/<[^>]*>/g," ").replace(/\s+/g," ").trim();
           var de=$("tdpvDesc"); if(de){ de.textContent=full; de.hidden=false; }
-          /* Panel IZQUIERDO: descripción completa + preguntas frecuentes (como la tienda). */
           var db2=$("tdpvDescB"); if(db2) db2.innerHTML='<p style="margin:0">'+esc(full)+'</p>'+
             '<div class="mfaq"><b>¿Incluye factura?</b><span>Sí, solicítala al pagar y te llega a tu correo.</span></div>'+
             '<div class="mfaq"><b>¿Cómo lo recibo?</b><span>Recógelo gratis en OK.station (Otay) o recíbelo a domicilio en todo México.</span></div>';
@@ -1984,12 +1566,9 @@ html[data-theme="dark"] .td-go:disabled{ background:#232D46; color:#67708A }
             var n=(s&&s.name)||"", v=(s&&s.value)||"";
             return (n||v)?'<li><span class="sk">'+esc(n)+'</span><span class="sv">'+esc(v)+'</span></li>':""; });
           var ul=$("tdpvSpecs"); if(ul) ul.innerHTML=rows.slice(0,5).join("");
-          /* Panel DERECHO: la ficha completa. El botón muestra cuántas specs hay. */
           var sb=$("tdpvSpecsB"); if(sb) sb.innerHTML='<ul class="tdpv-specs" style="margin:0">'+rows.join("")+'</ul>';
           var sbt=$("tdpvSpecsBtn"); if(sbt){ sbt.hidden=false; sbt.textContent="Ver ficha técnica completa ("+d.specs.length+") →"; }
         }
-        /* Precio/stock/descuento frescos (la fila pudo envejecer). También se corrige
-           la fila en memoria para que "+ Agregar" respete el stock real. */
         if(typeof d.price==="number"){
           var fOld=(d.old&&d.old>d.price)?d.old:null;
           p.price=d.price; p.stock=d.stock; p.old=fOld;
@@ -2022,7 +1601,6 @@ html[data-theme="dark"] .td-go:disabled{ background:#232D46; color:#67708A }
     if (!items.length){ $("tdCartBody").innerHTML = '<div class="td-dempty">Tu carrito está vacío.<br>Agrega productos y dale <b>Enviar al carrito</b>.</div>'; $("tdCartFoot").innerHTML = ""; return; }
     $("tdCartBody").innerHTML = items.map(cartRow).join("");
 
-    /* ── Pie = CHECKOUT completo (se paga aquí, sin salir de la compra rápida) ── */
     var sub = o.total();
     if (!token()){
       $("tdCartFoot").innerHTML =
@@ -2055,8 +1633,6 @@ html[data-theme="dark"] .td-go:disabled{ background:#232D46; color:#67708A }
       '<div class="co-msg" id="coMsg"></div>';
   }
 
-  /* Crea el pedido desde el carrito COMPARTIDO y va a pago.html (misma pasarela que la
-     tienda). El servidor recalcula precios, IVA por geo y stock: no confía en el cliente. */
   function doCheckout(){
     var o = OK(); if (!o) return;
     var msg = $("coMsg"); if (msg){ msg.textContent = ""; }
@@ -2065,14 +1641,12 @@ html[data-theme="dark"] .td-go:disabled{ background:#232D46; color:#67708A }
     if (phone.length !== 10) return bad("Ingresa un WhatsApp válido (10 dígitos).");
     var envio = coShip === "envio";
     if (envio && !coAddr) return bad("Agrega una dirección de envío en tu cuenta.");
-    /* seen_unit = precio de LISTA que el carrito mostró; el servidor bloquea si el
-       vigente difiere >3% (deriva por sync de Exel) y manda los precios nuevos. */
     var items = o.carrito().map(function(it){ return { id: it.id, qty: it.qty, seen_unit: +it.price || 0 }; });
     if (!items.length) return bad("Tu carrito está vacío.");
     var body = { items: items, ship_mode: coShip, contact_phone: phone };
     if (envio){
       body.ship_address = [coAddr.street, coAddr.ext_num, coAddr.int_num, coAddr.neighborhood, coAddr.city, coAddr.state, "CP " + coAddr.postal_code].filter(Boolean).join(", ");
-      body.state = coAddr.state;   // define el IVA (8% BC / 16% nacional)
+      body.state = coAddr.state;
     }
     var btn = $("coPay"); if (btn){ btn.disabled = true; btn.textContent = "Procesando…"; }
     fetch("backend/api/shop/create.php", { method:"POST", headers: Object.assign({ "Content-Type":"application/json" }, auth()), body: JSON.stringify(body) })
@@ -2085,9 +1659,6 @@ html[data-theme="dark"] .td-go:disabled{ background:#232D46; color:#67708A }
         }
         if (btn){ btn.disabled = false; }
         if (j && j.price_changed){
-          /* Los precios de esta página viven en la caché de shop-cart.js: la forma
-             honesta de repintar TODO con los vigentes es recargar. El mensaje se
-             muestra primero para que el cliente sepa por qué. */
           bad((j.error) || "Los precios cambiaron; el carrito se va a actualizar.");
           setTimeout(function(){ location.reload(); }, 2600);
           return;
@@ -2115,37 +1686,19 @@ html[data-theme="dark"] .td-go:disabled{ background:#232D46; color:#67708A }
       : '<div class="td-dempty">No tienes favoritos todavía.<br>Marca el <span style="color:#e11d48">'+ICO_HEART+'</span> en un producto desde la tienda.</div>';
   }
 
-  /* stopImmediatePropagation: shop-header.js (compartido) también engancha .tb-cart/.tb-fav
-     y abre SUS paneles, cuyo "Finalizar compra" va a /tienda#cart (la tienda normal). Aquí
-     queremos PAGAR en la página, así que bloqueamos su handler. El nuestro se registra antes
-     (script inline vs. defer), así que corta el suyo. */
   $("tdCartNavBtn").addEventListener("click", function(e){ e.preventDefault(); e.stopImmediatePropagation(); renderCart(); openDrawer($("tdCartDrawer")); });
   $("tdFavBtn").addEventListener("click", function(e){ e.preventDefault(); e.stopImmediatePropagation(); renderWish(); openDrawer($("tdWishDrawer")); });
 
-  /* Navbar unificado (oknav): sus botones abren los cajones EN LA PAGINA (compra
-     rapida), no navegan a la tienda normal. Se sobrescribe el puente de shop-cart.js
-     en DOMContentLoaded para no adelantarse a su definicion (script defer). */
   window.addEventListener("DOMContentLoaded", function(){
     if (!window.OKtienda) return;
     window.OKtienda.abrirCarrito   = function(){ renderCart(); openDrawer($("tdCartDrawer")); };
     window.OKtienda.abrirDeseados  = function(){ renderWish(); openDrawer($("tdWishDrawer")); };
     window.OKtienda.abrirUbicacion = function(){ openLoc(); };
-    /* El buscador de la navbar es EL buscador de esta página: filtra la tabla aquí
-       mismo (buscarEnVivo mientras escribes, buscarEnTienda al pulsar Enter) en vez
-       de llevarse al usuario a la tienda normal. Ver el bloque "Buscador". */
-    /* Sin retardo propio: oknav.js ya espera a que el usuario deje de teclear. Dos
-       esperas encadenadas hacían que la tabla tardase casi medio segundo en reaccionar. */
     window.OKtienda.buscarEnVivo   = function(t){ buscaTabla(t); };
     window.OKtienda.buscarEnTienda = function(t){ pintaBusqueda(t); buscaTabla(t); };
-    /* Enter con el campo vacío = quitar LA BÚSQUEDA, no los filtros: el mismo gesto
-       tiene que significar lo mismo en las dos tiendas. Tirar también categoría y
-       marcas es lo que hace el botón "Ver todos los productos", que sí lo anuncia. */
     window.OKtienda.limpiarBusqueda = function(){ pintaBusqueda(""); buscaTabla(""); };
-    /* Categorías y ofertas actúan dentro de ESTA página para conservar el pre-carrito. */
     window.OKtienda.toggleCategorias = function(){
       var b = document.getElementById("oknavCats");
-      /* En escritorio el botón muestra/esconde la COLUMNA lateral (html.cats-closed),
-         exactamente igual que en la tienda. En móvil sigue abriendo el desplegable. */
       if (window.matchMedia && window.matchMedia("(min-width:981px)").matches){
         var h = document.documentElement;
         h.classList.toggle("cats-closed");
@@ -2153,36 +1706,27 @@ html[data-theme="dark"] .td-go:disabled{ background:#232D46; color:#67708A }
         return;
       }
       $("tdCatBtn").click();
-      /* El botón que el usuario pulsó es el de la navbar: es el suyo el que tiene que
-         decir si el panel quedó abierto o cerrado. */
       if (b) b.setAttribute("aria-expanded", String($("tdCats").classList.contains("open")));
     };
     window.OKtienda.verCategoria = function(nombre){ eligeCategoria(String(nombre||"")); };
     window.OKtienda.verOfertas = eligeOfertas;
-    /* La lista de OKi abre productos con verProducto(): sin esto caía al puente
-       genérico y navegaba a la ficha, sacando al usuario de la compra rápida (donde
-       el detalle se ve en un panel, no en otra página). */
     window.OKtienda.verProducto = function(id){ abrePreviewPorId(+id); };
   });
   $("tdScrim").addEventListener("click", closeDrawers);
   document.addEventListener("keydown", function(e){ if (e.key === "Escape" && anyDrawerOpen()) closeDrawers(); });
   document.querySelectorAll("[data-dclose]").forEach(function(b){ b.addEventListener("click", closeDrawers); });
 
-  /* Acciones dentro de los paneles (delegadas: el contenido se vuelve a pintar). */
   $("tdCartDrawer").addEventListener("click", function(e){
-    /* Checkout: login / cambiar envío / pagar (no requieren OKtienda para el ítem). */
     if (e.target.closest("[data-cologin]")){ location.href = "cuenta.html?next=" + encodeURIComponent("tienda-dinamica.html"); return; }
     var sh = e.target.closest("[data-coship]"); if (sh){ coShip = sh.dataset.coship; renderCart(); return; }
     if (e.target.closest("#coPay")){ doCheckout(); return; }
-    /* Ítems del carrito: +/− y quitar. */
     var o = OK(); if (!o) return;
     var t = e.target.closest("[data-ci],[data-cd],[data-crm]"); if (!t) return;
     if (t.hasAttribute("data-ci")) o.cambiar(+t.dataset.ci, 1);
     else if (t.hasAttribute("data-cd")) o.cambiar(+t.dataset.cd, -1);
     else if (t.hasAttribute("data-crm")) o.quitar(+t.dataset.crm);
-    renderCart();   // re-pinta YA: el localStorage se actualiza en el acto (no esperar al evento)
+    renderCart();
   });
-  /* Teléfono: solo 10 dígitos mientras se escribe (delegado; el pie se re-pinta). */
   $("tdCartDrawer").addEventListener("input", function(e){
     if (e.target.id !== "coPhone") return;
     var limpio = soloTel(e.target.value);
@@ -2198,32 +1742,20 @@ html[data-theme="dark"] .td-go:disabled{ background:#232D46; color:#67708A }
       return;
     }
     var t = e.target.closest("[data-wadd],[data-wrm]"); if (!t) return;
-    if (t.hasAttribute("data-wadd")) o.agregar(+t.dataset.wadd, 1);   // pasa de favorito a carrito
+    if (t.hasAttribute("data-wadd")) o.agregar(+t.dataset.wadd, 1);
     else if (t.hasAttribute("data-wrm")) o.toggleDeseado(+t.dataset.wrm);
-    /* Re-pinta YA. Clave: agregar() saca el item de favoritos pero solo emite el evento
-       'carrito', NO 'deseados' → sin esto el panel mostraría un favorito fantasma y
-       "Quitar" volvería a agregarlo. */
     renderWish();
   });
-  /* OKtienda avisa cuando cambia el carrito/deseados (misma pestaña) → re-pintar si el
-     panel está abierto. shop-header ya actualiza los contadores por su cuenta. */
   window.addEventListener("oktienda:carrito", function(){
     if ($("tdCartDrawer").classList.contains("open")) renderCart();
-    /* 'carrito' también: agregar() gradúa un favorito al carrito (lo saca de deseados)
-       pero solo emite este evento → hay que repintar los corazones de la tabla. */
     paintWishes();
   });
   window.addEventListener("oktienda:deseados", function(){
     if ($("tdWishDrawer").classList.contains("open")) renderWish();
     paintWishes();
   });
-  /* Si cambian los deseados en OTRA pestaña. */
   window.addEventListener("storage", function(e){ if (e.key === "okstation_wishlist") paintWishes(); });
 
-  /* ═══ Ubicación de entrega: libreta de direcciones EN LA PÁGINA ═══
-     Mismas direcciones y endpoints que la tienda (tabla user_addresses). La barra
-     muestra la PREDETERMINADA; elegir/agregar aquí actualiza coAddr, así el checkout
-     del carrito usa la dirección elegida. */
   function authFetch(url, opts){
     opts = opts || {}; opts.headers = Object.assign({ "Content-Type":"application/json" }, auth(), opts.headers||{});
     return fetch(url, opts).then(function(r){ return r.json(); });
@@ -2235,7 +1767,6 @@ html[data-theme="dark"] .td-go:disabled{ background:#232D46; color:#67708A }
     else { t.hidden = true; b.textContent = "Elige tu ubicación"; }
   }
   function openLoc(){
-    /* Sin sesión no hay dónde guardar → a iniciar sesión y volver a la compra rápida. */
     if (!token()){ location.href = "cuenta.html?next=" + encodeURIComponent("tienda-dinamica.html"); return; }
     $("tdLocTitle").textContent = "¿A dónde te lo enviamos?";
     $("tdLocBody").innerHTML = '<div class="td-dempty">Cargando tus direcciones…</div>';
@@ -2245,7 +1776,7 @@ html[data-theme="dark"] .td-go:disabled{ background:#232D46; color:#67708A }
       locAddrs = j.addresses || []; if (j.states && j.states.length) MX_STATES = j.states;
       coAddr = locAddrs.filter(function(a){ return a.is_default; })[0] || locAddrs[0] || null;
       renderLoc();
-      locAddrs.length ? locList(locAddrs) : locForm();   // sin direcciones → directo al alta
+      locAddrs.length ? locList(locAddrs) : locForm();
     }).catch(function(e){ console.error("Direcciones:", e); locList([]); });
   }
   function locList(list){
@@ -2273,8 +1804,6 @@ html[data-theme="dark"] .td-go:disabled{ background:#232D46; color:#67708A }
     var hayPrevias = (locAddrs||[]).length > 0;
     $("tdLocBody").innerHTML =
       '<div class="loc-err" id="locErr" role="alert" hidden></div>'+
-      /* Geolocalización + mapa (idéntico a la tienda): llena la dirección donde está el
-         teléfono y muestra un pin ajustable; todo editable a mano. */
       '<button type="button" class="afgeo" id="afGeo">'+ICO_PIN+' Usar mi ubicación actual</button>'+
       '<div id="afMapWrap" hidden><div id="afMap"></div><p class="afmaphint">Arrastra el pin a tu puerta para afinar la dirección.</p></div>'+
       '<input type="hidden" id="afLat"><input type="hidden" id="afLon">'+
@@ -2292,8 +1821,6 @@ html[data-theme="dark"] .td-go:disabled{ background:#232D46; color:#67708A }
       '<button type="button" class="afsave" id="afSave">Agregar dirección</button>'+
       (hayPrevias?'<button type="button" class="afback" id="afBack">← Volver a mis direcciones</button>':'');
     setTimeout(function(){ var f=$("afRec"); if(f)f.focus(); }, 50);
-    /* Permiso DIRECTO: si el cliente YA se lo dio a la página, el formulario se llena
-       solo al abrirse (sin volver a picar el botón ni ver otro prompt). */
     try {
       if (navigator.permissions && navigator.permissions.query) {
         navigator.permissions.query({name:"geolocation"}).then(function(st){
@@ -2303,7 +1830,6 @@ html[data-theme="dark"] .td-go:disabled{ background:#232D46; color:#67708A }
     } catch (e) {}
   }
 
-  /* ── Geolocalización + mapa (mismo comportamiento y endpoint que la tienda) ── */
   var afMapObj=null, afPin=null;
   function locMsg(m){ var e=$("locErr"); if(e){ e.textContent=m; e.hidden=false; } }
   function okLoadLeaflet(cb){
@@ -2326,7 +1852,7 @@ html[data-theme="dark"] .td-go:disabled{ background:#232D46; color:#67708A }
       afReverse(pos.coords.latitude,pos.coords.longitude);
     },function(){
       if(b){ b.disabled=false; b.innerHTML=ICO_PIN+" Usar mi ubicación actual"; }
-      afGeoIp();   // sin GPS → geolocalización por IP (Cloudflare) rellena lo que se pueda
+      afGeoIp();
     },{enableHighAccuracy:true,timeout:10000,maximumAge:60000});
   }
   function afShowMap(lat,lon){
@@ -2334,8 +1860,6 @@ html[data-theme="dark"] .td-go:disabled{ background:#232D46; color:#67708A }
     okLoadLeaflet(function(){
       var wrap=$("afMapWrap"), cont=$("afMap"); if(!wrap||!cont) return;
       wrap.hidden=false;
-      /* El formulario se re-pinta (innerHTML): si el contenedor viejo ya no está en el
-         DOM, hay que tirar el mapa anterior o Leaflet escribe sobre un nodo huérfano. */
       if(afMapObj && !document.body.contains(afMapObj.getContainer())){ try{afMapObj.remove();}catch(e){} afMapObj=null; afPin=null; }
       if(!afMapObj){
         afMapObj=L.map(cont).setView([lat,lon],17);
@@ -2356,8 +1880,6 @@ html[data-theme="dark"] .td-go:disabled{ background:#232D46; color:#67708A }
     }).catch(function(){});
   }
 
-  /* Respaldo por IP (geolocalización de Cloudflare) cuando no hay GPS: rellena lo que se
-     pueda —estado, ciudad, CP aproximado—; el cliente corrige calle y número. */
   function afGeoIp(){
     fetch("backend/api/shop/geo.php").then(function(r){return r.json();}).then(function(j){
       if(!j||!j.ok){ locMsg("No pudimos ubicarte; escribe tu dirección a mano."); return; }
@@ -2375,8 +1897,6 @@ html[data-theme="dark"] .td-go:disabled{ background:#232D46; color:#67708A }
     var body = { recipient:v("afRec"), phone:v("afPhone"), street:v("afStreet"), ext_num:v("afExt"),
                  int_num:v("afInt"), neighborhood:v("afCol"), city:v("afCity"), state:v("afState"),
                  postal_code:v("afCp"), notes:v("afNotes"), is_default:$("afDef").checked };
-    /* La coordenada EXACTA del pin viaja en las referencias: es lo que de verdad lleva
-       al repartidor a la puerta cuando la nomenclatura de la calle es confusa. */
     var gLat=($("afLat")&&$("afLat").value)||"", gLon=($("afLon")&&$("afLon").value)||"";
     if (gLat && gLon && body.notes.indexOf("GPS ") < 0){
       body.notes = (body.notes ? body.notes+" · " : "") + "GPS "+(+gLat).toFixed(6)+","+(+gLon).toFixed(6);
@@ -2429,15 +1949,10 @@ html[data-theme="dark"] .td-go:disabled{ background:#232D46; color:#67708A }
     if (e.key === "Enter" && e.target.tagName === "INPUT" && $("afSave")){ e.preventDefault(); saveAddr(); }
   });
 
-  /* ═══ Arranque ═══ */
-  /* OKi (astronauta): su botón "Ir a pagar" llama OKtienda.abrirCarrito(), que por
-     defecto navega a la tienda normal (/tienda#store). Aquí lo redirigimos al carrito
-     EN LA PÁGINA (con su checkout), y cerramos el panel de OKi (queda por encima).
-     OKtienda lo define shop-cart.js (defer, corre después), así que esperamos a que exista. */
   function hookOkiPay(){
     if (!window.OKtienda) return false;
     window.OKtienda.abrirCarrito = function(){
-      var p = document.querySelector(".oki-panel"); if (p) p.classList.remove("on");   // cerrar OKi (z-index mayor)
+      var p = document.querySelector(".oki-panel"); if (p) p.classList.remove("on");
       renderCart(); openDrawer($("tdCartDrawer"));
     };
     return true;
@@ -2447,19 +1962,13 @@ html[data-theme="dark"] .td-go:disabled{ background:#232D46; color:#67708A }
     setTimeout(function(){ clearInterval(okiIv); }, 6000);
   }
 
-  /* Si esta carga es una vuelta atrás, se recupera lo que el usuario estaba viendo
-     (búsqueda, categoría y filtros) ANTES de la primera carga, para no pedir dos
-     veces al servidor: load(true) ya sale con el estado puesto. */
   restauraEstado();
-  renderPre(); load(true); renderLoc(); loadMe();   // loadMe() ya trae la dirección y pinta el chip
+  renderPre(); load(true); renderLoc(); loadMe();
 })();
 </script>
-<!-- Barra del e-commerce: puente del carrito (shop-cart) + comportamiento (shop-header). -->
 <script src="assets/shop-cart.js?v=20260717a" defer></script>
 <script src="assets/shop-header.js?v=20260727a" defer></script>
 <script src="assets/session-nav.js?v=20260716a" defer></script>
-<!-- OKi (astronauta): se auto-inyecta. Va DESPUÉS de shop-cart.js, que define
-     window.OKtienda (el puente del carrito/deseados compartido que OKi lee). -->
 <script src="assets/ok-anim.js?v=20260727a" defer></script>
 <script src="assets/oki.js?v=20260728a" defer></script>
 <script src="/assets/oknav.js?v=20260724a" defer></script>

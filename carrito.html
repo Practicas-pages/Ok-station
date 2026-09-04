@@ -18,13 +18,12 @@
     .ct-page { background: var(--surface-page); }
     main.ct { max-width: 1160px; margin: 0 auto; padding: 20px 20px 72px; }
 
-    /* ── Pasos ── */
     .ct-steps { display: flex; align-items: center; justify-content: center; gap: 10px; flex-wrap: wrap;
       padding: 16px 0 22px; font-size: 0.9rem; }
     .ct-step { color: var(--text-muted); font-weight: 600; text-decoration: none; }
     a.ct-step:hover { color: var(--brand-blue); text-decoration: underline; }
     .ct-step.is-active { color: var(--brand-blue); }
-    .ct-step--done { color: var(--text-faint); cursor: default; }   /* Pedido completado: no se puede saltar a él */
+    .ct-step--done { color: var(--text-faint); cursor: default; }
     .ct-step__sep { color: var(--text-faint); }
 
     .ct-title { font-size: 1.6rem; font-weight: 800; letter-spacing: -0.01em; color: var(--text-primary); margin: 0 0 18px; }
@@ -33,7 +32,6 @@
     @media (max-width: 900px) { .ct-grid { grid-template-columns: minmax(0, 1fr); } }
     .ct-left, .ct-aside { min-width: 0; }
 
-    /* ── Lista de productos ── */
     .ct-card { background: var(--surface-card); border: 1px solid var(--border-light);
       border-radius: var(--radius-md); box-shadow: var(--shadow-sm); overflow: hidden; }
     .ct-head { display: flex; justify-content: space-between; padding: 14px 20px; border-bottom: 1px solid var(--border-light);
@@ -68,7 +66,6 @@
     .ct-link:hover { text-decoration: underline; }
     .ct-link svg { width: 16px; height: 16px; }
 
-    /* ── Totales ── */
     .ct-aside { position: sticky; top: 96px; }
     @media (max-width: 900px) { .ct-aside { position: static; } }
     .ct-sum { background: var(--surface-card); border: 1px solid var(--border-light);
@@ -90,7 +87,6 @@
     .ct-secure { display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: 14px; font-size: 0.76rem; color: var(--text-muted); }
     .ct-secure svg { width: 13px; height: 13px; }
 
-    /* ── Vacío ── */
     .ct-empty { text-align: center; padding: 40px 20px; }
     .ct-empty__ico { width: 62px; height: 62px; margin: 0 auto 16px; border-radius: 50%; background: var(--brand-blue-light);
       display: flex; align-items: center; justify-content: center; }
@@ -277,7 +273,6 @@
 
     <h1 class="ct-title">Tu carrito</h1>
 
-    <!-- Vacío -->
     <div class="ct-card ct-empty" id="ctEmpty" hidden>
       <div class="ct-empty__ico">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.7 13.4a2 2 0 002 1.6h9.7a2 2 0 002-1.6L23 6H6"/></svg>
@@ -321,13 +316,6 @@
 
   <script src="assets/shop-cart.js?v=20260717a"></script>
   <script>
-  /* ─────────────────────────────────────────────────────────────────────────
-     Ok.station — Página de carrito (carrito.html)
-     Lista completa del carrito con su propia URL, antes de "Finalizar compra".
-     Usa el mismo puente OKtienda (shop-cart.js) que el resto del e-commerce, así
-     que comparte carrito con la tienda y el checkout. El envío y el IVA se calculan
-     en checkout.html (por domicilio/CP); aquí solo se muestra el subtotal.
-     ───────────────────────────────────────────────────────────────────────── */
   (function () {
     "use strict";
     function $(id) { return document.getElementById(id); }

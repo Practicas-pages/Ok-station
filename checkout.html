@@ -10,22 +10,11 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
-  <!-- Tema (claro/oscuro): antes de la hoja para pintar ya con el tema elegido -->
   <script src="assets/theme.js?v=20260721a"></script>
   <link rel="stylesheet" href="styles.css?v=20260728d">
-  <!-- .auth-field / .auth-row / .auth-field__error para el formulario de dirección -->
   <link rel="stylesheet" href="assets/auth.css?v=20260625">
-  <!-- Mascota/chatbot OKi -->
   <link rel="stylesheet" href="assets/oki.css?v=20260728a">
   <style>
-    /* ── Checkout de la tienda. Página propia (no modal) para "Finalizar compra":
-       recoge contacto + dirección + envío; el PAGO es el último paso (Mercado Pago).
-       Todo con las variables del tema para que funcione claro/oscuro igual que el
-       resto del sitio. ── */
-    /* El atributo hidden DEBE ganarle a cualquier display propio: sin esto, un
-       .co-retiro-note (display:flex) o .co-grid (display:grid) siguen visibles aunque
-       se les ponga hidden, porque el display de autor le gana al [hidden] del navegador.
-       Pasaba con la nota de "Recoger en tienda" apareciendo en modo Enviar a domicilio. */
     [hidden] { display: none !important; }
     .co-page { background: var(--surface-page); }
     main.co { max-width: 1160px; margin: 0 auto; padding: 26px 20px 72px; }
@@ -35,25 +24,20 @@
     .co-step { color: var(--text-muted); font-weight: 600; text-decoration: none; }
     a.co-step:hover { color: var(--brand-blue); text-decoration: underline; }
     .co-step.is-active { color: var(--brand-blue); }
-    .co-step--done { color: var(--text-faint); cursor: default; }   /* Pedido completado: no se puede saltar a él */
+    .co-step--done { color: var(--text-faint); cursor: default; }
     .co-step__sep { color: var(--text-faint); }
     .co-title { font-size: 1.6rem; font-weight: 800; letter-spacing: -0.01em; color: var(--text-primary); margin: 0 0 22px; }
 
     .co-grid { display: grid; grid-template-columns: minmax(0, 1fr) 384px; gap: 28px; align-items: start; }
     @media (max-width: 920px) { .co-grid { grid-template-columns: minmax(0, 1fr); } }
-    /* min-width:0 en los hijos: por omisión un ítem de grid es min-width:auto y puede
-       DESBORDAR su pista si su contenido mínimo es más ancho (p. ej. un botón .btn con
-       nowrap). Esto los obliga a respetar la columna y a que el contenido se ajuste. */
     .co-left, .co-aside { min-width: 0; }
 
-    /* ── Tarjetas de sección ── */
     .co-card { background: var(--surface-card); border: 1px solid var(--border-light);
       border-radius: var(--radius-md); box-shadow: var(--shadow-sm); padding: 20px 22px; margin-bottom: 16px; }
     .co-sec { display: flex; align-items: center; gap: 9px; margin-bottom: 14px; }
     .co-sec svg { width: 18px; height: 18px; color: var(--brand-blue); flex: 0 0 auto; }
     .co-sec h2 { font-size: 1.02rem; font-weight: 700; color: var(--text-primary); margin: 0; }
 
-    /* ── Campos ── */
     .co-field { margin-bottom: 14px; }
     .co-field:last-child { margin-bottom: 0; }
     .co-field > label { display: block; font-size: 0.82rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px; }
@@ -71,7 +55,6 @@
       color: var(--brand-blue); cursor: pointer; white-space: nowrap; }
     .co-link:hover { text-decoration: underline; }
 
-    /* ── Modo de entrega (Domicilio / Recoger) ── */
     .co-modes { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
     @media (max-width: 460px) { .co-modes { grid-template-columns: 1fr; } }
     .co-mode { display: flex; align-items: flex-start; gap: 11px; padding: 14px; text-align: left;
@@ -85,7 +68,6 @@
     .co-retiro-note { display: flex; align-items: center; gap: 8px; margin: 14px 0 0; padding: 11px 13px;
       background: var(--surface-page); border-radius: var(--radius-sm); font-size: 0.82rem; color: var(--text-secondary); }
 
-    /* ── Libreta de direcciones ── */
     .co-addr { display: flex; align-items: flex-start; gap: 11px; width: 100%; text-align: left; padding: 13px;
       border: 1.5px solid var(--border-light); border-radius: var(--radius-sm); background: var(--surface-card);
       font: inherit; cursor: pointer; margin-bottom: 10px; transition: border-color 0.15s, background 0.15s, box-shadow 0.15s; }
@@ -118,7 +100,6 @@
     .co-addrform-actions { display: flex; gap: 10px; }
     .co-addrform-actions .btn { flex: 0 0 auto; }
 
-    /* ── Opciones de envío ── */
     .co-ship { display: flex; align-items: center; gap: 11px; width: 100%; text-align: left; padding: 13px;
       border: 1.5px solid var(--border-light); border-radius: var(--radius-sm); background: var(--surface-card);
       font: inherit; cursor: pointer; margin-bottom: 10px; transition: border-color 0.15s, background 0.15s, box-shadow 0.15s; }
@@ -133,7 +114,6 @@
     .co-note { font-size: 0.84rem; color: var(--text-secondary); padding: 4px 2px; }
     .co-note--warn { color: var(--color-warning); }
 
-    /* ── Nota de pago + botón + alerta ── */
     .co-paynote { display: flex; align-items: flex-start; gap: 10px; padding: 14px 16px; margin-bottom: 14px;
       background: var(--brand-blue-light); border: 1px solid rgba(6,108,255,0.18); border-radius: var(--radius-sm); }
     .co-paynote svg { width: 18px; height: 18px; color: var(--brand-blue); flex: 0 0 auto; margin-top: 1px; }
@@ -142,16 +122,12 @@
     .co-alert { padding: 11px 14px; margin-bottom: 14px; border-radius: var(--radius-sm);
       background: #FEF2F2; border: 1px solid #FECACA; color: #B91C1C; font-size: 0.86rem; }
     :root[data-theme="dark"] .co-alert { background: rgba(220,38,38,0.12); border-color: rgba(220,38,38,0.35); color: #FCA5A5; }
-    /* white-space:normal: .btn trae nowrap; sin esto un texto largo ("Realizar
-       pedido · $12,345.67" o el aviso de envío) no cabe en móvil y ensancha el botón
-       más allá del viewport, arrastrando toda la rejilla con scroll horizontal. */
     .co-submit { font-size: 1rem; padding: 15px; white-space: normal; }
     .co-spin { display: inline-block; width: 15px; height: 15px; vertical-align: -2px; margin-right: 8px;
       border: 2px solid rgba(255,255,255,0.45); border-top-color: #fff; border-radius: 50%; animation: co-rot 0.7s linear infinite; }
     .co-spin--blue { border-color: var(--border-light); border-top-color: var(--brand-blue); }
     @keyframes co-rot { to { transform: rotate(360deg); } }
 
-    /* ── Puerta de sesión / carrito vacío ── */
     .co-gate { text-align: center; padding: 12px 8px 6px; }
     .co-gate__ico { width: 56px; height: 56px; margin: 0 auto 14px; border-radius: 50%; background: var(--brand-blue-light);
       display: flex; align-items: center; justify-content: center; }
@@ -160,7 +136,6 @@
     .co-gate p { font-size: 0.9rem; color: var(--text-muted); margin: 0 0 18px; }
     .co-gate__btns { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
 
-    /* ── Resumen del pedido (columna derecha) ── */
     .co-aside { position: sticky; top: 96px; }
     @media (max-width: 920px) { .co-aside { position: static; } }
     .co-sumcard { background: var(--surface-card); border: 1px solid var(--border-light);
@@ -206,10 +181,6 @@
 </head>
 <body class="co-page">
 
-  <!-- ─────────────────────────────────────────────────────────────────────────
-     Ok.station — NAVBAR UNIFICADO · marcado canónico (copia maestra, igual que el
-     resto del sitio). Necesita oknav.css + oknav.js.
-     ───────────────────────────────────────────────────────────────────────── -->
 <header class="oknav" id="oknav">
   <div class="oknav__belt">
     <div class="oknav__wrap">
@@ -415,7 +386,6 @@
     </nav>
     <h1 class="co-title">Finaliza tu compra</h1>
 
-    <!-- Carrito vacío (ocupa todo el ancho) -->
     <div class="co-card co-gate" id="coEmpty" hidden>
       <div class="co-gate__ico">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.7 13.4a2 2 0 002 1.6h9.7a2 2 0 002-1.6L23 6H6"/></svg>
@@ -426,10 +396,8 @@
     </div>
 
     <div class="co-grid" id="coGrid">
-      <!-- ══ Columna izquierda: datos ══ -->
       <div class="co-left">
 
-        <!-- Puerta de sesión (si no hay cuenta) -->
         <div class="co-card co-gate" id="coGate" hidden>
           <div class="co-gate__ico">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
@@ -442,7 +410,6 @@
           </div>
         </div>
 
-        <!-- Formulario de checkout (si hay sesión) -->
         <div id="coForm" hidden>
 
           <section class="co-card">
@@ -556,7 +523,6 @@
         </div>
       </div>
 
-      <!-- ══ Columna derecha: resumen ══ -->
       <aside class="co-aside">
         <div class="co-sumcard">
           <div class="co-sumhead"><h2>Resumen del pedido</h2></div>
@@ -574,16 +540,6 @@
 
   <script src="assets/shop-cart.js?v=20260717a"></script>
   <script>
-  /* ─────────────────────────────────────────────────────────────────────────
-     Ok.station — Checkout (página de "Finalizar compra")
-     -----------------------------------------------------------------------------
-     Recoge contacto + entrega + envío y crea el pedido con shop/create.php. El PAGO
-     no vive aquí: al crear el pedido se redirige a pago.html?shop=<id> (Mercado Pago).
-     Reutiliza las MISMAS APIs y la misma convención de IVA que el modal de la tienda:
-       · Precio de catálogo trae IVA 8% incluido (products.php). Se saca la base
-         (÷1.08) y se le aplica el IVA del DESTINO (8% frontera / 16% nacional).
-       · El servidor recotiza precio y envío por su cuenta: aquí solo se PINTA.
-     ───────────────────────────────────────────────────────────────────────── */
   (function () {
     "use strict";
     var API = "/backend/api";
@@ -594,13 +550,7 @@
     function mxn(n) { return new Intl.NumberFormat("es-MX", { style: "currency", currency: "MXN", minimumFractionDigits: 2 }).format(+n || 0); }
     function soloTel(s) { var d = (s || "").replace(/\D/g, ""); if (d.length === 12 && d.slice(0, 2) === "52") d = d.slice(2); return d; }
     function fmtPhone(s) { var d = soloTel(s).slice(0, 10); var o = d.slice(0, 3); if (d.length > 3) o += " " + d.slice(3, 6); if (d.length > 6) o += " " + d.slice(6, 10); return o; }
-    /* IVA por CÓDIGO POSTAL (mismo criterio que el servidor en create.php / Geo):
-       BC norte (21xxx/22xxx) 8%, resto 16%. Se usa el CP —no el estado tecleado— para
-       que el IVA mostrado concuerde con el envío que cotiza Exel, que también va por CP. */
     function ivaForCp(cp) { cp = (cp || "").replace(/\D/g, ""); return /^2[12]/.test(cp) ? 0.08 : 0.16; }
-    /* Nombre de la opción de envío SIN mencionar al proveedor de origen: al cliente se
-       le muestra "Almacén 4" (el almacén desde el que sale la mercancía), como en el
-       resto del sitio. El reparto local propio se muestra como "Envío local". */
     function nombreEnvio(t) {
       var raw = (t || "").trim();
       if (/local/i.test(raw)) return "Envío local (Almacén 4)";
@@ -609,19 +559,16 @@
     }
     var NEXT = "/cuenta.html?next=/checkout.html";
 
-    /* ── Estado ── */
-    var CART = [];                 // [{id,name,price,qty,old,image}] desde OKtienda.carrito()
-    var ADDR = [], STATES = [];    // libreta + estados de México (de addresses.php)
-    var shipMode = "envio";        // "envio" | "retiro"
+    var CART = [];
+    var ADDR = [], STATES = [];
+    var shipMode = "envio";
     var selAddrId = 0;
     var shipOpts = null, selShipClave = "", shipLoading = false, shipError = "";
-    var shipCache = {};            // clave: addrId|firmaDelCarrito → opciones
+    var shipCache = {};
     var emailOther = false;
 
-    /* ── Iconos ── */
     var ICON_PIN = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>';
 
-    /* ── Carrito ── */
     function rawCartIds() { try { var c = JSON.parse(localStorage.getItem("okstation_cart") || "{}"); return Object.keys(c).filter(function (k) { return (+c[k]) > 0; }); } catch (e) { return []; } }
     function readCart() { CART = (window.OKtienda && window.OKtienda.carrito()) || []; }
     function cartSig() { return CART.map(function (it) { return it.id + "x" + it.qty; }).sort().join(","); }
@@ -629,14 +576,10 @@
     function selAddr() { for (var i = 0; i < ADDR.length; i++) if (ADDR[i].id === selAddrId) return ADDR[i]; return null; }
     function selShip() { if (!shipOpts) return null; for (var i = 0; i < shipOpts.length; i++) if (shipOpts[i].clave === selShipClave) return shipOpts[i]; return null; }
 
-    /* ── Totales (misma matemática que checkoutTotals() de la tienda) ── */
     function totals() {
       var sub8 = 0; CART.forEach(function (it) { sub8 += it.price * it.qty; });
-      var base = sub8 / 1.08;                                   // catálogo con IVA 8% → base
+      var base = sub8 / 1.08;
       var a = selAddr();
-      /* Hasta que se elige una dirección no se sabe el CP: se muestra la tasa de
-         frontera (8%, la de la tienda en Tijuana) como provisional, en vez de asustar
-         con un 16% que quizá no aplique. Al elegir domicilio se recalcula con su CP. */
       var rate = (shipMode === "envio" && a) ? ivaForCp(a.postal_code) : 0.08;
       var subIva = base * (1 + rate);
       var s = selShip();
@@ -644,11 +587,9 @@
       return { sub8: sub8, base: base, rate: rate, iva: subIva - base, subIva: subIva, ship: ship, total: subIva + (ship || 0) };
     }
 
-    /* ── Alertas ── */
     function setAlert(id, msg) { var a = $(id); a.textContent = msg; a.hidden = false; }
     function clearAlert(id) { $(id).hidden = true; }
 
-    /* ── Estado general de la página ── */
     function paintState() {
       var ids = rawCartIds();
       if (!ids.length) { $("coEmpty").hidden = false; $("coGrid").hidden = true; return; }
@@ -657,7 +598,6 @@
       else { $("coGate").hidden = true; $("coForm").hidden = false; }
     }
 
-    /* ── Resumen (columna derecha) ── */
     function renderSummary() {
       readCart();
       var box = $("coSum"); if (!box) return;
@@ -700,7 +640,6 @@
       $("coSum").querySelectorAll("[data-rm]").forEach(function (b) { b.addEventListener("click", function () { window.OKtienda.quitar(+b.getAttribute("data-rm")); }); });
     }
 
-    /* ── Botón "Realizar pedido" (label + habilitar/deshabilitar) ── */
     function paintSubmit() {
       var btn = $("coSubmit"); if (!btn) return;
       var t = totals();
@@ -717,7 +656,6 @@
       btn.textContent = "Realizar pedido · " + mxn(t.total);
     }
 
-    /* ── Direcciones ── */
     function renderAddresses() {
       var box = $("coAddrList");
       if (!ADDR.length) { box.innerHTML = '<p class="co-note">Aún no tienes direcciones guardadas. Agrega una para calcular el envío.</p>'; return; }
@@ -752,12 +690,11 @@
       }).then(function (r) { return r.json(); }).then(function (j) {
         if (!j || !j.ok) { setAlert("coAlert", (j && j.error) || "No se pudo borrar la dirección."); return; }
         ADDR = j.addresses || [];
-        if (selAddrId === id) selAddrId = (ADDR[0] && ADDR[0].id) || 0;   // cae a la predeterminada
+        if (selAddrId === id) selAddrId = (ADDR[0] && ADDR[0].id) || 0;
         renderAddresses(); quoteShip(); renderSummary(); paintSubmit();
       }).catch(function () { setAlert("coAlert", "Sin conexión con el servidor."); });
     }
 
-    /* ── Opciones de envío ── */
     function renderShip() {
       $("coShipCard").hidden = (shipMode !== "envio");
       if (shipMode !== "envio") return;
@@ -765,9 +702,6 @@
       if (!selAddr()) { box.innerHTML = '<p class="co-note">Elige o agrega una dirección para ver las opciones de envío.</p>'; return; }
       if (shipLoading) { box.innerHTML = '<div class="co-loading"><span class="co-spin co-spin--blue"></span> Calculando el envío a tu dirección…</div>'; return; }
       if (shipError) {
-        /* La paquetería (Almacén 4) a veces no responde en el momento; suele ser
-           pasajero. Un reintento a los segundos casi siempre cotiza, así que se ofrece
-           un botón en vez de obligar a recargar o cambiar de dirección. */
         box.innerHTML = '<p class="co-note co-note--warn">' + esc(shipError) + '</p>' +
           '<button type="button" class="co-addbtn" id="coShipRetry" style="margin-top:2px">' +
           '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>' +
@@ -783,8 +717,6 @@
           '<span class="co-ship__cost">' + mxn(o.costo) + '</span>' +
         '</button>';
       }).join("") +
-      /* Si la paquetería no cotizó, la única opción es la tarifa de respaldo por zona
-         (clave RESPALDO): se avisa que es estimada y que hay recoger en tienda gratis. */
       (shipOpts.some(function (o) { return o.clave === "RESPALDO"; })
         ? '<p class="co-note" style="margin-top:4px">Tarifa estimada; el monto final se confirma al preparar tu pedido. Si prefieres, puedes <b>recoger en tienda</b> gratis.</p>'
         : "");
@@ -797,8 +729,6 @@
     }
     function reintentarEnvio() {
       var a = selAddr(); if (!a) return;
-      /* Fuerza una llamada NUEVA: borra la cotización cacheada de esta dirección+carrito
-         para que quoteShip vuelva a preguntar en vez de repetir el error guardado. */
       delete shipCache[a.id + "|" + cartSig()];
       shipError = ""; shipOpts = null; selShipClave = "";
       quoteShip();
@@ -829,7 +759,6 @@
       });
     }
 
-    /* ── Modo de entrega ── */
     function setMode(mode) {
       shipMode = (mode === "retiro") ? "retiro" : "envio";
       document.querySelectorAll(".co-mode").forEach(function (b) { b.classList.toggle("is-active", b.getAttribute("data-mode") === shipMode); });
@@ -840,7 +769,6 @@
       renderSummary(); paintSubmit();
     }
 
-    /* ── Formulario de nueva dirección ── */
     function fillStates() {
       var sel = $("af-state");
       sel.innerHTML = '<option value="">Selecciona…</option>' + STATES.map(function (s) { return '<option value="' + esc(s) + '">' + esc(s) + '</option>'; }).join("");
@@ -851,10 +779,6 @@
       if (show) { clearAlert("coAddrAlert"); try { $("af-rec").focus(); } catch (e) {} }
     }
 
-    /* ── Sugerir la dirección automáticamente ──
-       GPS del navegador → geo-reverse.php (OpenStreetMap) para una dirección precisa;
-       si el cliente no da permiso, respaldo por IP con geo.php (la geolocalización de
-       Cloudflare). Solo PRE-LLENA: el cliente revisa y corrige lo que haga falta. */
     function setEstadoSelect(nombre) {
       if (!nombre) return false;
       var norm = function (s) { return (s || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").trim(); };
@@ -877,7 +801,7 @@
         ? "Ubicación aproximada por tu conexión. Corrige tu calle, número y C.P., y pon quién recibe."
         : "¡Listo! Revisa que todo esté bien y completa quién recibe y su teléfono.";
     }
-    function ubicacionPorIp() {   // respaldo: geolocalización por IP (Cloudflare)
+    function ubicacionPorIp() {
       fetch(API + "/shop/geo.php").then(function (r) { return r.json(); }).then(function (j) {
         if (j && j.ok && (j.state || j.city || j.zip)) llenarDireccion({ city: j.city, zip: j.zip, state: j.state }, true);
         else geoError();
@@ -899,7 +823,7 @@
           .then(function (r) { return r.json(); })
           .then(function (j) { if (j && j.ok && j.address) llenarDireccion(j.address, false); else ubicacionPorIp(); })
           .catch(ubicacionPorIp);
-      }, function () {   // permiso denegado / no disponible → geo por IP
+      }, function () {
         btn.disabled = false; btn.innerHTML = orig; ubicacionPorIp();
       }, { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 });
     }
@@ -920,7 +844,6 @@
         btn.disabled = false; btn.textContent = orig;
         if (j && j.ok && j.addresses) {
           ADDR = j.addresses;
-          /* Selecciona la recién creada (viene su id) o, si no, la predeterminada. */
           selAddrId = j.id || (ADDR[0] && ADDR[0].id) || 0;
           toggleAddrForm(false);
           $("coAddrForm").reset();
@@ -931,7 +854,6 @@
       }).catch(function () { btn.disabled = false; btn.textContent = orig; setAlert("coAddrAlert", "Sin conexión con el servidor."); });
     }
 
-    /* ── Crear el pedido → Mercado Pago ── */
     function submit() {
       clearAlert("coAlert");
       if (!token()) { location.href = NEXT; return; }
@@ -958,7 +880,6 @@
         if (j && j.__unauth) { setAlert("coAlert", "Tu sesión expiró. Inicia sesión de nuevo."); setTimeout(function () { location.href = NEXT; }, 1600); return; }
         if (j && j.ok && j.order) { try { localStorage.removeItem("okstation_cart"); } catch (e) {} location.href = "pago.html?shop=" + j.order.id; return; }
         btn.disabled = false; btn.textContent = orig; paintSubmit();
-        /* 409: el carrito cambió (precio/stock). Se avisa y se re-hidrata el resumen. */
         if (j && (j.price_changed || j.out_of_stock || j.unavailable)) {
           setAlert("coAlert", (j && j.error) || "Algo cambió en tu carrito. Revisa el total antes de continuar.");
           if (window.OKtienda) window.dispatchEvent(new CustomEvent("oktienda:carrito"));
@@ -969,7 +890,6 @@
       }).catch(function () { btn.disabled = false; btn.textContent = orig; paintSubmit(); setAlert("coAlert", "Sin conexión con el servidor."); });
     }
 
-    /* ── Carga de datos del usuario (correo/teléfono + libreta) ── */
     function loadUserData() {
       var su = storedUser();
       $("coEmailAcct").textContent = (su && su.email) || "tu correo de la cuenta";
@@ -986,7 +906,7 @@
         if (adr && adr.ok) {
           ADDR = adr.addresses || [];
           STATES = adr.states || [];
-          selAddrId = (ADDR[0] && ADDR[0].id) || 0;   // la predeterminada viene primero
+          selAddrId = (ADDR[0] && ADDR[0].id) || 0;
         }
         fillStates();
         renderAddresses();
@@ -996,18 +916,15 @@
       });
     }
 
-    /* ── Cambios del carrito (llega también en la primera hidratación) ── */
     function onCartChange() {
       readCart();
       paintState();
       if (!rawCartIds().length) { paintSubmit(); return; }
       renderSummary();
-      /* El carrito cambió de firma → la cotización previa ya no aplica. */
       if (shipMode === "envio") quoteShip();
       paintSubmit();
     }
 
-    /* ── Wiring ── */
     function init() {
       paintState();
       renderSummary();
@@ -1030,10 +947,7 @@
 
       if (token()) loadUserData();
 
-      /* El puente shop-cart.js hidrata el carrito de forma asíncrona y emite este
-         evento al terminar (y en cada cambio de cantidad). */
       window.addEventListener("oktienda:carrito", onCartChange);
-      /* Por si ya estaba hidratado antes de enganchar el listener. */
       if ((window.OKtienda && window.OKtienda.carrito().length)) onCartChange();
     }
 
@@ -1041,7 +955,6 @@
     else init();
   })();
   </script>
-  <!-- Mascota/chatbot OKi (astronauta) -->
   <script src="assets/catalogo.js?v=20260714a" defer></script>
   <script src="assets/oki.js?v=20260728a" defer></script>
   <script src="/assets/oknav.js?v=20260724a" defer></script>

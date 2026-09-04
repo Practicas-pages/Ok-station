@@ -10,21 +10,15 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
-  <!-- Mercado Pago (SDK del formulario de tarjeta): adelantamos la conexión al CDN
-       para que cargue más rápido y con menos fallos en redes móviles. -->
   <link rel="preconnect" href="https://sdk.mercadopago.com" crossorigin>
   <link rel="dns-prefetch" href="https://sdk.mercadopago.com">
   <link rel="preconnect" href="https://http2.mlstatic.com" crossorigin>
-  <!-- Tema (claro/oscuro): antes de la hoja para pintar ya con el tema elegido -->
   <script src="assets/theme.js?v=20260721a"></script>
   <link rel="stylesheet" href="styles.css?v=20260728d">
-  <!-- Mascota/chatbot OKi -->
   <link rel="stylesheet" href="assets/oki.css?v=20260728a">
   <link rel="stylesheet" href="assets/auth.css?v=20260625">
   <link rel="stylesheet" href="assets/order.css?v=20260626t">
   <style>
-    /* ── Checkout de tarjeta SANDBOX (demo). Reusa .auth-field/.auth-row de auth.css;
-       aquí solo lo específico de la tarjeta. Todo con variables del tema. ── */
     .cc-brands { display: flex; gap: 6px; margin-bottom: 4px; }
     .cc-brands svg { width: 38px; height: 24px; border: 1px solid var(--border-light); border-radius: 5px; background: #fff; transition: opacity 0.18s, filter 0.18s; }
     .cc-brands[data-active] svg { opacity: 0.32; filter: grayscale(0.6); }
@@ -44,22 +38,18 @@
     .card-type__opt:focus-visible { outline: 3px solid var(--brand-cyan); outline-offset: 2px; }
     .cc-secure { display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: 10px; font-size: 0.76rem; color: var(--text-muted); }
     .cc-secure svg { width: 13px; height: 13px; flex: 0 0 auto; }
-    /* Spinner del botón mientras procesa. */
     .cc-spin { display: inline-block; width: 15px; height: 15px; vertical-align: -2px; margin-right: 8px;
       border: 2px solid rgba(255, 255, 255, 0.45); border-top-color: #fff; border-radius: 50%; animation: cc-rot 0.7s linear infinite; }
     @keyframes cc-rot { to { transform: rotate(360deg); } }
-    /* Estado de éxito. */
     #pago-done { text-align: center; padding: 14px 0 6px; }
     .cc-check { width: 66px; height: 66px; margin: 0 auto 14px; border-radius: 50%; background: #DCFCE7;
       display: flex; align-items: center; justify-content: center; animation: cc-pop 0.3s ease-out; }
     .cc-check svg { width: 34px; height: 34px; color: #15803D; stroke-dasharray: 30; stroke-dashoffset: 30; animation: cc-draw 0.4s 0.15s ease-out forwards; }
     @keyframes cc-pop { from { transform: scale(0.6); opacity: 0; } to { transform: scale(1); opacity: 1; } }
     @keyframes cc-draw { to { stroke-dashoffset: 0; } }
-    /* Estado pendiente / en revisión. */
     #pago-pending { text-align: center; padding: 14px 0 6px; }
     .cc-pending { width: 66px; height: 66px; margin: 0 auto 14px; border-radius: 50%; background: #FEF3C7;
       display: flex; align-items: center; justify-content: center; font-size: 30px; color: #B45309; }
-    /* Contenedor del Brick de Mercado Pago (Checkout API). */
     #mp-brick { margin: 4px 0 6px; min-height: 40px; }
     #mp-brick-loader { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 26px 0; color: var(--text-muted); font-size: 0.9rem; }
     .mp-lo-spin { width: 18px; height: 18px; border: 2px solid var(--border-light); border-top-color: var(--brand-blue); border-radius: 50%; animation: cc-rot 0.7s linear infinite; }
@@ -71,23 +61,8 @@
 </head>
 <body class="auth-page">
 
-  <!-- ─────────────────────────────────────────────────────────────────────────
-     Ok.station — NAVBAR UNIFICADO · marcado canónico
-     Esta es la COPIA MAESTRA. Va pegada tal cual en cada página (no se inyecta
-     por JavaScript a propósito: los enlaces de navegación deben venir en el HTML
-     para que Google los siga, que es justo por lo que la ficha se arma en el
-     servidor).
-     Necesita:  <link rel="stylesheet" href="/assets/oknav.css?v=20260728r">
-                <script src="/assets/oknav.js?v=20260724a" defer></script>
-     Todos los <svg> llevan width/height propios: sin tamaño intrínseco un icono
-     se pinta gigante mientras el CSS va en camino (ya pasó con el del correo).
-     ───────────────────────────────────────────────────────────────────────── -->
 <header class="oknav" id="oknav">
 
-  <!-- ══ CINTURILLO · lo mismo que traía .header-bar del sitio ═══════════════
-       Enlaces a la izquierda, lema al centro y redes a la derecha. En celular
-       se oculta entero: sus enlaces ya están en el cajón ☰ y aquí solo haría
-       más alta una barra que ya es pegajosa. -->
   <div class="oknav__belt">
     <div class="oknav__wrap">
       <nav class="oknav__beltlinks" aria-label="Enlaces rápidos">
@@ -109,7 +84,6 @@
     </div>
   </div>
 
-  <!-- ══ FILA 1 · logo · buscador · ubicación · cuenta · deseados · carrito ══ -->
   <div class="oknav__row oknav__row--main">
     <div class="oknav__wrap">
 
@@ -127,9 +101,6 @@
              stroke-width="2.2" stroke-linecap="round" aria-hidden="true">
           <circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/>
         </svg>
-        <!-- Sin botón de buscar: se envía con Enter, igual que el buscador del
-             resto del sitio (.shopbar__search). Con botón quedaban DOS lupas
-             en el mismo campo. -->
         <input id="oknavQ" type="search" autocomplete="off" role="combobox"
                aria-expanded="false" aria-autocomplete="list" aria-controls="oknavAc"
                aria-label="Buscar productos (escribe y pulsa Enter)"
@@ -182,7 +153,6 @@
     </div>
   </div>
 
-  <!-- ══ FILA 2 · tienda ┃ servicios ······ WhatsApp ══════════════════════ -->
   <div class="oknav__row oknav__row--nav">
     <div class="oknav__wrap">
       <nav class="oknav__mobile-stores" aria-label="Accesos de compra">
@@ -246,13 +216,9 @@
     </div>
   </div>
 
-  <!-- Desplegable de categorías (lo llena oknav.js con las de la BD) -->
   <div class="oknav__catsmenu" id="oknavCatsMenu" hidden></div>
 </header>
 
-<!-- ══ Cajón ☰ (celular y tablet) ═══════════════════════════════════════════
-     Aquí viven las cosas que NO merecen una fila propia en el encabezado:
-     los servicios, "¿Quiénes somos?/Contacto" y las redes sociales. -->
 <div class="oknav__scrim" id="oknavScrim" hidden></div>
 <aside class="oknav__drawer" id="oknavDrawer" aria-label="Menú" hidden>
   <div class="oknav__dhead">
@@ -279,8 +245,6 @@
 
   <p class="oknav__dtitle">Ok.station</p>
   <div class="oknav__dlist">
-    <!-- En celular el botón de tema no cabe en la barra (se iba a un tercer
-         renglón), así que vive aquí. Lo mueve OKTheme, el mismo de theme.js. -->
     <button type="button" id="oknavTema">Modo oscuro <span id="oknavTemaEstado"></span></button>
     <a href="/quienes-somos.html">¿Quiénes somos?</a>
     <a href="/contactanos.html">Contacto</a>
@@ -318,14 +282,12 @@
         <p style="color:var(--text-muted)">Cargando…</p>
       </div>
 
-      <!-- Estado de éxito (oculto hasta confirmar) -->
       <div id="pago-done" hidden>
         <div class="cc-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg></div>
         <h2 style="margin:0 0 4px;font-size:1.2rem">¡Pago autorizado!</h2>
         <p style="color:var(--text-muted);font-size:0.88rem" id="pago-done-msg">Procesando tu confirmación…</p>
       </div>
 
-      <!-- Estado "verificando / en proceso" (título y mensaje se ajustan por JS) -->
       <div id="pago-pending" hidden>
         <div class="cc-pending" aria-hidden="true">⏳</div>
         <h2 style="margin:0 0 4px;font-size:1.2rem">Verificando tu pago…</h2>
@@ -335,7 +297,6 @@
 
       <div id="pago-actions" hidden>
 
-        <!-- ── Checkout API (Mercado Pago): tarjeta dentro del sitio ── -->
         <div id="pago-mp" hidden>
           <div id="mp-brick">
             <div id="mp-brick-loader"><span class="mp-lo-spin" aria-hidden="true"></span> Cargando el formulario de pago seguro…</div>
@@ -349,7 +310,6 @@
           </div>
         </div>
 
-        <!-- ── Sandbox (demo): formulario local, sin cargo real ── -->
         <div id="pago-sandbox" hidden>
           <form id="pago-form" novalidate autocomplete="on">
             <div id="pago-fields">
@@ -423,8 +383,6 @@
 
     if (!token()) { location.href = "cuenta.html"; return; }
 
-    /* La página cobra un PEDIDO (?order=), el PAGO de una CITA (?appt=) o una COMPRA
-       de la tienda (?shop=). */
     var orderId = qs("order"), apptId = qs("appt"), shopId = qs("shop");
     var isAppt   = !!apptId;
     var isShop   = !!shopId;
@@ -437,13 +395,9 @@
     var actions = $("pago-actions");
     var note    = $("pago-note");
 
-    /* Estado de la sesión de pago (lo devuelve payments/create.php). */
     var S = { reference: null, amount: 0, provider: null, publicKey: null };
-    /* Candado: solo un flujo de cobro a la vez (tarjeta O "Pagar en Mercado Pago"),
-       para no disparar dos pagos sobre la misma entidad. */
     var paying = false;
 
-    /* Encabezado y enlaces según la entidad. */
     $("pago-intro").textContent = "Revisa el resumen y completa el pago de tu " + noun + ".";
     var backEl = $("pago-back"); if (backEl) backEl.setAttribute("href", backHref);
     var backLabel = $("pago-back-label"); if (backLabel) backLabel.textContent = "Volver a mis " + nounPlural;
@@ -462,7 +416,6 @@
         headers: { "Content-Type": "application/json", Authorization: "Bearer " + token() },
         body: JSON.stringify(body)
       }).then(function (r) {
-        // Sesión expirada: se maneja como caso especial (no como "pago rechazado").
         if (r.status === 401) return { __unauth: true };
         return r.json();
       });
@@ -476,7 +429,6 @@
       s.onload = ok; s.onerror = err; document.head.appendChild(s);
     }
 
-    /* ── Arranque: abrimos la intención de pago y decidimos el método ── */
     postJSON("/payments/create.php", entityBody({ mode: "api" }))
       .then(function (res) {
         if (res && res.__unauth) { summary.innerHTML = ""; handleUnauth(); return; }
@@ -507,7 +459,6 @@
       note.innerHTML = '<a href="' + esc(backHref) + '">Volver a mis ' + esc(nounPlural) + '</a>';
     }
 
-    /* Estado de éxito (pago autorizado). */
     function showSuccess() {
       summary.style.display = "none";
       actions.hidden = true;
@@ -516,7 +467,6 @@
       $("pago-done-msg").textContent = "Tu pago fue autorizado. Te llevamos a tus " + nounPlural + "…";
       setTimeout(function () { location.href = backHref; }, 1600);
     }
-    /* Ajusta el estado "en proceso" (título + mensaje) sin mostrar el botón hasta el final. */
     function setPending(title, msg) {
       summary.style.display = "none";
       actions.hidden = true;
@@ -525,12 +475,6 @@
       var h = pend.querySelector("h2"); if (h && title) h.textContent = title;
       if (msg) $("pago-pending-msg").textContent = msg;
     }
-    /* Cuando MP no aprueba al instante (in_process), NO dejamos al cliente mirando un
-       "verificando" que parece colgado: mostramos DE UNA un mensaje claro y tranquilo
-       ("en proceso, te avisamos por correo") con el botón Volver, y seguimos
-       consultando el estado en SEGUNDO PLANO. Si se autoriza, cambia solo a "Pago
-       autorizado"; el correo confirma de todas formas y el trabajador puede marcarlo
-       como pagado desde el panel. */
     function verifyPayment() {
       var noun = nounPlural;
       setPending("Pago en proceso", "Estamos validando tu pago. En cuanto se apruebe te avisamos por correo y lo verás en tus " + noun + ". Puedes cerrar esta ventana.");
@@ -547,14 +491,13 @@
               setPending("Pago no aprobado", "Tu pago no se pudo aprobar. Vuelve a intentarlo desde tus " + noun + ".");
               return;
             }
-            if (tries < 10) setTimeout(poll, 3000);   // sigue en proceso: el mensaje ya está puesto y el correo avisará
+            if (tries < 10) setTimeout(poll, 3000);
             else setPending("Pago en proceso", "Tu pago sigue validándose. Te avisaremos por correo en cuanto se confirme y lo verás en tus " + noun + ". Puedes cerrar esta ventana con tranquilidad.");
           })
           .catch(function () { if (tries < 10) setTimeout(poll, 3000); });
       })();
     }
 
-    /* ──────────────── Mercado Pago — Checkout API (tarjeta en el sitio) ──────────────── */
     function setupMercadoPago() {
       $("pago-sandbox").hidden = true;
       $("pago-mp").hidden = false;
@@ -564,10 +507,6 @@
       $("pago-pro").addEventListener("click", startCheckoutPro);
       $("pago-cancel-mp").addEventListener("click", function () { location.href = backHref; });
 
-      /* Resalta "Pagar en Mercado Pago" como la opción principal. Ese botón NO usa
-         el SDK: crea la preferencia en el servidor (create.php mode=pro) y redirige
-         al checkout de Mercado Pago, así que funciona aunque el formulario de tarjeta
-         de aquí no cargue (por una extensión que bloquea MP, una red lenta, etc.). */
       function promoverPagoPro() {
         var pro = $("pago-pro");
         if (pro && !pro.classList.contains("btn--primary")) {
@@ -575,9 +514,6 @@
           pro.classList.add("btn--primary");
         }
       }
-      /* Cuando el formulario de tarjeta EN EL SITIO no puede cargar, no dejamos al
-         cliente con un error rojo que parece que todo se rompió: se lo explicamos con
-         calma y volvemos "Pagar en Mercado Pago" la opción evidente. */
       function mpFallbackPro(msg) {
         var brick = $("mp-brick");
         if (brick) brick.innerHTML = '<p style="color:var(--text-muted);font-size:.9rem;text-align:center;margin:8px 0 2px">' + esc(msg) + '</p>';
@@ -585,15 +521,6 @@
         promoverPagoPro();
         var pro = $("pago-pro"); if (pro) { try { pro.scrollIntoView({ block: "center", behavior: "smooth" }); } catch (e) {} }
       }
-      /* Carga el SDK de Mercado Pago con REINTENTOS. Vive en un CDN externo y en redes
-         móviles —o con alguna extensión del navegador— un intento suelto falla de vez
-         en cuando; reintentar un par de veces recupera la mayoría de esos casos sin
-         molestar al cliente. Si ya está cargado (volver atrás, segunda visita), se
-         reutiliza sin volver a pedirlo.
-         PLAZO GLOBAL de 12s: si la petición al CDN se CUELGA (conexión abierta que ni
-         carga ni aborta —redes lentas/proxies—), el navegador puede tardar minutos en
-         disparar onerror; sin este plazo el spinner giraría eterno y nunca se promovería
-         Checkout Pro. exito()/fallo() disparan UNA sola vez y nunca ambos. */
       function conSdkMP(ok, err) {
         if (window.MercadoPago) { ok(); return; }
         var intentos = 0, MAX = 3, terminado = false;
@@ -601,7 +528,7 @@
         function exito() { if (terminado) return; terminado = true; clearTimeout(plazo); ok(); }
         function fallo() { if (terminado) return; terminado = true; clearTimeout(plazo); err(); }
         (function probar() {
-          if (terminado) return;                       // el plazo global ya cerró: no seguir
+          if (terminado) return;
           intentos++;
           loadScript("https://sdk.mercadopago.com/js/v2", function () {
             if (terminado) return;
@@ -617,7 +544,6 @@
       }
 
       if (!S.publicKey) {
-        // Sin llave pública no se puede tokenizar aquí: dejamos solo Checkout Pro.
         mpFallbackPro('El pago con tarjeta aquí mismo no está disponible por ahora. Puedes pagar de forma segura con el botón de aquí abajo.');
         return;
       }
@@ -628,10 +554,6 @@
           var builder = mp.bricks();
           builder.create("cardPayment", "mp-brick", {
             initialization: { amount: S.amount },
-            /* El interior del Brick lo pinta el SDK de Mercado Pago, no nuestro CSS:
-               por eso se le pasa SU tema. Sin esto quedaba una tarjeta blanca con
-               algunos campos en oscuro (los que MP renderiza como DOM normal y sí
-               alcanzaba nuestra regla global de inputs) — se veía a medio pintar. */
             customization: {
               paymentMethods: { maxInstallments: 12 },
               visual: { theme: document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "default" }
@@ -655,7 +577,6 @@
                     if (res && res.__unauth) { handleUnauth(); resolve(); return; }
                     if (st === "pagado") { showSuccess(); resolve(); return; }
                     if (st === "procesando") { verifyPayment(); resolve(); return; }
-                    // rechazado / error / bloqueo: liberamos el candado y devolvemos el control al Brick para reintentar
                     paying = false;
                     alertBox((res && (res.message || res.error)) || "Tu pago fue rechazado. Prueba con otra tarjeta.");
                     try { window.scrollTo({ top: 0, behavior: "smooth" }); } catch (e) {}
@@ -666,9 +587,6 @@
               onError: function () { alertBox("Revisa los datos de tu tarjeta e inténtalo de nuevo."); }
             }
           });
-          // Respaldo: si el Brick no dispara onReady en ~12s (recursos de MP bloqueados),
-          // el SDK cargó pero el formulario no terminó de pintar. NO borramos el Brick
-          // (aún puede aparecer): solo resaltamos "Pagar en Mercado Pago" y damos el aviso.
           setTimeout(function () {
             var l = $("mp-brick-loader");
             if (l) {
@@ -680,13 +598,10 @@
           mpFallbackPro('No se pudo iniciar el formulario de tarjeta. Usa el botón de aquí abajo para pagar con Mercado Pago.');
         }
       }, function () {
-        // El SDK no cargó tras varios intentos: casi siempre una extensión que bloquea
-        // Mercado Pago o una red intermitente. Checkout Pro no depende de ese SDK.
         mpFallbackPro('No pudimos cargar el formulario de tarjeta (a veces lo bloquea una extensión del navegador o una red lenta). Puedes pagar de forma segura con el botón de aquí abajo.');
       });
     }
 
-    /* Checkout Pro: crea la preferencia y redirige al checkout alojado de MP. */
     function startCheckoutPro() {
       if (paying) { alertBox("Ya tienes un pago en curso. Espera a que termine."); return; }
       paying = true;
@@ -704,7 +619,6 @@
         .catch(function () { paying = false; btn.disabled = false; btn.textContent = orig; alertBox("Sin conexión con el servidor."); });
     }
 
-    /* ──────────────── Sandbox (demo): validación local, sin cargo real ──────────────── */
     function setupSandbox() {
       $("pago-mp").hidden = true;
       $("pago-sandbox").hidden = false;
@@ -810,7 +724,6 @@
     }
   })();
   </script>
-<!-- Mascota/chatbot OKi (astronauta) -->
 <script src="assets/catalogo.js?v=20260714a" defer></script>
 <script src="assets/oki.js?v=20260728a" defer></script>
   <script src="/assets/oknav.js?v=20260724a" defer></script>

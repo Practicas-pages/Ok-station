@@ -1,17 +1,11 @@
-// =========================
-// Ok.station Maintenance Mode
-// =========================
 
 const MAINTENANCE_MODE = false;
 
-// Si el mantenimiento está desactivado
-// enviamos al inicio normal
 
 if (!MAINTENANCE_MODE) {
     window.location.href = "index.html";
 }
 
-// Botón administrador
 
 document.addEventListener("DOMContentLoaded", () => {
 

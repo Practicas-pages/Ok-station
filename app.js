@@ -1,30 +1,11 @@
-/* ============================================================
-   Ok.station — Aplicación Principal v2.0
-   Arquitecto: Equipo Técnico Senior
-
-   MÓDULOS:
-   01. Utilidades & Configuración
-   02. Header: scroll, nav activa, menú móvil
-   03. Reveal on Scroll (IntersectionObserver)
-   04. FAQ Accordion
-   05. Wizard de Citas
-   06. Sistema de Fotos (Upload)
-   07. Botón Scroll-to-Top
-   08. Toast Notifications
-   09. Inicialización
-   ============================================================ */
 
 (function () {
   "use strict";
 
-  /* ============================================================
-     01. UTILIDADES & CONFIGURACIÓN
-     ============================================================ */
   var CONFIG = {
     whatsapp: "526647194117",
     maxFileSizeMB: 25,
     maxFiles: 30,
-    /* Formatos permitidos (seguridad): solo estos. Se valida MIME + extensión. */
     allowedTypes: ["image/jpeg", "image/jpg", "image/png", "image/webp", "application/pdf"],
     allowedExts: ["jpg", "jpeg", "png", "webp", "pdf"],
     prices: {
@@ -36,7 +17,6 @@
     }
   };
 
-  /* Selector seguro */
   function qs(sel, ctx) {
     return (ctx || document).querySelector(sel);
   }
@@ -45,9 +25,6 @@
     return Array.from((ctx || document).querySelectorAll(sel));
   }
 
-  /* ── Filtros de captura ────────────────────────────────────────
-     Nombres: solo letras (con acentos), espacios y ' . -
-     Números: solo dígitos. Limpian el <input> conservando el cursor. */
   var NAME_ALLOW_RE  = /[^A-Za-zÀ-ÖØ-öø-ÿ\s'.\-]/g;
   var DIGITS_ONLY_RE = /\D/g;
   function cleanFieldValue(el, re, max) {
@@ -61,27 +38,23 @@
     try {
       var p = Math.max(0, (pos == null ? clean.length : pos) - removed);
       el.setSelectionRange(p, p);
-    } catch (e) { /* type=date u otros no soportan selección: sin problema */ }
+    } catch (e) {   }
   }
-  /* Instala un filtro de entrada sobre un <input> suelto (paso "Tus datos"). */
   function attachFieldFilter(el, re, max) {
     if (!el) return;
     el.addEventListener("input", function () { cleanFieldValue(el, re, max); });
   }
 
-  /* Construir link de WhatsApp con mensaje codificado */
   function waLink(text) {
     return "https://wa.me/" + CONFIG.whatsapp + "?text=" + encodeURIComponent(text);
   }
 
-  /* Sanitizar texto para prevenir XSS al insertar en DOM */
   function sanitize(str) {
     var el = document.createElement("div");
     el.textContent = String(str || "");
     return el.innerHTML;
   }
 
-  /* Formatear fecha ISO a texto en español */
   function formatDate(iso) {
     if (!iso) return "—";
     var p = iso.split("-");
@@ -91,7 +64,6 @@
     return dias[d.getDay()] + " " + d.getDate() + " de " + meses[d.getMonth()] + " de " + d.getFullYear();
   }
 
-  /* Formatear precio en MXN */
   function formatMXN(amount) {
     return new Intl.NumberFormat("es-MX", {
       style: "currency",
@@ -101,7 +73,6 @@
     }).format(amount);
   }
 
-  /* Debounce */
   function debounce(fn, delay) {
     var timer;
     return function () {
@@ -113,27 +84,21 @@
   }
 
 
-  /* ============================================================
-     02. HEADER: SCROLL, NAV ACTIVA, MENÚ MÓVIL
-     ============================================================ */
   function initHeader() {
     var header = qs(".site-header");
     if (!header) return;
 
-    /* ── Clase scrolled ── */
     function updateScrolled() {
       header.classList.toggle("is-scrolled", window.scrollY > 16);
     }
     window.addEventListener("scroll", updateScrolled, { passive: true });
     updateScrolled();
 
-    /* ── Menú móvil ── */
     var toggle = qs(".nav__toggle");
     var navLinks = qs(".nav__links");
     var overlay;
 
     if (toggle && navLinks) {
-      /* Crear overlay */
       overlay = document.createElement("div");
       overlay.className = "nav-overlay";
       overlay.setAttribute("aria-hidden", "true");
@@ -143,11 +108,6 @@
         "backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px);";
       document.body.insertBefore(overlay, document.body.firstChild);
 
-      /* ── Bloqueo de scroll robusto (incluye iOS Safari) ──
-         overflow:hidden en el body NO frena el scroll en iOS; por eso además
-         cancelamos el touchmove del fondo. Se permite el scroll DENTRO del menú
-         (por si algún día crece), pero se bloquea el de la página detrás.
-         No usamos position:fixed en el body para no romper el header sticky. */
       function preventBgScroll(e) {
         if (navLinks && navLinks.contains(e.target)) return;
         e.preventDefault();
@@ -169,7 +129,6 @@
         overlay.style.opacity = "1";
         overlay.style.pointerEvents = "auto";
         lockScroll();
-        /* Foco al primer link */
         var firstLink = qs("a, button", navLinks);
         if (firstLink) firstLink.focus();
       }
@@ -189,22 +148,18 @@
         else openMenu();
       });
 
-      /* Cerrar al hacer clic en overlay */
       overlay.addEventListener("click", closeMenu);
 
-      /* Cerrar al presionar Escape */
       document.addEventListener("keydown", function (e) {
         if (e.key === "Escape" && navLinks.classList.contains("is-open")) {
           closeMenu();
         }
       });
 
-      /* Cerrar al hacer clic en link */
       qsa(".nav__link", navLinks).forEach(function (link) {
         link.addEventListener("click", closeMenu);
       });
 
-      /* Trampa de foco en el menú abierto */
       navLinks.addEventListener("keydown", function (e) {
         if (e.key !== "Tab" || !navLinks.classList.contains("is-open")) return;
         var focusable = qsa("a, button", navLinks).filter(function (el) {
@@ -223,7 +178,6 @@
       });
     }
 
-    /* ── Nav activa con IntersectionObserver ── */
     var sections = qsa("section[id], div[id]").filter(function (el) {
       return qs(".nav__link[href='#" + el.id + "']");
     });
@@ -251,14 +205,10 @@
   }
 
 
-  /* ============================================================
-     03. REVEAL ON SCROLL (IntersectionObserver)
-     ============================================================ */
   function initReveal() {
     var elements = qsa(".reveal");
     if (!elements.length) return;
 
-    /* Fallback seguro: mostrar todo si no hay soporte */
     if (!("IntersectionObserver" in window)) {
       elements.forEach(function (el) { el.classList.add("is-visible"); });
       return;
@@ -278,16 +228,12 @@
 
     elements.forEach(function (el) { io.observe(el); });
 
-    /* Red de seguridad: todo visible después de 1.6s */
     setTimeout(function () {
       elements.forEach(function (el) { el.classList.add("is-visible"); });
     }, 1600);
   }
 
 
-  /* ============================================================
-     04. FAQ ACCORDION
-     ============================================================ */
   function initFAQ() {
     var items = qsa(".faq-item");
     if (!items.length) return;
@@ -297,7 +243,6 @@
       var answer = qs(".faq-answer", item);
       if (!btn || !answer) return;
 
-      /* Atributos ARIA iniciales */
       var answerId = "faq-ans-" + Math.random().toString(36).slice(2, 8);
       answer.id = answerId;
       btn.setAttribute("aria-controls", answerId);
@@ -306,7 +251,6 @@
       btn.addEventListener("click", function () {
         var isOpen = item.classList.contains("is-open");
 
-        /* Cerrar todos (comportamiento accordion) */
         items.forEach(function (other) {
           if (other !== item && other.classList.contains("is-open")) {
             other.classList.remove("is-open");
@@ -315,11 +259,9 @@
           }
         });
 
-        /* Toggle del actual */
         item.classList.toggle("is-open", !isOpen);
         btn.setAttribute("aria-expanded", String(!isOpen));
 
-        /* Scroll suave si se abre y está fuera de pantalla */
         if (!isOpen) {
           setTimeout(function () {
             var rect = item.getBoundingClientRect();
@@ -334,22 +276,10 @@
   }
 
 
-  /* ============================================================
-     05. WIZARD DE CITAS
-     ============================================================ */
   function initCitas() {
     var section = qs("#citas");
     if (!section) return;
 
-    /**
-     * Catálogo tipado de servicios (única fuente de verdad).
-     * @typedef {Object} Service
-     * @property {string} id            Slug estable (coincide con el backend).
-     * @property {string} name          Nombre visible.
-     * @property {"main"|"additional"} category  Principal (tarjeta) o adicional (panel).
-     * @property {string} desc          Descripción corta.
-     * @type {Service[]}
-     */
     var SERVICES = [
       { id: "pasaporte", name: "Pasaporte",              category: "main",       desc: "SRE / pasaporte mexicano o americano" },
       { id: "visa",      name: "Visa Americana",         category: "main",       desc: "DS-160, CAS y consulado" },
@@ -361,32 +291,24 @@
       { id: "apostille", name: "Apostille / Traducción", category: "additional", desc: "Apostillado y traducción de documentos" },
       { id: "medica",    name: "Cita Médica / Examen",   category: "additional", desc: "Examen médico para tu trámite" }
     ];
-    /** @param {string} id @returns {Service|null} */
     function serviceById(id) { for (var i = 0; i < SERVICES.length; i++) if (SERVICES[i].id === id) return SERVICES[i]; return null; }
     var SUBTYPE_LABEL = { mexicano: "Mexicano", americano: "Americano" };
 
-    /* Estado global del wizard (persistente entre pasos) */
     var state = {
       step: 0,
-      tramite: null, tramiteLabel: "",   /* servicio único elegido (cualquiera de los 9) */
-      subtype: "",                 /* solo pasaporte: "mexicano" | "americano" */
-      pptTramite: "", pptEdad: "", /* pasaporte mexicano: primera|renovacion · mayor|menor */
-      actaState: "", actaStateLabel: "",  /* solo acta de nacimiento: estado (define el precio) */
+      tramite: null, tramiteLabel: "",
+      subtype: "",
+      pptTramite: "", pptEdad: "",
+      actaState: "", actaStateLabel: "",
       partySize: 1, partyLabel: "Solo yo",
       fecha: "", hora: "",
       nombre: "", tel: "", notas: "",
-      guests: [], activeGuest: 0,   /* datos por persona (requisitos): [{name,dob,doctype}] */
-      /* Contacto principal reutilizando una persona registrada:
-         contactChoice "" (sin elegir) | "si" | "no"; contactGuest = índice en state.guests. */
+      guests: [], activeGuest: 0,
       contactChoice: "", contactGuest: null
     };
 
-    var TOTAL_STEPS = 6;           /* Servicio → Cantidad → Información de cada persona →
-                                      Fecha → Datos de contacto → Confirmación.
-                                      El cuestionario y los documentos de cada persona se piden
-                                      en el paso "Información de cada persona" (índice 2). */
+    var TOTAL_STEPS = 6;
 
-    /* Referencias DOM */
     var stepsEl   = qsa(".step-item");
     var stepPanels = qsa(".cita-step");
     var dateInput = qs("#cita-fecha");
@@ -398,12 +320,7 @@
 
     if (!stepPanels.length) return;
 
-    /* Precio visible en cada tarjeta de trámite (paso 1). El cliente pocas veces
-       veía el precio antes de confirmar; ahora lo mostramos desde la selección.
-       Se corre en un timeout porque OKCitaPrice se define en cita-ticket.js, que
-       carga DESPUÉS de app.js (ambos defer → init corre antes de ese script). */
     function tramitePriceLabel(tramite) {
-      /* Acta: el precio depende del estado → mostramos el RANGO (no "a cotizar"). */
       if (tramite === "acta") {
         var r = window.OKActaPriceRange ? window.OKActaPriceRange() : null;
         if (r) {
@@ -417,10 +334,6 @@
       return (tramite === "pasaporte" ? "Desde " : "") + (window.OKMxn0 ? window.OKMxn0(p.unit) : ("$" + p.unit));
     }
     function initTramitePrices(tries) {
-      /* Si cita-ticket.js (defer) aún no definió OKCitaPrice, reintenta enseguida
-         para que el precio aparezca de inmediato y NO se quede en "Precio a cotizar"
-         por lentitud de carga. Además se re-ejecuta cuando llegan los precios del
-         servidor (window.OKRenderTramitePrices, llamado desde cita-ticket.js). */
       tries = tries || 0;
       if (!window.OKCitaPrice) { if (tries < 40) setTimeout(function () { initTramitePrices(tries + 1); }, 60); return; }
       qsa(".tramite-btn", section).forEach(function (btn) {
@@ -434,18 +347,14 @@
           if (anchor && anchor.parentNode) anchor.parentNode.insertBefore(el, anchor.nextSibling);
           else btn.appendChild(el);
         }
-        /* El acta muestra rango de precios: no es "por cotizar". */
         var quote = (t === "acta") ? false : !(window.OKCitaPrice && !window.OKCitaPrice(t, null, 1).quote);
         el.classList.toggle("tramite-btn__price--quote", quote);
         el.textContent = tramitePriceLabel(t);
       });
     }
-    /* Hook para que cita-ticket.js re-pinte los precios en cuanto tenga su catálogo
-       (defaults al cargar y, luego, los precios vigentes del servidor). */
     window.OKRenderTramitePrices = initTramitePrices;
     setTimeout(initTramitePrices, 0);
 
-    /* Renderizar indicadores de pasos */
     function renderSteps() {
       stepsEl.forEach(function (el, i) {
         el.classList.toggle("is-active", i === state.step);
@@ -456,12 +365,8 @@
         var isActive = i === state.step;
         panel.classList.toggle("is-active", isActive);
         panel.setAttribute("aria-hidden", String(!isActive));
-        /* Número de paso para la cabecera "PASO N DE 6" (el CSS lo lee de
-           data-paso; el contador CSS fallaba con los pasos en display:none). */
         var stepTitle = panel.querySelector(".cita-step__title");
         if (stepTitle) {
-          /* En licencia se omite el paso "¿cuántas personas?" (índice 1): se
-             renumera (0→1, 2→2, 3→3…) y el total baja a 5 para no saltar números. */
           var isLic = state.tramite === "licencia";
           stepTitle.setAttribute("data-paso", isLic ? (i === 0 ? 1 : i) : (i + 1));
           stepTitle.setAttribute("data-pasos", isLic ? 5 : 6);
@@ -469,11 +374,9 @@
       });
     }
 
-    /* Ir a paso N */
     function goToStep(n) {
       var next = Math.max(0, Math.min(TOTAL_STEPS - 1, n));
 
-      /* Completar datos desde inputs */
       if (nameInput) state.nombre = nameInput.value.trim();
       if (telInput)  state.tel    = (window.OKPhone ? window.OKPhone.full(telInput) : telInput.value.trim());
       if (correoInput) state.correo = correoInput.value.trim();
@@ -482,35 +385,23 @@
       state.step = next;
 
       if (next === TOTAL_STEPS - 1) buildSummary();
-      /* Al entrar al paso "¿Cuántas personas?" (índice 1) ajustamos las opciones
-         al trámite: la licencia de manejo usa solo "Solo yo" + "Grupo (2 o más)". */
       if (next === 1) configurePartyStep();
-      /* Al entrar al paso "Información de cada persona" (índice 2) se generan los
-         formularios y documentos por persona según la cantidad y el trámite. */
       if (next === 2) renderGuests();
-      /* Al entrar al paso Fecha (índice 3) el calendario debe reflejar la cantidad
-         de personas ya elegida. */
       if (next === 3 && calGrid) { renderCalendar(); updateCalNav(); }
-      /* Al entrar al paso "Tus datos" (índice 4): si el contacto es una de las
-         personas de la cita, se autollena (1) o se ofrece elegir (varias). */
       if (next === 4) renderQuienContacto();
 
       renderSteps();
 
-      /* Mover foco al título del nuevo paso */
       var panel = stepPanels[next];
       if (panel) {
         var heading = qs("h4, h3", panel);
         if (heading) {
           heading.setAttribute("tabindex", "-1");
-          heading.focus({ preventScroll: true });   /* sin salto por el foco */
+          heading.focus({ preventScroll: true });
           setTimeout(function () { heading.removeAttribute("tabindex"); }, 500);
         }
       }
 
-      /* Llevar el wizard a la vista SOLO si quedó fuera de pantalla. Antes hacía
-         scroll en CADA paso (la pantalla "saltaba" arriba/abajo); ahora, si el
-         wizard ya está visible, no se mueve nada. */
       var rect = section.getBoundingClientRect();
       var headerH = 90;
       if (rect.top < headerH - 4 || rect.top > window.innerHeight * 0.6) {
@@ -518,18 +409,13 @@
       }
     }
 
-    /* ── Paso 1: selección de servicio (principal + adicionales) ── */
     function updateStep0Next() {
       var nextBtn = qs("#cita-next-0");
       if (!nextBtn) return;
-      /* Continuar habilitado si hay principal y, si es pasaporte, además su subtipo;
-         si es acta de nacimiento, además el estado elegido (define el precio). */
       var ok = !!state.tramite
         && (state.tramite !== "pasaporte" ||
             (!!state.subtype && (state.subtype !== "mexicano" || (!!state.pptTramite && !!state.pptEdad))))
         && (state.tramite !== "acta" || !!state.actaState);
-      /* Sin sesión, Continuar queda BLOQUEADO y el aviso junto al botón explica que
-         hay que iniciar sesión o crear cuenta (ver requisitos sigue siendo libre). */
       var logged = citaSessionOk();
       var note = qs("#cita-login-note");
       if (note) note.hidden = !(state.tramite && !logged);
@@ -537,14 +423,7 @@
       nextBtn.setAttribute("aria-disabled", String(!ok || !logged));
     }
 
-    /* Selección ÚNICA entre los 9 servicios (tarjetas principales + panel "Más servicios").
-       Todos son independientes: elegir uno deselecciona cualquier otro. */
     function selectService(id, el) {
-      /* Elegir un trámite y VER sus requisitos es libre (sin cuenta). Sin sesión,
-         el botón Continuar del paso 1 queda deshabilitado y un aviso junto a él
-         pide iniciar sesión o crear cuenta (updateStep0Next / #cita-login-note). */
-      /* Resalta por ID (no por elemento) para que TODAS las copias del carrusel
-         infinito —original y clones— queden marcadas igual. */
       qsa(".tramite-btn, .extra-card").forEach(function (b) {
         var active = (b.dataset.tramite === id) || (b.dataset.service === id);
         b.classList.toggle("is-selected", active);
@@ -553,55 +432,39 @@
       state.tramite = id;
       var svc = serviceById(id);
       state.tramiteLabel = svc ? svc.name : id;
-      if (id !== "pasaporte") state.subtype = "";  /* el subtipo solo aplica a pasaporte */
-      if (id !== "acta") { state.actaState = ""; state.actaStateLabel = ""; }  /* el estado solo aplica al acta */
-      /* Licencia de conducir: es un solo documento (PDF) que se imprime en PVC;
-         no aplica "¿cuántas personas?" → se asume 1 y ese paso se omite. */
+      if (id !== "pasaporte") state.subtype = "";
+      if (id !== "acta") { state.actaState = ""; state.actaStateLabel = ""; }
       if (id === "licencia") { state.partySize = 1; state.partyLabel = "Solo yo"; }
       renderSelectedExtra();
       updateStep0Next();
-      renderSteps();   /* refleja el total de pasos del trámite en el contador (licencia = 5) */
+      renderSteps();
       return true;
     }
 
-    /* ¿Puede LLENAR datos en el wizard? Solo con sesión (ya NO hay modo invitado:
-       se retiró a petición del cliente). Sin sesión, el paso 1 solo deja ver
-       requisitos y el aviso #cita-login-note pide iniciar sesión o crear cuenta. */
     function citaSessionOk() {
       var signedIn = false;
       try { signedIn = !!localStorage.getItem("okstation.token"); } catch (e) {}
       return signedIn;
     }
-    /* El enlace del aviso guarda a dónde volver: tras iniciar sesión o registrarse,
-       auth.js (afterAuthDest) regresa al usuario aquí, al wizard. */
     var loginNoteLink = qs("#cita-login-link");
     if (loginNoteLink) loginNoteLink.addEventListener("click", function () {
       try { sessionStorage.setItem("oks_intended", location.pathname + location.search + "#citas"); } catch (e) {}
     });
 
-    /* DELEGACIÓN de eventos: un solo listener en la sección capta el clic en
-       cualquier .tramite-btn, INCLUIDAS las tarjetas clonadas del carrusel
-       infinito (los clones no heredan listeners por-elemento).
-       NO desplazamos la página al elegir un trámite: los requisitos aparecen en
-       su sitio y que la pantalla se moviera sola resultaba molesto. */
     section.addEventListener("click", function (e) {
       var btn = e.target.closest ? e.target.closest(".tramite-btn") : null;
       if (!btn || !section.contains(btn)) return;
       var id = btn.dataset.tramite;
       if (!id) return;
       selectService(id, btn);
-      if (id === "pasaporte") { openSubtypeModal(); return; }   /* caso especial: subtipo obligatorio */
-      if (id === "acta") { openActaModal(); return; }           /* caso especial: estado (define el precio) */
+      if (id === "pasaporte") { openSubtypeModal(); return; }
+      if (id === "acta") { openActaModal(); return; }
     });
 
-    /* ── Caso especial Pasaporte: modal de subtipo (mexicano/americano) ── */
     var subtypeModal = qs("#cita-subtype-modal");
     var subtypeExtra = subtypeModal ? qs("#cita-subtype-extra", subtypeModal) : null;
     function subtypeEsc(e) { if (e.key === "Escape") closeSubtypeModal(); }
     function subtypeSel(name) { return subtypeModal ? qs("input[name='" + name + "']:checked", subtypeModal) : null; }
-    /* El pasaporte MEXICANO pide además primera/renovación y menor/mayor (hay 4
-       juegos de requisitos). El AMERICANO no. "Confirmar" se habilita solo cuando
-       todo lo necesario está elegido, y se muestran/ocultan los grupos extra. */
     function updateSubtypeExtra() {
       var sub = subtypeSel("cita-subtype");
       var isMex = !!sub && sub.value === "mexicano";
@@ -612,7 +475,7 @@
       if (confirmB) { confirmB.disabled = !ok; confirmB.setAttribute("aria-disabled", String(!ok)); }
     }
     function openSubtypeModal() {
-      if (!subtypeModal) return;                 /* sin modal en el DOM no bloquea el flujo */
+      if (!subtypeModal) return;
       subtypeModal.hidden = false;
       subtypeModal.classList.add("is-open");
       qsa("input[name='cita-subtype']", subtypeModal).forEach(function (r) { r.checked = (r.value === state.subtype); });
@@ -640,21 +503,15 @@
         if (chosen.value === "mexicano" && (!subtypeSel("cita-ppt-tramite") || !subtypeSel("cita-ppt-edad"))) return;
         state.subtype = chosen.value;
         if (chosen.value === "mexicano") {
-          state.pptTramite = subtypeSel("cita-ppt-tramite").value;   /* primera | renovacion */
-          state.pptEdad    = subtypeSel("cita-ppt-edad").value;      /* mayor | menor */
+          state.pptTramite = subtypeSel("cita-ppt-tramite").value;
+          state.pptEdad    = subtypeSel("cita-ppt-edad").value;
         } else { state.pptTramite = ""; state.pptEdad = ""; }
         closeSubtypeModal();
         updateStep0Next();
-        /* No desplazamos la página al elegir el tipo de pasaporte: los requisitos
-           aparecen en su sitio y el salto resultaba molesto. */
       });
       qsa("[data-subtype-close]", subtypeModal).forEach(function (el) { el.addEventListener("click", closeSubtypeModal); });
     }
 
-    /* ── Caso especial Acta de Nacimiento: modal de ESTADO (define el precio) ──
-       Mismo patrón/estilo que el modal de pasaporte: el usuario elige el estado
-       en TARJETAS (no una lista), cada una con su precio. Se BLOQUEA el scroll de
-       la página mientras el modal está abierto. NO afecta la lógica de agendado. */
     var ACTA_STATES = [
       ["aguascalientes", "Aguascalientes"], ["baja_california", "Baja California"],
       ["baja_california_sur", "Baja California Sur"], ["campeche", "Campeche"], ["chiapas", "Chiapas"],
@@ -673,7 +530,7 @@
     function actaEsc(e) { if (e.key === "Escape") closeActaModal(); }
     function actaPreventScroll(e) {
       var box = actaModal ? qs(".cita-modal__box", actaModal) : null;
-      if (box && box.contains(e.target)) return;   /* permite interactuar/scrollear dentro del modal */
+      if (box && box.contains(e.target)) return;
       e.preventDefault();
     }
     function actaLockScroll(lock) {
@@ -682,8 +539,6 @@
       if (lock) document.addEventListener("touchmove", actaPreventScroll, { passive: false });
       else document.removeEventListener("touchmove", actaPreventScroll, { passive: false });
     }
-    /* Pinta una TARJETA por estado con su precio (vigente: catálogo del servidor o
-       defaults). Se regenera al abrir para reflejar precios actualizados. */
     function renderActaStates() {
       if (!actaHost) return;
       var f = window.OKMxn0 || function (n) { return "$" + n; };
@@ -708,7 +563,7 @@
       if (actaConfirm) { actaConfirm.disabled = !ok; actaConfirm.setAttribute("aria-disabled", String(!ok)); }
     }
     function openActaModal() {
-      if (!actaModal) return;                    /* sin modal en el DOM no bloquea el flujo */
+      if (!actaModal) return;
       renderActaStates();
       actaModal.hidden = false;
       actaModal.classList.add("is-open");
@@ -737,18 +592,15 @@
         for (var i = 0; i < ACTA_STATES.length; i++) { if (ACTA_STATES[i][0] === slug) { found = ACTA_STATES[i]; break; } }
         state.actaState = slug;
         state.actaStateLabel = found ? found[1] : slug;
-        state.tramiteLabel = "Acta de Nacimiento — " + state.actaStateLabel;  /* etiqueta con el estado */
+        state.tramiteLabel = "Acta de Nacimiento — " + state.actaStateLabel;
         closeActaModal();
         updateStep0Next();
       });
       qsa("[data-acta-close]", actaModal).forEach(function (el) { el.addEventListener("click", closeActaModal); });
     }
 
-    /* ── Botón "Más servicios" → panel lateral (drawer) con servicios adicionales ── */
     var moreBtn = qs("#cita-more-btn");
     var drawer  = qs("#cita-drawer");
-    /* Si el servicio elegido vino del panel "Más servicios", lo mostramos como chip
-       en el paso 1 (porque ninguna tarjeta principal queda resaltada). */
     function renderSelectedExtra() {
       var host = qs("#cita-extra-selected");
       if (!host) return;
@@ -789,13 +641,9 @@
       });
     }
 
-    /* ── Paso Cantidad de personas ── */
     var partyValEl = qs("#party-val");
     var partyDurEl = qs("#party-duration");
-    var MIN_PER_PERSON = 45;                       /* cada persona toma ~45 min */
-    /* Solo la LICENCIA DE MANEJO simplifica este paso a "Solo yo" + "Grupo (2 o
-       más)": ese trámite lo piden colegas/compañeros, no familias ni parejas.
-       El resto de trámites conserva Solo yo / Pareja / Familia / Grupo. */
+    var MIN_PER_PERSON = 45;
     function isLicenciaTramite() { return state.tramite === "licencia"; }
     function partyPreset(n) {
       if (n <= 1) return "Solo yo";
@@ -804,19 +652,16 @@
       if (n >= 3 && n <= 5) return "Familia";
       return "Grupo";
     }
-    /* Muestra u oculta las opciones según el trámite. Se llama al entrar al paso
-       (goToStep índice 1), cuando el trámite ya está elegido. */
     function configurePartyStep() {
       var lic = isLicenciaTramite();
       qsa(".party-opt").forEach(function (b) {
         var v = b.dataset.party;
-        if (v === "2" || v === "4") b.hidden = lic;   /* Pareja y Familia solo en modo normal */
+        if (v === "2" || v === "4") b.hidden = lic;
         if (v === "grupo") {
           var sub = b.querySelector("span");
           if (sub) sub.textContent = lic ? "2 o más" : "6 o más";
         }
       });
-      /* Re-evaluar resaltado/duración por si cambió el trámite (p. ej. Familia→Grupo). */
       setParty(state.partySize);
     }
     function durationMins(n) { return n * MIN_PER_PERSON; }
@@ -835,7 +680,6 @@
       qsa(".party-opt").forEach(function (b) {
         var v = b.dataset.party, on;
         if (isLicenciaTramite()) {
-          /* Licencia: "Solo yo" (1) y "Grupo" (2 o más). */
           on = (v === "1" && n === 1) || (v === "grupo" && n >= 2);
         } else {
           on = String(v) === String(n) ||
@@ -845,9 +689,6 @@
         b.classList.toggle("is-selected", on);
         b.setAttribute("aria-pressed", String(on));
       });
-      /* Cambiar la cantidad cambia la duración → re-evaluar qué días/horas caben.
-         (calGrid/loadSlots/resetSlots se definen más abajo pero ya existen cuando el
-         usuario interactúa con este paso.) */
       if (calGrid) {
         state.hora = "";
         renderCalendar();
@@ -857,7 +698,7 @@
     qsa(".party-opt").forEach(function (b) {
       b.addEventListener("click", function () {
         var v = b.dataset.party;
-        var grupoStart = isLicenciaTramite() ? 2 : 6;   /* licencia: 2+, resto: 6+ */
+        var grupoStart = isLicenciaTramite() ? 2 : 6;
         setParty(v === "grupo" ? grupoStart : parseInt(v, 10) || 1);
       });
     });
@@ -865,13 +706,6 @@
     if (partyMinus) partyMinus.addEventListener("click", function () { setParty(state.partySize - 1); });
     if (partyPlus)  partyPlus.addEventListener("click", function () { setParty(state.partySize + 1); });
 
-    /* ──────────────────────────────────────────────────────────
-       Paso fecha/hora — Calendario con disponibilidad REAL del servidor.
-       El horario semanal, los días bloqueados y la ventana de anticipación
-       vienen de /appointments/availability.php (sin ?date); los horarios
-       libres de cada día se piden con ?date=YYYY-MM-DD. El servidor es la
-       única fuente de verdad: no se puede reservar un día/hora cerrado.
-       ────────────────────────────────────────────────────────── */
     var calGrid   = qs("#cita-cal-grid");
     var calTitle  = qs("#cita-cal-title");
     var calPrev   = qs("[data-cal-prev]");
@@ -880,22 +714,20 @@
     var MESES = ["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
 
     var today0  = new Date(); today0.setHours(0,0,0,0);
-    var minDate = new Date(today0); minDate.setDate(minDate.getDate() + 1); /* desde mañana */
+    var minDate = new Date(today0); minDate.setDate(minDate.getDate() + 1);
     var calView = new Date(minDate.getFullYear(), minDate.getMonth(), 1);
 
-    /* Disponibilidad REAL del servidor. */
     var API = "/backend/api";
     function authToken() { try { return localStorage.getItem("okstation.token"); } catch (e) { return null; } }
     var availCfg = { weekly: {}, blackout: [], maxAdvance: 60 };
     var maxDate = new Date(today0); maxDate.setDate(maxDate.getDate() + availCfg.maxAdvance);
-    var occByDate = {}; /* nivel de ocupación por fecha: "full" | "mid" | "none" */
+    var occByDate = {};
 
-    /* ¿La fecha es un día atendido (según horario semanal y días bloqueados)? */
     function dayIsOpen(date) {
-      if (date.getDay() === 6) return false;                        /* sábados: sin citas (solo pedidos) */
+      if (date.getDay() === 6) return false;
       var hrs = availCfg.weekly[String(date.getDay())];
-      if (!hrs || !hrs.length) return false;                        /* día sin horario */
-      if (availCfg.blackout.indexOf(isoOf(date)) >= 0) return false; /* día bloqueado */
+      if (!hrs || !hrs.length) return false;
+      if (availCfg.blackout.indexOf(isoOf(date)) >= 0) return false;
       return true;
     }
 
@@ -905,30 +737,16 @@
       return date.getFullYear() + "-" + m + "-" + d;
     }
 
-    /* ── Duración de la cita ↔ horas del día ──────────────────────────────
-       Cada persona toma ~45 min y los slots del horario son de 60 min: una cita
-       de N personas necesita slotsNeeded(N) horas CONSECUTIVAS (igual que el
-       backend Availability::slotsNeeded). Esto deja contrastar las horas que pide
-       la cantidad de personas contra las horas que abre cada día. */
     var SLOT_MIN = 60;
     function slotsNeeded(party) {
       return Math.max(1, Math.ceil((Math.max(1, party | 0) * MIN_PER_PERSON) / SLOT_MIN));
     }
-    /* Nº de horas que abre una fecha según el horario semanal (0 si cerrada). */
     function openHoursCount(date) {
-      if (date.getDay() === 6) return 0;   /* sábados: sin citas */
+      if (date.getDay() === 6) return 0;
       var hrs = availCfg.weekly[String(date.getDay())];
       return (hrs && hrs.length) ? hrs.length : 0;
     }
 
-    /* Nivel de disponibilidad "de base" (cosmético y DETERMINISTA por fecha) para que el
-       calendario no se vea 100% libre y dé impresión de un negocio con demanda. La ocupación
-       REAL del servidor (mid/none) siempre manda; esto solo varía los días que el backend
-       reporta como totalmente libres. Mantiene la mayoría de días reservables (no aleatorio,
-       estable entre recargas). Ahora también es consciente de la CANTIDAD de personas:
-       a más personas, la cita ocupa más horas seguidas → más días se ven ocupados/sin cupo. */
-    /* Hash entero con buena avalancha (lowbias32) sobre el día absoluto: días consecutivos
-       caen en niveles distintos (un hash de la cadena ISO se agrupaba y dejaba 0 días "none"). */
     function dayHash(date) {
       var x = Math.floor(date.getTime() / 86400000) >>> 0;
       x = Math.imul(x ^ (x >>> 16), 0x45d9f3b);
@@ -939,25 +757,20 @@
     function baseLevelFor(date) {
       var need = slotsNeeded(state.partySize);
       var open = openHoursCount(date);
-      /* Si la cita no cabe ni en un día vacío (pide más horas seguidas de las que abre el día),
-         ese día NO sirve para esta cantidad de personas. */
       if (open && need >= open) return "none";
       var diffDays = Math.round((date - today0) / 86400000);
       var h = dayHash(date);
-      /* Sesgo por duración: cada hora extra que pide la cita sube la ocupación aparente
-         (~14 puntos por slot, tope 42) sin volverse aleatorio entre recargas. */
       var bias = Math.min(42, (need - 1) * 14);
-      if (diffDays <= 3) return h < (35 + bias) ? "mid" : "full";  /* días próximos: nunca "sin disponibilidad" */
-      if (h < 18 + bias) return "none";                            /* ~18% (más con grupos) sin disponibilidad */
-      if (h < 50 + bias) return "mid";                             /* disponibilidad media */
-      return "full";                                               /* disponibilidad total */
+      if (diffDays <= 3) return h < (35 + bias) ? "mid" : "full";
+      if (h < 18 + bias) return "none";
+      if (h < 50 + bias) return "mid";
+      return "full";
     }
 
     function renderSlotsLoading() {
       if (slotsEl) slotsEl.innerHTML = '<p class="time-grid__empty">Cargando horarios…</p>';
     }
 
-    /* Trae del servidor los horarios libres de una fecha y los pinta. */
     function loadSlots(isoDate) {
       if (!slotsEl) return;
       state.hora = "";
@@ -1001,7 +814,7 @@
       if (calTitle) calTitle.textContent = MESES[m].charAt(0).toUpperCase() + MESES[m].slice(1) + " " + y;
 
       var first = new Date(y, m, 1);
-      var startOffset = (first.getDay() + 6) % 7; /* semana inicia en lunes */
+      var startOffset = (first.getDay() + 6) % 7;
       var daysInMonth = new Date(y, m + 1, 0).getDate();
 
       var cells = "";
@@ -1012,24 +825,14 @@
         var date = new Date(y, m, d);
         var iso = isoOf(date);
         var selected = state.fecha === iso;
-        /* Nivel LÓGICO: sale de la ocupación REAL del servidor (no de un hash
-           cosmético). Sin reservas ese día → "full" (alta disponibilidad); a
-           medida que se ocupan horarios, el servidor lo baja a mid/none. Así el
-           color del día concuerda con los horarios que se ven al elegirlo. */
         var serverLvl = occByDate[iso];
         var lvl = (serverLvl && serverLvl !== "full") ? serverLvl : "full";
-        /* Contraste horas ↔ personas: si la cita (por su duración) no cabe en las horas que
-           abre el día, ese día queda "sin disponibilidad" aunque el servidor lo reporte libre. */
         var open = openHoursCount(date);
         if (open && slotsNeeded(state.partySize) >= open) lvl = "none";
-        var closed = !dayIsOpen(date) || date < minDate || date > maxDate;   /* cerrado/fuera de ventana */
-        var disabled = closed || lvl === "none";                            /* "sin disponibilidad" no es reservable */
-        /* Texto/icono además del color para usuarios daltónicos (A1):
-           el título describe la disponibilidad y se suma al aria-label. */
+        var closed = !dayIsOpen(date) || date < minDate || date > maxDate;
+        var disabled = closed || lvl === "none";
         var occText = { full: "disponibilidad total", mid: "disponibilidad media", none: "sin disponibilidad" };
         var availLabel = occText[lvl] || "";
-        /* Celda BLANCA con un PUNTO de color bajo el número, según disponibilidad
-           (verde = alta, ámbar = poca, rojo = sin, morado = inhábil). */
         var dotLvl = closed ? "closed" : lvl;
         var ariaLabel = d + " de " + MESES[m] + (closed ? ", inhábil" : (availLabel ? ", " + availLabel : ""));
         cells += '<button type="button" class="okcal__day' + (selected ? " is-selected" : "") + '" ' +
@@ -1073,7 +876,6 @@
     function monthKey(date) {
       return date.getFullYear() + "-" + String(date.getMonth() + 1).padStart(2, "0");
     }
-    /* Colorea el calendario con la OCUPACIÓN REAL del mes visible (verde/naranja/rojo). */
     function loadMonthOccupancy() {
       fetch(API + "/appointments/month.php?month=" + monthKey(calView))
         .then(function (r) { return r.json(); })
@@ -1086,7 +888,6 @@
         .catch(function () {});
     }
 
-    /* Carga la config de disponibilidad (horario semanal, días bloqueados, ventana) y dibuja el calendario. */
     function loadAvailabilityConfig() {
       fetch(API + "/appointments/availability.php")
         .then(function (r) { return r.json(); })
@@ -1112,11 +913,6 @@
       next.setAttribute("aria-disabled", String(!ok));
     }
 
-    /* Paso 2: validación de datos
-       El botón "Siguiente" permanece deshabilitado hasta que el usuario
-       complete: nombre, teléfono, método de contacto y términos. */
-    /* Validación inline (sin alerts del navegador): correo con formato válido
-       y teléfono con al menos 10 dígitos. Los mensajes se pintan bajo el campo. */
     var emailInput = qs("#cita-correo");
     var EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     function onlyDigits(s) { return String(s || "").replace(/\D/g, ""); }
@@ -1137,12 +933,11 @@
       var mailVal = emailInput ? emailInput.value.trim() : "";
       var hasName    = !!nameVal;
       var telOk      = onlyDigits(telVal).length >= 10;
-      var mailOk     = EMAIL_RE.test(mailVal);   /* correo OBLIGATORIO */
+      var mailOk     = EMAIL_RE.test(mailVal);
       var hasContact = !!qs("input[name='cita-contacto']:checked", section);
       var acceptEl   = qs("#cita-acepto");
       var hasTerms   = !!(acceptEl && acceptEl.checked);
 
-      /* Solo mostramos el error cuando el campo tiene contenido inválido. */
       setFieldError(telInput, "cita-tel-error", (telVal && !telOk) ? "Ingresa un teléfono válido a 10 dígitos." : "");
       setFieldError(emailInput, "cita-correo-error", (mailVal && !mailOk) ? "Revisa tu correo, p. ej. nombre@correo.com." : "");
 
@@ -1151,10 +946,7 @@
       next.setAttribute("aria-disabled", String(!ok));
     }
 
-    /* El filtro se instala ANTES que la validación para que esta lea el valor ya limpio. */
     attachFieldFilter(nameInput, NAME_ALLOW_RE);
-    /* El teléfono (solo dígitos, máx. 10) y su selector de país (+52/+1) los gestiona
-       el módulo compartido window.OKPhone (assets/phone-cc.js). */
     if (nameInput)  nameInput.addEventListener("input", validateStep2);
     if (telInput)   telInput.addEventListener("input", validateStep2);
     if (emailInput) emailInput.addEventListener("input", validateStep2);
@@ -1164,37 +956,25 @@
     var aceptoEl = qs("#cita-acepto");
     if (aceptoEl) aceptoEl.addEventListener("change", validateStep2);
 
-    /* Contacto principal reutilizando una de las personas ya registradas en la cita.
-       Flujo: primero se pregunta "¿El contacto es alguno de los usuarios registrados?"
-       (Sí/No). Con "Sí" se elige a la persona y se autollena su nombre (el correo y el
-       teléfono se piden aquí porque no se capturan por persona). Con "No", captura manual.
-       La elección se guarda en state (contactChoice/contactGuest) y se reaplica al volver
-       a este paso, reflejando cualquier edición hecha en el paso anterior. */
     function renderQuienContacto() {
       var host = qs("#cita-quien-host");
       if (!host) return;
 
-      /* Personas que SÍ capturaron su nombre, con su índice REAL en state.guests. */
       var people = [];
       (state.guests || []).forEach(function (g, i) {
         if (g && g.name && g.name.trim()) people.push({ i: i, name: g.name.trim(), dob: g.dob, doctype: g.doctype });
       });
 
-      /* Sin personas registradas → se oculta la opción y el formulario queda manual. */
       if (!people.length) { host.hidden = true; host.innerHTML = ""; return; }
       host.hidden = false;
 
-      /* Si la persona elegida ya no existe (cambió el nº de personas o se borró su
-         nombre), se reinicia la elección. */
       if (typeof state.contactGuest === "number" && !people.some(function (p) { return p.i === state.contactGuest; })) {
         state.contactGuest = null;
         if (state.contactChoice === "si") state.contactChoice = "";
       }
-      /* "Sí" con una sola persona → queda elegida automáticamente. */
       if (state.contactChoice === "si" && state.contactGuest == null && people.length === 1) {
         state.contactGuest = people[0].i;
       }
-      /* Reaplica el nombre de la persona elegida (refleja ediciones del paso anterior). */
       if (state.contactChoice === "si" && typeof state.contactGuest === "number" && nameInput) {
         var gsel = state.guests[state.contactGuest];
         if (gsel && gsel.name && gsel.name.trim()) nameInput.value = gsel.name.trim();
@@ -1229,7 +1009,6 @@
 
       host.innerHTML = html;
 
-      /* Sí / No. */
       qsa(".cita-quien__yn-btn", host).forEach(function (btn) {
         btn.addEventListener("click", function () {
           if (btn.getAttribute("data-yn") === "no") {
@@ -1246,7 +1025,6 @@
         });
       });
 
-      /* Selección de la persona (cuando hay varias). */
       qsa(".cita-quien__opt[data-quien]", host).forEach(function (btn) {
         btn.addEventListener("click", function () {
           var i = +btn.getAttribute("data-quien");
@@ -1258,13 +1036,6 @@
       });
     }
 
-    /* ──────────────────────────────────────────────────────────
-       Paso Requisitos: datos de CADA persona que asistirá a la cita.
-       Si la cita es para N personas se piden N formularios; se navega de una
-       persona a la siguiente y al final se puede regresar a editar antes de
-       confirmar. Para pasaporte/visa/sentri se pregunta el tipo de trámite
-       (primera vez / renovación con o sin documentos). El anticipo del 100%
-       se informa aquí (el cobro en línea se conectará después). */
     var personasHost    = qs("#cita-personas");
     var personaProgress = qs("#persona-progress");
     var personaPrevBtn  = qs("#persona-prev");
@@ -1275,26 +1046,20 @@
       { v: "renov_sin", t: "Renovación sin documentos" }
     ];
     var DOCTYPE_LABEL = { primera: "Primera vez", renov_con: "Renovación con documentos", renov_sin: "Renovación sin documentos" };
-    /* La pregunta de renovación con/sin documentos aplica a pasaporte, visa y SENTRI. */
-    /* Pasaporte YA captura primera/renovación en el modal (con menor/mayor), así que
-       NO se vuelve a preguntar el "tipo de trámite" por persona (evita duplicar). */
     function needsDoctype() { return state.tramite === "visa" || state.tramite === "sentri"; }
 
-    /* Garantiza state.guests con exactamente partySize entradas (preserva lo escrito). */
     function ensureGuests() {
       var n = Math.max(1, state.partySize | 0);
       if (!Array.isArray(state.guests)) state.guests = [];
       while (state.guests.length < n) state.guests.push({ name: "", dob: "", doctype: "", answers: {}, files: {} });
       if (state.guests.length > n) state.guests.length = n;
-      /* Prefill del nombre de la 1ª persona con el del contacto, si está vacío. */
       if (state.guests[0] && !state.guests[0].name && state.nombre) state.guests[0].name = state.nombre;
       if (typeof state.activeGuest !== "number" || state.activeGuest >= n || state.activeGuest < 0) state.activeGuest = 0;
     }
 
-    /* Un control del cuestionario por trámite (texto/tel/área/select/checkbox) con su ayuda. */
     function answerCtrlHtml(i, f) {
       var id = "pg-" + i + "-a-" + f.k;
-      var req = ""; /* el cuestionario por persona es opcional: sin marca de obligatorio */
+      var req = "";
       var help = f.help ? '<span class="persona-help">' + sanitize(f.help) + '</span>' : "";
       if (f.type === "check") {
         return '<label class="persona-check" for="' + id + '"><input type="checkbox" id="' + id + '" data-ans="' + f.k + '" data-idx="' + i + '"><span>' + sanitize(f.q) + '</span></label>' +
@@ -1311,9 +1076,6 @@
       }
       return '<div class="field"><label for="' + id + '">' + sanitize(f.q) + req + '</label>' + help + ctl + '</div>';
     }
-    /* Documentos que se piden a ESTA persona, integrados en su cuestionario.
-       Se obtienen del catálogo del trámite (window.OKCitaExpediente.docsFor).
-       Son OPCIONALES: si el cliente prefiere, los lleva físicamente a la cita. */
     var DOC_ACCEPT = ".pdf,.jpg,.jpeg,.png";
     var DOC_MAX_MB = 10;
     function guestDocsList() {
@@ -1388,10 +1150,7 @@
       var html = "";
       for (var i = 0; i < state.guests.length; i++) html += guestCardHtml(i);
       personasHost.innerHTML = html;
-      /* Añade el selector de país (+52/+1) y el filtro de dígitos a los teléfonos del
-         cuestionario ANTES de restaurar valores, para poder repartir "+52 664…". */
       if (window.OKPhone) window.OKPhone.init(personasHost);
-      /* Set de valores por propiedad (evita problemas de escape en atributos). */
       for (var k = 0; k < state.guests.length; k++) {
         var g = state.guests[k]; if (!g.answers) g.answers = {};
         var nameEl = qs("#pg-" + k + "-name", personasHost);
@@ -1402,7 +1161,6 @@
           var r = qs('input[name="pg-' + k + '-dt"][value="' + g.doctype + '"]', personasHost);
           if (r) r.checked = true;
         }
-        /* Valores capturados del cuestionario por trámite. */
         var fl = window.OKQ ? window.OKQ.fields(state.tramite, state.subtype, g.doctype) : [];
         for (var fi = 0; fi < fl.length; fi++) {
           var f = fl[fi], el = qs("#pg-" + k + "-a-" + f.k, personasHost), val = g.answers[f.k];
@@ -1411,9 +1169,6 @@
           else if (f.type === "tel" && window.OKPhone) window.OKPhone.set(el, val);
           else if (val != null) el.value = val;
         }
-        /* Restaurar el estado visual de los documentos ya elegidos por esta persona:
-           el <input type=file> no conserva su valor tras re-render, pero el File sí
-           vive en state.guests[k].files, así que repintamos su estado "✓ archivo.pdf". */
         if (g.files) {
           Object.keys(g.files).forEach(function (dk) {
             var d = g.files[dk]; if (!d || !d.file) return;
@@ -1421,8 +1176,6 @@
           });
         }
       }
-      /* Datos base (nombre/fecha/subtipo). Cambiar el subtipo re-renderiza porque el
-         cuestionario depende de él (p. ej. la visa láser solo aparece en renovación). */
       qsa("[data-pg]", personasHost).forEach(function (el) {
         var ev = el.type === "radio" ? "change" : "input";
         el.addEventListener(ev, function () {
@@ -1434,7 +1187,6 @@
           validateGuests();
         });
       });
-      /* Respuestas del cuestionario por trámite. */
       qsa("[data-ans]", personasHost).forEach(function (el) {
         var ev = (el.type === "checkbox" || el.tagName === "SELECT") ? "change" : "input";
         el.addEventListener(ev, function () {
@@ -1443,14 +1195,12 @@
           if (!state.guests[idx].answers) state.guests[idx].answers = {};
           var val;
           if (el.type === "checkbox") val = el.checked;
-          else if (el.type === "tel" && window.OKPhone) val = window.OKPhone.full(el);  /* "+52 664…" */
+          else if (el.type === "tel" && window.OKPhone) val = window.OKPhone.full(el);
           else val = el.value;
           state.guests[idx].answers[el.dataset.ans] = val;
           validateGuests();
         });
       });
-      /* Cambiar el código de país (+52/+1) de un teléfono del cuestionario también
-         actualiza la respuesta guardada (reutiliza el manejador del input asociado). */
       qsa(".input-prefix__cc", personasHost).forEach(function (sel) {
         sel.addEventListener("change", function () {
           var inp = sel.closest(".input-prefix");
@@ -1458,7 +1208,6 @@
           if (inp) inp.dispatchEvent(new Event("input"));
         });
       });
-      /* Documentos por persona (archivos opcionales, integrados en el cuestionario). */
       qsa("[data-docfile]", personasHost).forEach(function (inp) {
         inp.addEventListener("change", function () {
           var idx = parseInt(inp.dataset.idx, 10) || 0;
@@ -1495,14 +1244,9 @@
     }
 
     function guestValid(g) {
-      /* Licencia: es un solo documento (PDF) que se imprime en PVC; los datos de
-         contacto se piden en "Tus datos". No se exige nombre/fecha aquí: basta con
-         (opcionalmente) subir el PDF y continuar. */
       if (state.tramite === "licencia") return true;
       if (!g || !g.name || !g.name.trim() || !g.dob) return false;
       if (needsDoctype() && !g.doctype) return false;
-      /* Todos los campos NO opcionales del cuestionario del trámite deben estar llenos
-         (los de tipo checkbox siempre tienen respuesta sí/no, así que no se exigen). */
       var fl = window.OKQ ? window.OKQ.fields(state.tramite, state.subtype, g.doctype) : [];
       var ans = g.answers || {};
       for (var i = 0; i < fl.length; i++) {
@@ -1514,10 +1258,6 @@
       return true;
     }
     function validateGuests() {
-      /* El botón "Continuar" del paso de personas se BLOQUEA hasta que TODAS las
-         personas de la cita tengan su información completa (nombre, fecha de
-         nacimiento, tipo de trámite si aplica, y los campos obligatorios del
-         cuestionario del trámite). Se recalcula en cada cambio de campo. */
       var guests = state.guests || [];
       var allOk = guests.length > 0;
       for (var i = 0; i < guests.length; i++) {
@@ -1534,13 +1274,9 @@
     if (personaPrevBtn) personaPrevBtn.addEventListener("click", function () { showGuest(state.activeGuest - 1); });
     if (personaNextBtn) personaNextBtn.addEventListener("click", function () { showGuest(state.activeGuest + 1); });
 
-    /* Construir resumen */
     function buildSummary() {
       if (!summaryEl) return;
 
-      /* — Resumen agrupado en tarjetas (Datos de contacto · Detalle de la cita ·
-           Estimado). Misma información de siempre, presentada compacta y por bloques
-           para que no se vea tan dispersa y el precio quede visible. — */
       var SVG = {
         user:  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>',
         clip:  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 2h6a1 1 0 011 1v1a1 1 0 01-1 1H9a1 1 0 01-1-1V3a1 1 0 011-1z"/><path d="M8 4H6a2 2 0 00-2 2v14a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-2"/></svg>',
@@ -1556,14 +1292,12 @@
           itemsHtml + '</section>';
       }
 
-      /* Datos de contacto */
       var contacto = item("Nombre", sanitize(state.nombre || "—")) +
         item("WhatsApp", sanitize(state.tel || "—")) +
         (state.correo
           ? item("Correo", sanitize(state.correo))
           : item("Correo", "No proporcionado", true));
 
-      /* Detalle de la cita */
       var detalle = item("Servicio", sanitize(state.tramiteLabel));
       if (state.tramite === "pasaporte" && state.subtype) {
         var pptLbl = SUBTYPE_LABEL[state.subtype] || state.subtype;
@@ -1577,7 +1311,6 @@
         item("Fecha", sanitize(formatDate(state.fecha))) +
         item("Hora", sanitize(state.hora) + " hrs");
       if (state.notas) detalle += item("Notas", sanitize(state.notas));
-      /* Datos de cada persona capturados en el paso de requisitos. */
       if (state.guests && state.guests.length) {
         state.guests.forEach(function (g, i) {
           var nm = (g.name || "").trim();
@@ -1589,17 +1322,12 @@
         });
       }
 
-      /* Estimado: desglose (Subtotal + IVA) a un lado y el Total en caja destacada.
-         Incluye los SERVICIOS ADICIONALES marcados (venta cruzada): suman al total
-         y se listan con su precio. Los precios salen del expediente, sincronizados
-         con el catálogo del servidor (autoridad del cobro). */
       var exped = (window.OKCitaExpediente && window.OKCitaExpediente.getState)
         ? window.OKCitaExpediente.getState() : null;
       var citaExtras = (exped && exped.services) ? exped.services : [];
       var extrasTotal = 0;
       citaExtras.forEach(function (sv) { if (sv && +sv.price > 0) extrasTotal += +sv.price; });
 
-      /* Para el acta el precio depende del ESTADO (no del subtipo de pasaporte). */
       var priceDiscriminator = (state.tramite === "acta") ? state.actaState : state.subtype;
       var priceRows = window.OKCitaPriceRows
         ? window.OKCitaPriceRows(state.tramite, priceDiscriminator, state.partySize, extrasTotal)
@@ -1614,8 +1342,6 @@
         }
       });
       var estItems = "";
-      /* Cada servicio adicional con su precio (solo si el trámite cobra en línea;
-         si se cotiza, todo el anticipo se coordina en mostrador). */
       if (!isQuote) {
         citaExtras.forEach(function (sv) {
           if (!sv) return;
@@ -1645,7 +1371,6 @@
         group(SVG.clip, "Detalle de la cita", detalle) +
         '</div>' + estimado;
 
-      /* Guardar en sessionStorage (no localStorage por privacidad) */
       try {
         sessionStorage.setItem("okstation.cita.draft", JSON.stringify({
           tramite: state.tramite,
@@ -1656,15 +1381,9 @@
       } catch (_) {}
     }
 
-    /* Confirmación: la reserva ocurre en el servidor (no WhatsApp).
-       El comprobante PDF se genera con el módulo compartido window.OKCitaTicket (assets/cita-ticket.js). */
     var confirmBtn   = qs("#cita-confirm-btn");
     var successEl    = qs("#cita-success");
     var confirmIntro = qs("#cita-confirm-intro");
-    /* Sube los documentos de CADA persona a su cita (multipart), etiquetando cada
-       archivo con la persona a la que pertenece (guest_index + guest_name) y el tipo
-       de documento (doc_key/doc_label). Best-effort: los errores no afectan la cita ya
-       creada; el cliente puede llevar los documentos físicamente. */
     function uploadCitaDocs(apptId, guests) {
       if (!apptId || !Array.isArray(guests)) return;
       var pending = 0, failed = 0;
@@ -1711,23 +1430,17 @@
       });
     }
 
-    /* Inicia el pago del anticipo de una cita (requiere sesión; el servidor verifica
-       propiedad y recalcula el monto). Redirige al checkout (pago.html / pasarela). */
     function startApptPayment(apptId, btn) {
       var tk = authToken();
       if (!tk) { showToast("Inicia sesión para pagar en línea."); return; }
       if (btn) { btn.disabled = true; btn.textContent = "Abriendo…"; }
-      /* Página de cobro unificada (pago.html): decide el método y recalcula el monto. */
       location.href = "pago.html?appt=" + encodeURIComponent(apptId);
     }
 
-    /* Bloque "Pagar anticipo" en el comprobante de éxito: si el trámite tiene precio
-       fijo y hay sesión → botón de pago; si no hay sesión → invitación a iniciarla;
-       si el trámite se cotiza (appt.payable=false) → no muestra nada. */
     function renderCitaPayCTA(container, appt) {
       if (!container || !appt || !appt.payable) return;
       var amount = window.OKMxn0 ? window.OKMxn0(appt.amount_total) : ("$" + appt.amount_total);
-      var must = !!appt.requires_payment;   /* visa/pasaporte: pagar es obligatorio para confirmar */
+      var must = !!appt.requires_payment;
       var box = document.createElement("div");
       box.className = "cita-pay" + (must ? " cita-pay--required" : "");
       box.style.cssText = "margin-top:16px;text-align:center";
@@ -1754,12 +1467,11 @@
       if (!confirmBtn || confirmBtn.disabled) return;
       var emailEl = qs("#cita-correo");
       var prefEl  = qs("input[name='cita-contacto']:checked", section);
-      /* Expediente (documentos + servicios) capturado por assets/cita-expediente.js. */
       var exped = (window.OKCitaExpediente && window.OKCitaExpediente.getState) ? window.OKCitaExpediente.getState() : null;
       var payload = {
         tramite: state.tramite,
         passport_subtype: state.subtype || "",
-        acta_state: state.actaState || "",   /* solo acta: estado que define el precio */
+        acta_state: state.actaState || "",
         party_size: state.partySize,
         date: state.fecha,
         time: state.hora,
@@ -1767,8 +1479,6 @@
         phone: state.tel,
         email: emailEl ? emailEl.value.trim() : "",
         contact_pref: prefEl ? prefEl.value : "",
-        /* El pasaporte mexicano y el acta guardan su detalle (combinación / estado) al
-           inicio de las notas, para que el personal lo vea sin depender del esquema. */
         notes: (
           (state.tramite === "pasaporte" && state.subtype === "mexicano" && state.pptTramite && state.pptEdad)
             ? ("Pasaporte mexicano · " + (state.pptTramite === "renovacion" ? "Renovación" : "Primera vez") +
@@ -1794,8 +1504,6 @@
           if (res.status === 201 && j.ok) {
             if (successEl) {
               successEl.hidden = false;
-              /* Visa/pasaporte (requires_payment) con precio: la cita queda RESERVADA
-                 pero NO confirmada hasta pagar el anticipo del 100%. */
               var mustPay = !!(j.appointment.requires_payment && j.appointment.payable);
               var ttl = mustPay ? "Cita reservada — falta tu pago" : "¡Cita registrada!";
               var msg = mustPay
@@ -1806,15 +1514,12 @@
                 '<h4>' + ttl + '</h4>' +
                 '<p>' + msg + '</p>' +
                 '<a class="btn btn--light btn--sm" id="cita-ticket-dl" style="margin-top:12px" rel="noopener" target="_blank" download="cita-' + sanitize(j.appointment.code) + '.pdf" href="#">Descargar comprobante (PDF)</a>';
-              /* Genera el comprobante PDF con el módulo compartido (si está disponible).
-                 Usamos Blob URL (no data-URI) para que la descarga abra también en celular. */
               try {
-                /* Servicios adicionales que el cliente marcó (venta cruzada) para reflejarlos en el ticket. */
                 var citaServices = (exped && exped.services) ? exped.services : [];
                 var apptForTicket = {
                   code: j.appointment.code, tramite: j.appointment.tramite,
                   passport_subtype: j.appointment.passport_subtype, party_size: j.appointment.party_size,
-                  acta_state: (j.appointment.acta_state || state.actaState || ""),   /* acta: estado (para el precio del ticket) */
+                  acta_state: (j.appointment.acta_state || state.actaState || ""),
                   date: j.appointment.date, time: j.appointment.time, status: j.appointment.status,
                   name: state.nombre, phone: state.tel, guests: state.guests,
                   services: citaServices
@@ -1824,8 +1529,6 @@
                 if (citaUri && dlBtn) dlBtn.href = citaUri;
                 else if (dlBtn) dlBtn.style.display = "none";
 
-                /* Envía el COMPROBANTE (PDF) por correo al cliente (best-effort, vía Brevo).
-                   Solo si dio correo. El PDF se genera aquí en base64 (data-URI). */
                 try {
                   var contactEmail = (qs("#cita-correo") && qs("#cita-correo").value.trim()) || "";
                   if (contactEmail && window.OKCitaTicket && j.appointment && j.appointment.id) {
@@ -1843,20 +1546,17 @@
                 var dlErr = qs("#cita-ticket-dl", successEl);
                 if (dlErr) dlErr.style.display = "none";
               }
-              /* Anticipo: botón de pago según el trámite (precio fijo) y la sesión. */
               try { renderCitaPayCTA(successEl, j.appointment); } catch (e) {}
             }
-            if (confirmIntro) confirmIntro.style.display = "none"; /* evita doble palomita */
+            if (confirmIntro) confirmIntro.style.display = "none";
             if (summaryEl) summaryEl.style.display = "none";
             confirmBtn.style.display = "none";
-            /* Dejar la vista EXACTAMENTE en el banner del comprobante (no saltar al inicio). */
             if (successEl) requestAnimationFrame(function () {
               var top = successEl.getBoundingClientRect().top + window.scrollY - 90;
               window.scrollTo({ top: top, behavior: "smooth" });
             });
             showToast("¡Cita registrada! Folio " + j.appointment.code);
             try { sessionStorage.removeItem("okstation.cita.draft"); } catch (_) {}
-            /* Sube los documentos de cada persona (best-effort: no bloquea la confirmación). */
             uploadCitaDocs(j.appointment && j.appointment.id, state.guests);
           } else {
             showToast((j && j.error) || "No se pudo registrar la cita. Intenta de nuevo.");
@@ -1872,18 +1572,15 @@
     }
     if (confirmBtn) confirmBtn.addEventListener("click", submitCita);
 
-    /* Navegación del wizard */
     qsa("[data-cita-next]").forEach(function (btn) {
       btn.addEventListener("click", function () {
-        /* Red de seguridad: sin sesión el botón ya está deshabilitado
-           (updateStep0Next); si aun así llega un clic, solo se muestra el aviso. */
         if (state.step === 0 && !citaSessionOk()) {
           var note = qs("#cita-login-note");
           if (note) note.hidden = false;
           return;
         }
         var target = state.step + 1;
-        if (state.tramite === "licencia" && target === 1) target = 2;   /* omitir "¿cuántas personas?" */
+        if (state.tramite === "licencia" && target === 1) target = 2;
         goToStep(target);
       });
     });
@@ -1891,12 +1588,11 @@
     qsa("[data-cita-back]").forEach(function (btn) {
       btn.addEventListener("click", function () {
         var target = state.step - 1;
-        if (state.tramite === "licencia" && target === 1) target = 0;   /* omitir "¿cuántas personas?" */
+        if (state.tramite === "licencia" && target === 1) target = 0;
         goToStep(target);
       });
     });
 
-    /* Reset completo */
     var resetBtn = qs("#cita-reset");
     if (resetBtn) {
       resetBtn.addEventListener("click", function () {
@@ -1908,7 +1604,6 @@
           b.setAttribute("aria-pressed", "false");
         });
 
-        /* Limpiar selección del panel "Más servicios" y cantidad de personas */
         qsa(".extra-card").forEach(function (b) {
           b.classList.remove("is-selected");
           b.setAttribute("aria-pressed", "false");
@@ -1928,12 +1623,10 @@
         if (telInput)   telInput.value   = "";
         if (notesInput) notesInput.value = "";
 
-        /* Reiniciar método de contacto y términos */
         qsa("input[name='cita-contacto']", section).forEach(function (r) { r.checked = false; });
         var aceptoReset = qs("#cita-acepto");
         if (aceptoReset) aceptoReset.checked = false;
 
-        /* Reiniciar calendario y horarios al mes mínimo */
         calView = new Date(minDate.getFullYear(), minDate.getMonth(), 1);
         renderCalendar();
         updateCalNav();
@@ -1959,7 +1652,6 @@
       });
     }
 
-    /* Inicializar */
     renderSteps();
     setParty(1);
     renderSelectedExtra();
@@ -1969,14 +1661,10 @@
   }
 
 
-  /* ============================================================
-     06. SISTEMA DE FOTOS (UPLOAD)
-     ============================================================ */
   function initFotos() {
     var section = qs("#fotos");
     if (!section) return;
 
-    /* Estado */
     var files = [];
     var config = {
       size: "10x15",
@@ -1984,7 +1672,6 @@
       qty: 1
     };
 
-    /* DOM */
     var dropzone = qs("#dropzone");
     var fileInput = qs("#foto-input");
     var thumbsContainer = qs("#thumbs");
@@ -1997,7 +1684,6 @@
 
     if (!dropzone || !fileInput) return;
 
-    /* ── Dropzone: accesibilidad ── */
     dropzone.setAttribute("role", "button");
     dropzone.setAttribute("tabindex", "0");
     dropzone.setAttribute("aria-label", "Zona de carga. Haz clic o arrastra imágenes o PDF aquí");
@@ -2010,7 +1696,6 @@
       }
     });
 
-    /* ── Drag & Drop ── */
     var dragCount = 0;
 
     dropzone.addEventListener("dragenter", function (e) {
@@ -2040,14 +1725,11 @@
       if (dropped) processFiles(dropped);
     });
 
-    /* ── Input de archivos ── */
     fileInput.addEventListener("change", function () {
       processFiles(fileInput.files);
       fileInput.value = "";
     });
 
-    /* ── Validación de formato: extensión + MIME real del navegador ──
-       (La validación definitiva por bytes se hace en el backend al subir.) */
     function fileExt(name) {
       var m = String(name).toLowerCase().match(/\.([a-z0-9]+)$/);
       return m ? m[1] : "";
@@ -2056,13 +1738,11 @@
       var ext  = fileExt(f.name);
       var mime = (f.type || "").toLowerCase();
       var extOk  = CONFIG.allowedExts.indexOf(ext) !== -1;
-      /* Si el navegador entrega MIME, debe coincidir; si viene vacío, se valida por extensión */
       var mimeOk = mime ? CONFIG.allowedTypes.indexOf(mime) !== -1 : true;
       if (!extOk || !mimeOk) return null;
       return (ext === "pdf" || mime === "application/pdf") ? "pdf" : "image";
     }
 
-    /* ── Procesar archivos (imágenes y PDF) ── */
     function processFiles(fileList) {
       var arr = Array.from(fileList);
       var valid = arr.filter(function (f) {
@@ -2077,7 +1757,6 @@
         return true;
       });
 
-      /* Límite máximo */
       var available = CONFIG.maxFiles - files.length;
       if (valid.length > available) {
         showToast("Máximo " + CONFIG.maxFiles + " archivos. Solo se agregaron " + available + ".");
@@ -2103,7 +1782,6 @@
           };
           reader.readAsDataURL(f);
         } else {
-          /* PDF: no se previsualiza como imagen; se muestra ficha con icono */
           files.push(entry);
           renderThumbs();
           updateTotal();
@@ -2111,7 +1789,6 @@
       });
     }
 
-    /* ── Renderizar miniaturas ── */
     function renderThumbs() {
       if (!thumbsContainer) return;
 
@@ -2145,7 +1822,6 @@
           '</div>';
       }).join("");
 
-      /* Botones de eliminar */
       qsa(".thumb-item__remove", thumbsContainer).forEach(function (btn) {
         btn.addEventListener("click", function (e) {
           e.stopPropagation();
@@ -2158,7 +1834,6 @@
       });
     }
 
-    /* ── Chips de tamaño ── */
     qsa("[data-size]").forEach(function (chip) {
       chip.addEventListener("click", function () {
         qsa("[data-size]").forEach(function (c) {
@@ -2173,7 +1848,6 @@
       });
     });
 
-    /* ── Chips de acabado ── */
     qsa("[data-finish]").forEach(function (chip) {
       chip.addEventListener("click", function () {
         qsa("[data-finish]").forEach(function (c) {
@@ -2186,7 +1860,6 @@
       });
     });
 
-    /* ── Cantidad ── */
     var qtyMinus = qs("#qty-minus");
     var qtyPlus  = qs("#qty-plus");
 
@@ -2212,7 +1885,6 @@
       });
     }
 
-    /* ── Actualizar totales ── */
     function updateTotal() {
       var images = files.filter(function (f) { return f.kind !== "pdf"; });
       var pdfs   = files.filter(function (f) { return f.kind === "pdf"; });
@@ -2223,7 +1895,6 @@
       if (totalFotosEl)  totalFotosEl.textContent = nFotos;
       if (totalCopiasEl) totalCopiasEl.textContent = nCopias;
 
-      /* Línea de documentos PDF (solo visible si hay) */
       var pdfLine = qs("#total-pdf-line");
       var pdfVal  = qs("#total-pdf");
       if (pdfLine) pdfLine.style.display = pdfs.length ? "" : "none";
@@ -2256,7 +1927,6 @@
       }
     }
 
-    /* ── Enviar pedido por WhatsApp ── */
     if (sendBtn) {
       sendBtn.addEventListener("click", function () {
         if (!files.length) return;
@@ -2289,14 +1959,10 @@
       });
     }
 
-    /* Inicializar */
     updateTotal();
   }
 
 
-  /* ============================================================
-     07. BOTÓN SCROLL-TO-TOP
-     ============================================================ */
   function initScrollTop() {
     var btn = qs(".scroll-top");
     if (!btn) return;
@@ -2314,9 +1980,6 @@
   }
 
 
-  /* ============================================================
-     08. TOAST NOTIFICATIONS
-     ============================================================ */
   var toastEl;
   var toastTimer;
 
@@ -2344,24 +2007,12 @@
     }, 3400);
   }
 
-  /* Exponer globalmente para uso desde HTML si es necesario */
   window.OKStation = window.OKStation || {};
   window.OKStation.showToast = showToast;
 
 
-  /* ============================================================
-     09. INICIALIZACIÓN
-     ============================================================ */
-  /* Galería del local: si una foto aún no existe, se elimina el <img> y queda
-     visible el placeholder con su etiqueta (sin icono de imagen rota). */
-  /* Fundido suave de imágenes al cargar (evita el "pop" poco profesional).
-     El modo fade solo se activa si este script corre; así, sin JS, las
-     imágenes se ven normal y nunca se quedan invisibles. */
   function initImageFade() {
     document.documentElement.classList.add("img-fade");
-    /* Fallback de marca: si la imagen de una tarjeta de servicio no carga,
-       se sustituye por el placeholder en vez de mostrar el icono roto. La
-       galería del local se maneja aparte (initGallery: quita el <img>). */
     var SERVICE_FALLBACK = "assets/img/placeholder-servicio.svg";
     qsa(".service-card__img, .store-gallery__item img").forEach(function (img) {
       function onError() {
@@ -2381,16 +2032,12 @@
   function initGallery() {
     qsa(".store-gallery__item img").forEach(function (img) {
       function fail() { if (img.parentNode) img.remove(); }
-      // Si ya falló antes de que corriera este script (defer), quítala ya.
       if (img.complete && img.naturalWidth === 0) { fail(); return; }
       img.addEventListener("error", fail);
       img.addEventListener("load", function () { if (img.naturalWidth === 0) fail(); });
     });
   }
 
-  /* Carruseles (Servicios y Trámites): envuelve la fila y le agrega flechas ‹ ›.
-     No toca el HTML fuente; las flechas se inyectan aquí. En móvil se ocultan
-     (se desliza con el dedo). */
   function initCarousels() {
     qsa(".services-grid, .tramite-grid").forEach(function (track) {
       if (track.dataset.carousel) return;
@@ -2414,22 +2061,10 @@
       wrap.appendChild(prev);
       wrap.appendChild(next);
 
-      /* ── Bucle infinito tipo "Netflix" ──────────────────────────────────────
-         Solo en .services-grid (sus tarjetas son enlaces estáticos y se pueden clonar
-         sin perder lógica; .tramite-grid tiene botones con listeners propios → no se
-         clona). Técnica: clonamos el juego completo de tarjetas ANTES y DESPUÉS de las
-         originales → [L][originales][R]. Navegamos siempre por la banda central y, al
-         cruzar hacia un grupo clonado, "teletransportamos" el scroll un periodo completo
-         (instantáneo y sin animación). Como el contenido es idéntico, el salto es
-         invisible: el carrusel parece girar sin fin en ambos sentidos. */
-      /* Bucle infinito tipo "Netflix" en AMBOS carruseles (Servicios y Trámites):
-         las tarjetas dan vuelta sin tope. Para que las tarjetas CLONADAS de
-         Trámites sigan respondiendo al clic, su selección usa DELEGACIÓN de
-         eventos (ver initCitas), no un listener por tarjeta. */
       var canLoop = true;
       var originals = Array.prototype.slice.call(track.children);
       var looping = false;
-      var period = 0;   /* ancho de un juego completo (distancia de teletransporte) */
+      var period = 0;
 
       function overflowing() { return track.scrollWidth - track.clientWidth > 4; }
 
@@ -2439,10 +2074,8 @@
         node.removeAttribute("id");
         var ided = node.querySelectorAll("[id]");
         Array.prototype.forEach.call(ided, function (el) { el.removeAttribute("id"); });
-        /* fuera del orden de tabulación (son contenido duplicado) */
         var foc = node.querySelectorAll("a, button, input, select, textarea, [tabindex]");
         Array.prototype.forEach.call(foc, function (el) { el.setAttribute("tabindex", "-1"); });
-        /* muestra ya las imágenes del clon sin esperar el evento 'load' del original */
         var imgs = node.querySelectorAll(".service-card__img");
         Array.prototype.forEach.call(imgs, function (im) { im.classList.add("is-loaded"); });
       }
@@ -2450,8 +2083,6 @@
       function measurePeriod() {
         var n = originals.length;
         if (n === 0) { period = 0; return; }
-        /* distancia entre la 1ª original (índice n, ya con el grupo L delante) y su clon
-           en el grupo R (índice 2n) = un juego completo, con sus gaps incluidos. */
         period = posOf(track.children[2 * n]) - posOf(track.children[n]);
       }
 
@@ -2467,18 +2098,15 @@
         track.appendChild(after);
         looping = true;
         measurePeriod();
-        jumpTo(period);   /* arranca en la banda central (originales) */
+        jumpTo(period);
       }
 
-      /* Salto instantáneo de scroll (sin animación); desactiva el snap durante el salto. */
       function jumpTo(x) {
         track.style.scrollSnapType = "none";
         track.scrollLeft = x;
         requestAnimationFrame(function () { if (!rafId) track.style.scrollSnapType = ""; });
       }
 
-      /* Reposiciona el scroll dentro de la banda central de las originales usando
-         aritmética modular: cualquier posición se mapea a su equivalente visual exacto. */
       function normalize() {
         if (!looping || period <= 0) return;
         var sl = track.scrollLeft;
@@ -2487,35 +2115,28 @@
       }
 
       function update() {
-        /* En modo bucle siempre hay desbordamiento (3 juegos) → flechas visibles. */
         var overflow = looping || overflowing();
         prev.style.display = next.style.display = overflow ? "" : "none";
         prev.disabled = false;
         next.disabled = false;
       }
 
-      /* Desplazamiento suave con easing. Mantiene un "objetivo" (targetScroll) para que
-         varios clics seguidos se ACUMULEN en vez de pelearse: cada clic calcula el siguiente
-         destino a partir de hacia dónde ya vamos, no de la posición a medio animar. La
-         animación previa se cancela (cancelAnimationFrame) antes de lanzar la nueva, así no
-         hay dos rAF escribiendo scrollLeft a la vez. Al asentarse, normalize() hace el
-         teletransporte invisible que cierra el ciclo. */
       function easeOutCubic(t) { return 1 - Math.pow(1 - t, 3); }
       var rafId = null, targetScroll = null;
       function settle() {
         rafId = null; targetScroll = null;
-        normalize();                       /* cierra el ciclo sin que se note */
+        normalize();
         track.style.scrollSnapType = "";
         update();
       }
       function glide(to) {
         var max = track.scrollWidth - track.clientWidth;
-        to = Math.max(0, Math.min(to, max));   /* el navegador recorta igual; lo hacemos explícito */
+        to = Math.max(0, Math.min(to, max));
         if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
         var start = track.scrollLeft, dist = to - start;
         targetScroll = to;
         if (Math.abs(dist) < 1) { settle(); return; }
-        track.style.scrollSnapType = "none";   /* evita que el snap pelee con la animación */
+        track.style.scrollSnapType = "none";
         var t0 = null, dur = 320;
         function frame(ts) {
           if (t0 === null) t0 = ts;
@@ -2526,16 +2147,9 @@
         }
         rafId = requestAnimationFrame(frame);
       }
-      /* Avanza/retrocede a la tarjeta siguiente/anterior (alineada).
-         Usa getBoundingClientRect (posición real) en vez de offsetLeft: así NO depende
-         de qué elemento sea el offsetParent ni del padding del carrusel (evita que el
-         primer clic "se trabe"). En modo bucle SIEMPRE hay una tarjeta vecina (los clones
-         de L/R), así que el avance nunca topa con un borde: el ciclo es continuo. */
       function posOf(el) { return el.getBoundingClientRect().left - track.getBoundingClientRect().left + track.scrollLeft; }
       function go(dir) {
         var max = track.scrollWidth - track.clientWidth, list = track.children, target = null, i, x;
-        /* Punto de partida: si estamos animando, el destino en curso (para acumular clics
-           rápidos); si no, la posición actual. */
         var sl = (targetScroll !== null) ? targetScroll : track.scrollLeft;
         if (dir > 0) {
           for (i = 0; i < list.length; i++) { x = posOf(list[i]); if (x > sl + 2) { target = x; break; } }
@@ -2548,8 +2162,6 @@
       }
       prev.addEventListener("click", function () { go(-1); });
       next.addEventListener("click", function () { go(1); });
-      /* Deslizamiento táctil: solo renormaliza cerca de los bordes físicos (a menos de una
-         tarjeta de quedarnos sin clones) para no cortar la inercia del scroll en el centro. */
       track.addEventListener("scroll", function () {
         update();
         if (looping && !rafId && period > 0) {
@@ -2563,24 +2175,17 @@
         if (looping && !rafId) { measurePeriod(); normalize(); }
       }
       window.addEventListener("resize", onResize);
-      /* Recalcula cuando el carrusel pasa de oculto a visible (paso del wizard) y activa el
-         bucle en cuanto haya desbordamiento (p. ej. tras cargar la tipografía/imágenes). */
       if (window.ResizeObserver) {
         new ResizeObserver(function () {
           if (canLoop && !looping && overflowing()) buildLoop();
           onResize();
         }).observe(track);
       }
-      /* Activa el bucle de entrada si ya desborda; si no (p. ej. 3 tarjetas que caben y van
-         centradas), se queda como fila estática y el ResizeObserver lo activará si hiciera
-         falta. */
       if (canLoop && overflowing()) buildLoop();
       update();
     });
   }
 
-  // Fondo reactivo: un resplandor de marca sigue el cursor (solo en
-  // dispositivos con puntero fino y si el usuario no pidió menos movimiento).
   function initCursorGlow() {
     try {
       if (document.body.classList.contains("admin")) return;

@@ -1,34 +1,19 @@
-/* ============================================================
-   Ok.station — Configurador de pedidos (Fase 2, front)
-   Subida (PDF/imagen) → configuración independiente por archivo →
-   costo en tiempo real → crear pedido → ticket PDF con QR.
-   Habla con /backend/api (orders/*). Subir archivos y ver precios es LIBRE
-   (sin sesión); ENVIAR el pedido exige cuenta (aviso #order-login-note).
-   ============================================================ */
 (function () {
   "use strict";
 
   var API = "/backend/api";
   function token() { try { return localStorage.getItem("okstation.token"); } catch (e) { return null; } }
 
-  /* Solo corre donde existe el configurador (pedido.html o embebido en #fotos del home). */
   if (!document.getElementById("order-drop")) return;
 
-  /* En páginas dedicadas (body[data-requires-auth], p. ej. pedido.html) exigimos sesión al entrar.
-     Embebido en el home (público) el builder se explora libre; el login se pide al subir o enviar. */
   if (document.body.hasAttribute("data-requires-auth") && !token()) {
     window.location.href = "cuenta.html"; return;
   }
-  /* El enlace del aviso "inicia sesión para enviar" guarda a dónde volver:
-     tras iniciar sesión o registrarse, auth.js (afterAuthDest) regresa aquí. */
   var orderLoginLink = document.getElementById("order-login-link");
   if (orderLoginLink) orderLoginLink.addEventListener("click", function () {
     try { sessionStorage.setItem("oks_intended", location.pathname + location.search + "#fotos"); } catch (e) {}
   });
 
-  /* ── Catálogo de precios OFICIAL Ok.station (estimado en cliente; el servidor recalcula).
-     `price` es el precio "desde" (por hoja) que se muestra como pista. El cálculo real
-     usa la tabla escalonada PRINT_TIERS/PHOTO de abajo. ── */
   var SIZES = [
     { id: "carta",        label: "Carta (8.5×11\")",      price: 1.30 },
     { id: "oficio",       label: "Oficio (8.5×13\")",     price: 1.50 },
@@ -39,40 +24,33 @@
     { id: "gran_formato_foto", label: "Gran formato 24×36\" — foto Gloss", price: 380 },
     { id: "gran_formato_bond", label: "Gran formato 24×36\" — hoja bond",  price: 190 }
   ];
-  /* Precio por HOJA según tamaño + B/N|Color + tramo de cantidad (hojas TOTALES = páginas×copias). */
   var PRINT_TIERS = {
     carta:    { bn: [[10, 2.0], [60, 1.5], [Infinity, 1.3]], color: [[10, 12], [60, 9], [Infinity, 5]] },
     a4:       { bn: [[10, 2.0], [60, 1.5], [Infinity, 1.3]], color: [[10, 12], [60, 9], [Infinity, 5]] },
     oficio:   { bn: [[10, 2.5], [50, 2.0], [Infinity, 1.5]], color: [[10, 15], [50, 13], [Infinity, 10]] },
     tabloide: { bn: [[Infinity, 5]],                          color: [[Infinity, 20]] }
   };
-  var PHOTO  = { foto_10x15: 10, foto_13x18: 30, gran_formato_foto: 380, gran_formato_bond: 190 };   /* precio por foto/impresión (plano) */
-  var COLOR  = { color: "color", bn: "bn" };         /* solo Color y B/N (catálogo Hoja2) */
-  var SIDES  = { una: 1, doble: 1 };                 /* doble cara NO cambia el precio (regla Ok.station) */
-  /* Enmicado: precio POR HOJA según el TAMAÑO del documento (catálogo Hoja2).
-     Oficio y A4 quedan PENDIENTES (sin recargo de enmicado hasta definir su precio). */
+  var PHOTO  = { foto_10x15: 10, foto_13x18: 30, gran_formato_foto: 380, gran_formato_bond: 190 };
+  var COLOR  = { color: "color", bn: "bn" };
+  var SIDES  = { una: 1, doble: 1 };
   var ENMICADO = { carta: 20, tabloide: 30 };
-  /* Acabados de precio plano. Engargolado queda PENDIENTE: precio temporal $45 hasta
-     definir el grosor por número de hojas (chico/mediano/grande). */
   var FINISH_FLAT = { ninguno: 0, engargolado: 45 };
   var PAPERS = ["Bond", "Opalina", "Couché", "Fotográfico", "Cartulina", "Adhesivo"];
 
-  var TAX = 0.08;   /* IVA 8% (los precios del catálogo ya lo incluyen) */
-  var MIN_PAY = 5;  /* Monto mínimo para pago en línea (MercadoPago MX): $5 MXN */
-  var files = [];        // {fileId, name, mime, pages, size, thumb, cfg}
+  var TAX = 0.08;
+  var MIN_PAY = 5;
+  var files = [];
 
-  /* ── Formatos permitidos (validación en cliente; el backend revalida) ── */
   var ALLOWED_EXT  = ["pdf", "jpg", "jpeg", "png", "webp"];
   var ALLOWED_MIME = ["application/pdf", "image/jpeg", "image/jpg", "image/png", "image/webp"];
   function fileExt(name) { var m = String(name).toLowerCase().match(/\.([a-z0-9]+)$/); return m ? m[1] : ""; }
   function typeOk(file) {
     var ext = fileExt(file.name), mime = (file.type || "").toLowerCase();
     var extOk = ALLOWED_EXT.indexOf(ext) !== -1;
-    var mimeOk = mime ? ALLOWED_MIME.indexOf(mime) !== -1 : true; /* si no hay MIME, validamos por extensión */
+    var mimeOk = mime ? ALLOWED_MIME.indexOf(mime) !== -1 : true;
     return extOk && mimeOk;
   }
 
-  /* ── Utilidades ── */
   var $ = function (s, c) { return (c || document).querySelector(s); };
   function mxn(n) { return new Intl.NumberFormat("es-MX", { style: "currency", currency: "MXN", minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n); }
   function esc(s) { var d = document.createElement("div"); d.textContent = String(s == null ? "" : s); return d.innerHTML; }
@@ -83,8 +61,6 @@
     for (var i = 0; i < tiers.length; i++) { if (count <= tiers[i][0]) return tiers[i][1]; }
     return tiers[tiers.length - 1][1];
   }
-  /* Precio POR HOJA/unidad REAL para mostrar en cada opción (según tamaño, color y cantidad).
-     Devuelve null si se cotiza (gran formato). En fotos el color no afecta (precio plano). */
   function perSheetFor(size, color, count) {
     if (PHOTO[size] != null) return PHOTO[size];
     var t = PRINT_TIERS[size];
@@ -94,27 +70,25 @@
   }
   function priceOf(f) {
     var size = f.cfg.size;
-    var count = Math.max(1, (f.pages || 1) * (f.cfg.copies || 1));   /* hojas totales */
-    if (PHOTO[size] != null) {                                       /* fotos: precio por unidad */
+    var count = Math.max(1, (f.pages || 1) * (f.cfg.copies || 1));
+    if (PHOTO[size] != null) {
       var u = PHOTO[size];
       return { unit: u, line: Math.round(u * count * 100) / 100, quote: false };
     }
     var t = PRINT_TIERS[size];
-    if (!t) return { unit: 0, line: 0, quote: true };                /* gran formato → cotizar */
+    if (!t) return { unit: 0, line: 0, quote: true };
     var band = (COLOR[f.cfg.color] === "color") ? t.color : t.bn;
     var per = tierFor(band, count);
-    var sidesMult = (f.cfg.sides === "doble") ? 2 : 1;   /* doble cara DUPLICA el precio de impresión */
-    /* Acabado: enmicado se cobra POR HOJA según el tamaño; los demás (engargolado) son precio plano. */
+    var sidesMult = (f.cfg.sides === "doble") ? 2 : 1;
     var finishCost = (f.cfg.finish === "enmicado") ? (ENMICADO[size] || 0) * count : (FINISH_FLAT[f.cfg.finish] || 0);
     var line = per * count * sidesMult + finishCost;
     return { unit: Math.round(per * 100) / 100, line: Math.round(line * 100) / 100, quote: false };
   }
 
-  /* ── Subida ── */
   function uploadOne(file) {
     var fd = new FormData();
     fd.append("file", file);
-    var tk = token();   /* sin sesión el backend guarda el archivo como anónimo */
+    var tk = token();
     return fetch(API + "/orders/upload.php", {
       method: "POST",
       headers: tk ? { Authorization: "Bearer " + tk } : {},
@@ -147,20 +121,14 @@
     });
   }
 
-  /* ── Render de tarjetas por archivo ── */
   function render() {
     var host = $("#order-files");
     host.innerHTML = files.map(function (f, i) {
       var p = priceOf(f);
-      var count = Math.max(1, (f.pages || 1) * (f.cfg.copies || 1));   /* hojas totales para el tramo */
-      /* Opciones de Color con su precio por hoja REAL (en impresión/copia; en foto el precio es plano). */
+      var count = Math.max(1, (f.pages || 1) * (f.cfg.copies || 1));
       var colorOpts = PRINT_TIERS[f.cfg.size]
         ? [["color", "Color · " + mxn(perSheetFor(f.cfg.size, "color", count))], ["bn", "B/N · " + mxn(perSheetFor(f.cfg.size, "bn", count))]]
         : [["color", "Color"], ["bn", "B/N"]];
-      /* Opciones de Acabado. El enmicado SOLO se ofrece en tamaños con tarifa definida
-         (carta/tabloide); en los demás no hay precio aún, así que no se ofrece — evita
-         cobrar $0 por el acabado. Si estaba seleccionado y el tamaño ya no lo soporta,
-         se normaliza a "ninguno". */
       if (f.cfg.finish === "enmicado" && !ENMICADO[f.cfg.size]) f.cfg.finish = "ninguno";
       var finishOpts = [
         { v: "ninguno", t: "Ninguno" },
@@ -195,7 +163,7 @@
     }).join("");
 
     wire();
-    renderSummary();   /* también fija el estado del botón (vacío o por debajo del mínimo) */
+    renderSummary();
   }
 
   function cfgSelect(i, key, label, opts, val) {
@@ -233,7 +201,6 @@
     });
   }
 
-  /* Descripción legible de la configuración de un archivo (tamaño · color · acabado). */
   function fileDesc(f) {
     var parts = [sizeById(f.cfg.size).label];
     if (PRINT_TIERS[f.cfg.size]) parts.push(f.cfg.color === "color" ? "Color" : "B/N");
@@ -243,13 +210,10 @@
   }
   function renderSummary() {
     var copies = 0, totalIncl = 0;
-    /* Los precios del catálogo son IVA INCLUIDO (como en el ticket de mostrador):
-       el TOTAL = suma de líneas; el subtotal y el IVA se desglosan a partir del total. */
     files.forEach(function (f) { var p = priceOf(f); copies += f.cfg.copies; totalIncl += p.line; });
     totalIncl = Math.round(totalIncl * 100) / 100;
     var subtotal = Math.round(totalIncl / (1 + TAX) * 100) / 100;
     var tax = Math.round((totalIncl - subtotal) * 100) / 100;
-    /* Detalle por archivo: el cliente ve QUÉ pidió y CUÁNTO cuesta cada uno. */
     var detail = $("#sum-detail");
     if (detail) {
       detail.innerHTML = files.map(function (f) {
@@ -273,14 +237,9 @@
     $("#sum-tax").textContent = mxn(tax);
     $("#sum-total").textContent = mxn(totalIncl);
 
-    /* Mínimo para pago en línea ($5 MXN): si hay un total cobrable menor al mínimo,
-       se avisa y se BLOQUEA el envío (MercadoPago rechaza montos < $5). Un total de
-       $0 (solo cotización, p. ej. gran formato) no cuenta como monto cobrable. */
     var belowMin = totalIncl > 0 && totalIncl < MIN_PAY;
     var warn = $("#order-min-warn");
     if (warn) warn.hidden = !belowMin;
-    /* Sin sesión, "Enviar pedido" queda BLOQUEADO y el aviso junto al botón pide
-       iniciar sesión o crear cuenta (subir archivos y ver precios sigue libre). */
     var logged = !!token();
     var loginNote = $("#order-login-note");
     if (loginNote) loginNote.hidden = !(files.length > 0 && !logged);
@@ -288,7 +247,6 @@
     if (submitBtn) submitBtn.disabled = (files.length === 0) || belowMin || !logged;
   }
 
-  /* Precios de referencia CON TRAMOS por cantidad (para que el cliente sepa cuánto baja por volumen). */
   function tiersText(tiers) {
     var prev = 0, parts = [];
     for (var i = 0; i < tiers.length; i++) {
@@ -299,7 +257,6 @@
     }
     return parts.join("  ·  ");
   }
-  /* Filas de la tabla de referencia (se usan dentro del modal). */
   function referenceRowsHtml() {
     function row(label, val) { return '<li><span>' + esc(label) + '</span><b>' + esc(val) + '</b></li>'; }
     return (
@@ -343,7 +300,6 @@
     m.addEventListener("click", function (e) { if (e.target.hasAttribute("data-close")) closePricesModal(); });
     document.addEventListener("keydown", pricesOnKey);
   }
-  /* Panel compacto: solo un botón que abre el modal con todos los precios (sin scroll molesto). */
   function renderPrices() {
     var host = $("#order-prices");
     if (!host) return;
@@ -357,10 +313,7 @@
     if (btn) btn.addEventListener("click", openPricesModal);
   }
 
-  /* ── Crear pedido + ticket ── */
   function submit() {
-    /* Red de seguridad: sin sesión el botón ya está deshabilitado; si aun así
-       llega un clic, solo se muestra el aviso (el servidor también lo exige). */
     if (!token()) {
       var note = $("#order-login-note");
       if (note) note.hidden = false;
@@ -368,17 +321,13 @@
     }
     alertErr("");
     if (!files.length) return;
-    /* Mínimo para pago en línea: bloquea el envío si el total cobrable es < $5 MXN. */
     var totalNow = 0; files.forEach(function (f) { totalNow += priceOf(f).line; });
     totalNow = Math.round(totalNow * 100) / 100;
     if (totalNow > 0 && totalNow < MIN_PAY) {
       alertErr("El monto mínimo para pagar en línea es de $5 MXN. Agrega más copias o páginas para continuar.");
       return;
     }
-    /* Teléfono OBLIGATORIO: lo usan las trabajadoras para contactar al cliente. */
     var phoneEl = $("#order-phone");
-    /* El módulo compartido (assets/phone-cc.js) fuerza dígitos y añade el código
-       de país; guardamos el número completo "+52 6647194117". */
     var phoneDigits = phoneEl ? String(phoneEl.value).replace(/\D/g, "") : "";
     var phone = (window.OKPhone && phoneEl) ? window.OKPhone.full(phoneEl) : phoneDigits;
     var phoneErr = $("#order-phone-error");
@@ -411,29 +360,25 @@
 
     var link = $("#confirm-ticket");
     try {
-      var dataUri = buildTicket(order);          // PDF en base64 (data URI)
+      var dataUri = buildTicket(order);
       if (link) {
-        // Blob URL: descarga fiable (mejor que un data-URI grande con target=_blank).
         var href = dataUri;
         try {
           var b64 = dataUri.split(",")[1], bin = atob(b64), arr = new Uint8Array(bin.length);
           for (var i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
           href = URL.createObjectURL(new Blob([arr], { type: "application/pdf" }));
-        } catch (e2) { /* si falla el blob, usamos el data-URI */ }
+        } catch (e2) {   }
         link.href = href;
         link.setAttribute("download", "ticket-" + order.code + ".pdf");
-        link.removeAttribute("target");          // descarga en el momento, sin abrir pestaña en blanco
+        link.removeAttribute("target");
         link.hidden = false;
       }
-      // Guarda copia en el servidor y la asocia al pedido
       fetch(API + "/orders/ticket-store.php", {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: "Bearer " + token() },
         body: JSON.stringify({ order_id: order.id, pdf_base64: dataUri })
       });
     } catch (e) {
-      /* Si falla el PDF en el cliente, el pedido YA quedó creado: ofrecemos el ticket
-         del servidor para que el usuario siempre pueda descargarlo. */
       if (link) {
         link.href = API + "/orders/ticket.php?id=" + encodeURIComponent(order.id);
         link.removeAttribute("download");
@@ -441,13 +386,8 @@
         link.hidden = false;
       }
     }
-    /* Pago en línea del pedido — MISMO motor que el anticipo de citas (Mercado Pago).
-       Aparece justo aquí, tras crear el pedido, igual que en el flujo de citas. */
     try { renderOrderPayCTA(order); } catch (e) {}
 
-    /* Dejar la vista EXACTAMENTE en el banner del ticket (¡Pedido recibido! + botón
-       de descarga), no al inicio de la página. Esperamos un frame para que el layout
-       ya tenga su posición final tras ocultar el builder. */
     var confirmEl = $("#order-confirm");
     if (confirmEl) {
       requestAnimationFrame(function () {
@@ -457,9 +397,6 @@
     }
   }
 
-  /* CTA de pago en línea del pedido (espejo de renderCitaPayCTA en app.js).
-     Se inserta dentro del banner "¡Pedido recibido!". El usuario ya está
-     autenticado (el envío del pedido exige sesión), así que se puede pagar de una. */
   function renderOrderPayCTA(order) {
     if (!order) return;
     var host = $(".order-done", $("#order-confirm")) || $("#order-confirm");
@@ -467,7 +404,7 @@
     var old = $(".order-pay-cta", host); if (old) old.parentNode.removeChild(old);
     var total = +order.total || 0;
     var pay = order.payment_status || "pendiente";
-    if (total <= 0 || pay === "pagado") return;   /* sin monto o ya pagado: no se muestra */
+    if (total <= 0 || pay === "pagado") return;
     var box = document.createElement("div");
     box.className = "order-pay-cta";
     box.style.cssText = "margin-top:18px;padding-top:16px;border-top:1px solid var(--border-light);text-align:center";
@@ -482,22 +419,16 @@
     if (pb) pb.addEventListener("click", function () { startOrderPayment(order.id, this); });
   }
 
-  /* Lleva a la página de cobro unificada (pago.html), que decide el método de pago
-     (tarjeta en el sitio / Mercado Pago / sandbox) y recalcula el monto en el servidor. */
   function startOrderPayment(orderId, btn) {
     if (btn) { btn.disabled = true; btn.textContent = "Abriendo…"; }
     window.location.href = "pago.html?order=" + encodeURIComponent(orderId);
   }
 
-  /* Ticket PDF del pedido — MISMO diseño que el comprobante de cita (assets/cita-ticket.js):
-     banner degradado con tarjeta de logo, píldora "Comprobante de pedido", QR con leyenda,
-     detalle en filas etiqueta/valor y pie fijo (mapa + WhatsApp + franja de marca). */
   function buildTicket(order) {
     var jsPDF = window.jspdf.jsPDF;
     var doc = new jsPDF({ unit: "mm", format: "a4" });
     var PW = 210, x = 16;
 
-    // Paleta de marca
     var purple = [156, 29, 255], blue = [6, 108, 255], cyan = [0, 198, 255];
     var dark = [15, 23, 42], muted = [110, 122, 140];
     function lerp(a, b, t) { return [Math.round(a[0] + (b[0] - a[0]) * t), Math.round(a[1] + (b[1] - a[1]) * t), Math.round(a[2] + (b[2] - a[2]) * t)]; }
@@ -505,7 +436,6 @@
       var n = Math.max(2, Math.round(w)), s = w / n;
       for (var i = 0; i < n; i++) { var t = i / (n - 1); var c = t < 0.5 ? lerp(purple, blue, t * 2) : lerp(blue, cyan, (t - 0.5) * 2); doc.setFillColor(c[0], c[1], c[2]); doc.rect(x0 + s * i, y0, s + 0.4, h, "F"); }
     }
-    /* Degradado en ÁNGULO recortado a un banner redondeado — idéntico al del ticket de cita. */
     function gradBandAngled(x0, y0, w, h, r, deg) {
       var rad = deg * Math.PI / 180, cosA = Math.cos(rad), sinA = Math.sin(rad);
       var cxA = [0, w, 0, w], cyA = [0, 0, h, h], uMin = Infinity, uMax = -Infinity, k, u;
@@ -526,13 +456,11 @@
       doc.restoreGraphicsState();
     }
 
-    // ── Encabezado: banner degradado + tarjeta blanca con logo + píldora ──
-    var _logo = (window.OKTicketLogo && window.OKTicketLogo()) || null;   /* logo ya optimizado del ticket de cita */
+    var _logo = (window.OKTicketLogo && window.OKTicketLogo()) || null;
     (function drawHeader() {
       var MX = 8, bx = MX, by = 8, bw = PW - 2 * MX, bh = 30, br = 8;
       try { gradBandAngled(bx, by, bw, bh, br, -21.3664); }
       catch (e) { gradBand(0, 0, PW, 34); bx = 0; by = 0; bh = 34; }
-      /* Tarjeta blanca (izquierda) con el logo oficial centrado. */
       var cw = 66, ch = 20, cx = bx + 6, cy = by + (bh - ch) / 2, cr = 7;
       doc.setFillColor(255, 255, 255); doc.roundedRect(cx, cy, cw, ch, cr, cr, "F");
       if (_logo) {
@@ -546,7 +474,6 @@
         doc.setTextColor(blue[0], blue[1], blue[2]); doc.text(t1, tx, tyv);
         doc.setTextColor(dark[0], dark[1], dark[2]); doc.text(t2, tx + w1, tyv);
       }
-      /* Píldora blanca (derecha) con "Comprobante de pedido". */
       doc.setFont("helvetica", "bold"); doc.setFontSize(12);
       var plabel = "Comprobante de pedido", pw = doc.getTextWidth(plabel) + 14, ph = 12;
       var pxp = bx + bw - 6 - pw, pyp = by + (bh - ph) / 2;
@@ -554,14 +481,12 @@
       doc.setTextColor(dark[0], dark[1], dark[2]); doc.text(plabel, pxp + 7, pyp + ph / 2 + 1.6);
     })();
 
-    // ── QR (lleva a "Mis pedidos") ──
     try {
       var tmp = document.createElement("div");
       new QRCode(tmp, { text: location.origin + "/perfil.html?pedido=" + order.code, width: 160, height: 160 });
       var canvas = tmp.querySelector("canvas");
       if (canvas) {
         doc.addImage(canvas.toDataURL("image/png"), "PNG", PW - x - 38, 44, 38, 38);
-        /* Leyenda debajo del QR: a dónde lleva y que hay que iniciar sesión. */
         doc.setFont("helvetica", "bold"); doc.setFontSize(7.5); doc.setTextColor(dark[0], dark[1], dark[2]);
         doc.text("Al escanear el código QR", PW - x - 19, 85.5, { align: "center" });
         doc.text("te mandará a tus pedidos", PW - x - 19, 88.5, { align: "center" });
@@ -570,7 +495,6 @@
       }
     } catch (e) {}
 
-    // ── Emitido + folio + estado ──
     function two(n) { return (n < 10 ? "0" : "") + n; }
     function fmtDateTime(d) { return two(d.getDate()) + "/" + two(d.getMonth() + 1) + "/" + d.getFullYear() + " " + two(d.getHours()) + ":" + two(d.getMinutes()); }
     var emitted = order.created_at ? new Date(String(order.created_at).replace(" ", "T")) : new Date();
@@ -584,13 +508,11 @@
     doc.setFillColor(blue[0], blue[1], blue[2]); doc.roundedRect(x, 61, lw, 7, 3.5, 3.5, "F");
     doc.setTextColor(255, 255, 255); doc.text(label, x + 4, 65.8);
 
-    /* El pie (mapa + contactos) va FIJO al pie; el contenido nunca debe invadirlo. */
-    var FOOTER_TOP = 250;   /* límite inferior del área de contenido (mm) */
+    var FOOTER_TOP = 250;
     var ty = 82;
     doc.setTextColor(blue[0], blue[1], blue[2]); doc.setFont("helvetica", "bold"); doc.setFontSize(12); doc.text("Detalle del pedido", x, ty); ty += 8;
     function needSpace(h) { if (ty + h > FOOTER_TOP) { doc.addPage(); ty = 22; } }
 
-    // ── Archivos (mismo estilo que "Servicios adicionales" del ticket de cita) ──
     var items = order.items || [];
     for (var ii = 0; ii < items.length; ii++) {
       var it = items[ii];
@@ -607,7 +529,6 @@
       doc.text(metaLines, x + 5, ty); ty += metaLines.length * 4.6 + 2;
     }
 
-    // ── Totales en filas etiqueta/valor (igual que el desglose del ticket de cita) ──
     ty += 3; needSpace(34);
     var artCount = items.reduce(function (s, it) { return s + (parseInt(it.qty, 10) || 1); }, 0);
     var totalRows = [["No. de artículos", String(artCount)], ["Subtotal", mxn(order.subtotal)], ["IVA (8%)", mxn(order.tax)], ["Total", mxn(order.total)]];
@@ -618,19 +539,17 @@
       ty += 8;
     });
 
-    // ── Aviso de pago ──
     needSpace(10);
     ty += 1; doc.setFont("helvetica", "normal"); doc.setFontSize(9); doc.setTextColor(muted[0], muted[1], muted[2]);
     doc.text(doc.splitTextToSize("Se necesita el pago para poder procesar tu pedido. Conserva este comprobante con tu folio.", 175), x, ty);
 
-    // ── Pie FIJO: cómo llegar (Google Maps) + WhatsApp ──
     var WA_URL = "https://wa.me/526647194117?text=" + encodeURIComponent("Hola Ok.station, tengo un pedido y quiero confirmar / hacer mi pago.");
     var MAPS_URL = "https://www.google.com/maps/place/Ok.station/@32.5292376,-116.9514835,17z/data=!4m6!3m5!1s0x80d9475a2b534615:0x80c51bb5b3fe8f55!8m2!3d32.5292376!4d-116.9514835!16s%2Fg%2F11k63fhrhb";
     doc.setFont("helvetica", "normal"); doc.setFontSize(9); doc.setTextColor(muted[0], muted[1], muted[2]);
     doc.text("Dirección: Centro Comercial Otay, Local G-03 · Carretera Aeropuerto 1900, Tijuana, B.C.", x, 262);
     doc.setFont("helvetica", "bold"); doc.setFontSize(10); doc.setTextColor(blue[0], blue[1], blue[2]);
     doc.textWithLink("Cómo llegar — abrir en Google Maps", x, 269, { url: MAPS_URL });
-    doc.setTextColor(22, 163, 74);   // verde WhatsApp
+    doc.setTextColor(22, 163, 74);
     doc.textWithLink("WhatsApp: (664) 719-4117 — abrir chat", x, 275.5, { url: WA_URL });
     gradBand(0, 287, PW, 3);
     doc.setFont("helvetica", "normal"); doc.setFontSize(8.5); doc.setTextColor(muted[0], muted[1], muted[2]);
@@ -639,7 +558,6 @@
     return doc.output("datauristring");
   }
 
-  /* ── Init ── */
   var drop = $("#order-drop"), input = $("#order-input");
   drop.addEventListener("click", function () { input.click(); });
   drop.addEventListener("keydown", function (e) { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); input.click(); } });
@@ -649,8 +567,6 @@
   drop.addEventListener("drop", function (e) { if (e.dataTransfer && e.dataTransfer.files) addFiles(e.dataTransfer.files); });
   $("#order-submit").addEventListener("click", submit);
 
-  /* Sincroniza el estimado con los precios que el admin haya editado en el panel
-     (settings print.prices). Aditivo: si falla, se quedan los valores por defecto. */
   function syncPrices() {
     fetch(API + "/print-prices.php").then(function (r) { return r.json(); }).then(function (j) {
       if (!j || !j.ok || !j.prices) return;
@@ -672,7 +588,7 @@
         else if (s.id === "foto_13x18") s.price = PHOTO.foto_13x18;
       });
       render();
-    }).catch(function () { /* sin conexión: se usan los valores por defecto del catálogo */ });
+    }).catch(function () {   });
   }
 
   renderPrices();

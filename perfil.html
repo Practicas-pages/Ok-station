@@ -3,7 +3,6 @@
 <head>
   <meta charset="UTF-8">
 
-  <!-- Modo mantenimiento: bloquea el acceso directo sin credenciales válidas -->
   <script src="assets/site-guard.js?v=20260728n"></script>
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -13,10 +12,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
-  <!-- Tema (claro/oscuro): antes de la hoja para pintar ya con el tema elegido -->
   <script src="assets/theme.js?v=20260721a"></script>
   <link rel="stylesheet" href="styles.css?v=20260728d">
-  <!-- Mascota/chatbot OKi -->
   <link rel="stylesheet" href="assets/oki.css?v=20260728a">
   <link rel="stylesheet" href="assets/auth.css?v=20260707b">
   <link rel="stylesheet" href="assets/order.css?v=20260721a">
@@ -24,23 +21,8 @@
 </head>
 <body class="auth-page" data-requires-auth>
 
-  <!-- ─────────────────────────────────────────────────────────────────────────
-     Ok.station — NAVBAR UNIFICADO · marcado canónico
-     Esta es la COPIA MAESTRA. Va pegada tal cual en cada página (no se inyecta
-     por JavaScript a propósito: los enlaces de navegación deben venir en el HTML
-     para que Google los siga, que es justo por lo que la ficha se arma en el
-     servidor).
-     Necesita:  <link rel="stylesheet" href="/assets/oknav.css?v=20260728r">
-                <script src="/assets/oknav.js?v=20260724a" defer></script>
-     Todos los <svg> llevan width/height propios: sin tamaño intrínseco un icono
-     se pinta gigante mientras el CSS va en camino (ya pasó con el del correo).
-     ───────────────────────────────────────────────────────────────────────── -->
 <header class="oknav" id="oknav">
 
-  <!-- ══ CINTURILLO · lo mismo que traía .header-bar del sitio ═══════════════
-       Enlaces a la izquierda, lema al centro y redes a la derecha. En celular
-       se oculta entero: sus enlaces ya están en el cajón ☰ y aquí solo haría
-       más alta una barra que ya es pegajosa. -->
   <div class="oknav__belt">
     <div class="oknav__wrap">
       <nav class="oknav__beltlinks" aria-label="Enlaces rápidos">
@@ -62,7 +44,6 @@
     </div>
   </div>
 
-  <!-- ══ FILA 1 · logo · buscador · ubicación · cuenta · deseados · carrito ══ -->
   <div class="oknav__row oknav__row--main">
     <div class="oknav__wrap">
 
@@ -80,9 +61,6 @@
              stroke-width="2.2" stroke-linecap="round" aria-hidden="true">
           <circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/>
         </svg>
-        <!-- Sin botón de buscar: se envía con Enter, igual que el buscador del
-             resto del sitio (.shopbar__search). Con botón quedaban DOS lupas
-             en el mismo campo. -->
         <input id="oknavQ" type="search" autocomplete="off" role="combobox"
                aria-expanded="false" aria-autocomplete="list" aria-controls="oknavAc"
                aria-label="Buscar productos (escribe y pulsa Enter)"
@@ -135,7 +113,6 @@
     </div>
   </div>
 
-  <!-- ══ FILA 2 · tienda ┃ servicios ······ WhatsApp ══════════════════════ -->
   <div class="oknav__row oknav__row--nav">
     <div class="oknav__wrap">
       <nav class="oknav__mobile-stores" aria-label="Accesos de compra">
@@ -199,13 +176,9 @@
     </div>
   </div>
 
-  <!-- Desplegable de categorías (lo llena oknav.js con las de la BD) -->
   <div class="oknav__catsmenu" id="oknavCatsMenu" hidden></div>
 </header>
 
-<!-- ══ Cajón ☰ (celular y tablet) ═══════════════════════════════════════════
-     Aquí viven las cosas que NO merecen una fila propia en el encabezado:
-     los servicios, "¿Quiénes somos?/Contacto" y las redes sociales. -->
 <div class="oknav__scrim" id="oknavScrim" hidden></div>
 <aside class="oknav__drawer" id="oknavDrawer" aria-label="Menú" hidden>
   <div class="oknav__dhead">
@@ -232,8 +205,6 @@
 
   <p class="oknav__dtitle">Ok.station</p>
   <div class="oknav__dlist">
-    <!-- En celular el botón de tema no cabe en la barra (se iba a un tercer
-         renglón), así que vive aquí. Lo mueve OKTheme, el mismo de theme.js. -->
     <button type="button" id="oknavTema">Modo oscuro <span id="oknavTemaEstado"></span></button>
     <a href="/quienes-somos.html">¿Quiénes somos?</a>
     <a href="/contactanos.html">Contacto</a>
@@ -258,7 +229,6 @@
     <div class="wrap" style="width:100%">
       <div class="profile-grid">
 
-        <!-- Columna lateral -->
         <aside class="profile-side">
           <div class="profile-avatar" id="profile-avatar" aria-hidden="true">U</div>
           <h2 data-user-name>Usuario</h2>
@@ -267,11 +237,9 @@
             <a href="#pedidos">Mis pedidos</a>
             <a href="#tienda">Mis compras</a>
             <a href="#citas">Mis citas</a>
-            <!-- Solo visible para empleado/administrador (lo activa auth.js según el rol) -->
             <a href="admin.html" id="profile-admin-link" hidden style="margin-top:8px;background:var(--brand-blue-light);color:var(--brand-blue);font-weight:600">
               ▸ Panel administrativo
             </a>
-            <!-- Datos sensibles (editar info + contraseña): ocultos hasta que el usuario los abre -->
             <a href="#datos" class="profile-nav__datos" id="toggle-datos" role="button" aria-expanded="false" aria-controls="account-settings">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
               <span>Datos personales</span>
@@ -283,39 +251,27 @@
           </nav>
         </aside>
 
-        <!-- Contenido -->
         <div>
-          <!-- Lo primero que ve el usuario al abrir su perfil: pedidos y citas -->
 
-          <!-- Mis pedidos (historial) -->
           <section class="profile-panel" id="pedidos">
             <h3>Mis pedidos</h3>
             <a class="btn btn--primary btn--sm" href="pedido.html" style="margin-bottom:16px">+ Haz un pedido nuevo</a>
             <div class="orders-list" id="orders-history"></div>
           </section>
 
-          <!-- Compras de la TIENDA en línea (historial + recibo PDF descargable).
-               Oculto por defecto: se muestra al tocar "Mis compras" en la barra.
-               pago.html regresa aquí (#tienda) tras un pago exitoso y shop-history.js
-               genera el recibo, lo deja descargable y el servidor lo manda por correo. -->
           <section class="profile-panel" id="tienda" hidden>
             <h3>Mis compras de la tienda</h3>
             <a class="btn btn--primary btn--sm" href="tienda.html#store" style="margin-bottom:16px">+ Ir a la tienda</a>
             <div class="orders-list" id="shop-history"></div>
           </section>
 
-          <!-- Citas registradas (historial). Oculto por defecto: se muestra al
-               tocar "Mis citas" en la barra (navegación por pestañas, sin scroll). -->
           <section class="profile-panel" id="citas" hidden>
             <h3>Citas registradas</h3>
             <a class="btn btn--primary btn--sm" href="index.html#citas" style="margin-bottom:16px">+ Agenda una cita</a>
             <div class="orders-list" id="appts-history"></div>
           </section>
 
-          <!-- Datos personales (sensibles): editar información + cambiar contraseña.
-               Ocultos por defecto; se muestran al tocar "Datos personales" 🔒 en la barra. -->
           <div id="account-settings" hidden>
-            <!-- Información personal -->
             <section class="profile-panel" id="info">
               <h3>Información personal</h3>
               <div class="auth-alert" id="profile-alert" role="alert" hidden></div>
@@ -332,8 +288,6 @@
                   </div>
                   <div class="auth-field">
                     <label for="pf-phone">Teléfono / WhatsApp</label>
-                    <!-- data-prefill-phone: el formulario cargaba VACÍO aunque el teléfono ya
-                         está registrado; phone-cc.js lo llena desde la sesión (editable). -->
                     <input type="tel" id="pf-phone" name="phone" autocomplete="tel" inputmode="tel" required data-prefill-phone>
                   </div>
                 </div>
@@ -341,13 +295,11 @@
               </form>
             </section>
 
-            <!-- Direcciones de entrega (misma libreta que la tienda: address-book.js) -->
             <section class="profile-panel" id="direcciones">
               <h3>Mis direcciones de entrega</h3>
               <div data-ab-list></div>
             </section>
 
-            <!-- Cambiar contraseña -->
             <section class="profile-panel" id="password">
               <h3>Cambiar contraseña</h3>
               <div class="auth-alert" id="password-alert" role="alert" hidden></div>
@@ -379,7 +331,6 @@
   <script src="assets/phone-cc.js?v=20260702a" defer></script>
   <script src="assets/auth.js?v=20260721a" defer></script>
   <script src="assets/address-book.js?v=20260727a" defer></script>
-  <!-- Librerías para regenerar el comprobante PDF de cita -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" defer></script>
   <script src="assets/cita-ticket.js?v=20260707d" defer></script>
@@ -387,9 +338,7 @@
   <script src="assets/orders-history.js?v=20260630" defer></script>
   <script src="assets/shop-history.js?v=20260721a" defer></script>
   <script src="assets/appointments-history.js?v=20260707c" defer></script>
-  <!-- Aviso al volver del checkout de pago (Mercado Pago / pasarela) -->
   <script src="assets/pago-return.js?v=20260721a" defer></script>
-<!-- Mascota/chatbot OKi (astronauta) -->
 <script src="assets/catalogo.js?v=20260714a" defer></script>
 <script src="assets/oki.js?v=20260728a" defer></script>
   <script src="/assets/oknav.js?v=20260724a" defer></script>

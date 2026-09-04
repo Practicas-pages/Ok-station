@@ -1,29 +1,20 @@
-/* ============================================================
-   Ok.station — Reseñas (agregar / editar / eliminar) ligadas al login
-   MODO DEMO: persiste en localStorage. Con backend en CloudPanel,
-   cambia DEMO=false y usa los endpoints reales (/backend/api/reviews/*).
-   El CRUD respeta la sesión: solo editas/eliminas TUS reseñas.
-   ============================================================ */
 (function () {
   "use strict";
 
-  var DEMO = false;                      // PRODUCCIÓN: usa el API real (/backend/api/reviews/*)
+  var DEMO = false;
   var API = "/backend/api/reviews";
   var LS = "okstation.reviews.demo";
-  /* Reseñas de Google vía Featurable (gratis, sin tarjeta). ID público del widget. */
   var FEATURABLE_ID = "30bf3581-fa31-45bf-b825-63cf9e6bb10e";
 
-  /* ── Sesión (compartida con auth.js) ── */
   function token() { try { return localStorage.getItem("okstation.token"); } catch (e) { return null; } }
   function storedUser() { try { return JSON.parse(localStorage.getItem("okstation.user") || "null"); } catch (e) { return null; } }
   function currentUser() {
     var u = storedUser();
     if (u && (token() || DEMO)) return { id: String(u.id || "me"), name: u.full_name || "Cliente" };
-    if (DEMO) return { id: "demo-me", name: "Tú (demo)" };   // permite probar el flujo sin backend
-    return null;                                              // producción sin sesión → CTA de login
+    if (DEMO) return { id: "demo-me", name: "Tú (demo)" };
+    return null;
   }
 
-  /* ── Utilidades ── */
   var $ = function (s, c) { return (c || document).querySelector(s); };
   function esc(s) { var d = document.createElement("div"); d.textContent = String(s == null ? "" : s); return d.innerHTML; }
   function initials(name) { return String(name || "?").trim().split(/\s+/).map(function (w) { return w[0]; }).slice(0, 2).join("").toUpperCase(); }
@@ -33,9 +24,6 @@
     catch (e) { return ""; }
   }
 
-  /* ============================================================
-     CAPA DE DATOS (demo localStorage | API real)
-     ============================================================ */
   function seed() {
     return [
       { id: "seed-1", rating: 5, author: "Karla T.", comment: "Me ayudaron con la cita de mi visa y además imprimí las fotos en el mismo lugar. Rápido y sin vueltas.", owner: "seed" },
@@ -85,10 +73,6 @@
       }
       return apiPost(API + "/delete.php", { id: id });
     },
-    /* Las reseñas de Google se muestran con el WIDGET OFICIAL de Featurable
-       (bloque aparte en el home), porque Featurable no permite leerlas con un
-       fetch propio. Aquí devolvemos [] para que la rejilla muestre solo las
-       reseñas propias. */
     google: function () {
       return Promise.resolve({ reviews: [] });
     }
@@ -98,9 +82,6 @@
       .then(function (r) { return r.json(); });
   }
 
-  /* ============================================================
-     RENDER
-     ============================================================ */
   var state = { editingId: null };
 
   function starsRow(rating) {
@@ -187,7 +168,6 @@
         if (!res || !res.ok) { btn.disabled = false; btn.textContent = "Reintentar"; alert.hidden = false; alert.textContent = (res && res.error) || "No se pudo guardar."; return; }
         state.editingId = null;
         if (res.pending) {
-          /* Reseña en moderación: aún no aparece públicamente. */
           host.innerHTML = '<div class="review-thanks" role="status" style="text-align:center;padding:20px;border:1px solid var(--border-light,#e5e7eb);border-radius:12px;background:#f8fafc"><b style="display:block;margin-bottom:4px">¡Gracias por tu reseña! 🙌</b><span style="color:var(--text-muted,#6b7280);font-size:.9rem">' + esc(res.message || "Se publicará en cuanto la revisemos.") + '</span></div>';
           return;
         }

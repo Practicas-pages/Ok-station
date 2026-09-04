@@ -188,7 +188,6 @@ function mxn($n): string { return '$' . number_format((float) $n, 2); }
 <html lang="es-MX">
 <head>
   <meta charset="UTF-8">
-  <!-- Puerta de mantenimiento: primero que nada, para redirigir antes de pintar. -->
   <script src="/assets/site-guard.js?v=20260728n"></script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="robots" content="index, follow, max-image-preview:large">
@@ -215,7 +214,6 @@ function mxn($n): string { return '$' . number_format((float) $n, 2); }
   <meta name="twitter:image" content="<?= e($ogImage) ?>">
   <meta name="author" content="Ok.station — OK Dock">
   <link rel="icon" href="/assets/img/OKD-Isotipo-Azul-96.png" type="image/png" sizes="96x96">
-  <!-- Tema (claro/oscuro): antes de los estilos para pintar ya con el tema elegido -->
   <script src="/assets/theme.js?v=20260721a"></script>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" media="print" onload="this.media='all'">
   <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"></noscript>
@@ -255,9 +253,6 @@ function mxn($n): string { return '$' . number_format((float) $n, 2); }
       font-size:.86rem;font-weight:600;color:#33404f;text-decoration:none}
     .chips a:hover{border-color:#066CFF;color:#066CFF}
 
-    /* ── Modo oscuro (html[data-theme="dark"], lo pone theme.js). Esta página no
-       carga styles.css, así que trae su propio bloque. Las miniaturas (.thumb)
-       se quedan claras: la mercancía luce sobre fondo claro. ── */
     html[data-theme="dark"] body{background:#0F1524;color:#E9EDF6}
     html[data-theme="dark"] :is(.card,.empty,.chips a){background:#171F31;border-color:#26314A;color:#E9EDF6}
     html[data-theme="dark"] .name{color:#E9EDF6}
@@ -265,8 +260,6 @@ function mxn($n): string { return '$' . number_format((float) $n, 2); }
     html[data-theme="dark"] :is(.lead,.crumbs,.brand,.stock.out,.empty){color:#8A94AB}
     html[data-theme="dark"] .chips a:hover{border-color:#3E8BFF;color:#3E8BFF}
 
-    /* Botón de tema en la barra azul: fantasma blanco y a la derecha del todo.
-       (La barra es azul en AMBOS temas, así que no cambia con el modo oscuro.) */
     .bar .theme-toggle{margin-left:auto;width:34px;height:34px;
       border:1.5px solid rgba(255,255,255,.55);background:transparent;color:#fff}
     .bar .theme-toggle:hover{background:rgba(255,255,255,.16);border-color:#fff;color:#fff}
@@ -274,23 +267,8 @@ function mxn($n): string { return '$' . number_format((float) $n, 2); }
   <link rel="stylesheet" href="/assets/oknav.css?v=20260728r">
 </head>
 <body>
-  <!-- ─────────────────────────────────────────────────────────────────────────
-     Ok.station — NAVBAR UNIFICADO · marcado canónico
-     Esta es la COPIA MAESTRA. Va pegada tal cual en cada página (no se inyecta
-     por JavaScript a propósito: los enlaces de navegación deben venir en el HTML
-     para que Google los siga, que es justo por lo que la ficha se arma en el
-     servidor).
-     Necesita:  <link rel="stylesheet" href="/assets/oknav.css?v=20260728r">
-                <script src="/assets/oknav.js?v=20260724a" defer></script>
-     Todos los <svg> llevan width/height propios: sin tamaño intrínseco un icono
-     se pinta gigante mientras el CSS va en camino (ya pasó con el del correo).
-     ───────────────────────────────────────────────────────────────────────── -->
 <header class="oknav" id="oknav">
 
-  <!-- ══ CINTURILLO · lo mismo que traía .header-bar del sitio ═══════════════
-       Enlaces a la izquierda, lema al centro y redes a la derecha. En celular
-       se oculta entero: sus enlaces ya están en el cajón ☰ y aquí solo haría
-       más alta una barra que ya es pegajosa. -->
   <div class="oknav__belt">
     <div class="oknav__wrap">
       <nav class="oknav__beltlinks" aria-label="Enlaces rápidos">
@@ -312,7 +290,6 @@ function mxn($n): string { return '$' . number_format((float) $n, 2); }
     </div>
   </div>
 
-  <!-- ══ FILA 1 · logo · buscador · ubicación · cuenta · deseados · carrito ══ -->
   <div class="oknav__row oknav__row--main">
     <div class="oknav__wrap">
 
@@ -330,9 +307,6 @@ function mxn($n): string { return '$' . number_format((float) $n, 2); }
              stroke-width="2.2" stroke-linecap="round" aria-hidden="true">
           <circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/>
         </svg>
-        <!-- Sin botón de buscar: se envía con Enter, igual que el buscador del
-             resto del sitio (.shopbar__search). Con botón quedaban DOS lupas
-             en el mismo campo. -->
         <input id="oknavQ" type="search" autocomplete="off" role="combobox"
                aria-expanded="false" aria-autocomplete="list" aria-controls="oknavAc"
                aria-label="Buscar productos (escribe y pulsa Enter)"
@@ -385,7 +359,6 @@ function mxn($n): string { return '$' . number_format((float) $n, 2); }
     </div>
   </div>
 
-  <!-- ══ FILA 2 · tienda ┃ servicios ······ WhatsApp ══════════════════════ -->
   <div class="oknav__row oknav__row--nav">
     <div class="oknav__wrap">
       <nav class="oknav__mobile-stores" aria-label="Accesos de compra">
@@ -449,13 +422,9 @@ function mxn($n): string { return '$' . number_format((float) $n, 2); }
     </div>
   </div>
 
-  <!-- Desplegable de categorías (lo llena oknav.js con las de la BD) -->
   <div class="oknav__catsmenu" id="oknavCatsMenu" hidden></div>
 </header>
 
-<!-- ══ Cajón ☰ (celular y tablet) ═══════════════════════════════════════════
-     Aquí viven las cosas que NO merecen una fila propia en el encabezado:
-     los servicios, "¿Quiénes somos?/Contacto" y las redes sociales. -->
 <div class="oknav__scrim" id="oknavScrim" hidden></div>
 <aside class="oknav__drawer" id="oknavDrawer" aria-label="Menú" hidden>
   <div class="oknav__dhead">
@@ -482,8 +451,6 @@ function mxn($n): string { return '$' . number_format((float) $n, 2); }
 
   <p class="oknav__dtitle">Ok.station</p>
   <div class="oknav__dlist">
-    <!-- En celular el botón de tema no cabe en la barra (se iba a un tercer
-         renglón), así que vive aquí. Lo mueve OKTheme, el mismo de theme.js. -->
     <button type="button" id="oknavTema">Modo oscuro <span id="oknavTemaEstado"></span></button>
     <a href="/quienes-somos.html">¿Quiénes somos?</a>
     <a href="/contactanos.html">Contacto</a>
@@ -519,8 +486,6 @@ function mxn($n): string { return '$' . number_format((float) $n, 2); }
     <?php if (!$prods): ?>
       <p class="empty">Por ahora no hay productos en esta categoría. <a href="/tienda">Ver toda la tienda</a></p>
     <?php else: ?>
-      <!-- El punto de esta página: enlaces <a href> REALES a cada ficha, en el HTML,
-           sin depender de JavaScript. Es el camino que Google necesita para llegar. -->
       <div class="grid">
         <?php foreach ($prods as $p):
           $url = ShopProduct::url((int) $p['id'], (string) $p['name']);
@@ -540,12 +505,6 @@ function mxn($n): string { return '$' . number_format((float) $n, 2); }
       </div>
     <?php endif; ?>
 
-    <!-- Enlaces entre categorías: teje la red interna para que Google recorra todo.
-         Las FAMILIAS son las que cargan el peso: son las páginas que la gente busca
-         por su nombre, y enlazarlas desde todas las demás es lo que hace que Google
-         las descubra y las recorra sin depender del sitemap. Se listan las 40 más
-         surtidas para no convertir el pie en un muro de enlaces (una página que
-         enlaza a todo, no le da fuerza a nada). -->
     <?php if ($fams): ?>
     <section class="otras">
       <h2><?= $esFamilia ? 'Otras familias de productos' : 'Busca por tipo de producto' ?></h2>

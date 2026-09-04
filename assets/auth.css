@@ -1,8 +1,3 @@
-/* ============================================================
-   Ok.station — Estilos de cuentas (login / registro / perfil)
-   Reutiliza los design tokens de styles.css. Campos en tema CLARO
-   (los .field de styles.css son para fondo oscuro del wizard).
-   ============================================================ */
 
 .auth-page {
   min-height: 100vh;
@@ -14,14 +9,11 @@
     var(--surface-page);
 }
 
-/* Barra superior simple */
 .auth-top {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: var(--space-4);
-  /* En móvil el logo + los botones (Inicio · Tienda · Cerrar sesión) no caben en una
-     sola fila: se acomodan en dos en vez de desbordarse. */
   flex-wrap: wrap;
   row-gap: var(--space-3);
   padding: var(--space-4) clamp(16px, 4vw, 40px);
@@ -39,7 +31,6 @@
 .auth-back:hover { color: var(--brand-blue); }
 .auth-back svg { width: 16px; height: 16px; }
 
-/* Contenedor central */
 .auth-main {
   flex: 1;
   display: flex;
@@ -58,8 +49,6 @@
   padding: clamp(26px, 4vw, 40px);
 }
 .auth-card--wide { max-width: 760px; }
-/* cuenta.html: tarjeta más ancha para que correo y teléfono (fila de 2 columnas)
-   muestren completo lo que el usuario escribe y evitar errores de captura */
 .auth-card--account { max-width: 620px; }
 
 .auth-head { text-align: center; margin-bottom: var(--space-7); }
@@ -72,7 +61,6 @@
 }
 .auth-head p { font-size: 0.9rem; color: var(--text-secondary); }
 
-/* Tabs login / registro */
 .auth-tabs {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -102,7 +90,6 @@
 }
 .auth-tab:focus-visible { outline: 3px solid var(--brand-cyan); outline-offset: 2px; }
 
-/* Campos (tema claro) */
 .auth-field { display: flex; flex-direction: column; gap: 7px; margin-bottom: var(--space-5); }
 .auth-field label {
   font-size: 0.8125rem;
@@ -135,7 +122,6 @@
 
 .auth-row { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4); }
 
-/* Mensajes */
 .auth-alert {
   border-radius: var(--radius-sm);
   padding: 12px 16px;
@@ -147,16 +133,13 @@
 .auth-alert--error   { background: rgba(220, 38, 38, 0.08); color: #B91C1C; border: 1px solid rgba(220,38,38,0.2); }
 .auth-alert--success { background: rgba(22, 163, 74, 0.08); color: #15803D; border: 1px solid rgba(22,163,74,0.2); }
 
-/* Pie de formulario */
 .auth-foot { margin-top: var(--space-5); text-align: center; font-size: 0.85rem; color: var(--text-secondary); }
 .auth-foot a { color: var(--brand-blue); font-weight: 600; }
 .auth-foot a:hover { text-decoration: underline; }
 .auth-inline-link { background: none; border: none; font: inherit; color: var(--brand-blue); font-weight: 600; cursor: pointer; padding: 0; }
 
-/* Botón ocupa el ancho dentro del card */
 .auth-card .btn--block { margin-top: var(--space-2); }
 
-/* ── Perfil ── */
 .profile-grid { display: grid; grid-template-columns: 280px 1fr; gap: var(--space-6); align-items: start; }
 .profile-side {
   background: var(--surface-card);
@@ -185,10 +168,8 @@
   transition: background var(--transition-fast), color var(--transition-fast);
 }
 .profile-nav a:hover { background: var(--brand-blue-light); color: var(--brand-blue); }
-/* Pestaña activa (la que se está mostrando) */
 .profile-nav a.is-active { background: var(--brand-blue-light); color: var(--brand-blue); font-weight: 600; }
 
-/* "Datos personales" 🔒 — apartado sensible, separado al fondo de la barra. */
 .profile-nav__datos {
   display: flex; align-items: center; gap: 8px;
   margin-top: var(--space-4);
@@ -214,16 +195,12 @@
   border-bottom: 1px solid var(--border-light);
 }
 
-/* Responsive */
 @media (max-width: 768px) {
   .auth-row { grid-template-columns: 1fr; }
   .profile-grid { grid-template-columns: 1fr; }
   .profile-side { position: static; }
-  /* iOS: evita el ZOOM automático al enfocar (exige ≥16px). El 15px de
-     .auth-field input ganaba en especificidad al arreglo global de styles.css. */
   .auth-field input, .auth-field select, .auth-field textarea { font-size: 16px; }
 }
 
 
-/* ══ MODO OSCURO — html[data-theme="dark"] ══════════════════════════════════ */
 html[data-theme="dark"] .auth-alert--error { background: rgba(220,38,38,.14); border-color: #7A2233; color: #FCA5A5; }

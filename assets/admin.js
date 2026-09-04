@@ -1,30 +1,15 @@
-/* ============================================================
-   Ok.station — Panel administrativo (front)
-   MODO DEMO: datos simulados. La capa de datos está aislada en
-   DataSource para conectar al backend (CloudPanel) cambiando DEMO=false.
-   ============================================================ */
 (function () {
   "use strict";
 
-  var DEMO = false;                 // PRODUCCIÓN: usa el API real (admin/*.php)
+  var DEMO = false;
   var API_BASE = "/backend/api";
 
-  /* ── Sesión (compartida con auth.js) ── */
   function cachedUser() { try { return JSON.parse(localStorage.getItem("okstation.user") || "null"); } catch (e) { return null; } }
   function token() { try { return localStorage.getItem("okstation.token"); } catch (e) { return null; } }
 
-  /* ── Utilidades ── */
   var $ = function (s, c) { return (c || document).querySelector(s); };
   var $$ = function (s, c) { return Array.prototype.slice.call((c || document).querySelectorAll(s)); };
   function mxn(n) { return new Intl.NumberFormat("es-MX", { style: "currency", currency: "MXN", maximumFractionDigits: 0 }).format(n); }
-  /* Escapa para insertar con innerHTML. textContent cubre <, > y &, pero NO las
-     comillas, y aquí casi todo acaba DENTRO de un atributo. Se vio en el panel:
-     el producto «Arillo Fellowes 1" Plastico C/10 Negro» rompía
-     data-foto-nombre="…" en la comilla y el diálogo mostraba solo "Arillo
-     Fellowes 1". Peor que el corte: un nombre con `" onerror="…` se habría
-     ejecutado, y los nombres vienen de la API de Exel, no de nosotros.
-     Escapar las comillas es seguro también fuera de atributos: dentro de
-     innerHTML, &quot; se pinta como una comilla normal. */
   function esc(s) {
     var d = document.createElement("div");
     d.textContent = String(s == null ? "" : s);
@@ -46,14 +31,11 @@
   };
   var SUBTYPE_LABEL = { mexicano: "Mexicano", americano: "Americano" };
   var DOCTYPE_LABEL = { primera: "Primera vez", renov_con: "Renovación con documentos", renov_sin: "Renovación sin documentos" };
-  /* Datos por persona (requisitos): JSON guardado en la cita, o []. */
   function parseGuests(v) {
     if (!v) return [];
     if (Array.isArray(v)) return v;
     try { var p = JSON.parse(v); return Array.isArray(p) ? p : []; } catch (e) { return []; }
   }
-  /* Celda de servicio: servicio (cualquiera de los 9) + subtipo de pasaporte + nº de personas
-     + datos de cada persona (nombre, nacimiento, tipo de trámite con/sin documentos). */
   function apptServiceCell(a) {
     var html = '<b>' + esc(TRAMITE_LABEL[a.tramite] || a.tramite) + '</b>';
     if (a.tramite === "pasaporte" && a.passport_subtype) {
@@ -62,9 +44,6 @@
     var n = parseInt(a.party_size, 10) || 1;
     if (n > 1) html += '<br><span class="appt-extra">' + n + ' personas</span>';
     if (window.OKCitaPriceText) html += '<br><span class="appt-extra" style="color:var(--brand-blue);font-weight:600">' + esc(window.OKCitaPriceText(a.tramite, a.passport_subtype, a.party_size)) + '</span>';
-    /* Estado del ANTICIPO en línea: el trabajador ve de un vistazo si el cliente
-       pagó (verde) o no (ámbar). Solo se muestra si el trámite tiene anticipo
-       (amount_total > 0) o ya hay algún movimiento de pago. */
     var payable = (a.amount_total != null && a.amount_total !== "" && +a.amount_total > 0);
     var pstat = a.payment_status || "";
     if (payable || pstat === "pagado" || pstat === "procesando" || pstat === "reembolsado" || pstat === "error") {
@@ -81,8 +60,6 @@
         var sub = [];
         if (g.dob) sub.push("Nac. " + esc(g.dob));
         if (g.doctype) sub.push(esc(DOCTYPE_LABEL[g.doctype] || g.doctype));
-        /* Solo nombre + nacimiento/tipo de trámite. Las RESPUESTAS del cuestionario
-           NO se muestran aquí: van únicamente en el expediente (PDF). */
         return '<div class="appt-guest" style="font-size:.82rem">' + (i + 1) + '. <b>' + esc(g.name || "—") + '</b>' +
           (sub.length ? ' <span style="color:var(--text-muted)">· ' + sub.join(" · ") + '</span>' : '') + '</div>';
       }).join("") + '</div>';
@@ -98,46 +75,36 @@
     var s = status || "pendiente";
     return '<span class="badge badge--pay-' + s + '">' + esc(PAY_STATUS[s] || s) + '</span>';
   }
-  /* Señal "confirmado por el cliente": ya NO se pide confirmación por correo
-     (los correos son solo comprobante), así que solo mostramos el ✓ para citas
-     viejas que sí confirmaron; nunca el "sin confirmar" (sería engañoso). */
   function confirmChip(when) {
     return when
       ? '<span class="badge badge--listo" title="El cliente confirmó por correo el ' + esc(String(when)) + '">✓ Confirmado por el cliente</span>'
       : '';
   }
-  /* Banner de confirmación para los modales de detalle (solo el positivo). */
   function confirmBanner(when) {
     return when
       ? '<div style="display:flex;align-items:center;gap:8px;background:#ecfdf5;border:1px solid #a7f3d0;color:#047857;border-radius:8px;padding:9px 12px;font-size:.86rem;font-weight:600;margin:0 0 14px">✓ Confirmado por el cliente <span style="font-weight:400;color:#059669">· ' + esc(String(when)) + '</span></div>'
       : '';
   }
-  /* Nombre de cliente: enlace al historial si tiene cuenta (user_id); si es invitado, texto plano. */
   function clientCell(userId, name) {
     return userId
       ? '<button type="button" class="client-link" data-uview="' + esc(userId) + '">' + esc(name) + '</button>'
       : '<b>' + esc(name || "—") + '</b>';
   }
-  /* Botón directo al WhatsApp del cliente que hizo el pedido (apoyo a las trabajadoras). */
   function waDigits(phone) {
     var d = String(phone || "").replace(/\D/g, "");
     if (d.length < 10) return "";
-    if (d.length === 10) d = "52" + d;          // 10 dígitos → anteponer lada de México
+    if (d.length === 10) d = "52" + d;
     return d;
   }
   function clientWaBtn(o) {
     var d = waDigits(o && o.contact_phone);
     if (!d) return "";
-    /* Mensaje listo para el trabajador, con el folio del pedido. */
     var msg = "Hola, le escribimos de Ok.station sobre su pedido " + ((o && o.code) || "") + ".";
     var href = "https://wa.me/" + d + "?text=" + encodeURIComponent(msg);
     return ' <a class="admin-btn-sm" style="background:#25D366;color:#fff;border-color:#25D366" ' +
       'href="' + href + '" target="_blank" rel="noopener" title="Escribir al cliente por WhatsApp">WhatsApp</a>';
   }
 
-  /* ============================================================
-     CAPA DE DATOS (simulada). Aquí se conecta el backend real.
-     ============================================================ */
   var MOCK = {
     stats: { orders: 128, sales: 48230, users: 86, pending: 14, dOrders: 12, dSales: 8, dUsers: 5, dPending: -3 },
     sales7: [
@@ -182,11 +149,7 @@
   function apiGet(p) { return fetch(API_BASE + p, { headers: { Authorization: "Bearer " + token() } }).then(function (r) { return r.json(); }); }
   function apiPost(p, body) { return fetch(API_BASE + p, { method: "POST", headers: { "Content-Type": "application/json", Authorization: "Bearer " + token() }, body: JSON.stringify(body) }).then(function (r) { return r.json(); }); }
 
-  /* ¿Este usuario puede ver datos financieros (montos/referencias)? Lo confirma el
-     backend (solo administrador/directivo). Se refina al cargar la lista de pedidos. */
   var ordersCanSeeMoney = true;
-  /* ¿El pago en línea está activo (migración 0008 aplicada)? Lo confirma el backend.
-     Si no, ocultamos la fila de filtros de pago (no debe haber dos hileras de filtros). */
   var ordersPaymentsEnabled = true;
   var DataSource = {
     dashboard: function () { return DEMO ? Promise.resolve(MOCK) : apiGet("/admin/dashboard.php"); },
@@ -216,7 +179,6 @@
       if (DEMO) { var o = MOCK.orders.find(function (x) { return String(x.id) === String(id); }); if (o) o.payment_status = status; return Promise.resolve({ ok: true, payment_status: status }); }
       return apiPost("/admin/order-payment.php", { id: id, status: status || "pagado" });
     },
-    /* ── Pedidos de la TIENDA (e-commerce) ── */
     shopOrders: function (status, payment, q) {
       var p = [];
       if (status) p.push("status=" + encodeURIComponent(status));
@@ -229,13 +191,7 @@
     },
     setShopStatus: function (id, status) { return apiPost("/admin/shop-order-status.php", { id: id, status: status }); },
     setShopPaid: function (id, status) { return apiPost("/admin/shop-order-payment.php", { id: id, status: status || "pagado" }); },
-    /* Detalle de una compra CON sus productos. Reusa /shop/get.php, que ya resuelve
-       permisos (staff con shop.view ve cualquiera) y le oculta los importes al
-       empleado — no hay que repetir esas reglas aquí. */
     shopOrderDetail: function (id) { return apiGet("/shop/get.php?id=" + encodeURIComponent(id)); },
-    /* ── Catálogo de productos (SOLO LECTURA) ──
-       Devuelve el JSON completo, no solo `products`: la vista también necesita el
-       resumen del catálogo (stats) y las categorías reales para el filtro. */
     catalog: function (f) {
       f = f || {};
       if (DEMO) return Promise.resolve({ ok: true, products: [], stats: {}, categories: [] });
@@ -249,8 +205,6 @@
     imageRescueReport:function (status) {
       return apiGet("/admin/image-rescue-report.php" + (status ? "?status=" + encodeURIComponent(status) : ""));
     },
-    /* Solo `primary` y `remove`: PONER una foto es trabajo de admin-fotos.js +
-       image-set.php, que además la descargan a nuestro servidor. */
     productImage:     function (payload) { return apiPost("/admin/product-image.php", payload); },
     orderDetail: function (id) {
       if (DEMO) { var o = (MOCK.orders || []).find(function (x) { return String(x.id || x.code) === String(id); }); return Promise.resolve(o ? { ok: true, order: o } : { ok: false }); }
@@ -312,9 +266,7 @@
     }
   };
   var PERIOD_LABEL = { day: "Día", week: "Semana", month: "Mes" };
-  /* Etiquetas legibles de tamaños/servicios de impresión (para el historial). */
   var SIZE_LABEL = { carta: "Carta", oficio: "Oficio", tabloide: "Tabloide", a4: "A4", foto_10x15: "Foto 10×15", foto_13x18: "Foto 13×18", gran_formato: "Gran formato", gran_formato_foto: "Gran formato foto", gran_formato_bond: "Gran formato bond" };
-  /* Etiquetas legibles de acciones de la bitácora (movimientos del usuario). */
   var ACTION_LABEL = {
     login: "Inició sesión", logout: "Cerró sesión", "order.created": "Creó un pedido",
     "order.status_changed": "Cambio de estado de pedido", "appointment.created": "Agendó una cita",
@@ -322,37 +274,24 @@
     "user.deactivated": "Cuenta desactivada", "user.activated": "Cuenta reactivada", "password.reset": "Restableció contraseña"
   };
 
-  /* ============================================================
-     GUARD DE ACCESO (rol empleado/administrador)
-     ============================================================ */
   function accessRoles() { var u = cachedUser(); return (u && u.roles) || []; }
   function hasAdminAccess() {
     var r = accessRoles();
     return r.indexOf("administrador") >= 0 || r.indexOf("empleado") >= 0 || r.indexOf("directivo") >= 0;
   }
-  /* El directivo tiene acceso total (igual que un administrador). */
   function isDirectivo() { return accessRoles().indexOf("directivo") >= 0; }
-  /* Empleado "puro": tiene rol empleado pero NO administrador ni directivo.
-     Estos no ven Usuarios, Reportes, ni datos financieros (ventas/usuarios). */
   function isEmpleadoOnly() {
     var r = accessRoles();
     return r.indexOf("empleado") >= 0 && r.indexOf("administrador") < 0 && r.indexOf("directivo") < 0;
   }
-  /* Vistas restringidas para empleado puro (se ocultan en el sidebar y se bloquean).
-     Lo ÚNICO vetado es Reportes. Usuarios es visible pero en modo solo lectura: ve la
-     lista y el historial, sin desactivar cuentas ni cambiar roles (ver renderUsers).
-     Precios SÍ es visible y editable para el empleado. */
   var EMPLEADO_BLOCKED_VIEWS = ["reportes"];
   function enforceAccess() {
-    if (DEMO) return true;             // demo: se permite ver el panel
+    if (DEMO) return true;
     if (!token()) { window.location.href = "cuenta.html"; return false; }
     if (!hasAdminAccess()) { window.location.href = "perfil.html"; return false; }
     return true;
   }
 
-  /* ============================================================
-     RENDER
-     ============================================================ */
   function renderUserChip() {
     var u = cachedUser();
     var name = (u && u.full_name) || "Administrador";
@@ -372,7 +311,6 @@
       { key: "users", label: "Usuarios", value: s.users, delta: s.dUsers, color: "#7C3AED", bg: "#F3E8FF", icon: '<path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/>' },
       { key: "pending", label: "Pendientes", value: s.pending, delta: s.dPending, color: "#B45309", bg: "#FEF3C7", icon: '<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>' }
     ];
-    /* El empleado puro no ve ni Ventas del mes ni Usuarios. */
     if (isEmpleadoOnly()) cards = cards.filter(function (c) { return c.key !== "sales" && c.key !== "users"; });
     $("#stat-grid").innerHTML = cards.map(function (c) {
       var up = c.delta >= 0;
@@ -440,12 +378,12 @@
 
   function bindStatusSelects(scope) {
     $$(".status-select", scope).forEach(function (sel) {
-      var prev = sel.value;   // valor previo, para revertir si el backend rechaza
+      var prev = sel.value;
       sel.addEventListener("change", function () {
         var nv = sel.value;
         DataSource.updateStatus(sel.dataset.id, nv).then(function (res) {
           if (!res || res.ok === false) {
-            sel.value = prev;   // el backend NO cambió el estado: revertir y avisar
+            sel.value = prev;
             window.alert((res && res.error) || "No se pudo cambiar el estado del pedido.");
             return;
           }
@@ -456,7 +394,6 @@
     });
   }
 
-  /* ── Detalle de pedido (botón "Ver") ── */
   function cfgLabel(cfg) {
     if (!cfg) return "";
     if (typeof cfg === "string") { try { cfg = JSON.parse(cfg); } catch (e) { return ""; } }
@@ -477,11 +414,6 @@
     document.removeEventListener("keydown", escClose);
   }
 
-  /* ============================================================
-     MODAL DE DETALLE DE CITA — previsualización del expediente.
-     Usa los datos que ya devuelve /admin/appointments.php (trámite,
-     personas, respuestas, contacto, notas). No requiere backend nuevo.
-     ============================================================ */
   function apptEscClose(e) { if (e.key === "Escape") closeApptModal(); }
   function closeApptModal() {
     var m = document.getElementById("appt-modal");
@@ -496,13 +428,10 @@
     if (!valueHtml) return "";
     return '<div style="display:flex;justify-content:space-between;gap:12px;padding:5px 0"><span style="color:var(--text-muted,#6b7280)">' + esc(label) + '</span><span style="text-align:right;font-weight:600">' + valueHtml + '</span></div>';
   }
-  /* Panel "Fijar anticipo" (cotización) del modal de cita. Solo aparece en trámites
-     que se cotizan (needs_quote: apostille/médica). Al guardar, el backend avisa al
-     cliente por correo con un botón de pago. Espejo de quotePanel de pedidos. */
   function apptQuotePanel(a) {
     if ((a.payment_status || "pendiente") === "pagado") return "";
     var needsQuote = (+a.needs_quote === 1) || (String(a.needs_quote) === "1");
-    if (!needsQuote) return "";   // SOLO trámites sin precio fijo; el resto ya tiene anticipo
+    if (!needsQuote) return "";
     var total = +a.amount_total || 0;
     var pending = !a.quoted_at;
     var banner = pending
@@ -520,8 +449,6 @@
       '</div>';
   }
 
-  /* Confirmar manualmente el pago de una cita (efectivo/transferencia o aprobado en
-     MP). Solo si hay un monto y aún no está pagada. Le llega un correo al cliente. */
   function apptPayConfirm(a) {
     var pay = a.payment_status || "pendiente";
     var amount = (a.amount_total != null && a.amount_total !== "" && +a.amount_total > 0) ? +a.amount_total : 0;
@@ -544,8 +471,6 @@
     var prefLbl = { whatsapp: "WhatsApp", llamada: "Llamada", correo: "Correo" };
 
     var files = (a.files && a.files.length) ? a.files : [];
-    /* Tarjeta de un documento: preview (img/PDF) + descarga. Usa el índice GLOBAL
-       del archivo en a.files para el id del wrap, así loadApptFileInto lo localiza. */
     function fileCardHtml(f, gi) {
       var isImg = /^image\//.test(f.mime_type || "");
       var icon = isImg
@@ -563,8 +488,6 @@
         '<div class="doc-item__preview" id="apptfilewrap-' + gi + '"><p>Cargando vista previa…</p></div>' +
       '</div>';
     }
-    /* Agrupar documentos por persona (guest_index). Los que no traen persona
-       (citas anteriores a la mejora) van a "Documentos generales de la cita". */
     var filesByGuest = {}, generalFiles = [];
     files.forEach(function (f, idx) {
       var gi = (f.guest_index === 0 || f.guest_index) ? parseInt(f.guest_index, 10) : NaN;
@@ -573,17 +496,12 @@
     });
 
     var guests = parseGuests(a.guests_json);
-    /* Si llegan documentos por persona pero la cita no trae guests_json, se crean
-       tarjetas mínimas para que ningún documento quede oculto. */
     var guestList = guests.slice();
     var maxGi = -1; Object.keys(filesByGuest).forEach(function (k) { maxGi = Math.max(maxGi, parseInt(k, 10)); });
     while (guestList.length <= maxGi) guestList.push({});
 
     var guestsHtml = "";
     if (guestList.length) {
-      /* Las RESPUESTAS del cuestionario ya NO se muestran aquí: van en el
-         expediente (PDF). En el panel solo dejamos a cada persona y sus
-         documentos (que el trabajador puede ver y descargar). */
       guestsHtml = '<h4 style="margin:16px 0 4px;font-size:.95rem">Personas y documentos</h4>' +
         '<p style="margin:0 0 10px;font-size:.8rem;color:var(--text-muted,#6b7280)">Las respuestas del cuestionario están en el <b>expediente (PDF)</b> — botón de abajo.</p>' +
         guestList.map(function (g, i) {
@@ -603,7 +521,6 @@
         }).join("");
     }
 
-    /* Servicios adicionales (venta cruzada) — tipo ticket. parseGuests sirve como parser genérico de arreglo JSON. */
     var services = parseGuests(a.services_json);
     var servicesHtml = services.length
       ? '<h4 style="margin:16px 0 6px;font-size:.95rem">Servicios adicionales</h4>' +
@@ -613,8 +530,6 @@
           }).join("") + '</div>'
       : "";
 
-    /* Documentos sin persona asignada (citas anteriores a la mejora por-persona);
-       si no hay personas ni archivos, se muestra el aviso de "sin documentos". */
     var generalFilesHtml = "";
     if (generalFiles.length) {
       generalFilesHtml = '<h4 style="margin:16px 0 6px;font-size:.95rem">Documentos generales de la cita</h4>' +
@@ -645,7 +560,6 @@
             apptRow("Hora", esc(a.time || "—")) +
             (window.OKCitaPriceText ? apptRow("Precio estimado", esc(window.OKCitaPriceText(a.tramite, a.passport_subtype, a.party_size))) : "") +
             (function () {
-              /* Estado del ANTICIPO: el trabajador ve si el cliente pagó (y cuánto/ cuándo). */
               var ps = a.payment_status || "pendiente";
               var payable = (a.amount_total != null && a.amount_total !== "" && +a.amount_total > 0);
               if (!payable && ps === "pendiente") return "";
@@ -686,7 +600,6 @@
     ov.addEventListener("click", function (e) { if (e.target === ov) closeApptModal(); });
     $("#appt-modal-close", ov).addEventListener("click", closeApptModal);
 
-    /* Guardar el anticipo de la cotización y avisar al cliente por correo. */
     var apptSave = $("#appt-price-save", ov);
     if (apptSave) apptSave.addEventListener("click", function () {
       var inp = $("#appt-price-input", ov), msg = $("#appt-price-msg", ov);
@@ -712,7 +625,6 @@
         msg.style.color = "#b91c1c"; msg.textContent = "Sin conexión con el servidor.";
       });
     });
-    /* Confirmar el pago de la cita manualmente (efectivo/transferencia o aprobado en MP). */
     var apptPaidBtn = $("#appt-paid-btn", ov);
     if (apptPaidBtn) apptPaidBtn.addEventListener("click", function () {
       var msg = $("#appt-paid-msg", ov);
@@ -743,8 +655,6 @@
     document.addEventListener("keydown", apptEscClose);
   }
 
-  /* Carga un DOCUMENTO de la cita (con token) y habilita previsualizar/descargar.
-     Imágenes → <img>; PDF → <iframe>. Sirve desde /appointments/file.php. */
   function loadApptFileInto(modal, idx, fileId, name, mime) {
     var wrap = modal.querySelector("#apptfilewrap-" + idx);
     var dl = modal.querySelector('[data-apptfile-dl="' + idx + '"]');
@@ -766,7 +676,6 @@
       });
   }
 
-  /* Carga el ARCHIVO del cliente (con token) en su visor y habilita descargar/imprimir. */
   function loadFileInto(modal, idx, fid, name) {
     var wrap = modal.querySelector("#filewrap-" + idx);
     var dl = modal.querySelector('[data-file-dl="' + idx + '"]');
@@ -788,8 +697,6 @@
       });
   }
 
-  /* Panel "Pago" del detalle del pedido (en el modal admin).
-     Los montos/referencia solo llegan del backend para administrador/directivo. */
   function paymentPanel(o) {
     var pay = o.payment_status || "pendiente";
     var rows = [];
@@ -799,9 +706,6 @@
     if (o.payment_reference) rows.push('<div style="display:flex;justify-content:space-between;gap:10px"><span style="color:var(--text-muted,#6b7280)">Referencia</span><span class="mono" style="font-size:.8rem">' + esc(o.payment_reference) + '</span></div>');
     if (o.payment_date) rows.push('<div style="display:flex;justify-content:space-between;gap:10px"><span style="color:var(--text-muted,#6b7280)">Fecha de pago</span><span>' + esc(String(o.payment_date).slice(0, 16).replace("T", " ")) + '</span></div>');
     if (o.payment_transaction_id) rows.push('<div style="display:flex;justify-content:space-between;gap:10px"><span style="color:var(--text-muted,#6b7280)">ID transacción</span><span class="mono" style="font-size:.78rem;word-break:break-all">' + esc(o.payment_transaction_id) + '</span></div>');
-    /* Confirmación manual: el trabajador marca el pago como recibido (efectivo/
-       transferencia, o cuando ya aparece aprobado en Mercado Pago y el webhook no
-       llegó). Al cliente le llega el correo de confirmación. */
     var canConfirm = ordersPaymentsEnabled && pay !== "pagado" && (+o.total || 0) > 0;
     var confirmHtml = canConfirm
       ? '<div style="border-top:1px solid #e5e7eb;margin-top:4px;padding-top:10px;display:flex;flex-direction:column;gap:6px">' +
@@ -814,15 +718,12 @@
       '<div style="display:flex;flex-direction:column;gap:6px;font-size:.9rem;background:#f8fafc;border-radius:8px;padding:12px 14px;margin:0 0 16px">' + rows.join("") + confirmHtml + '</div>';
   }
 
-  /* Panel "Fijar precio" (cotización) del detalle del pedido en el modal admin.
-     Permite a la trabajadora poner el precio final de un pedido por cotizar; al
-     guardar, el backend avisa al cliente por correo con un botón de pago. */
   function quotePanel(o) {
-    if ((o.payment_status || "pendiente") === "pagado") return "";  // ya pagado: no se recotiza
+    if ((o.payment_status || "pendiente") === "pagado") return "";
     var needsQuote = (+o.needs_quote === 1) || (String(o.needs_quote) === "1");
-    if (!needsQuote) return "";   // SOLO se cotizan los casos especiales (gran formato); el resto ya tiene precio
+    if (!needsQuote) return "";
     var total = +o.total || 0;
-    var pending = !o.quoted_at;   // por cotizar y aún sin precio fijado
+    var pending = !o.quoted_at;
     var banner = pending
       ? '<div style="background:#fff7ed;border:1px solid #fed7aa;color:#9a3412;border-radius:8px;padding:10px 12px;font-size:.85rem;margin:0 0 10px">Este pedido está <b>por cotizar</b>. Ponle el precio final y el cliente recibirá un correo para pagarlo en línea.</div>'
       : "";
@@ -908,7 +809,6 @@
     $("#order-modal-close", ov).addEventListener("click", closeOrderModal);
     document.addEventListener("keydown", escClose);
 
-    /* Guardar el precio de la cotización y avisar al cliente por correo. */
     var saveBtn = $("#order-price-save", ov);
     if (saveBtn) saveBtn.addEventListener("click", function () {
       var inp = $("#order-price-input", ov);
@@ -937,7 +837,6 @@
       });
     });
 
-    /* Confirmar el pago manualmente (efectivo/transferencia o aprobado en MP). */
     var paidBtn = $("#order-paid-btn", ov);
     if (paidBtn) paidBtn.addEventListener("click", function () {
       var msg = $("#order-paid-msg", ov);
@@ -965,7 +864,6 @@
     loadTicketInto(ov, o.id || o.code);
   }
 
-  /* Carga el TICKET (comprobante) del pedido en el modal y habilita descargar/imprimir. */
   function loadTicketInto(modal, orderId) {
     var wrap = modal.querySelector("#ticketwrap");
     var dl = modal.querySelector("[data-ticket-dl]");
@@ -997,7 +895,6 @@
       b.addEventListener("click", function () { viewOrder(b.dataset.viewOrder); });
     });
   }
-  /* Abre el historial del cliente al hacer clic en su nombre (en Pedidos y Citas). */
   function bindClientLinks(scope) {
     $$(".client-link[data-uview]", scope).forEach(function (b) {
       b.addEventListener("click", function () { viewUser(b.dataset.uview); });
@@ -1013,8 +910,6 @@
     });
   }
 
-  /* Citas próximas (Dashboard): las más cercanas en fecha/hora, para que el
-     empleado sepa qué sigue. Cada fila lleva a esa cita en su tabla. */
   function renderUpcoming(list) {
     var host = $("#upcoming-appts");
     if (!host) return;
@@ -1038,13 +933,11 @@
       b.addEventListener("click", function () { goToAppt(b.dataset.gocita); });
     });
   }
-  /* Estado actual de la vista Pedidos: chip de estado, chip de pago y búsqueda. */
   var orderStatus = "", orderPayment = "", orderSearch = "";
   function renderOrdersTable() {
     var q = (orderSearch || "").trim();
     DataSource.orders(orderStatus || "", orderPayment || "", q).then(function (list) {
       var t = $("#orders-table");
-      /* Una sola hilera de filtros si el pago en línea no está activo. */
       var payRow = $("#order-pay-filters");
       if (payRow) { var bar = payRow.closest(".admin-toolbar"); if (bar) bar.style.display = ordersPaymentsEnabled ? "" : "none"; }
       if (!list.length) {
@@ -1062,17 +955,9 @@
       bindClientLinks(t);
     });
   }
-  /* ── Pedidos de la TIENDA (e-commerce) ── */
   var SHOP_STATUS = { recibido: "Recibido", en_preparacion: "En preparación", listo: "Listo", entregado: "Entregado", cancelado: "Cancelado" };
   var shopCanSeeMoney = true, shopStatus = "", shopPayment = "", shopSearch = "";
 
-  /* ── Detalle de una compra: QUÉ pidió el cliente ──
-     La tabla solo mostraba CUÁNTOS productos ("1"), no cuáles: para surtir un pedido
-     había que ir a la base. Aquí se listan con su cantidad e importe.
-     Los renglones son el SNAPSHOT guardado al comprar (shop_order_items), no el
-     catálogo de hoy: si mañana cambia el precio o el nombre, este pedido sigue
-     mostrando lo que el cliente realmente compró.
-     Reusa el overlay y closeOrderModal() del modal de pedidos de impresión. */
   function openShopModal(o) {
     closeOrderModal();
     var items = o.items || [];
@@ -1082,17 +967,9 @@
 
     var filas = items.map(function (it) {
       var qty = +it.qty || 1;
-      /* Miniatura: la foto principal del catálogo (get.php la anexa por renglón).
-         Si el producto ya no tiene foto, cajita gris — el modal nunca se rompe. */
-      /* Colores por TOKEN, no fijos: antes iban #eef0f4/#f8fafc en línea y por eso el
-         detalle se quedaba blanco en modo oscuro (un style inline le gana a cualquier
-         regla CSS). */
       var thumb = it.image
         ? '<img src="' + esc(it.image) + '" alt="" loading="lazy" class="shopit__img">'
         : '<span class="shopit__img shopit__img--none"></span>';
-      /* El nombre lleva a la FICHA del producto (pestaña nueva, para no perder el
-         detalle del pedido). Así quien surte puede ver EXACTAMENTE cuál es cuando el
-         nombre del proveedor no se lo dice. */
       var pid = +it.product_id || 0;
       var nombre = esc(it.product_name || "Producto");
       var titulo = pid
@@ -1111,8 +988,6 @@
         '</tr>';
     }).join("") || '<tr><td colspan="' + (money ? 4 : 2) + '" style="padding:18px;text-align:center;color:var(--text-muted,#6b7280)">Este pedido no tiene renglones.</td></tr>';
 
-    /* El IVA se guarda por pedido (8% frontera / 16% nacional según destino), así que
-       la etiqueta se arma con la tasa real de ESTE pedido, no con una fija. */
     var ivaPct = o.iva_rate ? Math.round(+o.iva_rate * 100) : null;
 
     var ov = document.createElement("div");
@@ -1152,9 +1027,6 @@
             (envio && o.ship_address ? '<br><span style="color:var(--text-muted,#6b7280)">' + esc(o.ship_address) + '</span>' : '') +
           '</p>' +
 
-          /* Pago: se puede cobrar SIN cerrar el detalle. Misma acción y mismo
-             endpoint que el botón de la tabla (permiso shop.update_status), para
-             que no haya dos formas distintas de marcar pagado. */
           '<h4 style="margin:0 0 6px;font-size:.95rem">Pago</h4>' +
           '<div id="shop-pay-box" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:0 0 16px">' +
             payBadge(o.payment_status) +
@@ -1180,9 +1052,6 @@
       if (e.target === ov || e.target.closest("[data-shop-close]")) closeOrderModal();
     });
 
-    /* Marcar pagado desde el detalle. Mismo aviso y mismo DataSource que la tabla.
-       Al terminar NO se cierra el modal: se actualiza la insignia en su lugar (quien
-       cobra sigue viendo el pedido) y se repinta la tabla de atrás. */
     var payBtn = ov.querySelector("[data-shop-pay]");
     if (payBtn) {
       payBtn.addEventListener("click", function () {
@@ -1212,15 +1081,6 @@
     document.addEventListener("keydown", escClose);
   }
 
-  /* ── PDF del recibo de una compra (panel) ──────────────────────────────────
-     Orden de preferencia a propósito:
-       1. El recibo YA GUARDADO en el servidor — es EXACTAMENTE el mismo PDF que
-          se le envió por correo al cliente, así que lo que ve el panel y lo que
-          tiene el cliente coinciden (importante en una aclaración).
-       2. Si todavía no existe (el cliente aún no ha pasado por "Mis compras"),
-          se genera aquí con los datos de la compra, igual que hace Citas.
-     No sube el PDF generado: subirlo dispararía el correo al cliente, y el panel
-     no debería mandarle un recibo solo porque un administrador lo consultó. */
   function shopPdf(id, btn) {
     var orig = btn.textContent;
     btn.disabled = true; btn.textContent = "…";
@@ -1239,7 +1099,6 @@
         done();
       })
       .catch(function () {
-        /* Aún no hay recibo guardado: se arma con el detalle de la compra. */
         if (!window.OKShopTicketDownload) {
           done();
           window.alert("El recibo aún no está disponible (el cliente no lo ha generado) y no se pudo cargar el generador de PDF.");
@@ -1284,14 +1143,9 @@
           ((o.payment_status !== "pagado")
             ? ' <button class="admin-btn-sm shop-paid" data-id="' + (o.id || o.code) + '">Marcar pagado</button>' : '');
         var entrega = (o.ship_mode === "envio") ? "Envío a domicilio" : "Recoge en tienda";
-        /* Folio y nº de productos abren el detalle (QUÉ pidió). Es un <button> y no un
-           <a href>: no navega a ningún lado, abre un modal — y así se enfoca con Tab
-           y responde a Enter sin trabajo extra. */
         var verId = (o.id || o.code);
         var folioCell = '<button type="button" class="folio-link mono" data-shop-view="' + esc(String(verId)) + '" title="Ver qué pidió">' + esc(o.code) + '</button>';
         var itemsCell = '<button type="button" class="folio-link" data-shop-view="' + esc(String(verId)) + '" title="Ver qué pidió">' + esc(o.items) + '</button>';
-        /* Acciones: MISMA pareja que en Citas (Ver + PDF), para que el panel se
-           opere igual en los tres apartados. */
         var acciones = '<button type="button" class="admin-btn-sm shop-view" data-id="' + esc(String(verId)) + '">Ver</button>' +
           ' <button type="button" class="admin-btn-sm shop-pdf" data-id="' + esc(String(verId)) + '">PDF</button>';
         return '<tr><td>' + folioCell + '</td><td>' + clientCell(o.user_id, o.client) + '</td>' +
@@ -1334,7 +1188,6 @@
   }
 
   var userSearch = "";
-  /* Rol "principal" a partir de la lista de roles (string CSV o arreglo). */
   function primaryRole(roles) {
     var arr = Array.isArray(roles) ? roles : String(roles || "").split(",");
     arr = arr.map(function (s) { return String(s).trim(); });
@@ -1361,8 +1214,6 @@
         $("#users-table").innerHTML = head + '<tbody><tr><td colspan="8" style="text-align:center;color:var(--text-muted);padding:24px">' + (q ? 'No se encontraron usuarios para “' + esc(userSearch.trim()) + '”.' : "No hay usuarios.") + '</td></tr></tbody>';
         return;
       }
-      /* El empleado puro solo VE (lista + historial): sin cambiar roles ni desactivar
-         cuentas. Admin/directivo mantienen el select de rol y el botón Desactivar. */
       var canManageUsers = !isEmpleadoOnly();
       var ROLE_LABEL = { cliente: "Cliente", empleado: "Empleado", administrador: "Administrador", directivo: "Directivo" };
       var body = list.map(function (u) {
@@ -1386,7 +1237,6 @@
       $$("[data-uview]", t).forEach(function (b) {
         b.addEventListener("click", function () { viewUser(b.dataset.uview); });
       });
-      /* Cambiar rol: el backend mantiene 'cliente' y aplica salvaguardas. */
       $$("[data-urole] .role-select", t).forEach(function (sel) {
         sel.addEventListener("change", function () {
           var id = sel.parentNode.getAttribute("data-urole");
@@ -1400,7 +1250,6 @@
     });
   }
 
-  /* ── Historial del usuario (botón "Historial") ── */
   function escUserClose(e) { if (e.key === "Escape") closeUserModal(); }
   function closeUserModal() {
     var m = document.getElementById("user-modal");
@@ -1462,8 +1311,6 @@
       openUserModal(res);
     }).catch(function () { window.alert("Sin conexión al cargar el historial."); });
   }
-  /* Desde el historial: ir directo al pedido/cita en su tabla (con su selector de
-     estado y botón de detalle), buscándolo por folio. */
   function goToOrder(code) {
     closeUserModal();
     showView("pedidos");
@@ -1478,8 +1325,6 @@
     var el = $("#appt-search"); if (el) el.value = code;
     renderAppointments("", "");
   }
-  /* La vista "Servicios" se retiró (jul 2026): la tabla `services` nunca tuvo
-     datos ni consumidores; los precios se administran en la vista "Precios". */
   var reviewSearch = "";
   function renderReviews() {
     var STR = { pendiente: "Pendiente", aprobada: "Aprobada", oculta: "Oculta" };
@@ -1538,8 +1383,6 @@
         var phoneHtml = a.contact_phone
           ? (waD ? '<a href="https://wa.me/' + waD + '" target="_blank" rel="noopener" title="Escribir por WhatsApp" style="color:#1d9e75;font-weight:600">' + esc(a.contact_phone) + '</a>' : esc(a.contact_phone))
           : "";
-        /* Ya no se exige confirmar por correo: solo mostramos el ✓ de las citas
-           viejas que lo hicieron; nada cuando no (antes decía "Sin confirmar"). */
         var confirmInline = a.client_confirmed_at
           ? '<br><span style="color:#047857;font-size:.78rem;font-weight:600" title="Confirmó por correo el ' + esc(String(a.client_confirmed_at)) + '">✓ Confirmó</span>'
           : '';
@@ -1556,12 +1399,12 @@
       }).join("");
       t.innerHTML = head + '<tbody>' + body + '</tbody>';
       $$(".appt-status-select", t).forEach(function (sel) {
-        var prev = sel.value;   // valor previo, para revertir si el backend rechaza
+        var prev = sel.value;
         sel.addEventListener("change", function () {
           var nv = sel.value;
           DataSource.updateApptStatus(sel.dataset.id, nv).then(function (res) {
             if (!res || res.ok === false) {
-              sel.value = prev;   // no se cambió (p. ej. requiere el pago del anticipo): revertir y avisar
+              sel.value = prev;
               window.alert((res && res.error) || "No se pudo cambiar el estado de la cita.");
               return;
             }
@@ -1586,9 +1429,6 @@
     });
   }
 
-  /* ============================================================
-     REPORTES (corte de caja: ventas + pedidos + citas)
-     ============================================================ */
   var reportPeriod = "day", reportDate = "", lastReport = null;
   function todayStr() {
     var d = new Date();
@@ -1688,25 +1528,13 @@
     });
   }
 
-  /* ============================================================
-     CATÁLOGO — productos de la tienda y estado de sus imágenes
-     ============================================================ */
   var catalogSearch = "", catalogImages = "";
 
-  /* Semáforo de fotos. Se muestran DOS datos porque NO son lo mismo:
-       images        → fotos registradas
-       images_stored → fotos ya descargadas a nuestro servidor
-     La tienda resuelve la foto con COALESCE(stored_path, url) (ver ShopProduct.php),
-     así que un producto con 0 descargadas se ve bien HOY pero se sirve desde Icecat:
-     si Icecat bloquea el enlace directo o se cae, ese producto queda sin foto. */
   function catalogImagesCell(p) {
     var n = p.images, local = p.images_stored;
     var tone = n === 0 ? "cancelado" : (n < 3 ? "pendiente" : "listo");
     var note = n === 0 ? "sin fotos"
              : (local === 0 ? "ninguna local" : (local < n ? local + " locales" : "todas locales"));
-    /* El botón abre el selector de fotos (assets/admin-fotos.js, archivo aparte).
-       Solo se engancha por atributos: si ese archivo no cargara, esta celda sigue
-       mostrando el conteo igual que antes. */
     return '<td><span class="badge badge--' + tone + '">' + n + '/5</span>' +
       '<div class="catalog-note' + (n > 0 && local === 0 ? " is-warn" : "") + '">' + note + '</div>' +
       '<button type="button" class="catalog-foto" data-foto="' + p.id +
@@ -1714,15 +1542,12 @@
         (n === 0 ? "Poner foto" : "Cambiar") + '</button></td>';
   }
 
-  /* Se expone para que admin-fotos.js pueda refrescar la tabla tras guardar una
-     foto, sin recargar la página entera (van a ser ~264 productos de corrido). */
   window.okAdminRecargarCatalogo = function () {
     renderCatalog();
     var panel = $("#catalog-rescue-report-panel");
     if (panel && !panel.hidden) loadCatalogRescueReport(false);
   };
 
-  /* La cola de los que se ven SIN foto, para encadenarlos en el selector. */
   var catalogSinFoto = [];
   window.okAdminSinFoto = function () { return catalogSinFoto.slice(); };
 
@@ -1731,8 +1556,6 @@
   var catalogRescueSearch = "";
   var catalogRescueRows = [];
 
-  /* Para buscar da igual "fólder" que "folder": el catálogo de Exel escribe los
-     acentos como quiere, y quien teclea también. */
   function rescueNorm(s) {
     return String(s || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
   }
@@ -1754,8 +1577,6 @@
     var rows = catalogRescueRows.filter(function (r) {
       if (catalogRescueStatus && r.status !== catalogRescueStatus) return false;
       if (!q) return true;
-      /* Mismos campos que el buscador del catálogo: nombre, marca, SKU, referencia
-         y la clave de coincidencia que se muestra en la columna del reporte. */
       return rescueNorm([r.name, r.brand, r.sku, r.supplier_ref, r.match_key].join(" ")).indexOf(q) !== -1;
     });
     if (!rows.length) {
@@ -1861,17 +1682,10 @@
       .then(function (j) {
         var list = (j && j.products) || [];
 
-        /* Cola de trabajo para el selector de fotos (admin-fotos.js): los que se
-           ven ahora mismo SIN ninguna foto, en el mismo orden de la tabla. Sirve
-           para encadenar uno tras otro sin volver a la lista — son ~264 productos
-           y hacerlos de a uno, cerrando y buscando el siguiente cada vez, es lo
-           que convierte un rato de trabajo en una tarde entera. */
         catalogSinFoto = list.filter(function (p) { return p.images === 0; })
           .map(function (p) { return { id: p.id, nombre: p.name, marca: p.brand || "" }; });
         var s = (j && j.stats) || {};
 
-        /* El resumen es del catálogo COMPLETO, no del filtro: si cambiara al buscar,
-           dejaría de servir como termómetro general. */
         var stats = $("#catalog-stats");
         if (stats) stats.innerHTML =
           reportStat("Productos", s.total || 0) +
@@ -1880,7 +1694,6 @@
           reportStat("Completas (3+)", s.ok || 0) +
           reportStat("Sin descargar", s.sin_descargar || 0);
 
-        /* Aviso en el menú lateral: productos que todavía necesitan fotos. */
         var navBadge = $("#nav-catalogo-count");
         if (navBadge) {
           var pend = (s.sin_imagenes || 0) + (s.pocas || 0);
@@ -1898,8 +1711,6 @@
             ? '<img class="catalog-thumb" src="' + esc(p.thumb) + '" alt="" loading="lazy">'
             : '<span class="catalog-thumb catalog-thumb--empty" aria-hidden="true"></span>';
           var ref = p.sku || p.supplier_ref || "";
-          /* El renglón entero abre la ficha. Con tabindex/role para que también se
-             pueda llegar con el teclado, no solo con el ratón. */
           return '<tr class="is-clickable" data-pid="' + p.id + '" tabindex="0" role="button" ' +
             'aria-label="Ver ficha de ' + esc(p.name) + '">' +
             '<td><div class="catalog-prod">' + thumb + '<div><b>' + esc(p.name) + '</b>' +
@@ -1915,8 +1726,6 @@
             '</tr>';
         }).join("");
 
-        /* Se avisa cuando la lista viene topada: sin esto, el panel se vería
-           "completo" mostrando solo una parte del catálogo. */
         var capped = (j.count && j.limit && j.count >= j.limit)
           ? '<tr><td colspan="7" class="catalog-empty">Mostrando los primeros ' + j.limit +
             ' productos. Acota con la búsqueda o los filtros para ver el resto.</td></tr>'
@@ -1926,10 +1735,6 @@
 
         $$("tr[data-pid]", t).forEach(function (tr) {
           tr.addEventListener("click", function (e) {
-            /* El renglón entero abre la ficha, PERO trae dentro el botón de foto
-               (admin-fotos.js). Sin esta guarda, pedir la foto abriría además la
-               ficha encima y se elegiría a ciegas. Cualquier control propio dentro
-               del renglón queda cubierto por el mismo cierre. */
             if (e.target.closest("button, a, input, select")) return;
             openProductModal(+tr.dataset.pid);
           });
@@ -1944,10 +1749,6 @@
       });
   }
 
-  /* ── Ficha del producto (clic en un renglón del catálogo) ──
-     Muestra TODO lo que se sabe del producto y deja gestionar sus imágenes.
-     Regla que atraviesa toda esta pantalla: ninguna fuente publica sola; el
-     administrador elige cada foto. Ver image-candidates.php. */
   var prodModalId = null;
 
   function escProdClose(e) { if (e.key === "Escape") closeProductModal(); }
@@ -1963,7 +1764,6 @@
     return '<div class="prod-field"><span>' + label + '</span><b>' + value + '</b></div>';
   }
 
-  /* Galería: cada imagen con su procedencia y si ya está copiada en nuestro servidor. */
   function prodImagesHtml(d) {
     var imgs = d.images || [], max = d.max_images || 5;
     var cards = imgs.map(function (im) {
@@ -2022,10 +1822,6 @@
       '</div>' +
       '<div class="prod-modal__body">' +
         '<h4 class="prod-subtitle">Imágenes</h4>' + prodImagesHtml(d) +
-        /* PONER una foto lo resuelve admin-fotos.js: busca candidatas, permite
-           subir un archivo o pegar con Ctrl+V, y la descarga a nuestro servidor.
-           Aquí solo se dispara con su mismo enganche [data-foto] — un solo camino
-           para poner fotos en todo el panel. */
         '<div class="prod-addurl">' +
           '<button type="button" class="btn btn--primary btn--sm" data-foto="' + p.id +
             '" data-foto-nombre="' + esc(p.name || "") + '" data-foto-marca="' + esc(p.brand || "") + '">' +
@@ -2083,22 +1879,15 @@
             .then(function () { openProductModal(id); renderCatalog(); });
         });
       });
-      /* El selector de fotos de admin-fotos.js se monta sobre <body>. Si la ficha
-         siguiera abierta encima, el usuario elegiría a ciegas: se cierra al pasar
-         el control. Al volver, la tabla se refresca sola con el conteo nuevo. */
       $$("[data-foto]", ov).forEach(function (b) {
         b.addEventListener("click", function () { closeProductModal(); });
       });
     }).catch(function () { window.alert("Sin conexión al abrir el producto."); });
   }
 
-  /* ============================================================
-     NAVEGACIÓN ENTRE VISTAS
-     ============================================================ */
   var TITLES = { dashboard: "Dashboard", pedidos: "Pedidos", tienda: "Tienda", catalogo: "Catálogo", citas: "Citas", usuarios: "Usuarios", resenas: "Reseñas", reportes: "Reportes", precios: "Precios" };
   var rendered = {};
   function showView(view) {
-    /* Blindaje: el empleado puro no entra a Usuarios ni Reportes aunque fuerce la URL/nav. */
     if (isEmpleadoOnly() && EMPLEADO_BLOCKED_VIEWS.indexOf(view) >= 0) view = "dashboard";
     $$("[data-view]").forEach(function (el) {
       if (el.tagName === "SECTION") el.hidden = el.dataset.view !== view;
@@ -2116,11 +1905,10 @@
       if (view === "precios") renderPricing();
       rendered[view] = true;
     }
-    document.body.parentNode; // noop
+    document.body.parentNode;
     closeNav();
   }
 
-  /* Modal de confirmación por contraseña. callback(pw, close, setMsg, setBusy). */
   function askPassword(onConfirm) {
     if (document.getElementById("pwd-modal")) return;
     var ov = document.createElement("div");
@@ -2149,7 +1937,6 @@
     document.addEventListener("keydown", onKey);
   }
 
-  /* ── PRECIOS (solo administrador/directivo): editar precios de impresión + IVA ── */
   function renderPricing() {
     var host = $("#pricing-form");
     if (!host) return;
@@ -2176,8 +1963,7 @@
         $$("[data-pk]", host).forEach(function (inp) { var v = parseFloat(inp.value); if (!isNaN(v)) prices[inp.dataset.pk] = v; });
         var payload = { prices: prices };
         var taxVal = parseFloat($("#pricing-tax").value);
-        if (!isNaN(taxVal)) payload.tax_rate = taxVal;   // el backend normaliza 8 → 0.08
-        /* Confirmación por contraseña antes de guardar (cambio sensible). */
+        if (!isNaN(taxVal)) payload.tax_rate = taxVal;
         askPassword(function (pw, close, setMsg, setBusy) {
           payload.password = pw;
           setBusy(true); setMsg("Guardando…", "var(--text-muted)");
@@ -2195,10 +1981,6 @@
   function openNav() { document.body.classList.add("is-nav-open"); $("#admin-overlay").hidden = false; }
   function closeNav() { document.body.classList.remove("is-nav-open"); $("#admin-overlay").hidden = true; }
 
-  /* Aplica restricciones de interfaz por rol. El empleado puro:
-     - no ve los accesos del sidebar a Usuarios ni Reportes,
-     - no ve la tarjeta "Ventas (últimos 7 días)" del dashboard.
-     (El backend además bloquea esos endpoints/datos: defensa en profundidad.) */
   function applyRoleUI() {
     if (!isEmpleadoOnly()) return;
     EMPLEADO_BLOCKED_VIEWS.forEach(function (v) {
@@ -2212,7 +1994,6 @@
     }
   }
 
-  /* ── Init ── */
   function init() {
     if (!enforceAccess()) return;
     renderUserChip();
@@ -2220,7 +2001,6 @@
 
     DataSource.dashboard().then(function (d) {
       renderStats(d.stats);
-      /* El empleado puro no ve la gráfica de ventas (tarjeta ya oculta por applyRoleUI). */
       if (!isEmpleadoOnly()) renderSalesChart(d.sales7);
       renderServiceBars(d.topServices);
       renderUpcoming(d.upcoming);
@@ -2255,7 +2035,6 @@
       renderOrdersTable();
     });
 
-    /* Filtros de la TIENDA */
     $$("#shop-filters .chip").forEach(function (c) {
       c.addEventListener("click", function () {
         $$("#shop-filters .chip").forEach(function (x) { x.classList.remove("is-selected"); });
@@ -2278,7 +2057,6 @@
       renderShopTable();
     });
 
-    /* Filtros del CATÁLOGO */
     $$("#catalog-filters .chip").forEach(function (c) {
       c.addEventListener("click", function () {
         $$("#catalog-filters .chip").forEach(function (x) { x.classList.remove("is-selected"); });
@@ -2289,9 +2067,6 @@
     });
     var catalogSearchEl = $("#catalog-search");
     if (catalogSearchEl) {
-      /* El catálogo filtra en el SERVIDOR (puede crecer a miles de productos, no se
-         puede traer completo al navegador). Por eso se espera a que el usuario deje
-         de teclear: sin esta pausa, escribir "cuaderno" dispararía 8 consultas. */
       var catalogTimer = null;
       catalogSearchEl.addEventListener("input", function () {
         catalogSearch = catalogSearchEl.value;
@@ -2321,9 +2096,6 @@
     });
     var catalogRescueSearchEl = $("#catalog-rescue-search");
     if (catalogRescueSearchEl) {
-      /* A diferencia del buscador del catálogo, aquí NO se consulta al servidor:
-         las filas ya están en memoria (el reporte carga hasta 500), así que se
-         filtra en cada tecla, sin pausa. */
       catalogRescueSearchEl.addEventListener("input", function () {
         catalogRescueSearch = catalogRescueSearchEl.value;
         renderCatalogRescueReport();
@@ -2355,7 +2127,6 @@
       renderReviews();
     });
 
-    /* ── Reportes: periodo (día/semana/mes) + fecha + descarga PDF ── */
     var reportDateEl = $("#report-date");
     if (reportDateEl && !reportDateEl.value) { reportDateEl.value = todayStr(); reportDate = reportDateEl.value; }
     $$("#report-period .chip").forEach(function (c) {

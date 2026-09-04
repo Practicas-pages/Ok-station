@@ -1,30 +1,17 @@
-/* ============================================================
-   Ok.station — Aviso de retorno del checkout de pago (Mercado Pago / pasarela).
-   Tras pagar, el proveedor redirige a:
-     perfil.html?pago=ok|pendiente|cancelado#pedidos   (o #citas)
-   Mercado Pago anexa además sus propios parámetros (status, payment_id…).
-   Aquí solo mostramos un aviso amable y limpiamos la URL: el estado REAL
-   ("pagado") lo confirma el webhook del servidor y el historial lo refleja
-   por sí mismo (hace polling mientras la entidad esté en "procesando").
-   ============================================================ */
 (function () {
   "use strict";
 
   var params = new URLSearchParams(location.search);
   var pago = params.get("pago");
-  // Respaldo: si por algún motivo no llegó nuestro ?pago=, deducirlo del de MP.
   var mp = (params.get("status") || params.get("collection_status") || "").toLowerCase();
   if (!pago) {
     if (mp === "approved") pago = "ok";
     else if (mp === "pending" || mp === "in_process") pago = "pendiente";
     else if (mp === "rejected" || mp === "failure" || mp === "cancelled" || mp === "null") pago = "cancelado";
   }
-  if (!pago) return; // no venimos de un checkout
+  if (!pago) return;
 
   var MSG = {
-    // El estado REAL lo confirma el servidor (webhook) y el historial hace polling;
-    // este aviso NO afirma un cobro exitoso por sí solo (los parámetros de la URL son
-    // manipulables). Por eso el texto habla de "confirmando", no de "autorizado".
     ok:        { t: "Recibimos tu pago",      d: "Estamos confirmando tu pago con el banco. En cuanto se confirme lo verás reflejado aquí en tu historial y te llegará un correo.",   c: "#15803D", bg: "#DCFCE7" },
     pendiente: { t: "Pago en revisión",      d: "Tu pago quedó pendiente de aprobación. Te avisaremos en cuanto se confirme.",          c: "#B45309", bg: "#FEF3C7" },
     cancelado: { t: "Pago no completado",    d: "No se realizó ningún cargo. Puedes intentarlo de nuevo cuando quieras.",               c: "#B91C1C", bg: "#FEE2E2" }
@@ -54,8 +41,6 @@
     }
   }
 
-  // Limpia los parámetros del proveedor de la URL (conserva el hash) para que
-  // el aviso no reaparezca al recargar.
   try { history.replaceState(null, "", location.pathname + location.hash); } catch (e) {}
 
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", show);
